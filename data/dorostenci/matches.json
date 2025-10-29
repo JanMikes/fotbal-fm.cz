@@ -1,0 +1,50 @@
+{
+  "lastMatch": {
+    "id": "m001",
+    "date": "2025-10-22",
+    "time": "17:00",
+    "homeTeam": "Frýdek-Místek",
+    "awayTeam": "FC Baník Ostrava B",
+    "homeScore": 2,
+    "awayScore": 1,
+    "competition": "Divize E",
+    "round": "11. kolo",
+    "location": "Stovky Frýdek-Místek",
+    "isHome": true
+  },
+  "upcomingMatches": [
+    {
+      "id": "m002",
+      "date": "2025-11-02",
+      "time": "15:00",
+      "homeTeam": "Třinec",
+      "awayTeam": "Frýdek-Místek",
+      "competition": "Divize E",
+      "round": "12. kolo",
+      "location": "Stadion Třinec",
+      "isHome": false
+    },
+    {
+      "id": "m003",
+      "date": "2025-11-09",
+      "time": "14:30",
+      "homeTeam": "Frýdek-Místek",
+      "awayTeam": "Karviná B",
+      "competition": "Divize E",
+      "round": "13. kolo",
+      "location": "Stovky Frýdek-Místek",
+      "isHome": true
+    },
+    {
+      "id": "m004",
+      "date": "2025-11-16",
+      "time": "16:00",
+      "homeTeam": "Havířov",
+      "awayTeam": "Frýdek-Místek",
+      "competition": "Divize E",
+      "round": "14. kolo",
+      "location": "Stadion Havířov",
+      "isHome": false
+    }
+  ]
+}

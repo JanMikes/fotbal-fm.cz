@@ -1,0 +1,110 @@
+[
+  {
+    "id": "p001",
+    "name": "Tomáš Novák",
+    "number": 1,
+    "position": "Brankář",
+    "dateOfBirth": "1995-03-15",
+    "height": 188,
+    "weight": 82
+  },
+  {
+    "id": "p002",
+    "name": "Jakub Dvořák",
+    "number": 2,
+    "position": "Obránce",
+    "dateOfBirth": "1997-07-22",
+    "height": 183,
+    "weight": 78
+  },
+  {
+    "id": "p003",
+    "name": "Martin Svoboda",
+    "number": 3,
+    "position": "Obránce",
+    "dateOfBirth": "1996-11-08",
+    "height": 180,
+    "weight": 75
+  },
+  {
+    "id": "p004",
+    "name": "Petr Černý",
+    "number": 4,
+    "position": "Obránce",
+    "dateOfBirth": "1998-01-30",
+    "height": 185,
+    "weight": 80
+  },
+  {
+    "id": "p005",
+    "name": "Jan Procházka",
+    "number": 5,
+    "position": "Obránce",
+    "dateOfBirth": "1994-05-12",
+    "height": 182,
+    "weight": 77
+  },
+  {
+    "id": "p006",
+    "name": "David Kučera",
+    "number": 6,
+    "position": "Záložník",
+    "dateOfBirth": "1999-09-05",
+    "height": 175,
+    "weight": 72
+  },
+  {
+    "id": "p007",
+    "name": "Michal Veselý",
+    "number": 7,
+    "position": "Záložník",
+    "dateOfBirth": "1997-04-18",
+    "height": 178,
+    "weight": 74
+  },
+  {
+    "id": "p008",
+    "name": "Ondřej Horák",
+    "number": 8,
+    "position": "Záložník",
+    "dateOfBirth": "1996-12-25",
+    "height": 177,
+    "weight": 73
+  },
+  {
+    "id": "p009",
+    "name": "Lukáš Marek",
+    "number": 9,
+    "position": "Útočník",
+    "dateOfBirth": "1998-06-14",
+    "height": 181,
+    "weight": 76
+  },
+  {
+    "id": "p010",
+    "name": "Filip Němec",
+    "number": 10,
+    "position": "Útočník",
+    "dateOfBirth": "1995-08-20",
+    "height": 179,
+    "weight": 75
+  },
+  {
+    "id": "p011",
+    "name": "Adam Pospíšil",
+    "number": 11,
+    "position": "Útočník",
+    "dateOfBirth": "1999-02-10",
+    "height": 176,
+    "weight": 71
+  },
+  {
+    "id": "p012",
+    "name": "Vojtěch Beneš",
+    "number": 12,
+    "position": "Brankář",
+    "dateOfBirth": "2000-10-03",
+    "height": 190,
+    "weight": 84
+  }
+]
