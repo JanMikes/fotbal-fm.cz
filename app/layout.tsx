@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="cs">
       <body className={`${inter.variable} antialiased flex flex-col min-h-screen`}>
         <Header />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow pt-16">{children}</main>
         <Footer />
       </body>
     </html>
