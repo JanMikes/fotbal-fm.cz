@@ -1,0 +1,70 @@
+volumes:
+    postgres-data:
+
+services:
+    postgres:
+        image: postgres:17.0
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: strapi
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    strapi:
+        image: node:24
+        restart: unless-stopped
+        ports:
+            - "1337:1337"
+        environment:
+            NODE_ENV: production
+            HOST: 0.0.0.0
+            PORT: 1337
+            DATABASE_CLIENT: postgres
+            DATABASE_HOST: postgres
+            DATABASE_PORT: 5432
+            DATABASE_NAME: strapi
+            DATABASE_USERNAME: postgres
+            DATABASE_PASSWORD: postgres
+            DATABASE_SSL: false
+            # IMPORTANT: Change these secrets in production!
+            APP_KEYS: toBeModified1,toBeModified2
+            API_TOKEN_SALT: toBeModifiedApiTokenSalt
+            ADMIN_JWT_SECRET: toBeModifiedAdminJwtSecret
+            TRANSFER_TOKEN_SALT: toBeModifiedTransferTokenSalt
+            JWT_SECRET: toBeModifiedJwtSecret
+        working_dir: /app
+        volumes:
+            - ./strapi:/app
+        depends_on:
+            postgres:
+                condition: service_healthy
+        command: bash -c "npm ci && npm run dev"
+
+    nextjs:
+        image: node:24
+        restart: unless-stopped
+        working_dir: /app
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./nextjs:/app
+            - ./strapi/public/uploads:/app/public/uploads
+        environment:
+            - NODE_ENV=development
+        command: sh -c "npm ci && npm run dev"
+
+    adminer:
+        image: adminer:5.4.1
+        ports:
+            - "8000:8080"
+        environment:
+            ADMINER_DEFAULT_SERVER: postgres
+        depends_on:
+            - postgres
