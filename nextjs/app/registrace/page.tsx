@@ -133,7 +133,7 @@ function RegisterPageContent() {
             <h1 className="text-3xl font-bold text-text-primary mb-2">Registrace</h1>
             <p className="text-text-secondary">Vytvořte si nový účet</p>
           </div>
-          <RegisterForm secret={secret} />
+          <RegisterForm secret={secret!} />
           <div className="mt-8 text-center text-sm text-text-secondary">
             Už máte účet?{' '}
             <Link
