@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "match_results",
+  "info": {
+    "singularName": "match-result",
+    "pluralName": "match-results",
+    "displayName": "Match results",
+    "description": "Football match results submitted by users"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "homeTeam": {
+      "type": "string",
+      "required": true
+    },
+    "awayTeam": {
+      "type": "string",
+      "required": true
+    },
+    "homeScore": {
+      "type": "integer",
+      "required": true,
+      "min": 0
+    },
+    "awayScore": {
+      "type": "integer",
+      "required": true,
+      "min": 0
+    },
+    "homeGoalscorers": {
+      "type": "text"
+    },
+    "awayGoalscorers": {
+      "type": "text"
+    },
+    "matchReport": {
+      "type": "text"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "image"
+      ]
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

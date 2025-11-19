@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark theme colors */
+  --background: #0a0a0f;
+  --foreground: #e4e4e7;
+
+  /* Custom color palette - Cohesive blue-based theme */
+  --primary: #1e40af;         /* Main brand color - much darker blue for WCAG AAA */
+  --primary-hover: #2563eb;   /* Medium blue on hover */
+  --primary-dark: #1e3a8a;    /* Even darker variant */
+
+  --secondary: #64748b;       /* Neutral slate for secondary actions */
+  --secondary-hover: #94a3b8;
+
+  --accent: #0891b2;          /* Darker cyan accent for better contrast */
+  --accent-hover: #06b6d4;    /* Original cyan on hover */
+
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  /* Surface colors - warmer, less purple */
+  --surface: #1a1a24;
+  --surface-elevated: #1e293b;    /* Slate-based instead of purple */
+  --surface-hover: #334155;
+
+  /* Border colors */
+  --border: #334155;
+  --border-light: #475569;
+
+  /* Text colors */
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-label: #64748b;          /* For labels and metadata */
 }
 
 @theme inline {
+  /* Background and foreground */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Custom colors */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-dark: var(--primary-dark);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-label: var(--text-label);
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Spacing and sizing */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Fix cursor pointer for interactive elements */
+button,
+a,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+label[for],
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+a[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Improve focus visibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

@@ -59,6 +59,7 @@ services:
         environment:
             NODE_ENV: development
             STRAPI_URL: http://strapi:1337
+            REGISTRATION_SECRET: "secret"
         command: bash -c "npm install && npm run dev"
 
     adminer:
