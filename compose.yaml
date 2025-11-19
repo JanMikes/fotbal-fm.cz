@@ -57,7 +57,8 @@ services:
             - ./nextjs:/app
             - ./strapi/public/uploads:/app/public/uploads
         environment:
-            - NODE_ENV=development
+            NODE_ENV: development
+            STRAPI_URL: http://strapi:1337
         command: bash -c "npm install && npm run dev"
 
     adminer:
