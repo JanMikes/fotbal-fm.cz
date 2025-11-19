@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { MatchResult } from '@/types/match-result';
@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Link from 'next/link';
 import { Plus, Trophy } from 'lucide-react';
 
-export default function MyMatchResultsPage() {
+function MyMatchResultsPageContent() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,5 +129,20 @@ export default function MyMatchResultsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MyMatchResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Načítání...</p>
+        </div>
+      </div>
+    }>
+      <MyMatchResultsPageContent />
+    </Suspense>
   );
 }
