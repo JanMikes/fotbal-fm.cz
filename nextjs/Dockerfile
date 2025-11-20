@@ -4,15 +4,15 @@ EXPOSE 3000
 
 WORKDIR /app
 
-# Install dependencies (including devDependencies needed for build)
 COPY package.json package-lock.json ./
+
+# Install dependencies (including devDependencies needed for build)
 RUN npm ci
 
-# Copy source and build
 COPY . .
-RUN npm run build
 
-# Set production env for runtime
 ENV NODE_ENV=production
+
+RUN npm run build
 
 CMD ["npm", "run", "start"]

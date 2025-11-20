@@ -12,6 +12,12 @@ const protectedRoutes = ['/dashboard', '/nastaveni'];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip session check for API routes - they handle their own authentication
+  // This prevents body locking issues with formData uploads
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   // Get session
   const response = NextResponse.next();
   const session = await getIronSession<SessionData>(request, response, sessionOptions);
@@ -44,11 +50,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - uploads (shared Strapi uploads)
      */
-    '/((?!_next/static|_next/image|favicon.ico|uploads).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads).*)',
   ],
 };
