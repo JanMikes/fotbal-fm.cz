@@ -10,10 +10,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center bg-background pt-32">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-border border-t-primary mb-4"></div>
-          <p className="text-text-secondary">Načítám...</p>
+          <p className="text-text-secondary">Načítání...</p>
         </div>
       </div>
     );
@@ -24,7 +24,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="bg-background py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-text-primary mb-2">Dashboard</h1>

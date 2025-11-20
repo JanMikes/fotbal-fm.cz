@@ -19,10 +19,10 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex items-center justify-center bg-background pt-32">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-border border-t-primary mb-4"></div>
-          <p className="text-text-secondary">Načítám...</p>
+          <p className="text-text-secondary">Načítání...</p>
         </div>
       </div>
     );
@@ -33,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+    <div className="flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
         <Card variant="elevated">
           <div className="text-center mb-8">

@@ -18,10 +18,10 @@ export default function AddMatchResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center bg-background pt-32">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-          <p className="mt-4 text-text-secondary">Načítání...</p>
+          <p className="text-text-secondary">Načítání...</p>
         </div>
       </div>
     );
@@ -32,7 +32,7 @@ export default function AddMatchResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="bg-background py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-text-primary mb-2">
