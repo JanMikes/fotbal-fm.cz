@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: "MFK FM - Firemní aplikace",
 };
 
+// Force dynamic rendering for all pages to avoid React 19 prerendering bugs
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{
