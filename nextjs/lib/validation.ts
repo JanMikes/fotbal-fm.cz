@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import './zod-init'; // Initialize Czech locale for Zod error messages
 
 export const loginSchema = z.object({
   email: z.string().email('Neplatný formát emailu'),

@@ -34,7 +34,7 @@ function validateEnv() {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(e => `  - ${e.path.join('.')}: ${e.message}`).join('\n');
+      const missingVars = error.issues.map(e => `  - ${e.path.join('.')}: ${e.message}`).join('\n');
       throw new Error(
         `❌ Invalid environment variables:\n${missingVars}\n\nPlease check your .env.local file against .env.example`
       );

@@ -6,9 +6,11 @@
 /**
  * Generic Strapi data wrapper
  * Strapi wraps all resources in a data object with id and attributes
+ * In Strapi 5, documentId is the primary identifier
  */
 export interface StrapiDataWrapper<T> {
   id: number;
+  documentId?: string;
   attributes: T;
 }
 

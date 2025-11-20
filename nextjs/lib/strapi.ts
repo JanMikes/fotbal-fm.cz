@@ -8,12 +8,12 @@ import {User} from '@/types/user';
 import {
     MatchResult,
     CreateMatchResultRequest,
-    StrapiMatchResultResponse,
-    StrapiMatchResultsResponse,
+    StrapiImage,
 } from '@/types/match-result';
 import {
     StrapiMatchResultData,
     StrapiMatchResultsCollectionResponse,
+    StrapiMatchResultSingleResponse,
     StrapiMediaAttributes,
     StrapiDataWrapper,
 } from '@/types/strapi-responses';
@@ -299,33 +299,86 @@ export async function strapiServiceCall<T>(
 
 /**
  * Convert Strapi match result response to MatchResult type
- * Properly typed to handle Strapi's nested data structure
+ * Strapi 5 with populate=* returns flattened structure (fields directly on data)
+ * Strapi 5 without populate returns nested structure (fields in attributes)
  */
-function mapStrapiMatchResult(strapiData: StrapiMatchResultData): MatchResult {
+function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchResult {
     const { id, attributes } = strapiData;
 
-    // Map images if they exist
-    let images: StrapiMediaAttributes[] = [];
-    if (attributes.images?.data) {
-        const imageData = attributes.images.data;
-        images = Array.isArray(imageData)
-            ? imageData.map((img: StrapiDataWrapper<StrapiMediaAttributes>) => img.attributes)
-            : [imageData.attributes];
+    // Strapi 5: determine if response is flattened or nested
+    // Flattened: fields are directly on strapiData (when using populate=*)
+    // Nested: fields are in attributes (when not using populate)
+    const isFlattened = !attributes && 'homeTeam' in strapiData;
+    const data = isFlattened ? strapiData : attributes;
+
+    if (!data) {
+        throw new Error('Invalid match result data: missing data');
     }
+
+    // Map images if they exist
+    let images: StrapiImage[] = [];
+
+    if (isFlattened && Array.isArray(data.images)) {
+        // Flattened structure: images is an array of media objects directly
+        images = data.images.map((img: any): StrapiImage => ({
+            id: img.id,
+            name: img.name,
+            alternativeText: img.alternativeText || null,
+            caption: img.caption || null,
+            width: img.width || 0,
+            height: img.height || 0,
+            formats: img.formats || {},
+            url: img.url,
+            previewUrl: img.previewUrl || null,
+            provider: img.provider,
+            size: img.size,
+            ext: img.ext,
+            mime: img.mime,
+            createdAt: img.createdAt,
+            updatedAt: img.updatedAt,
+        }));
+    } else if (data.images?.data) {
+        // Nested structure: images.data contains wrapped media objects
+        const imageData = data.images.data;
+        const mapMedia = (img: StrapiDataWrapper<StrapiMediaAttributes>): StrapiImage => ({
+            id: img.id,
+            name: img.attributes.name,
+            alternativeText: img.attributes.alternativeText || null,
+            caption: img.attributes.caption || null,
+            width: img.attributes.width || 0,
+            height: img.attributes.height || 0,
+            formats: img.attributes.formats || {},
+            url: img.attributes.url,
+            previewUrl: img.attributes.previewUrl || null,
+            provider: img.attributes.provider,
+            size: img.attributes.size,
+            ext: img.attributes.ext,
+            mime: img.attributes.mime,
+            createdAt: img.attributes.createdAt,
+            updatedAt: img.attributes.updatedAt,
+        });
+
+        images = Array.isArray(imageData)
+            ? imageData.map(mapMedia)
+            : [mapMedia(imageData)];
+    }
+
+    // Handle author field for userId (flattened structure has author.id)
+    const userId = isFlattened ? data.author?.id : data.userId;
 
     return {
         id,
-        homeTeam: attributes.homeTeam,
-        awayTeam: attributes.awayTeam,
-        homeScore: attributes.homeScore,
-        awayScore: attributes.awayScore,
-        homeGoalscorers: attributes.homeGoalscorers || undefined,
-        awayGoalscorers: attributes.awayGoalscorers || undefined,
-        matchReport: attributes.matchReport || undefined,
+        homeTeam: data.homeTeam,
+        awayTeam: data.awayTeam,
+        homeScore: data.homeScore,
+        awayScore: data.awayScore,
+        homeGoalscorers: data.homeGoalscorers || undefined,
+        awayGoalscorers: data.awayGoalscorers || undefined,
+        matchReport: data.matchReport || undefined,
         images,
-        authorId: attributes.userId,
-        createdAt: attributes.createdAt,
-        updatedAt: attributes.updatedAt,
+        authorId: userId,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
     };
 }
 
@@ -353,7 +406,11 @@ export async function strapiCreateMatchResult(
             handleStrapiError(error);
         }
 
-        const createData: StrapiMatchResultResponse = await createResponse.json();
+        const createData: StrapiMatchResultSingleResponse = await createResponse.json();
+
+        if (!createData.data) {
+            throw new Error('Nepodařilo se vytvořit výsledek zápasu');
+        }
 
         // If we have images, upload them and link to the created entry
         if (images.length > 0) {
@@ -378,13 +435,18 @@ export async function strapiCreateMatchResult(
             });
 
             if (!uploadResponse.ok) {
-                // Don't fail the whole operation if images fail
-                // The match result was created successfully
+                // Log the error but don't fail the whole operation
+                const uploadError = await uploadResponse.json().catch(() => ({}));
+                console.error('Image upload failed:', uploadError);
+                // Return the match result without images
+                return mapStrapiMatchResult(createData.data);
             }
 
             // Fetch the updated entry with images populated
+            // In Strapi 5, use documentId if available, otherwise fall back to id
+            const identifier = createData.data.documentId || createData.data.id;
             const getResponse = await fetch(
-                `${STRAPI_URL}/api/match-results/${createData.data.id}?populate=*`,
+                `${STRAPI_URL}/api/match-results/${identifier}?populate=*`,
                 {
                     headers: {
                         Authorization: `Bearer ${jwt}`,
@@ -393,9 +455,14 @@ export async function strapiCreateMatchResult(
             );
 
             if (getResponse.ok) {
-                const getData: StrapiMatchResultResponse = await getResponse.json();
-                return mapStrapiMatchResult(getData.data);
+                const getData: StrapiMatchResultSingleResponse = await getResponse.json();
+                if (getData.data) {
+                    return mapStrapiMatchResult(getData.data);
+                }
             }
+
+            // If refetch fails, return original data
+            return mapStrapiMatchResult(createData.data);
         }
 
         return mapStrapiMatchResult(createData.data);
@@ -431,7 +498,7 @@ export async function strapiGetUserMatchResults(
             handleStrapiError(error);
         }
 
-        const responseData: StrapiMatchResultsResponse = await response.json();
+        const responseData: StrapiMatchResultsCollectionResponse = await response.json();
 
         return responseData.data.map(mapStrapiMatchResult);
     } catch (error) {
