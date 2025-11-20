@@ -10,6 +10,9 @@ RUN npm ci
 
 # Copy source and build
 COPY . .
+
+# Set NODE_ENV to development during build to avoid prerendering issues
+ENV NODE_ENV=development
 RUN npm run build
 
 # Set production env for runtime
