@@ -1,6 +1,5 @@
 FROM node:22 AS base
 
-ENV NODE_ENV=development
 EXPOSE 3000
 
 WORKDIR /app
