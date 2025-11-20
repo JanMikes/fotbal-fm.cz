@@ -1,28 +1,23 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useUser } from '@/contexts/UserContext';
+import { useSearchParams } from 'next/navigation';
 import { MatchResult } from '@/types/match-result';
 import MatchResultCard from '@/components/MatchResultCard';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
 import { Plus, Trophy } from 'lucide-react';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import Alert from '@/components/ui/Alert';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 function MyMatchResultsPageContent() {
-  const { user, loading: userLoading } = useUser();
-  const router = useRouter();
+  const { user, loading: userLoading } = useRequireAuth();
   const searchParams = useSearchParams();
   const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const showSuccess = searchParams.get('success') === 'true';
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.push('/prihlaseni');
-    }
-  }, [user, userLoading, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -53,14 +48,7 @@ function MyMatchResultsPageContent() {
   }, [user]);
 
   if (userLoading || loading) {
-    return (
-      <div className="flex items-center justify-center bg-background pt-32">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-          <p className="text-text-secondary">Načítání...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!user) {
@@ -89,14 +77,14 @@ function MyMatchResultsPageContent() {
         </div>
 
         {showSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-            Výsledek zápasu byl úspěšně vytvořen!
+          <div className="mb-6">
+            <Alert variant="success">Výsledek zápasu byl úspěšně vytvořen!</Alert>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
+          <div className="mb-6">
+            <Alert variant="error">{error}</Alert>
           </div>
         )}
 

@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
+import Alert from '@/components/ui/Alert';
 
 export default function MatchResultForm() {
   const router = useRouter();
@@ -81,9 +82,7 @@ export default function MatchResultForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
+        <Alert variant="error">{error}</Alert>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

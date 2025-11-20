@@ -7,6 +7,7 @@ import { changePasswordSchema, ChangePasswordFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import Alert from '@/components/ui/Alert';
 
 export default function ChangePasswordForm() {
   const [error, setError] = useState<string>('');
@@ -49,7 +50,6 @@ export default function ChangePasswordForm() {
       }
     } catch (err) {
       setError('Nastala neočekávaná chyba');
-      console.error('Change password error:', err);
     } finally {
       setLoading(false);
     }
@@ -58,15 +58,11 @@ export default function ChangePasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+        <Alert variant="error">{error}</Alert>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-          {success}
-        </div>
+        <Alert variant="success">{success}</Alert>
       )}
 
       <FormField label="Současné heslo" error={errors.currentPassword?.message} required>

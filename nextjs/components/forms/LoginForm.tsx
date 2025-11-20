@@ -9,6 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import Alert from '@/components/ui/Alert';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -48,7 +49,6 @@ export default function LoginForm() {
       }
     } catch (err) {
       setError('Nastala neočekávaná chyba');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -57,9 +57,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+        <Alert variant="error">{error}</Alert>
       )}
 
       <FormField label="Email" error={errors.email?.message} required>

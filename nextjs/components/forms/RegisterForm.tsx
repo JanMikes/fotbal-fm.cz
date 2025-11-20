@@ -8,6 +8,7 @@ import { registerSchema, RegisterFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
+import Alert from '@/components/ui/Alert';
 
 interface RegisterFormProps {
   secret: string;
@@ -49,7 +50,6 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
       }
     } catch (err) {
       setError('Nastala neočekávaná chyba');
-      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
@@ -58,9 +58,7 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+        <Alert variant="error">{error}</Alert>
       )}
 
       <FormField label="Email" error={errors.email?.message} required>

@@ -1,16 +1,17 @@
 import { getIronSession, IronSession, SessionOptions } from 'iron-session';
 import { cookies } from 'next/headers';
 import { SessionData } from '@/types/session';
+import { config, constants, isProduction } from './config';
 
-// Session configuration
+// Session configuration using validated environment variables
 export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET!,
-  cookieName: 'mfkfm_session',
+  password: config.SESSION_SECRET,
+  cookieName: constants.SESSION_COOKIE_NAME,
   cookieOptions: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction(),
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: constants.SESSION_MAX_AGE,
   },
 };
 

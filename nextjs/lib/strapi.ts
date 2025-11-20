@@ -11,9 +11,16 @@ import {
     StrapiMatchResultResponse,
     StrapiMatchResultsResponse,
 } from '@/types/match-result';
+import {
+    StrapiMatchResultData,
+    StrapiMatchResultsCollectionResponse,
+    StrapiMediaAttributes,
+    StrapiDataWrapper,
+} from '@/types/strapi-responses';
+import { config } from './config';
 
-const STRAPI_URL = process.env.STRAPI_URL || 'http://strapi:1337';
-const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
+const STRAPI_URL = config.STRAPI_URL;
+const STRAPI_API_TOKEN = config.STRAPI_API_TOKEN;
 
 /**
  * Convert Strapi user to our User type
@@ -292,26 +299,33 @@ export async function strapiServiceCall<T>(
 
 /**
  * Convert Strapi match result response to MatchResult type
+ * Properly typed to handle Strapi's nested data structure
  */
-function mapStrapiMatchResult(strapiData: any): MatchResult {
-    // Handle both Strapi 4 format (with attributes) and Strapi 5 format (without attributes)
-    const data = strapiData.attributes || strapiData;
+function mapStrapiMatchResult(strapiData: StrapiMatchResultData): MatchResult {
+    const { id, attributes } = strapiData;
 
-    console.log('Mapping Strapi data:', JSON.stringify(strapiData, null, 2));
+    // Map images if they exist
+    let images: StrapiMediaAttributes[] = [];
+    if (attributes.images?.data) {
+        const imageData = attributes.images.data;
+        images = Array.isArray(imageData)
+            ? imageData.map((img: StrapiDataWrapper<StrapiMediaAttributes>) => img.attributes)
+            : [imageData.attributes];
+    }
 
     return {
-        id: strapiData.id,
-        homeTeam: data.homeTeam,
-        awayTeam: data.awayTeam,
-        homeScore: data.homeScore,
-        awayScore: data.awayScore,
-        homeGoalscorers: data.homeGoalscorers || undefined,
-        awayGoalscorers: data.awayGoalscorers || undefined,
-        matchReport: data.matchReport || undefined,
-        images: data.images?.data ? data.images.data.map((img: any) => img.attributes || img) : [],
-        authorId: data.author?.data?.id || data.author?.id || data.author,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        id,
+        homeTeam: attributes.homeTeam,
+        awayTeam: attributes.awayTeam,
+        homeScore: attributes.homeScore,
+        awayScore: attributes.awayScore,
+        homeGoalscorers: attributes.homeGoalscorers || undefined,
+        awayGoalscorers: attributes.awayGoalscorers || undefined,
+        matchReport: attributes.matchReport || undefined,
+        images,
+        authorId: attributes.userId,
+        createdAt: attributes.createdAt,
+        updatedAt: attributes.updatedAt,
     };
 }
 
@@ -336,7 +350,6 @@ export async function strapiCreateMatchResult(
 
         if (!createResponse.ok) {
             const error = await createResponse.json();
-            console.error('Strapi error response:', error);
             handleStrapiError(error);
         }
 
@@ -356,8 +369,6 @@ export async function strapiCreateMatchResult(
             formData.append('refId', String(createData.data.id));
             formData.append('field', 'images');
 
-            console.log('Uploading images for match result:', createData.data.id);
-
             const uploadResponse = await fetch(`${STRAPI_URL}/api/upload`, {
                 method: 'POST',
                 headers: {
@@ -367,10 +378,8 @@ export async function strapiCreateMatchResult(
             });
 
             if (!uploadResponse.ok) {
-                const uploadError = await uploadResponse.json();
-                console.error('Image upload error:', uploadError);
                 // Don't fail the whole operation if images fail
-                console.warn('Match result created but images failed to upload');
+                // The match result was created successfully
             }
 
             // Fetch the updated entry with images populated
@@ -385,12 +394,10 @@ export async function strapiCreateMatchResult(
 
             if (getResponse.ok) {
                 const getData: StrapiMatchResultResponse = await getResponse.json();
-                console.log('Strapi response with images:', JSON.stringify(getData, null, 2));
                 return mapStrapiMatchResult(getData.data);
             }
         }
 
-        console.log('Strapi response without images:', JSON.stringify(createData, null, 2));
         return mapStrapiMatchResult(createData.data);
     } catch (error) {
         if (error instanceof Error) {

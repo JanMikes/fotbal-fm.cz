@@ -4,19 +4,13 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function DashboardPage() {
   const { user, loading } = useUser();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center bg-background pt-32">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-border border-t-primary mb-4"></div>
-          <p className="text-text-secondary">Načítání...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!user) {

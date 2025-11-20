@@ -16,8 +16,6 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
     minute: '2-digit',
   });
 
-  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-
   return (
     <Card variant="elevated">
       <div className="space-y-4">
@@ -94,7 +92,7 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
               {matchResult.images.map((image, index) => (
                 <a
                   key={image.id}
-                  href={`${STRAPI_URL}${image.url}`}
+                  href={image.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block group"
@@ -102,8 +100,8 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
                   <img
                     src={
                       image.formats.thumbnail
-                        ? `${STRAPI_URL}${image.formats.thumbnail.url}`
-                        : `${STRAPI_URL}${image.url}`
+                        ? image.formats.thumbnail.url
+                        : image.url
                     }
                     alt={image.alternativeText || `Fotografie ${index + 1}`}
                     className="w-full h-24 object-cover rounded-lg border-2 border-border group-hover:border-primary transition-all duration-200 group-hover:shadow-lg group-hover:shadow-primary/20"

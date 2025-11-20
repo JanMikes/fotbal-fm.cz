@@ -1,30 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import MatchResultForm from '@/components/forms/MatchResultForm';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export default function AddMatchResultPage() {
-  const { user, loading } = useUser();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/prihlaseni');
-    }
-  }, [user, loading, router]);
+  const { user, loading } = useRequireAuth();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center bg-background pt-32">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-          <p className="text-text-secondary">Načítání...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (!user) {

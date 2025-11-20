@@ -34,7 +34,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error('Error fetching user:', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -47,7 +46,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(null);
       window.location.href = '/';
     } catch (error) {
-      console.error('Error logging out:', error);
+      // Even if logout API fails, clear local state
+      setUser(null);
+      window.location.href = '/';
     }
   };
 

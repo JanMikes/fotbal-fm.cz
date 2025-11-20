@@ -1,18 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { Lock } from 'lucide-react';
-import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import RegisterForm from '@/components/forms/RegisterForm';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 function RegisterPageContent() {
-  const { user, loading } = useUser();
-  const router = useRouter();
+  const { user, loading } = useRequireAuth({
+    redirectIfAuthenticated: true,
+    authenticatedRedirectTo: '/dashboard',
+  });
   const searchParams = useSearchParams();
   const [secret, setSecret] = useState<string | null>(null);
   const [secretValid, setSecretValid] = useState<boolean | null>(null);
@@ -51,21 +54,8 @@ function RegisterPageContent() {
     validateSecret();
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
-
   if (loading || validating) {
-    return (
-      <div className="flex items-center justify-center bg-background pt-32">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-border border-t-primary mb-4"></div>
-          <p className="text-text-secondary">Načítání...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (user) {
