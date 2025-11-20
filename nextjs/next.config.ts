@@ -28,6 +28,10 @@ export default withSentryConfig(nextConfig, {
   // side errors will fail.
   tunnelRoute: "/monitoring",
 
+  // Hides source maps from generated client bundles (prevents 404 errors in production)
+  // Source maps are still generated and uploaded to Sentry for error reporting
+  hideSourceMaps: true,
+
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
