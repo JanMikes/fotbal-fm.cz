@@ -20,10 +20,29 @@ const envSchema = z.object({
 });
 
 /**
+ * Check if we're in a build-time environment (Next.js build process)
+ * During build, we don't have access to runtime environment variables
+ */
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+
+/**
  * Validates and parses environment variables
  * Throws an error if validation fails
+ * Skips validation during build time
  */
 function validateEnv() {
+  // During build time, return placeholder values
+  // Real validation happens at runtime
+  if (isBuildTime) {
+    return {
+      SESSION_SECRET: 'build-time-placeholder',
+      STRAPI_URL: 'http://build-time-placeholder',
+      STRAPI_API_TOKEN: 'build-time-placeholder-token-aaaaaaaaaaaaaaaaaaaaaaaaaa',
+      REGISTRATION_SECRET: 'build-time-placeholder',
+      NODE_ENV: process.env.NODE_ENV as 'development' | 'production' | 'test' || 'production',
+    };
+  }
+
   try {
     return envSchema.parse({
       SESSION_SECRET: process.env.SESSION_SECRET,
