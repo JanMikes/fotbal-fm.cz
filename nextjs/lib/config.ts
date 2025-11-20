@@ -12,6 +12,9 @@ const envSchema = z.object({
   STRAPI_URL: z.string().url('STRAPI_URL must be a valid URL'),
   STRAPI_API_TOKEN: z.string().min(50, 'STRAPI_API_TOKEN must be at least 50 characters'),
 
+  // Public uploads URL (client-side accessible)
+  PUBLIC_UPLOADS_URL: z.string().url('PUBLIC_UPLOADS_URL must be a valid URL').default('http://localhost:8080'),
+
   // Registration secret
   REGISTRATION_SECRET: z.string().min(1, 'REGISTRATION_SECRET is required').optional(),
 
@@ -38,6 +41,7 @@ function validateEnv() {
       SESSION_SECRET: 'build-time-placeholder',
       STRAPI_URL: 'http://build-time-placeholder',
       STRAPI_API_TOKEN: 'build-time-placeholder-token-aaaaaaaaaaaaaaaaaaaaaaaaaa',
+      PUBLIC_UPLOADS_URL: 'http://localhost:8080',
       REGISTRATION_SECRET: 'build-time-placeholder',
       NODE_ENV: process.env.NODE_ENV as 'development' | 'production' | 'test' || 'production',
     };
@@ -48,6 +52,7 @@ function validateEnv() {
       SESSION_SECRET: process.env.SESSION_SECRET,
       STRAPI_URL: process.env.STRAPI_URL,
       STRAPI_API_TOKEN: process.env.STRAPI_API_TOKEN,
+      PUBLIC_UPLOADS_URL: process.env.PUBLIC_UPLOADS_URL,
       REGISTRATION_SECRET: process.env.REGISTRATION_SECRET,
       NODE_ENV: process.env.NODE_ENV,
     });
@@ -90,10 +95,17 @@ export const constants = {
 
 /**
  * Get the Strapi API URL (server-side only)
- * Client-side should use relative paths for uploads via shared volume
  */
 export function getStrapiUrl(): string {
   return config.STRAPI_URL;
+}
+
+/**
+ * Get the public uploads URL (accessible from browser)
+ * Used for serving uploaded images and other static assets via nginx
+ */
+export function getPublicUploadsUrl(): string {
+  return config.PUBLIC_UPLOADS_URL;
 }
 
 /**

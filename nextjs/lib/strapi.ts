@@ -17,25 +17,25 @@ import {
     StrapiMediaAttributes,
     StrapiDataWrapper,
 } from '@/types/strapi-responses';
-import { config } from './config';
+import { config, getPublicUploadsUrl } from './config';
 
 const STRAPI_URL = config.STRAPI_URL;
 const STRAPI_API_TOKEN = config.STRAPI_API_TOKEN;
 
 /**
- * Transform image URL to use the Next.js proxy API route
- * This ensures images are always fetched from Strapi, avoiding Next.js static file caching issues
+ * Transform image URL to use the public uploads URL (nginx)
+ * This ensures images are served via nginx with proper cache headers
  */
 function transformImageUrl(url: string): string {
-    // If the URL starts with /uploads/, transform it to use the proxy API
+    // If the URL starts with /uploads/, prefix it with the public uploads URL
     if (url.startsWith('/uploads/')) {
-        return `/api${url}`;
+        return `${getPublicUploadsUrl()}${url}`;
     }
     return url;
 }
 
 /**
- * Transform image formats object to use proxy URLs for all format variants
+ * Transform image formats object to use nginx URLs for all format variants
  */
 function transformImageFormats(formats: any): any {
     const transformed: any = {};
