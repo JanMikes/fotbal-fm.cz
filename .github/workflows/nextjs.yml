@@ -54,6 +54,22 @@ jobs:
                     labels: ${{ steps.meta.outputs.labels }}
                     cache-from: type=gha, scope=${{ github.workflow }}
                     cache-to: type=gha, scope=${{ github.workflow }}
+                    # Pass Sentry auth token for source map upload and release tracking
+                    build-args: |
+                        SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+                    secrets: |
+                        SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+
+            -   name: Create Sentry release
+                if: github.event_name != 'pull_request'
+                uses: getsentry/action-release@v1
+                env:
+                    SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+                    SENTRY_ORG: thedevscz
+                    SENTRY_PROJECT: fotbal-fm-nextjs
+                with:
+                    environment: production
+                    version: ${{ github.sha }}
 
     deploy:
         runs-on: ubuntu-latest
