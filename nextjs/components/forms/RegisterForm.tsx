@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import { useUser } from '@/contexts/UserContext';
+import { useScrollToError } from '@/hooks/useScrollToError';
 
 interface RegisterFormProps {
   secret: string;
@@ -28,6 +29,9 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
+
+  // Automatically scroll to the first error field
+  useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {

@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToError';
 
 export default function ProfileForm() {
   const { user, refreshUser } = useUser();
@@ -28,6 +29,9 @@ export default function ProfileForm() {
       jobTitle: user?.jobTitle || '',
     },
   });
+
+  // Automatically scroll to the first error field
+  useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: UpdateProfileFormData) => {
     try {

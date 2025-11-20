@@ -27,9 +27,11 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
             </h3>
           </div>
 
-          <div className="mx-6 text-center">
-            <div className="text-3xl font-bold text-primary">
-              {matchResult.homeScore} : {matchResult.awayScore}
+          <div className="mx-6">
+            <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-2xl px-6 py-3 shadow-lg shadow-primary/10">
+              <div className="text-4xl font-bold text-text-primary text-center tracking-wider">
+                {matchResult.homeScore} : {matchResult.awayScore}
+              </div>
             </div>
           </div>
 

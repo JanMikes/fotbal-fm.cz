@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToError';
 
 export default function MatchResultForm() {
   const router = useRouter();
@@ -25,6 +26,9 @@ export default function MatchResultForm() {
     resolver: zodResolver(matchResultSchema),
     mode: 'onSubmit',
   });
+
+  // Automatically scroll to the first error field
+  useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: MatchResultFormData) => {
     setIsLoading(true);
@@ -144,7 +148,7 @@ export default function MatchResultForm() {
       <FormField
         label="Střelci domácích"
         error={errors.homeGoalscorers?.message}
-        hint="Např. Jan Novák 15', 78', Petr Svoboda 45'"
+        hint="Např. 15' Jan Novák, 22' Jan Novák"
       >
         <Input
           {...register('homeGoalscorers')}
@@ -156,7 +160,7 @@ export default function MatchResultForm() {
       <FormField
         label="Střelci hostů"
         error={errors.awayGoalscorers?.message}
-        hint="Např. Martin Dvořák 62'"
+        hint="Např. 15' Jan Novák, 22' Jan Novák"
       >
         <Input
           {...register('awayGoalscorers')}

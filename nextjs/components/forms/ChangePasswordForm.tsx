@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToError';
 
 export default function ChangePasswordForm() {
   const [error, setError] = useState<string>('');
@@ -22,6 +23,9 @@ export default function ChangePasswordForm() {
   } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
   });
+
+  // Automatically scroll to the first error field
+  useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: ChangePasswordFormData) => {
     try {

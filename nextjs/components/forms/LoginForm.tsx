@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
+import { useScrollToError } from '@/hooks/useScrollToError';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  // Automatically scroll to the first error field
+  useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
