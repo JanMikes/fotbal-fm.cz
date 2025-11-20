@@ -23,6 +23,34 @@ const STRAPI_URL = config.STRAPI_URL;
 const STRAPI_API_TOKEN = config.STRAPI_API_TOKEN;
 
 /**
+ * Transform image URL to use the Next.js proxy API route
+ * This ensures images are always fetched from Strapi, avoiding Next.js static file caching issues
+ */
+function transformImageUrl(url: string): string {
+    // If the URL starts with /uploads/, transform it to use the proxy API
+    if (url.startsWith('/uploads/')) {
+        return `/api${url}`;
+    }
+    return url;
+}
+
+/**
+ * Transform image formats object to use proxy URLs for all format variants
+ */
+function transformImageFormats(formats: any): any {
+    const transformed: any = {};
+    for (const [key, value] of Object.entries(formats)) {
+        if (value && typeof value === 'object' && 'url' in value) {
+            transformed[key] = {
+                ...value,
+                url: transformImageUrl((value as any).url),
+            };
+        }
+    }
+    return transformed;
+}
+
+/**
  * Convert Strapi user to our User type
  */
 function mapStrapiUser(strapiUser: StrapiUser): User {
@@ -327,8 +355,8 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
             caption: img.caption || null,
             width: img.width || 0,
             height: img.height || 0,
-            formats: img.formats || {},
-            url: img.url,
+            formats: transformImageFormats(img.formats || {}),
+            url: transformImageUrl(img.url),
             previewUrl: img.previewUrl || null,
             provider: img.provider,
             size: img.size,
@@ -347,8 +375,8 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
             caption: img.attributes.caption || null,
             width: img.attributes.width || 0,
             height: img.attributes.height || 0,
-            formats: img.attributes.formats || {},
-            url: img.attributes.url,
+            formats: transformImageFormats(img.attributes.formats || {}),
+            url: transformImageUrl(img.attributes.url),
             previewUrl: img.attributes.previewUrl || null,
             provider: img.attributes.provider,
             size: img.attributes.size,

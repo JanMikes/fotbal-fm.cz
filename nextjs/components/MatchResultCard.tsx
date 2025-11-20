@@ -109,7 +109,9 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
                     onError={(e) => {
                       // If thumbnail fails to load (e.g., not generated yet), fall back to original image
                       const target = e.target as HTMLImageElement;
-                      if (target.src !== image.url) {
+                      // Check if we haven't already tried the fallback by using a data attribute
+                      if (!target.dataset.fallbackAttempted) {
+                        target.dataset.fallbackAttempted = 'true';
                         target.src = image.url;
                       }
                     }}
