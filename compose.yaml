@@ -63,10 +63,12 @@ services:
             STRAPI_URL: http://strapi:1337
             PUBLIC_UPLOADS_URL: http://localhost:8080
             REGISTRATION_SECRET: "secret"
-            # Sentry DSN - leave empty for local development
-            # Set these in production or when you want to enable error tracking
+            # Sentry Configuration
+            # Leave empty for local development
+            # Set these in production for error tracking and source map uploads
             NEXT_PUBLIC_SENTRY_DSN: ""
             SENTRY_DSN: ""
+            SENTRY_AUTH_TOKEN: ""
         command: bash -c "npm install && npm run dev"
 
     nginx:

@@ -2,10 +2,13 @@ import {withSentryConfig} from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Generate source maps for error tracking, but don't serve them publicly
+  productionBrowserSourceMaps: false,
 };
 
-export default withSentryConfig(nextConfig, {
+// Only enable Sentry instrumentation if DSN is provided (production builds)
+// This prevents build errors in development/local environments
+const sentryConfig = process.env.SENTRY_DSN ? {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
@@ -28,10 +31,6 @@ export default withSentryConfig(nextConfig, {
   // side errors will fail.
   tunnelRoute: "/monitoring",
 
-  // Hides source maps from generated client bundles (prevents 404 errors in production)
-  // Source maps are still generated and uploaded to Sentry for error reporting
-  hideSourceMaps: true,
-
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
@@ -39,5 +38,15 @@ export default withSentryConfig(nextConfig, {
   // See the following for more information:
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
-  automaticVercelMonitors: true
-});
+  automaticVercelMonitors: true,
+
+  // Automatically delete source maps after uploading to Sentry
+  // This prevents them from being deployed and causing 404 errors
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true
+  }
+} : {};
+
+export default process.env.SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryConfig)
+  : nextConfig;
