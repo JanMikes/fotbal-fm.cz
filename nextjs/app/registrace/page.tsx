@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { Lock } from 'lucide-react';
 import Card from '@/components/ui/Card';
@@ -17,6 +17,7 @@ function RegisterPageContent() {
     authenticatedRedirectTo: '/dashboard',
   });
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [secret, setSecret] = useState<string | null>(null);
   const [secretValid, setSecretValid] = useState<boolean | null>(null);
   const [validating, setValidating] = useState(true);

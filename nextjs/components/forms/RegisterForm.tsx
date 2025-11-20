@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
+import { useUser } from '@/contexts/UserContext';
 
 interface RegisterFormProps {
   secret: string;
@@ -16,6 +17,7 @@ interface RegisterFormProps {
 
 export default function RegisterForm({ secret }: RegisterFormProps) {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -43,8 +45,9 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
       const result = await response.json();
 
       if (result.success) {
+        // Refresh user context to update navbar and auth state
+        await refreshUser();
         router.push('/dashboard');
-        router.refresh();
       } else {
         setError(result.error || 'Chyba při registraci');
       }
