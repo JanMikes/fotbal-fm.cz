@@ -106,6 +106,13 @@ export default function MatchResultCard({ matchResult }: MatchResultCardProps) {
                         : image.url
                     }
                     alt={image.alternativeText || `Fotografie ${index + 1}`}
+                    onError={(e) => {
+                      // If thumbnail fails to load (e.g., not generated yet), fall back to original image
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== image.url) {
+                        target.src = image.url;
+                      }
+                    }}
                     className="w-full h-24 object-cover rounded-lg border-2 border-border group-hover:border-primary transition-all duration-200 group-hover:shadow-lg group-hover:shadow-primary/20"
                   />
                 </a>
