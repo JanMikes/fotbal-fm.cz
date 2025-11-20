@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
 import Alert from '@/components/ui/Alert';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useScrollToError } from '@/hooks/useScrollToError';
 
 export default function MatchResultForm() {
@@ -84,10 +85,21 @@ export default function MatchResultForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && (
-        <Alert variant="error">{error}</Alert>
+    <>
+      {isLoading && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <LoadingSpinner
+            fullscreen={false}
+            message="Nahrávání výsledku zápasu..."
+            size="lg"
+          />
+        </div>
       )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <Alert variant="error">{error}</Alert>
+        )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
@@ -215,5 +227,6 @@ export default function MatchResultForm() {
         </Button>
       </div>
     </form>
+    </>
   );
 }
