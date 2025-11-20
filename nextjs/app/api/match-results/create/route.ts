@@ -5,6 +5,11 @@ import { matchResultApiSchema } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
+    // IMPORTANT: Parse formData BEFORE calling getSession() to avoid
+    // "Response body object should not be disturbed or locked" error in production
+    // This happens because cookies() in getSession() can lock the request body
+    const formData = await request.formData();
+
     // Check if user is authenticated
     const session = await getSession();
     if (!session || !session.isLoggedIn || !session.jwt) {
@@ -13,9 +18,6 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    // Parse the multipart form data
-    const formData = await request.formData();
 
     // Extract form fields
     const matchData = {

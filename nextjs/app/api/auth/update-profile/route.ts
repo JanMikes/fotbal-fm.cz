@@ -6,6 +6,10 @@ import { AuthResponse } from '@/types/api';
 
 export async function PUT(request: NextRequest) {
   try {
+    // IMPORTANT: Parse body BEFORE calling getSession() to avoid
+    // "Response body object should not be disturbed or locked" error in production
+    const body = await request.json();
+
     const session = await getSession();
 
     if (!session.isLoggedIn || !session.jwt) {
@@ -17,8 +21,6 @@ export async function PUT(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    const body = await request.json();
 
     // Validate request data
     const validationResult = updateProfileSchema.safeParse(body);
