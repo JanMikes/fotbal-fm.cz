@@ -61,7 +61,7 @@ export async function createSession(userId: number, email: string, jwt: string):
  */
 export async function destroySession(): Promise<void> {
   const session = await getSession();
-  session.destroy();
+  await session.destroy();
 }
 
 /**

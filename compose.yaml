@@ -5,6 +5,7 @@ services:
     postgres:
         image: postgres:17.0
         restart: unless-stopped
+        tty: true
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
@@ -20,6 +21,7 @@ services:
     strapi:
         image: node:24
         restart: unless-stopped
+        tty: true
         ports:
             - "1337:1337"
         environment:
@@ -50,6 +52,7 @@ services:
     nextjs:
         image: node:24
         restart: unless-stopped
+        tty: true
         working_dir: /app
         ports:
             - "3000:3000"
@@ -64,6 +67,7 @@ services:
 
     adminer:
         image: adminer:5.4.1
+        tty: true
         ports:
             - "8000:8080"
         environment:
