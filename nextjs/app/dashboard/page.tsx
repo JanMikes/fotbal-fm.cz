@@ -81,10 +81,10 @@ export default function DashboardPage() {
             {/* Recent Match Results */}
             <Card variant="elevated">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                <Link href="/vysledky" className="text-lg font-semibold text-text-primary flex items-center gap-2 hover:text-primary transition-colors">
                   <Target className="w-5 h-5 text-primary" />
                   Nejnovější výsledky
-                </h2>
+                </Link>
                 <div className="flex items-center gap-3">
                   <Link href="/zadat-vysledek" className="p-1.5 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors" title="Nový výsledek">
                     <Plus className="w-4 h-4 text-primary" />
@@ -128,10 +128,10 @@ export default function DashboardPage() {
             {/* Recent Tournaments */}
             <Card variant="elevated">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                <Link href="/turnaje" className="text-lg font-semibold text-text-primary flex items-center gap-2 hover:text-primary transition-colors">
                   <Trophy className="w-5 h-5 text-accent" />
                   Nejnovější turnaje
-                </h2>
+                </Link>
                 <div className="flex items-center gap-3">
                   <Link href="/novy-turnaj" className="p-1.5 bg-accent/10 rounded-lg hover:bg-accent/20 transition-colors" title="Nový turnaj">
                     <Plus className="w-4 h-4 text-accent" />
@@ -164,10 +164,10 @@ export default function DashboardPage() {
             {/* Recent Events */}
             <Card variant="elevated">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                <Link href="/udalosti" className="text-lg font-semibold text-text-primary flex items-center gap-2 hover:text-primary transition-colors">
                   <CalendarDays className="w-5 h-5 text-success" />
                   Nejnovější události
-                </h2>
+                </Link>
                 <div className="flex items-center gap-3">
                   <Link href="/nova-udalost" className="p-1.5 bg-success/10 rounded-lg hover:bg-success/20 transition-colors" title="Nová událost">
                     <Plus className="w-4 h-4 text-success" />
