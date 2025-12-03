@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
-import { useUser } from "@/contexts/UserContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function Home() {
-  const { user, loading } = useUser();
+  const { user, loading } = useRequireAuth({
+    redirectIfAuthenticated: true,
+    authenticatedRedirectTo: "/dashboard",
+  });
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -31,6 +35,14 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-4xl">
+          <Image
+            src="/logo.svg"
+            alt="MFK Frýdek-Místek"
+            width={160}
+            height={192}
+            className="mx-auto mb-8"
+            priority
+          />
           <h1
             className="text-5xl md:text-7xl font-bold text-white mb-8"
             style={{ textShadow: "0 4px 20px rgba(0,0,0,0.3)" }}

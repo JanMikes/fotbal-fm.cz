@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import Button from './ui/Button';
 import { useState, useRef, useEffect } from 'react';
+import { User } from 'lucide-react';
 
 export default function Navbar() {
   const { user, loading, logout } = useUser();
@@ -49,6 +50,11 @@ export default function Navbar() {
     { href: '/udalosti', label: 'Události', isActive: pathname === '/udalosti' || pathname.startsWith('/udalost/') },
     { href: '/turnaje', label: 'Turnaje', isActive: pathname === '/turnaje' || pathname.startsWith('/turnaj/') },
   ];
+
+  // Don't show navbar on homepage
+  if (pathname === '/') {
+    return null;
+  }
 
   return (
     <nav className="bg-primary border-b border-primary-dark sticky top-0 z-50 relative">
@@ -96,6 +102,7 @@ export default function Navbar() {
                       onClick={() => setDropdownOpen(!dropdownOpen)}
                       className="flex items-center space-x-2 text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-white/10"
                     >
+                      <User className="w-4 h-4" />
                       <span>
                         {user.firstName} {user.lastName}
                       </span>
@@ -196,7 +203,8 @@ export default function Navbar() {
               {user ? (
                 <>
                   {/* User Info */}
-                  <div className="px-3 py-2 text-white/60 text-sm border-b border-white/10 mb-2">
+                  <div className="px-3 py-2 text-white/60 text-sm border-b border-white/10 mb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
                     {user.firstName} {user.lastName}
                   </div>
 
