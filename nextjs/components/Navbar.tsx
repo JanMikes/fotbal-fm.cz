@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import Button from './ui/Button';
@@ -25,22 +26,29 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-surface border-b border-border backdrop-blur-sm bg-surface/95 sticky top-0 z-50">
+    <nav className="bg-surface border-b border-border backdrop-blur-sm bg-surface/95 sticky top-0 z-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
-          <div className="flex items-center">
+          <div className="absolute top-[5px] left-4 sm:left-6 lg:left-8 z-10">
             <Link
               href="/"
-              className="text-xl font-bold text-text-primary hover:text-primary transition-colors"
+              className="block hover:opacity-80 transition-opacity"
             >
-              MFK FM
+              <Image
+                src="/logo.svg"
+                alt="MFK Frýdek-Místek"
+                width={75}
+                height={90}
+                className="h-[90px] w-auto"
+                priority
+              />
             </Link>
           </div>
 
           {/* Navigation Links */}
           {!loading && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 ml-auto">
               {user ? (
                 <>
                   <Link
@@ -54,14 +62,34 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                   <Link
-                    href="/moje-vysledky"
+                    href="/vysledky"
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      pathname === '/moje-vysledky'
+                      pathname === '/vysledky' || pathname.startsWith('/vysledek/')
                         ? 'text-text-primary bg-primary/20 font-semibold'
                         : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
                     }`}
                   >
-                    Moje výsledky
+                    Výsledky
+                  </Link>
+                  <Link
+                    href="/udalosti"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      pathname === '/udalosti' || pathname.startsWith('/udalost/')
+                        ? 'text-text-primary bg-primary/20 font-semibold'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                    }`}
+                  >
+                    Události
+                  </Link>
+                  <Link
+                    href="/turnaje"
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      pathname === '/turnaje' || pathname.startsWith('/turnaj/')
+                        ? 'text-text-primary bg-primary/20 font-semibold'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                    }`}
+                  >
+                    Turnaje
                   </Link>
 
                   {/* User Menu Dropdown */}

@@ -43,10 +43,40 @@
       "type": "media",
       "multiple": true,
       "allowedTypes": [
-        "image"
+        "images"
       ]
     },
     "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "Žáci",
+        "Dorost"
+      ],
+      "required": true
+    },
+    "matchDate": {
+      "type": "date",
+      "required": true
+    },
+    "imagesUrl": {
+      "type": "string"
+    },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "files",
+        "images",
+        "videos",
+        "audios"
+      ]
+    },
+    "updatedBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"

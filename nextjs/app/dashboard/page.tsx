@@ -1,87 +1,200 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { Plus, Trophy, CalendarDays, Target, ArrowRight } from 'lucide-react';
+import { MatchResult } from '@/types/match-result';
+import { Tournament } from '@/types/tournament';
+import { Event } from '@/types/event';
+
+interface DashboardData {
+  matchResults: MatchResult[];
+  tournaments: Tournament[];
+  events: Event[];
+}
 
 export default function DashboardPage() {
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      try {
+        const [mrRes, tRes, eRes] = await Promise.all([
+          fetch('/api/match-results/list'),
+          fetch('/api/tournaments/list'),
+          fetch('/api/events/list'),
+        ]);
+
+        const [mrData, tData, eData] = await Promise.all([
+          mrRes.json(),
+          tRes.json(),
+          eRes.json(),
+        ]);
+
+        setData({
+          matchResults: (mrData.matchResults || []).slice(0, 5),
+          tournaments: (tData.tournaments || []).slice(0, 5),
+          events: (eData.events || []).slice(0, 5),
+        });
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (userLoading) {
     return <LoadingSpinner />;
   }
 
   if (!user) {
-    return null; // Middleware will redirect
+    return null;
   }
 
   return (
     <div className="bg-background py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-text-primary mb-2">Dashboard</h1>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Welcome Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary">
+            Vítejte, {user.firstName}!
+          </h1>
           <p className="text-text-secondary">
-            Vítejte zpět, {user.firstName}!
+            Zde je přehled nejnovější aktivity
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card variant="elevated" className="md:col-span-2">
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-                {user.firstName[0]}{user.lastName[0]}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-semibold text-text-primary mb-4">
-                  Vítejte zpět!
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Recent Match Results */}
+            <Card variant="elevated">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <Target className="w-5 h-5 text-primary" />
+                  Nejnovější výsledky
                 </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="text-text-secondary">{user.firstName} {user.lastName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-text-secondary">{user.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-text-secondary">{user.jobTitle}</span>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Link href="/zadat-vysledek" className="p-1.5 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors" title="Nový výsledek">
+                    <Plus className="w-4 h-4 text-primary" />
+                  </Link>
+                  <Link href="/vysledky" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    Vše <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </div>
               </div>
-            </div>
-          </Card>
+              {data?.matchResults.length === 0 ? (
+                <p className="text-text-muted text-sm">Žádné výsledky</p>
+              ) : (
+                <div className="space-y-4">
+                  {data?.matchResults.map((mr) => (
+                    <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
+                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium text-text-primary truncate flex-1 text-right">
+                            {mr.homeTeam}
+                          </span>
+                          <span className="px-3 py-1 bg-primary/20 text-primary font-bold rounded-md whitespace-nowrap text-lg">
+                            {mr.homeScore}:{mr.awayScore}
+                          </span>
+                          <span className="text-sm font-medium text-text-primary truncate flex-1">
+                            {mr.awayTeam}
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-muted text-center mt-2">
+                          {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </Card>
 
-          <Card variant="elevated">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">Rychlé akce</h2>
-            <div className="space-y-3">
-              <Link href="/zadat-vysledek" className="block">
-                <Button className="w-full" variant="primary">
-                  Zadat výsledek zápasu
-                </Button>
-              </Link>
-              <Link href="/moje-vysledky" className="block">
-                <Button className="w-full" variant="secondary">
-                  Moje výsledky
-                </Button>
-              </Link>
-              <Link href="/nastaveni" className="block">
-                <Button className="w-full" variant="secondary">
-                  Upravit profil
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        </div>
+            {/* Recent Tournaments */}
+            <Card variant="elevated">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-accent" />
+                  Nejnovější turnaje
+                </h2>
+                <div className="flex items-center gap-3">
+                  <Link href="/novy-turnaj" className="p-1.5 bg-accent/10 rounded-lg hover:bg-accent/20 transition-colors" title="Nový turnaj">
+                    <Plus className="w-4 h-4 text-accent" />
+                  </Link>
+                  <Link href="/turnaje" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    Vše <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+              {data?.tournaments.length === 0 ? (
+                <p className="text-text-muted text-sm">Žádné turnaje</p>
+              ) : (
+                <div className="space-y-4">
+                  {data?.tournaments.map((t) => (
+                    <Link key={t.id} href={`/turnaj/${t.id}`} className="block">
+                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                        <p className="text-sm font-medium text-text-primary truncate">
+                          {t.name}
+                        </p>
+                        <p className="text-xs text-text-muted mt-1">
+                          {new Date(t.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Recent Events */}
+            <Card variant="elevated">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-success" />
+                  Nejnovější události
+                </h2>
+                <div className="flex items-center gap-3">
+                  <Link href="/nova-udalost" className="p-1.5 bg-success/10 rounded-lg hover:bg-success/20 transition-colors" title="Nová událost">
+                    <Plus className="w-4 h-4 text-success" />
+                  </Link>
+                  <Link href="/udalosti" className="text-sm text-primary hover:underline flex items-center gap-1">
+                    Vše <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+              {data?.events.length === 0 ? (
+                <p className="text-text-muted text-sm">Žádné události</p>
+              ) : (
+                <div className="space-y-4">
+                  {data?.events.map((e) => (
+                    <Link key={e.id} href={`/udalost/${e.id}`} className="block">
+                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                        <p className="text-sm font-medium text-text-primary truncate">
+                          {e.name}
+                        </p>
+                        <p className="text-xs text-text-muted mt-1">
+                          {new Date(e.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

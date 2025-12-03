@@ -27,6 +27,9 @@ export async function POST(request: NextRequest) {
       homeGoalscorers: formData.get('homeGoalscorers') as string,
       awayGoalscorers: formData.get('awayGoalscorers') as string,
       matchReport: formData.get('matchReport') as string,
+      category: formData.get('category') as string,
+      matchDate: formData.get('matchDate') as string,
+      imagesUrl: formData.get('imagesUrl') as string,
     };
 
     // Validate the data
@@ -38,6 +41,9 @@ export async function POST(request: NextRequest) {
       homeGoalscorers: matchData.homeGoalscorers || undefined,
       awayGoalscorers: matchData.awayGoalscorers || undefined,
       matchReport: matchData.matchReport || undefined,
+      category: matchData.category,
+      matchDate: matchData.matchDate,
+      imagesUrl: matchData.imagesUrl || undefined,
     });
 
     if (!validationResult.success) {
@@ -51,23 +57,34 @@ export async function POST(request: NextRequest) {
     // Extract images from form data
     const images: File[] = [];
     const imageEntries = formData.getAll('images');
-
     for (const entry of imageEntries) {
       if (entry instanceof File && entry.size > 0) {
         images.push(entry);
       }
     }
 
+    // Extract files from form data
+    const files: File[] = [];
+    const fileEntries = formData.getAll('files');
+    for (const entry of fileEntries) {
+      if (entry instanceof File && entry.size > 0) {
+        files.push(entry);
+      }
+    }
+
     // Create match result in Strapi with author relationship
     const dataToSend = {
       ...validationResult.data,
+      // Convert empty string to undefined for optional URL
+      imagesUrl: validationResult.data.imagesUrl || undefined,
       author: session.userId, // Set the author to the current user
     };
 
     const matchResult = await strapiCreateMatchResult(
       session.jwt,
       dataToSend,
-      images
+      images,
+      files
     );
 
     return NextResponse.json({

@@ -41,6 +41,16 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   });
 
+// Category enum values
+const categoryEnum = z.enum(['Žáci', 'Dorost'], {
+  message: 'Kategorie je povinná',
+});
+
+// Event type enum values
+const eventTypeEnum = z.enum(['nadcházející', 'proběhlá'], {
+  message: 'Typ události je povinný',
+});
+
 // Schema for client-side form validation (using valueAsNumber)
 export const matchResultSchema = z.object({
   homeTeam: z.string().min(1, 'Domácí tým je povinný'),
@@ -54,6 +64,9 @@ export const matchResultSchema = z.object({
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
   matchReport: z.string().optional(),
+  category: categoryEnum,
+  matchDate: z.string().min(1, 'Datum zápasu je povinné'),
+  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
 });
 
 // Schema for API validation (receives FormData as strings, uses coerce)
@@ -69,6 +82,98 @@ export const matchResultApiSchema = z.object({
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
   matchReport: z.string().optional(),
+  category: categoryEnum,
+  matchDate: z.string().min(1, 'Datum zápasu je povinné'),
+  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+});
+
+// Event schemas
+export const eventSchema = z.object({
+  name: z.string().min(1, 'Název je povinný'),
+  eventType: eventTypeEnum,
+  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateTo: z.string().optional(),
+  publishDate: z.string().optional(),
+  eventTime: z.string().optional(),
+  description: z.string().optional(),
+  requiresPhotographer: z.boolean().optional(),
+});
+
+export const eventApiSchema = z.object({
+  name: z.string().min(1, 'Název je povinný'),
+  eventType: eventTypeEnum,
+  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateTo: z.string().optional(),
+  publishDate: z.string().optional(),
+  eventTime: z.string().optional(),
+  description: z.string().optional(),
+  requiresPhotographer: z.preprocess(
+    (val) => val === 'true' || val === true,
+    z.boolean().optional()
+  ),
+});
+
+// Tournament schemas
+export const tournamentSchema = z.object({
+  name: z.string().min(1, 'Název je povinný'),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateTo: z.string().optional(),
+  category: categoryEnum,
+  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+});
+
+export const tournamentApiSchema = z.object({
+  name: z.string().min(1, 'Název je povinný'),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateTo: z.string().optional(),
+  category: categoryEnum,
+  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+});
+
+// Tournament match schemas
+export const tournamentMatchSchema = z.object({
+  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
+  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
+  homeScore: z.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  awayScore: z.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  homeGoalscorers: z.string().optional(),
+  awayGoalscorers: z.string().optional(),
+  tournament: z.number({ message: 'Turnaj je povinný' }).int().positive('Vyberte turnaj'),
+});
+
+export const tournamentMatchApiSchema = z.object({
+  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
+  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
+  homeScore: z.coerce.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  awayScore: z.coerce.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  homeGoalscorers: z.string().optional(),
+  awayGoalscorers: z.string().optional(),
+  tournament: z.coerce.number({ message: 'Turnaj je povinný' }).int().positive('Vyberte turnaj'),
+});
+
+// Comment schemas
+export const commentSchema = z.object({
+  content: z.string().min(1, 'Komentář je povinný').max(2000, 'Komentář může mít maximálně 2000 znaků'),
+});
+
+export const commentApiSchema = z.object({
+  content: z.string().min(1, 'Komentář je povinný').max(2000, 'Komentář může mít maximálně 2000 znaků'),
+  parentComment: z.string().optional(),
+  matchResult: z.string().optional(),
+  tournament: z.string().optional(),
+  event: z.string().optional(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -76,3 +181,7 @@ export type RegisterFormData = z.infer<typeof registerSchema>;
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 export type MatchResultFormData = z.infer<typeof matchResultSchema>;
+export type EventFormData = z.infer<typeof eventSchema>;
+export type TournamentFormData = z.infer<typeof tournamentSchema>;
+export type TournamentMatchFormData = z.infer<typeof tournamentMatchSchema>;
+export type CommentFormData = z.infer<typeof commentSchema>;

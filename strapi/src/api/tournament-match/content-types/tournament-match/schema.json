@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tournament_matches",
+  "info": {
+    "singularName": "tournament-match",
+    "pluralName": "tournament-matches",
+    "displayName": "Tournament Match",
+    "description": "Individual matches within tournaments"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "homeTeam": {
+      "type": "string",
+      "required": true
+    },
+    "awayTeam": {
+      "type": "string",
+      "required": true
+    },
+    "homeScore": {
+      "type": "integer",
+      "required": true,
+      "min": 0
+    },
+    "awayScore": {
+      "type": "integer",
+      "required": true,
+      "min": 0
+    },
+    "homeGoalscorers": {
+      "type": "text"
+    },
+    "awayGoalscorers": {
+      "type": "text"
+    },
+    "tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "tournamentMatches"
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "updatedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

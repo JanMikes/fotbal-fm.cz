@@ -37,8 +37,31 @@ export interface StrapiImage {
   updatedAt: string;
 }
 
-export interface MatchResult {
+export interface StrapiFile {
   id: number;
+  name: string;
+  alternativeText: string | null;
+  caption: string | null;
+  url: string;
+  previewUrl: string | null;
+  provider: string;
+  size: number;
+  ext: string;
+  mime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type MatchResultCategory = 'Žáci' | 'Dorost';
+
+export interface UserInfo {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+export interface MatchResult {
+  id: string;
   homeTeam: string;
   awayTeam: string;
   homeScore: number;
@@ -47,7 +70,13 @@ export interface MatchResult {
   awayGoalscorers?: string;
   matchReport?: string;
   images: StrapiImage[];
+  files: StrapiFile[];
+  category: MatchResultCategory;
+  matchDate: string;
+  imagesUrl?: string;
   authorId: number;
+  author?: UserInfo;
+  updatedBy?: UserInfo;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,7 +89,11 @@ export interface MatchResultFormData {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  category: MatchResultCategory;
+  matchDate: string;
+  imagesUrl?: string;
   images?: FileList;
+  files?: FileList;
 }
 
 export interface CreateMatchResultRequest {
@@ -71,6 +104,9 @@ export interface CreateMatchResultRequest {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  category: MatchResultCategory;
+  matchDate: string;
+  imagesUrl?: string;
 }
 
 export interface StrapiMatchResultResponse {
@@ -84,16 +120,34 @@ export interface StrapiMatchResultResponse {
       homeGoalscorers: string | null;
       awayGoalscorers: string | null;
       matchReport: string | null;
+      category: MatchResultCategory;
+      matchDate: string;
+      imagesUrl: string | null;
       images: {
         data: Array<{
           id: number;
           attributes: StrapiImage;
         }>;
       };
+      files: {
+        data: Array<{
+          id: number;
+          attributes: StrapiFile;
+        }>;
+      };
       author: {
         data: {
           id: number;
+          firstname?: string;
+          lastname?: string;
         };
+      };
+      updatedBy?: {
+        data: {
+          id: number;
+          firstname?: string;
+          lastname?: string;
+        } | null;
       };
       createdAt: string;
       updatedAt: string;
@@ -112,16 +166,34 @@ export interface StrapiMatchResultsResponse {
       homeGoalscorers: string | null;
       awayGoalscorers: string | null;
       matchReport: string | null;
+      category: MatchResultCategory;
+      matchDate: string;
+      imagesUrl: string | null;
       images: {
         data: Array<{
           id: number;
           attributes: StrapiImage;
         }>;
       };
+      files: {
+        data: Array<{
+          id: number;
+          attributes: StrapiFile;
+        }>;
+      };
       author: {
         data: {
           id: number;
+          firstname?: string;
+          lastname?: string;
         };
+      };
+      updatedBy?: {
+        data: {
+          id: number;
+          firstname?: string;
+          lastname?: string;
+        } | null;
       };
       createdAt: string;
       updatedAt: string;
