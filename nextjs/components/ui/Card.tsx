@@ -12,9 +12,9 @@ export default function Card({
   variant = 'default'
 }: CardProps) {
   const variantStyles = {
-    default: 'bg-surface border border-border',
-    elevated: 'bg-surface-elevated border border-border-light shadow-xl',
-    bordered: 'bg-background border-2 border-border-light',
+    default: 'bg-surface border border-border shadow-sm',
+    elevated: 'bg-surface border border-border shadow-md',
+    bordered: 'bg-surface border-2 border-border-light',
   };
 
   return (

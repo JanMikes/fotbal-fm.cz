@@ -165,7 +165,7 @@ export default function TournamentForm({
           >
             <select
               {...register('category')}
-              className={`w-full px-4 py-2.5 bg-surface border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 ${
+              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
                 errors.category ? 'border-danger' : 'border-border hover:border-border-light'
               }`}
             >

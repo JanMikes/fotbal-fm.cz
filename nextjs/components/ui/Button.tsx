@@ -24,13 +24,13 @@ export default function Button({
 
   const variantStyles = {
     primary:
-      'bg-primary text-white hover:bg-primary-hover focus:ring-ring-focus shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 active:scale-95',
+      'bg-primary text-white hover:bg-primary-hover focus:ring-ring-focus shadow-md hover:shadow-lg active:scale-95',
     secondary:
-      'bg-surface-elevated text-text-primary hover:bg-surface-hover focus:ring-ring-focus border border-border hover:border-border-light active:scale-95',
+      'bg-white text-text-primary hover:bg-surface-hover focus:ring-ring-focus border border-border-light hover:border-border active:scale-95',
     danger:
-      'bg-danger text-white hover:bg-danger-hover focus:ring-ring-focus shadow-lg shadow-danger/20 hover:shadow-xl hover:shadow-danger/30 active:scale-95',
+      'bg-danger text-white hover:bg-danger-hover focus:ring-ring-focus shadow-md hover:shadow-lg active:scale-95',
     accent:
-      'bg-accent text-white hover:bg-accent-hover focus:ring-ring-focus shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 active:scale-95',
+      'bg-accent text-white hover:bg-accent-hover focus:ring-ring-focus shadow-md hover:shadow-lg active:scale-95',
   };
 
   return (

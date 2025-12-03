@@ -74,7 +74,7 @@ export default function FileUpload({ onChange, error, accept, multiple = true }:
         accept={accept}
         multiple={multiple}
         onChange={handleFileChange}
-        className={`w-full px-4 py-2.5 border rounded-lg bg-surface text-text-primary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white file:cursor-pointer hover:file:bg-primary-hover focus:outline-none focus:ring-2 transition-colors ${
+        className={`w-full px-4 py-2.5 border rounded-lg bg-white text-text-primary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white file:cursor-pointer hover:file:bg-primary-hover focus:outline-none focus:ring-2 transition-colors ${
           error
             ? 'border-danger focus:ring-danger'
             : 'border-border hover:border-border-light focus:ring-primary'
@@ -82,7 +82,7 @@ export default function FileUpload({ onChange, error, accept, multiple = true }:
       />
 
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p className="text-sm text-danger flex items-center gap-1">
           <span className="inline-block w-4 h-4 text-center">⚠</span>
           {error}
         </p>
@@ -95,7 +95,7 @@ export default function FileUpload({ onChange, error, accept, multiple = true }:
             return (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 bg-surface-alt border border-border rounded-lg group"
+                className="flex items-center gap-3 p-3 bg-surface-elevated border border-border rounded-lg group"
               >
                 <IconComponent className="w-8 h-8 text-text-secondary flex-shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -107,7 +107,7 @@ export default function FileUpload({ onChange, error, accept, multiple = true }:
                 <button
                   type="button"
                   onClick={() => removeFile(index)}
-                  className="p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  className="p-1.5 bg-danger text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger-hover"
                   aria-label="Odstranit soubor"
                 >
                   <X className="w-4 h-4" />

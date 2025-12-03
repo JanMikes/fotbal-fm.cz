@@ -26,7 +26,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-surface border-b border-border backdrop-blur-sm bg-surface/95 sticky top-0 z-50 relative">
+    <nav className="bg-primary border-b border-primary-dark sticky top-0 z-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo / Brand */}
@@ -55,8 +55,8 @@ export default function Navbar() {
                     href="/dashboard"
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === '/dashboard'
-                        ? 'text-text-primary bg-primary/20 font-semibold'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                        ? 'text-white bg-white/20 font-semibold'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     Dashboard
@@ -65,8 +65,8 @@ export default function Navbar() {
                     href="/vysledky"
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === '/vysledky' || pathname.startsWith('/vysledek/')
-                        ? 'text-text-primary bg-primary/20 font-semibold'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                        ? 'text-white bg-white/20 font-semibold'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     Výsledky
@@ -75,8 +75,8 @@ export default function Navbar() {
                     href="/udalosti"
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === '/udalosti' || pathname.startsWith('/udalost/')
-                        ? 'text-text-primary bg-primary/20 font-semibold'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                        ? 'text-white bg-white/20 font-semibold'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     Události
@@ -85,8 +85,8 @@ export default function Navbar() {
                     href="/turnaje"
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === '/turnaje' || pathname.startsWith('/turnaj/')
-                        ? 'text-text-primary bg-primary/20 font-semibold'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
+                        ? 'text-white bg-white/20 font-semibold'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     Turnaje
@@ -96,7 +96,7 @@ export default function Navbar() {
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setDropdownOpen(!dropdownOpen)}
-                      className="flex items-center space-x-2 text-text-secondary hover:text-text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                      className="flex items-center space-x-2 text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-white/10"
                     >
                       <span>
                         {user.firstName} {user.lastName}
@@ -119,12 +119,12 @@ export default function Navbar() {
                     </button>
 
                     {dropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-surface-elevated rounded-lg shadow-xl py-1 z-10 border border-border-light animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-10 border border-border animate-in fade-in slide-in-from-top-2 duration-200">
                         <Link
                           href="/nastaveni"
                           className={`block px-4 py-2 text-sm transition-colors ${
                             pathname === '/nastaveni'
-                              ? 'text-text-primary bg-primary/20 font-semibold'
+                              ? 'text-primary bg-accent/10 font-semibold'
                               : 'text-text-primary hover:bg-surface-hover'
                           }`}
                           onClick={() => setDropdownOpen(false)}
@@ -137,7 +137,7 @@ export default function Navbar() {
                             setDropdownOpen(false);
                             logout();
                           }}
-                          className="block w-full text-left px-4 py-2 text-sm text-danger hover:bg-surface-hover transition-colors"
+                          className="block w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger-bg transition-colors"
                         >
                           Odhlásit se
                         </button>

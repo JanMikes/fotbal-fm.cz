@@ -68,7 +68,7 @@ const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
 
     return (
       <div className="space-y-2">
-        <div className="flex gap-1 p-2 bg-surface-alt border border-border rounded-t-lg">
+        <div className="flex gap-1 p-2 bg-surface-elevated border border-border rounded-t-lg">
           {TOOLBAR_BUTTONS.map((button, index) => (
             <button
               key={index}
@@ -85,9 +85,9 @@ const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
           ref={textareaRef}
           value={value}
           onChange={onChange}
-          className={`w-full px-4 py-2.5 bg-surface border rounded-b-lg rounded-t-none -mt-2
+          className={`w-full px-4 py-2.5 bg-white border rounded-b-lg rounded-t-none -mt-2
             text-text-primary placeholder:text-text-muted
-            focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+            focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent
             transition-all duration-200 resize-y min-h-[150px]
             ${error ? 'border-danger focus:ring-danger' : 'border-border hover:border-border-light'}
             disabled:opacity-50 disabled:cursor-not-allowed

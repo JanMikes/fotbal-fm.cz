@@ -10,12 +10,12 @@ const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
       <input
         ref={ref}
         type="time"
-        className={`w-full px-4 py-2.5 bg-surface border rounded-lg
+        className={`w-full px-4 py-2.5 bg-white border rounded-lg
           text-text-primary placeholder:text-text-muted
-          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+          focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent
           transition-all duration-200
           ${error ? 'border-danger focus:ring-danger' : 'border-border hover:border-border-light'}
-          disabled:opacity-50 disabled:cursor-not-allowed
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-hover
           ${className}`}
         {...props}
       />

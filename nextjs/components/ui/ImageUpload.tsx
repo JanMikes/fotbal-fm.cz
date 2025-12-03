@@ -70,7 +70,7 @@ export default function ImageUpload({ onChange, error }: ImageUploadProps) {
         accept="image/*"
         multiple
         onChange={handleFileChange}
-        className={`w-full px-4 py-2.5 border rounded-lg bg-surface text-text-primary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white file:cursor-pointer hover:file:bg-primary-hover focus:outline-none focus:ring-2 transition-colors ${
+        className={`w-full px-4 py-2.5 border rounded-lg bg-white text-text-primary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white file:cursor-pointer hover:file:bg-primary-hover focus:outline-none focus:ring-2 transition-colors ${
           error
             ? 'border-danger focus:ring-danger'
             : 'border-border hover:border-border-light focus:ring-primary'
@@ -78,7 +78,7 @@ export default function ImageUpload({ onChange, error }: ImageUploadProps) {
       />
 
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p className="text-sm text-danger flex items-center gap-1">
           <span className="inline-block w-4 h-4 text-center">⚠</span>
           {error}
         </p>
@@ -96,7 +96,7 @@ export default function ImageUpload({ onChange, error }: ImageUploadProps) {
               <button
                 type="button"
                 onClick={() => removeImage(index)}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                className="absolute top-2 right-2 p-1 bg-danger text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger-hover"
                 aria-label="Odstranit obrázek"
               >
                 <X className="w-4 h-4" />

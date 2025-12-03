@@ -204,11 +204,11 @@ export default function TournamentDetailPage({ params }: PageProps) {
                   {tournament.matches.map((match) => (
                     <div
                       key={match.id}
-                      className="flex items-center justify-between p-4 bg-surface rounded-lg border border-border"
+                      className="flex items-center justify-between p-4 bg-surface-elevated rounded-lg border border-border"
                     >
                       <span className="font-medium text-text-primary">{match.homeTeam}</span>
-                      <div className="px-4 py-1 bg-surface-elevated rounded-lg">
-                        <span className="font-bold text-text-primary">
+                      <div className="px-4 py-1 bg-primary/10 rounded-lg">
+                        <span className="font-bold text-primary">
                           {match.homeScore} : {match.awayScore}
                         </span>
                       </div>

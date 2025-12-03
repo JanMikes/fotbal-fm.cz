@@ -48,9 +48,9 @@ export default function FilterToggle({
         type="checkbox"
         checked={showOnlyMine}
         onChange={handleChange}
-        className="w-5 h-5 rounded border-border bg-surface text-primary
-          focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background
-          cursor-pointer transition-colors"
+        className="w-5 h-5 rounded border-border bg-white text-primary
+          focus:ring-2 focus:ring-ring-focus focus:ring-offset-2 focus:ring-offset-background
+          cursor-pointer transition-colors accent-primary"
       />
       <span className="text-text-secondary text-sm">Zobrazit pouze moje</span>
     </label>

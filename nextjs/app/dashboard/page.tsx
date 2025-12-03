@@ -100,7 +100,7 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {data?.matchResults.map((mr) => (
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
-                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                      <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium text-text-primary truncate flex-1 text-right">
                             {mr.homeTeam}
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {data?.tournaments.map((t) => (
                     <Link key={t.id} href={`/turnaj/${t.id}`} className="block">
-                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                      <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
                           {t.name}
                         </p>
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                   {data?.events.map((e) => (
                     <Link key={e.id} href={`/udalost/${e.id}`} className="block">
-                      <div className="p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                      <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
                           {e.name}
                         </p>

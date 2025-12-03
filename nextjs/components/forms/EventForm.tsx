@@ -178,7 +178,7 @@ export default function EventForm({
           >
             <select
               {...register('eventType')}
-              className={`w-full px-4 py-2.5 bg-surface border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 ${
+              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
                 errors.eventType ? 'border-danger' : 'border-border hover:border-border-light'
               }`}
             >
@@ -253,7 +253,7 @@ export default function EventForm({
             <input
               type="checkbox"
               {...register('requiresPhotographer')}
-              className="w-5 h-5 rounded border-border bg-surface text-primary focus:ring-primary focus:ring-offset-0"
+              className="w-5 h-5 rounded border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
             />
             <span className="text-text-primary">Ano, potřebuji fotografa na akci</span>
           </label>

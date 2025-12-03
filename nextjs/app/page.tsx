@@ -37,7 +37,7 @@ export default function Home() {
 
         {/* Features Grid */}
         <div className="mt-16 grid md:grid-cols-3 gap-6">
-          <div className="bg-surface border border-border p-8 rounded-xl hover:border-border-light transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 group">
+          <div className="bg-surface border border-border p-8 rounded-xl shadow-sm hover:border-border-light transition-all duration-300 hover:shadow-lg group">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
               <svg
                 className="w-6 h-6 text-primary"
@@ -61,7 +61,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-surface border border-border p-8 rounded-xl hover:border-border-light transition-all duration-300 hover:shadow-xl hover:shadow-secondary/5 group">
+          <div className="bg-surface border border-border p-8 rounded-xl shadow-sm hover:border-border-light transition-all duration-300 hover:shadow-lg group">
             <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
               <svg
                 className="w-6 h-6 text-secondary"
@@ -85,7 +85,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="bg-surface border border-border p-8 rounded-xl hover:border-border-light transition-all duration-300 hover:shadow-xl hover:shadow-accent/5 group">
+          <div className="bg-surface border border-border p-8 rounded-xl shadow-sm hover:border-border-light transition-all duration-300 hover:shadow-lg group">
             <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
               <svg
                 className="w-6 h-6 text-accent"
