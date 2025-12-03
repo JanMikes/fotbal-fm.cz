@@ -197,31 +197,24 @@ function mapStrapiFiles(data: any, fieldName: string, isFlattened: boolean): Str
 
 /**
  * Map user info from Strapi response
+ * Handles both flattened and nested structures automatically.
+ * Field-specific population may return nested even when parent is flattened.
  */
-function mapUserInfo(userData: any, isFlattened: boolean): UserInfo | undefined {
+function mapUserInfo(userData: any, _isFlattened: boolean): UserInfo | undefined {
     if (!userData) return undefined;
 
-    if (isFlattened) {
-        // Flattened: { id, firstname, lastname }
-        // Allow missing id if we have name data (for field-selected queries)
-        const hasData = userData.id || userData.firstname || userData.lastname;
-        if (!hasData) return undefined;
-        return {
-            id: userData.id || 0,
-            firstName: userData.firstname || '',
-            lastName: userData.lastname || '',
-        };
-    } else {
-        // Nested: { data: { id, firstname, lastname } }
-        const data = userData.data;
-        const hasData = data?.id || data?.firstname || data?.lastname;
-        if (!hasData) return undefined;
-        return {
-            id: data?.id || 0,
-            firstName: data?.firstname || '',
-            lastName: data?.lastname || '',
-        };
-    }
+    // Handle both flattened and nested structures
+    // Check for nested structure first (userData.data), fall back to direct access
+    const data = userData.data ?? userData;
+
+    const hasData = data?.id || data?.firstname || data?.lastname;
+    if (!hasData) return undefined;
+
+    return {
+        id: data?.id || 0,
+        firstName: data?.firstname || '',
+        lastName: data?.lastname || '',
+    };
 }
 
 /**

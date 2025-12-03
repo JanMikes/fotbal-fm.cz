@@ -17,6 +17,7 @@ export interface CommentFormData {
 
 export interface CreateCommentRequest {
   content: string;
+  author?: number;
   parentComment?: string;
   matchResult?: string;
   tournament?: string;

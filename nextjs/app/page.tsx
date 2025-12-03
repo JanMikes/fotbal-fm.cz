@@ -8,21 +8,49 @@ export default function Home() {
   const { user, loading } = useUser();
 
   return (
-    <div className="bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-10">
-          <h1 className="text-5xl md:text-6xl font-bold text-text-primary mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+    <div className="fixed inset-0 overflow-hidden">
+      {/* Background Image Layer */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/background.png)" }}
+      />
+
+      {/* Gradient Overlay - Navy to Cyan */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#031b44]/90 via-[#031b44]/70 to-[#0099d4]/40" />
+
+      {/* Subtle Dot Pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-4xl">
+          <h1
+            className="text-5xl md:text-7xl font-bold text-white mb-8"
+            style={{ textShadow: "0 4px 20px rgba(0,0,0,0.3)" }}
+          >
             Fotbal FM
           </h1>
-          <p className="text-xl md:text-2xl text-text-secondary mb-10 max-w-3xl mx-auto">
-            Aplikace fotbalu-fm je prostor pro snadné a rychlé vytváření klubového obsahu. Umožňuje nejen trenérům, ale i vedení přidávat výsledky, turnaje, události, statistiky a informace, které chce sdílet na webu, sociálních sítích nebo v mobilní aplikaci. Všechny podklady tím budou přehledně na jednom místě, připravené k dalšímu marketingovému použití.
+          <p
+            className="text-lg md:text-xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
+            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.2)" }}
+          >
+            Aplikace fotbalu-fm je prostor pro snadné a rychlé vytváření
+            klubového obsahu. Umožňuje nejen trenérům, ale i vedení přidávat
+            výsledky, turnaje, události, statistiky a informace, které chce
+            sdílet na webu, sociálních sítích nebo v mobilní aplikaci.
           </p>
 
           {!loading && !user && (
             <div className="flex justify-center gap-4 flex-wrap">
               <Link href="/prihlaseni">
-                <Button variant="primary" size="lg">
+                <Button variant="primary" size="lg" className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20">
                   Přihlásit se
                 </Button>
               </Link>
@@ -34,7 +62,6 @@ export default function Home() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

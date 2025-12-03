@@ -34,7 +34,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const comment = await strapiCreateComment(session.jwt, validationResult.data);
+    // Add author from session - Strapi 5 relations accept numeric id
+    const commentData = {
+      ...validationResult.data,
+      author: session.userId,
+    };
+
+    const comment = await strapiCreateComment(session.jwt, commentData);
 
     return NextResponse.json({
       success: true,
