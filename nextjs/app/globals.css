@@ -323,214 +323,69 @@ a[aria-disabled="true"] {
 }
 
 /* ===========================================
-   Pixel Football Player Animation
+   Running Football Player - Sprite Animation
    =========================================== */
 
-.pixel-runner-container {
+.runner-container {
   position: relative;
   width: 100%;
   height: 180px;
-  overflow: hidden;
   margin: 2rem 0;
+  overflow: hidden;
 }
 
-/* Player wrapper - moves across screen, positioned from top */
-.pixel-player-wrapper {
+.sprite-wrapper {
   position: absolute;
-  top: 20px;
+  bottom: 20px;
   left: 0;
-  width: 120px;
-  height: 150px;
-  animation: runAcross 8s linear infinite;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  animation: runAcross 4s linear infinite;
 }
 
 /*
- * Pixel art using box-shadow technique
- * Each "pixel" is 6px x 6px for a clean retro look
- * Player is ~8 pixels wide x 20 pixels tall = 48px x 120px
+ * Sprite sheet: 64x112px, 4 columns x 7 rows, each frame 16x16
+ * Row 2 (0-indexed) = right-facing walk animation
+ * Scaled 6x for visibility: 96x96px display size
  */
-
-/* Frame 1 - Running with legs spread */
-.pixel-frame-1 {
-  position: absolute;
-  top: 0;
-  left: 24px;
-  width: 6px;
-  height: 6px;
-  background: var(--primary);
-  animation: frame1 0.18s steps(1) infinite;
-  box-shadow:
-    /* Head (3x3) */
-    6px 0 0 var(--primary),
-    12px 0 0 var(--primary),
-    0 6px 0 var(--primary),
-    6px 6px 0 var(--primary),
-    12px 6px 0 var(--primary),
-    0 12px 0 var(--primary),
-    6px 12px 0 var(--primary),
-    12px 12px 0 var(--primary),
-    /* Neck */
-    6px 18px 0 var(--primary),
-    /* Torso (5 wide) */
-    -6px 24px 0 var(--primary),
-    0 24px 0 var(--primary),
-    6px 24px 0 var(--primary),
-    12px 24px 0 var(--primary),
-    18px 24px 0 var(--primary),
-    -6px 30px 0 var(--primary),
-    0 30px 0 var(--primary),
-    6px 30px 0 var(--primary),
-    12px 30px 0 var(--primary),
-    18px 30px 0 var(--primary),
-    0 36px 0 var(--primary),
-    6px 36px 0 var(--primary),
-    12px 36px 0 var(--primary),
-    0 42px 0 var(--primary),
-    6px 42px 0 var(--primary),
-    12px 42px 0 var(--primary),
-    /* Hips */
-    0 48px 0 var(--primary),
-    6px 48px 0 var(--primary),
-    12px 48px 0 var(--primary),
-    /* Legs spread - left leg going left, right leg going right */
-    -6px 54px 0 var(--primary),
-    0 54px 0 var(--primary),
-    12px 54px 0 var(--primary),
-    18px 54px 0 var(--primary),
-    -12px 60px 0 var(--primary),
-    -6px 60px 0 var(--primary),
-    18px 60px 0 var(--primary),
-    24px 60px 0 var(--primary),
-    -18px 66px 0 var(--primary),
-    -12px 66px 0 var(--primary),
-    24px 66px 0 var(--primary),
-    30px 66px 0 var(--primary),
-    -24px 72px 0 var(--primary),
-    -18px 72px 0 var(--primary),
-    30px 72px 0 var(--primary),
-    36px 72px 0 var(--primary),
-    /* Feet */
-    -30px 78px 0 var(--primary),
-    -24px 78px 0 var(--primary),
-    -18px 78px 0 var(--primary),
-    36px 78px 0 var(--primary),
-    42px 78px 0 var(--primary),
-    48px 78px 0 var(--primary);
+.sprite-character {
+  width: 96px;
+  height: 96px;
+  background: url('/runner-sprite.png') no-repeat;
+  background-size: 384px 672px; /* 64*6 x 112*6 */
+  background-position-y: -192px; /* Lock to row 2 */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  animation: spriteRun 0.4s steps(4) infinite;
 }
 
-/* Frame 2 - Running with legs together/passing */
-.pixel-frame-2 {
-  position: absolute;
-  top: 0;
-  left: 24px;
-  width: 6px;
-  height: 6px;
-  background: var(--primary);
-  opacity: 0;
-  animation: frame2 0.18s steps(1) infinite;
-  box-shadow:
-    /* Head (3x3) */
-    6px 0 0 var(--primary),
-    12px 0 0 var(--primary),
-    0 6px 0 var(--primary),
-    6px 6px 0 var(--primary),
-    12px 6px 0 var(--primary),
-    0 12px 0 var(--primary),
-    6px 12px 0 var(--primary),
-    12px 12px 0 var(--primary),
-    /* Neck */
-    6px 18px 0 var(--primary),
-    /* Torso (5 wide) */
-    -6px 24px 0 var(--primary),
-    0 24px 0 var(--primary),
-    6px 24px 0 var(--primary),
-    12px 24px 0 var(--primary),
-    18px 24px 0 var(--primary),
-    -6px 30px 0 var(--primary),
-    0 30px 0 var(--primary),
-    6px 30px 0 var(--primary),
-    12px 30px 0 var(--primary),
-    18px 30px 0 var(--primary),
-    0 36px 0 var(--primary),
-    6px 36px 0 var(--primary),
-    12px 36px 0 var(--primary),
-    0 42px 0 var(--primary),
-    6px 42px 0 var(--primary),
-    12px 42px 0 var(--primary),
-    /* Hips */
-    0 48px 0 var(--primary),
-    6px 48px 0 var(--primary),
-    12px 48px 0 var(--primary),
-    /* Legs together */
-    0 54px 0 var(--primary),
-    6px 54px 0 var(--primary),
-    12px 54px 0 var(--primary),
-    0 60px 0 var(--primary),
-    6px 60px 0 var(--primary),
-    12px 60px 0 var(--primary),
-    -6px 66px 0 var(--primary),
-    0 66px 0 var(--primary),
-    12px 66px 0 var(--primary),
-    18px 66px 0 var(--primary),
-    -6px 72px 0 var(--primary),
-    0 72px 0 var(--primary),
-    12px 72px 0 var(--primary),
-    18px 72px 0 var(--primary),
-    /* Feet */
-    -12px 78px 0 var(--primary),
-    -6px 78px 0 var(--primary),
-    0 78px 0 var(--primary),
-    12px 78px 0 var(--primary),
-    18px 78px 0 var(--primary),
-    24px 78px 0 var(--primary);
+/* Pixel-style ball matching the aesthetic */
+.sprite-ball {
+  width: 20px;
+  height: 20px;
+  background: #333;
+  border-radius: 50%;
+  box-shadow: inset -4px -4px 0 #111, inset 4px 4px 0 #555;
+  animation: ballBounce 0.25s ease-in-out infinite;
+  margin-bottom: 12px;
 }
 
-/* Ball - positioned at feet level (y=78 is feet, ball slightly in front) */
-.pixel-ball {
-  position: absolute;
-  top: 60px;
-  left: 75px;
-  width: 6px;
-  height: 6px;
-  background: var(--primary);
-  animation: ballBounce 0.3s ease-in-out infinite;
-  box-shadow:
-    6px 0 0 var(--primary),
-    0 6px 0 var(--primary),
-    6px 6px 0 var(--primary),
-    12px 6px 0 var(--primary),
-    0 12px 0 var(--primary),
-    6px 12px 0 var(--primary),
-    12px 12px 0 var(--primary),
-    6px 18px 0 var(--primary);
-}
-
-/* Keyframe Animations */
+/* Keyframes */
 @keyframes runAcross {
   0% {
-    transform: translateX(-150px);
+    transform: translateX(-140px);
   }
   100% {
-    transform: translateX(calc(100vw + 50px));
+    transform: translateX(calc(100vw + 40px));
   }
 }
 
-@keyframes frame1 {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes frame2 {
-  0%, 100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
+/* Animate ONLY the x-position through 4 frames */
+@keyframes spriteRun {
+  from { background-position-x: 0; }
+  to { background-position-x: -384px; }
 }
 
 @keyframes ballBounce {
@@ -538,6 +393,6 @@ a[aria-disabled="true"] {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-10px);
   }
 }
