@@ -6,7 +6,7 @@ import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Edit, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Edit, Users, Trophy } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -213,6 +213,29 @@ export default function TournamentDetailPage({ params }: PageProps) {
                         </span>
                       </div>
                       <span className="font-medium text-text-primary">{match.awayTeam}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Players / Awards */}
+            {tournament.players && tournament.players.length > 0 && (
+              <div className="pt-6 border-t border-border">
+                <p className="text-sm font-medium text-text-label mb-4">
+                  Ocenění hráčů ({tournament.players.length}):
+                </p>
+                <div className="space-y-3">
+                  {tournament.players.map((player, index) => (
+                    <div
+                      key={player.id || index}
+                      className="flex items-center gap-4 p-4 bg-surface-elevated rounded-lg border border-border"
+                    >
+                      <Trophy className="w-5 h-5 text-accent flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm text-text-muted">{player.title}</p>
+                        <p className="font-medium text-text-primary">{player.playerName}</p>
+                      </div>
                     </div>
                   ))}
                 </div>

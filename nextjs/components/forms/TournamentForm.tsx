@@ -54,15 +54,22 @@ export default function TournamentForm({
           category: initialData.category,
           imagesUrl: initialData.imagesUrl || '',
           matches: [],
+          players: initialData.players || [],
         }
       : {
           matches: [],
+          players: [],
         },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: matchFields, append: appendMatch, remove: removeMatch } = useFieldArray({
     control,
     name: 'matches',
+  });
+
+  const { fields: playerFields, append: appendPlayer, remove: removePlayer } = useFieldArray({
+    control,
+    name: 'players',
   });
 
   const description = watch('description');
@@ -114,6 +121,11 @@ export default function TournamentForm({
         // Add matches as JSON string
         if (data.matches && data.matches.length > 0) {
           formData.append('matches', JSON.stringify(data.matches));
+        }
+
+        // Add players as JSON string
+        if (data.players && data.players.length > 0) {
+          formData.append('players', JSON.stringify(data.players));
         }
 
         if (photos) {
@@ -285,7 +297,7 @@ export default function TournamentForm({
               type="button"
               variant="accent"
               size="sm"
-              onClick={() => append({
+              onClick={() => appendMatch({
                 homeTeam: '',
                 awayTeam: '',
                 homeScore: 0,
@@ -299,13 +311,13 @@ export default function TournamentForm({
             </Button>
           </div>
 
-          {fields.length === 0 ? (
+          {matchFields.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg">
               Zatím nebyly přidány žádné zápasy. Klikněte na &quot;Přidat zápas&quot; pro přidání.
             </p>
           ) : (
             <div className="space-y-4">
-              {fields.map((field, index) => (
+              {matchFields.map((field, index) => (
                 <div
                   key={field.id}
                   className="border border-border rounded-lg p-4 bg-card"
@@ -318,7 +330,7 @@ export default function TournamentForm({
                       type="button"
                       variant="danger"
                       size="sm"
-                      onClick={() => remove(index)}
+                      onClick={() => removeMatch(index)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -410,7 +422,7 @@ export default function TournamentForm({
                   type="button"
                   variant="accent"
                   size="sm"
-                  onClick={() => append({
+                  onClick={() => appendMatch({
                     homeTeam: '',
                     awayTeam: '',
                     homeScore: 0,
@@ -427,6 +439,96 @@ export default function TournamentForm({
           )}
         </div>
 
+        {/* Tournament Players Section */}
+        <div className="border-t pt-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Hráči turnaje</h3>
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              onClick={() => appendPlayer({
+                title: '',
+                playerName: '',
+              })}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Přidat hráče
+            </Button>
+          </div>
+
+          {playerFields.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg">
+              Zatím nebyli přidáni žádní hráči. Klikněte na &quot;Přidat hráče&quot; pro přidání ocenění.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {playerFields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="border border-border rounded-lg p-4 bg-card"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Ocenění #{index + 1}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      onClick={() => removePlayer(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      label="Titul / Ocenění"
+                      error={errors.players?.[index]?.title?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`players.${index}.title`)}
+                        placeholder="např. Nejlepší střelec turnaje"
+                        error={errors.players?.[index]?.title?.message}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Jméno hráče"
+                      error={errors.players?.[index]?.playerName?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`players.${index}.playerName`)}
+                        placeholder="Jméno a příjmení"
+                        error={errors.players?.[index]?.playerName?.message}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add player button at bottom of list */}
+              <div className="flex justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  onClick={() => appendPlayer({
+                    title: '',
+                    playerName: '',
+                  })}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Přidat další ocenění
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-4">
           <Button
             type="submit"
@@ -435,7 +537,7 @@ export default function TournamentForm({
             disabled={isLoading}
             className="flex-1"
           >
-            {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Vytvořit turnaj'}
+            {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit turnaj'}
           </Button>
 
           <Button

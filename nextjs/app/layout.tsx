@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MFK FM",
-  description: "MFK FM - Firemní aplikace",
+  title: "Fotbal FM",
+  description: "Fotbal FM - Firemní aplikace",
 };
 
 // Force dynamic rendering for all pages to avoid React 19 prerendering bugs

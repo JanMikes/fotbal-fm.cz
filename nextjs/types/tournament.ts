@@ -1,6 +1,12 @@
 import { StrapiImage, UserInfo } from './match-result';
 import { TournamentMatch } from './tournament-match';
 
+export interface TournamentPlayer {
+  id?: number;
+  title: string;
+  playerName: string;
+}
+
 export type TournamentCategory =
   | 'Muži A'
   | 'Muži B'
@@ -32,6 +38,7 @@ export interface Tournament {
   category: TournamentCategory;
   photos: StrapiImage[];
   imagesUrl?: string;
+  players?: TournamentPlayer[];
   matches?: TournamentMatch[];
   authorId: number;
   author?: UserInfo;
@@ -49,6 +56,7 @@ export interface TournamentFormData {
   category: TournamentCategory;
   photos?: FileList;
   imagesUrl?: string;
+  players?: TournamentPlayer[];
 }
 
 export interface CreateTournamentRequest {
@@ -59,6 +67,7 @@ export interface CreateTournamentRequest {
   dateTo?: string;
   category: TournamentCategory;
   imagesUrl?: string;
+  players?: TournamentPlayer[];
 }
 
 export interface StrapiTournamentResponse {

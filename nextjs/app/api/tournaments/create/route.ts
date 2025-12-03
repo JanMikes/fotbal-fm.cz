@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiCreateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
-import { tournamentApiSchema, inlineMatchApiSchema } from '@/lib/validation';
+import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 import { z } from 'zod';
 
 export async function POST(request: NextRequest) {
@@ -74,6 +74,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Parse and validate players if present
+    const playersJson = formData.get('players') as string;
+    let validatedPlayers: z.infer<typeof tournamentPlayerSchema>[] = [];
+
+    if (playersJson) {
+      try {
+        const parsedPlayers = JSON.parse(playersJson);
+        const playersSchema = z.array(tournamentPlayerSchema);
+        const playersValidation = playersSchema.safeParse(parsedPlayers);
+
+        if (!playersValidation.success) {
+          const firstError = playersValidation.error.issues[0];
+          return NextResponse.json(
+            { success: false, error: `Chyba v hráči: ${firstError.message}` },
+            { status: 400 }
+          );
+        }
+
+        validatedPlayers = playersValidation.data;
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Neplatný formát hráčů' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Extract photos from form data
     const photos: File[] = [];
     const photoEntries = formData.getAll('photos');
@@ -83,11 +110,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create tournament in Strapi with author relationship
+    // Create tournament in Strapi with author relationship and players component
     const dataToSend = {
       ...validationResult.data,
       imagesUrl: validationResult.data.imagesUrl || undefined,
       author: session.userId,
+      players: validatedPlayers.length > 0 ? validatedPlayers : undefined,
     };
 
     const tournament = await strapiCreateTournament(

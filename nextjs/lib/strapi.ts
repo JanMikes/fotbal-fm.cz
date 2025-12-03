@@ -818,6 +818,15 @@ function mapStrapiTournament(strapiData: any): Tournament {
     const author = mapUserInfo(data.author, isFlattened);
     const updatedBy = mapUserInfo(data.updatedBy, isFlattened);
 
+    // Map players component (repeatable)
+    const players = Array.isArray(data.players)
+        ? data.players.map((p: any) => ({
+              id: p.id,
+              title: p.title,
+              playerName: p.playerName,
+          }))
+        : [];
+
     return {
         id: entityId,
         name: data.name,
@@ -828,6 +837,7 @@ function mapStrapiTournament(strapiData: any): Tournament {
         category: data.category,
         photos,
         imagesUrl: data.imagesUrl || undefined,
+        players,
         authorId: userId,
         author,
         updatedBy,

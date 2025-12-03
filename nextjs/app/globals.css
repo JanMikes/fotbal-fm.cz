@@ -321,3 +321,223 @@ a[aria-disabled="true"] {
 .react-datepicker__triangle {
   display: none;
 }
+
+/* ===========================================
+   Pixel Football Player Animation
+   =========================================== */
+
+.pixel-runner-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+
+/* Player wrapper - moves across screen, positioned from top */
+.pixel-player-wrapper {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 120px;
+  height: 150px;
+  animation: runAcross 8s linear infinite;
+}
+
+/*
+ * Pixel art using box-shadow technique
+ * Each "pixel" is 6px x 6px for a clean retro look
+ * Player is ~8 pixels wide x 20 pixels tall = 48px x 120px
+ */
+
+/* Frame 1 - Running with legs spread */
+.pixel-frame-1 {
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  animation: frame1 0.18s steps(1) infinite;
+  box-shadow:
+    /* Head (3x3) */
+    6px 0 0 var(--primary),
+    12px 0 0 var(--primary),
+    0 6px 0 var(--primary),
+    6px 6px 0 var(--primary),
+    12px 6px 0 var(--primary),
+    0 12px 0 var(--primary),
+    6px 12px 0 var(--primary),
+    12px 12px 0 var(--primary),
+    /* Neck */
+    6px 18px 0 var(--primary),
+    /* Torso (5 wide) */
+    -6px 24px 0 var(--primary),
+    0 24px 0 var(--primary),
+    6px 24px 0 var(--primary),
+    12px 24px 0 var(--primary),
+    18px 24px 0 var(--primary),
+    -6px 30px 0 var(--primary),
+    0 30px 0 var(--primary),
+    6px 30px 0 var(--primary),
+    12px 30px 0 var(--primary),
+    18px 30px 0 var(--primary),
+    0 36px 0 var(--primary),
+    6px 36px 0 var(--primary),
+    12px 36px 0 var(--primary),
+    0 42px 0 var(--primary),
+    6px 42px 0 var(--primary),
+    12px 42px 0 var(--primary),
+    /* Hips */
+    0 48px 0 var(--primary),
+    6px 48px 0 var(--primary),
+    12px 48px 0 var(--primary),
+    /* Legs spread - left leg going left, right leg going right */
+    -6px 54px 0 var(--primary),
+    0 54px 0 var(--primary),
+    12px 54px 0 var(--primary),
+    18px 54px 0 var(--primary),
+    -12px 60px 0 var(--primary),
+    -6px 60px 0 var(--primary),
+    18px 60px 0 var(--primary),
+    24px 60px 0 var(--primary),
+    -18px 66px 0 var(--primary),
+    -12px 66px 0 var(--primary),
+    24px 66px 0 var(--primary),
+    30px 66px 0 var(--primary),
+    -24px 72px 0 var(--primary),
+    -18px 72px 0 var(--primary),
+    30px 72px 0 var(--primary),
+    36px 72px 0 var(--primary),
+    /* Feet */
+    -30px 78px 0 var(--primary),
+    -24px 78px 0 var(--primary),
+    -18px 78px 0 var(--primary),
+    36px 78px 0 var(--primary),
+    42px 78px 0 var(--primary),
+    48px 78px 0 var(--primary);
+}
+
+/* Frame 2 - Running with legs together/passing */
+.pixel-frame-2 {
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  opacity: 0;
+  animation: frame2 0.18s steps(1) infinite;
+  box-shadow:
+    /* Head (3x3) */
+    6px 0 0 var(--primary),
+    12px 0 0 var(--primary),
+    0 6px 0 var(--primary),
+    6px 6px 0 var(--primary),
+    12px 6px 0 var(--primary),
+    0 12px 0 var(--primary),
+    6px 12px 0 var(--primary),
+    12px 12px 0 var(--primary),
+    /* Neck */
+    6px 18px 0 var(--primary),
+    /* Torso (5 wide) */
+    -6px 24px 0 var(--primary),
+    0 24px 0 var(--primary),
+    6px 24px 0 var(--primary),
+    12px 24px 0 var(--primary),
+    18px 24px 0 var(--primary),
+    -6px 30px 0 var(--primary),
+    0 30px 0 var(--primary),
+    6px 30px 0 var(--primary),
+    12px 30px 0 var(--primary),
+    18px 30px 0 var(--primary),
+    0 36px 0 var(--primary),
+    6px 36px 0 var(--primary),
+    12px 36px 0 var(--primary),
+    0 42px 0 var(--primary),
+    6px 42px 0 var(--primary),
+    12px 42px 0 var(--primary),
+    /* Hips */
+    0 48px 0 var(--primary),
+    6px 48px 0 var(--primary),
+    12px 48px 0 var(--primary),
+    /* Legs together */
+    0 54px 0 var(--primary),
+    6px 54px 0 var(--primary),
+    12px 54px 0 var(--primary),
+    0 60px 0 var(--primary),
+    6px 60px 0 var(--primary),
+    12px 60px 0 var(--primary),
+    -6px 66px 0 var(--primary),
+    0 66px 0 var(--primary),
+    12px 66px 0 var(--primary),
+    18px 66px 0 var(--primary),
+    -6px 72px 0 var(--primary),
+    0 72px 0 var(--primary),
+    12px 72px 0 var(--primary),
+    18px 72px 0 var(--primary),
+    /* Feet */
+    -12px 78px 0 var(--primary),
+    -6px 78px 0 var(--primary),
+    0 78px 0 var(--primary),
+    12px 78px 0 var(--primary),
+    18px 78px 0 var(--primary),
+    24px 78px 0 var(--primary);
+}
+
+/* Ball - positioned at feet level (y=78 is feet, ball slightly in front) */
+.pixel-ball {
+  position: absolute;
+  top: 60px;
+  left: 75px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  animation: ballBounce 0.3s ease-in-out infinite;
+  box-shadow:
+    6px 0 0 var(--primary),
+    0 6px 0 var(--primary),
+    6px 6px 0 var(--primary),
+    12px 6px 0 var(--primary),
+    0 12px 0 var(--primary),
+    6px 12px 0 var(--primary),
+    12px 12px 0 var(--primary),
+    6px 18px 0 var(--primary);
+}
+
+/* Keyframe Animations */
+@keyframes runAcross {
+  0% {
+    transform: translateX(-150px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 50px));
+  }
+}
+
+@keyframes frame1 {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes frame2 {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ballBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_tournament_players",
+  "info": {
+    "displayName": "Player",
+    "description": "Tournament player recognition"
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "playerName": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

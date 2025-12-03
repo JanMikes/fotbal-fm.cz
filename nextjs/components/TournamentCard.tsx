@@ -79,7 +79,6 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
 
         {/* Last updated info */}
         <div className="flex items-center gap-1.5 text-xs text-text-muted pt-2 border-t border-border">
-          <span>Poslední aktualizace:</span>
           <User className="w-3 h-3" />
           <span>
             {tournament.updatedBy

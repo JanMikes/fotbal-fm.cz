@@ -160,6 +160,12 @@ export const inlineMatchApiSchema = z.object({
   awayGoalscorers: z.string().optional(),
 });
 
+// Tournament player schema (for players created within tournament form)
+export const tournamentPlayerSchema = z.object({
+  title: z.string().min(1, 'Titul je povinný'),
+  playerName: z.string().min(1, 'Jméno hráče je povinné'),
+});
+
 // Tournament schemas
 export const tournamentSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
@@ -170,6 +176,7 @@ export const tournamentSchema = z.object({
   category: categoryEnum,
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
   matches: z.array(inlineMatchSchema).optional(),
+  players: z.array(tournamentPlayerSchema).optional(),
 });
 
 export const tournamentApiSchema = z.object({
@@ -181,6 +188,7 @@ export const tournamentApiSchema = z.object({
   category: categoryEnum,
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
   matches: z.array(inlineMatchApiSchema).optional(),
+  players: z.array(tournamentPlayerSchema).optional(),
 });
 
 // Tournament match schemas
@@ -234,4 +242,5 @@ export type EventFormData = z.infer<typeof eventSchema>;
 export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export type TournamentMatchFormData = z.infer<typeof tournamentMatchSchema>;
 export type InlineMatchFormData = z.infer<typeof inlineMatchSchema>;
+export type TournamentPlayerFormData = z.infer<typeof tournamentPlayerSchema>;
 export type CommentFormData = z.infer<typeof commentSchema>;

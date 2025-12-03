@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiGetTournament, strapiUpdateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
-import { tournamentApiSchema, inlineMatchApiSchema } from '@/lib/validation';
+import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 import { z } from 'zod';
 
 export async function GET(
@@ -92,12 +92,33 @@ export async function PUT(
       validatedMatches = matchesValidation.data;
     }
 
+    // Validate players if present
+    let validatedPlayers: z.infer<typeof tournamentPlayerSchema>[] = [];
+    if (body.players && Array.isArray(body.players) && body.players.length > 0) {
+      const playersSchema = z.array(tournamentPlayerSchema);
+      const playersValidation = playersSchema.safeParse(body.players);
+
+      if (!playersValidation.success) {
+        const firstError = playersValidation.error.issues[0];
+        return NextResponse.json(
+          { success: false, error: `Chyba v hráči: ${firstError.message}` },
+          { status: 400 }
+        );
+      }
+
+      validatedPlayers = playersValidation.data;
+    }
+
     // Update tournament (without matches - those are handled separately)
-    const { matches: _matches, ...tournamentData } = validationResult.data;
+    // Players are a component and are updated directly with the tournament
+    const { matches: _matches, players: _players, ...tournamentData } = validationResult.data;
     const tournament = await strapiUpdateTournament(
       session.jwt,
       id,
-      tournamentData
+      {
+        ...tournamentData,
+        players: validatedPlayers.length > 0 ? validatedPlayers : [],
+      }
     );
 
     // Create new tournament matches if present

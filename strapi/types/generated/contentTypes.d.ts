@@ -720,6 +720,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     location: Schema.Attribute.String;
     name: Schema.Attribute.String & Schema.Attribute.Required;
     photos: Schema.Attribute.Media<'images', true>;
+    players: Schema.Attribute.Component<'tournament.player', true>;
     publishedAt: Schema.Attribute.DateTime;
     tournamentMatches: Schema.Attribute.Relation<
       'oneToMany',

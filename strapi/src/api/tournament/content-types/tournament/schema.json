@@ -64,6 +64,11 @@
     "imagesUrl": {
       "type": "string"
     },
+    "players": {
+      "type": "component",
+      "repeatable": true,
+      "component": "tournament.player"
+    },
     "author": {
       "type": "relation",
       "relation": "manyToOne",
