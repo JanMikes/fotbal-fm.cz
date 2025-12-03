@@ -593,6 +593,10 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
     homeTeam: Schema.Attribute.String & Schema.Attribute.Required;
     images: Schema.Attribute.Media<'images', true>;
     imagesUrl: Schema.Attribute.String;
+    lastModifiedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

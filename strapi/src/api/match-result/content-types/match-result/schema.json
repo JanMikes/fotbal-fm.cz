@@ -93,7 +93,7 @@
         "audios"
       ]
     },
-    "updatedBy": {
+    "lastModifiedBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"

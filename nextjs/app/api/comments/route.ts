@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { strapiCreateComment, strapiGetMatchResult, strapiGetTournament, strapiGetEvent } from '@/lib/strapi';
+import { strapiCreateComment, strapiGetMatchResult, strapiGetTournament, strapiGetEvent, strapiGetMe } from '@/lib/strapi';
 import { commentApiSchema } from '@/lib/validation';
 import { notifyCommentAdded } from '@/lib/notifications';
 
@@ -43,10 +43,21 @@ export async function POST(request: NextRequest) {
 
     const comment = await strapiCreateComment(session.jwt, commentData);
 
-    // Send notification (non-blocking) - fetch entity name for better email content
+    // Send notification (non-blocking) - fetch entity name and user info for better email content
     try {
       let entityType: 'matchResult' | 'tournament' | 'event';
       let entityName = '';
+
+      // Fetch current user info for the notification
+      const currentUser = await strapiGetMe(session.jwt);
+      const commentWithAuthor = {
+        ...comment,
+        author: {
+          id: currentUser.id,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+        },
+      };
 
       if (matchResult) {
         entityType = 'matchResult';
@@ -62,7 +73,7 @@ export async function POST(request: NextRequest) {
         entityName = entity.name;
       }
 
-      notifyCommentAdded(comment, entityType, entityName);
+      notifyCommentAdded(commentWithAuthor, entityType, entityName);
     } catch {
       // If fetching entity fails, still send notification with fallback
       const entityType = matchResult ? 'matchResult' : tournament ? 'tournament' : 'event';
