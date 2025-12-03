@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiCreateMatchResult } from '@/lib/strapi';
 import { matchResultApiSchema } from '@/lib/validation';
+import { notifyMatchResultCreated } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,6 +87,9 @@ export async function POST(request: NextRequest) {
       images,
       files
     );
+
+    // Send notification (non-blocking)
+    notifyMatchResultCreated(matchResult);
 
     return NextResponse.json({
       success: true,

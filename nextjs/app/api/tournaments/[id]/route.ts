@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiGetTournament, strapiUpdateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
 import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
+import { notifyTournamentUpdated } from '@/lib/notifications';
 import { z } from 'zod';
 
 export async function GET(
@@ -140,6 +141,11 @@ export async function PUT(
         )
       );
     }
+
+    // Send notification (non-blocking)
+    // Include existing matches count + new matches
+    const existingMatchCount = tournament.matches?.length || 0;
+    notifyTournamentUpdated(tournament, existingMatchCount + validatedMatches.length);
 
     return NextResponse.json({
       success: true,

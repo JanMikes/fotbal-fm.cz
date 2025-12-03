@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { strapiCreateComment } from '@/lib/strapi';
+import { strapiCreateComment, strapiGetMatchResult, strapiGetTournament, strapiGetEvent } from '@/lib/strapi';
 import { commentApiSchema } from '@/lib/validation';
+import { notifyCommentAdded } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +42,33 @@ export async function POST(request: NextRequest) {
     };
 
     const comment = await strapiCreateComment(session.jwt, commentData);
+
+    // Send notification (non-blocking) - fetch entity name for better email content
+    try {
+      let entityType: 'matchResult' | 'tournament' | 'event';
+      let entityName = '';
+
+      if (matchResult) {
+        entityType = 'matchResult';
+        const entity = await strapiGetMatchResult(session.jwt, matchResult);
+        entityName = `${entity.homeTeam} vs ${entity.awayTeam} (${entity.homeScore}:${entity.awayScore})`;
+      } else if (tournament) {
+        entityType = 'tournament';
+        const entity = await strapiGetTournament(session.jwt, tournament);
+        entityName = entity.name;
+      } else {
+        entityType = 'event';
+        const entity = await strapiGetEvent(session.jwt, event!);
+        entityName = entity.name;
+      }
+
+      notifyCommentAdded(comment, entityType, entityName);
+    } catch {
+      // If fetching entity fails, still send notification with fallback
+      const entityType = matchResult ? 'matchResult' : tournament ? 'tournament' : 'event';
+      const entityId = matchResult || tournament || event;
+      notifyCommentAdded(comment, entityType, `ID: ${entityId}`);
+    }
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiCreateEvent } from '@/lib/strapi';
 import { eventApiSchema } from '@/lib/validation';
+import { notifyEventCreated } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,6 +79,9 @@ export async function POST(request: NextRequest) {
       photos,
       files
     );
+
+    // Send notification (non-blocking)
+    notifyEventCreated(event);
 
     return NextResponse.json({
       success: true,

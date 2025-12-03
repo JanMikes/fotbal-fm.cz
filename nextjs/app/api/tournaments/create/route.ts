@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiCreateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
 import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
+import { notifyTournamentCreated } from '@/lib/notifications';
 import { z } from 'zod';
 
 export async function POST(request: NextRequest) {
@@ -143,6 +144,9 @@ export async function POST(request: NextRequest) {
         )
       );
     }
+
+    // Send notification (non-blocking)
+    notifyTournamentCreated(tournament, validatedMatches.length);
 
     return NextResponse.json({
       success: true,

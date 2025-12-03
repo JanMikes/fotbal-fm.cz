@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiGetEvent, strapiUpdateEvent } from '@/lib/strapi';
 import { eventApiSchema } from '@/lib/validation';
+import { notifyEventUpdated } from '@/lib/notifications';
 
 export async function GET(
   request: NextRequest,
@@ -79,6 +80,9 @@ export async function PUT(
       id,
       validationResult.data
     );
+
+    // Send notification (non-blocking)
+    notifyEventUpdated(event);
 
     return NextResponse.json({
       success: true,

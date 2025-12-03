@@ -1,5 +1,6 @@
 volumes:
     postgres-data:
+    mailpit-data:
 
 services:
     postgres:
@@ -69,6 +70,16 @@ services:
             NEXT_PUBLIC_SENTRY_DSN: ""
             SENTRY_DSN: ""
             SENTRY_AUTH_TOKEN: ""
+            # Email Configuration (Mailpit for development)
+            SMTP_HOST: mailpit
+            SMTP_PORT: "1025"
+            SMTP_USER: ""
+            SMTP_PASSWORD: ""
+            SMTP_SECURE: "false"
+            EMAIL_FROM: "noreply@fotbal-fm.cz"
+            EMAIL_TO: "info@fotbal-fm.cz"
+        depends_on:
+            - mailpit
         command: bash -c "npm install && npm run dev"
 
     nginx:
@@ -92,3 +103,16 @@ services:
             ADMINER_DEFAULT_SERVER: postgres
         depends_on:
             - postgres
+
+    mailpit:
+        image: axllent/mailpit:latest
+        restart: unless-stopped
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        environment:
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+            MP_DATABASE: "/data/mailpit.db"
+        volumes:
+            - mailpit-data:/data

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { strapiRegister } from '@/lib/strapi';
 import { createSession } from '@/lib/session';
 import { registerSchema } from '@/lib/validation';
+import { notifyUserRegistered } from '@/lib/notifications';
 import { AuthResponse } from '@/types/api';
 
 export async function POST(request: NextRequest) {
@@ -56,6 +57,9 @@ export async function POST(request: NextRequest) {
 
     // Automatically log in - create session
     await createSession(user.id, user.email, jwt);
+
+    // Send notification (non-blocking)
+    notifyUserRegistered(user);
 
     return NextResponse.json<AuthResponse>({
       success: true,

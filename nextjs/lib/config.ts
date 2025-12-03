@@ -20,6 +20,15 @@ const envSchema = z.object({
 
   // Node environment
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+
+  // Email configuration
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().default(1025),
+  SMTP_USER: z.string().default(''),
+  SMTP_PASSWORD: z.string().default(''),
+  SMTP_SECURE: z.enum(['true', 'false']).default('false'),
+  EMAIL_FROM: z.string().default('noreply@fotbal-fm.cz'),
+  EMAIL_TO: z.string().default('info@fotbal-fm.cz'),
 });
 
 /**
@@ -44,6 +53,13 @@ function validateEnv() {
       PUBLIC_UPLOADS_URL: 'http://localhost:8080',
       REGISTRATION_SECRET: 'build-time-placeholder',
       NODE_ENV: process.env.NODE_ENV as 'development' | 'production' | 'test' || 'production',
+      SMTP_HOST: 'localhost',
+      SMTP_PORT: 1025,
+      SMTP_USER: '',
+      SMTP_PASSWORD: '',
+      SMTP_SECURE: 'false' as const,
+      EMAIL_FROM: 'noreply@fotbal-fm.cz',
+      EMAIL_TO: 'info@fotbal-fm.cz',
     };
   }
 
@@ -55,6 +71,13 @@ function validateEnv() {
       PUBLIC_UPLOADS_URL: process.env.PUBLIC_UPLOADS_URL,
       REGISTRATION_SECRET: process.env.REGISTRATION_SECRET,
       NODE_ENV: process.env.NODE_ENV,
+      SMTP_HOST: process.env.SMTP_HOST,
+      SMTP_PORT: process.env.SMTP_PORT,
+      SMTP_USER: process.env.SMTP_USER,
+      SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+      SMTP_SECURE: process.env.SMTP_SECURE,
+      EMAIL_FROM: process.env.EMAIL_FROM,
+      EMAIL_TO: process.env.EMAIL_TO,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
