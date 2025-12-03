@@ -10,6 +10,7 @@ export interface Event {
   dateTo?: string;
   publishDate?: string;
   eventTime?: string;
+  eventTimeTo?: string;
   description?: string;
   requiresPhotographer: boolean;
   photos: StrapiImage[];
@@ -28,6 +29,7 @@ export interface EventFormData {
   dateTo?: string;
   publishDate?: string;
   eventTime?: string;
+  eventTimeTo?: string;
   description?: string;
   requiresPhotographer?: boolean;
   photos?: FileList;
@@ -41,6 +43,7 @@ export interface CreateEventRequest {
   dateTo?: string;
   publishDate?: string;
   eventTime?: string;
+  eventTimeTo?: string;
   description?: string;
   requiresPhotographer?: boolean;
 }
@@ -55,6 +58,7 @@ export interface StrapiEventResponse {
       dateTo: string | null;
       publishDate: string | null;
       eventTime: string | null;
+      eventTimeTo: string | null;
       description: string | null;
       requiresPhotographer: boolean;
       photos: {
@@ -99,6 +103,7 @@ export interface StrapiEventsResponse {
       dateTo: string | null;
       publishDate: string | null;
       eventTime: string | null;
+      eventTimeTo: string | null;
       description: string | null;
       requiresPhotographer: boolean;
       photos: {

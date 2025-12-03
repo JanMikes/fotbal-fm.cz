@@ -500,6 +500,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     dateTo: Schema.Attribute.Date;
     description: Schema.Attribute.Text;
     eventTime: Schema.Attribute.Time;
+    eventTimeTo: Schema.Attribute.Time;
     eventType: Schema.Attribute.Enumeration<
       ['nadch\u00E1zej\u00EDc\u00ED', 'prob\u011Bhl\u00E1']
     > &

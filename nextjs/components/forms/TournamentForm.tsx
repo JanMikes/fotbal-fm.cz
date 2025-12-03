@@ -264,7 +264,6 @@ export default function TournamentForm({
             value={description || ''}
             onChange={(e) => setValue('description', e.target.value)}
             placeholder="Popis turnaje..."
-            rows={6}
             error={errors.description?.message}
           />
         </FormField>
@@ -417,11 +416,12 @@ export default function TournamentForm({
               ))}
 
               {/* Add match button at bottom of list */}
-              <div className="flex justify-center pt-2">
+              <div className="pt-2">
                 <Button
                   type="button"
                   variant="accent"
                   size="sm"
+                  className="w-full sm:w-auto sm:mx-auto sm:flex"
                   onClick={() => appendMatch({
                     homeTeam: '',
                     awayTeam: '',
@@ -529,26 +529,25 @@ export default function TournamentForm({
           )}
         </div>
 
-        <div className="flex gap-4">
+        <div className="space-y-4">
           <Button
             type="submit"
             variant="primary"
             size="lg"
             disabled={isLoading}
-            className="flex-1"
+            className="w-full"
           >
             {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit turnaj'}
           </Button>
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="lg"
             onClick={() => router.back()}
             disabled={isLoading}
+            className="w-full text-center text-sm text-muted underline hover:text-foreground disabled:opacity-50"
           >
             Zrušit
-          </Button>
+          </button>
         </div>
       </form>
     </>

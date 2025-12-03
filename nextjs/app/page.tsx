@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { useUser } from "@/contexts/UserContext";
-import PixelFootballPlayer from "@/components/PixelFootballPlayer";
 
 export default function Home() {
   const { user, loading } = useUser();
@@ -36,8 +35,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Pixel Football Player Animation */}
-        <PixelFootballPlayer />
       </div>
     </div>
   );

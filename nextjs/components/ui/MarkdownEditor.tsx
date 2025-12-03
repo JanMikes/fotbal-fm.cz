@@ -26,7 +26,7 @@ interface MarkdownEditorProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaEl
 }
 
 const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
-  ({ className = '', error, onChange, value, ...props }, ref) => {
+  ({ className = '', error, onChange, value, rows = 8, ...props }, ref) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement);
@@ -85,6 +85,7 @@ const MarkdownEditor = forwardRef<HTMLTextAreaElement, MarkdownEditorProps>(
           ref={textareaRef}
           value={value}
           onChange={onChange}
+          rows={rows}
           className={`w-full px-4 py-2.5 bg-white border rounded-b-lg rounded-t-none -mt-2
             text-text-primary placeholder:text-text-muted
             focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent

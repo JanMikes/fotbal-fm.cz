@@ -115,6 +115,7 @@ export const eventSchema = z.object({
   dateTo: z.string().optional(),
   publishDate: z.string().optional(),
   eventTime: z.string().optional(),
+  eventTimeTo: z.string().optional(),
   description: z.string().optional(),
   requiresPhotographer: z.boolean().optional(),
 });
@@ -126,6 +127,7 @@ export const eventApiSchema = z.object({
   dateTo: z.string().optional(),
   publishDate: z.string().optional(),
   eventTime: z.string().optional(),
+  eventTimeTo: z.string().optional(),
   description: z.string().optional(),
   requiresPhotographer: z.preprocess(
     (val) => val === 'true' || val === true,

@@ -118,7 +118,7 @@ function TournamentsPageContent() {
             <Link href="/novy-turnaj">
               <Button variant="primary" size="lg">
                 <Plus className="w-5 h-5 mr-2" />
-                Vytvořit první turnaj
+                Přidat první turnaj
               </Button>
             </Link>
           </div>

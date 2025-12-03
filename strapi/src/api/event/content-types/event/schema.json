@@ -37,6 +37,9 @@
     "eventTime": {
       "type": "time"
     },
+    "eventTimeTo": {
+      "type": "time"
+    },
     "description": {
       "type": "text"
     },

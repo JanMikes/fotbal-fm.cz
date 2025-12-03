@@ -53,6 +53,7 @@ export default function EventForm({
           dateTo: initialData.dateTo || '',
           publishDate: initialData.publishDate || '',
           eventTime: initialData.eventTime || '',
+          eventTimeTo: initialData.eventTimeTo || '',
           description: initialData.description || '',
           requiresPhotographer: initialData.requiresPhotographer || false,
         }
@@ -102,6 +103,9 @@ export default function EventForm({
         }
         if (data.eventTime) {
           formData.append('eventTime', data.eventTime);
+        }
+        if (data.eventTimeTo) {
+          formData.append('eventTimeTo', data.eventTimeTo);
         }
         if (data.description) {
           formData.append('description', data.description);
@@ -171,32 +175,20 @@ export default function EventForm({
           />
         </FormField>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            label="Typ události"
+        <FormField
+          label="Typ události"
+          error={errors.eventType?.message}
+          required
+        >
+          <Select
+            {...register('eventType')}
             error={errors.eventType?.message}
-            required
           >
-            <Select
-              {...register('eventType')}
-              error={errors.eventType?.message}
-            >
-              <option value="">Vyberte typ</option>
-              <option value="nadcházející">Nadcházející</option>
-              <option value="proběhlá">Proběhlá</option>
-            </Select>
-          </FormField>
-
-          <FormField
-            label="Čas události"
-            error={errors.eventTime?.message}
-          >
-            <TimePicker
-              {...register('eventTime')}
-              error={errors.eventTime?.message}
-            />
-          </FormField>
-        </div>
+            <option value="">Vyberte typ</option>
+            <option value="nadcházející">Nadcházející</option>
+            <option value="proběhlá">Proběhlá</option>
+          </Select>
+        </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -211,6 +203,18 @@ export default function EventForm({
           </FormField>
 
           <FormField
+            label="Čas od"
+            error={errors.eventTime?.message}
+          >
+            <TimePicker
+              {...register('eventTime')}
+              error={errors.eventTime?.message}
+            />
+          </FormField>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
             label="Datum do"
             error={errors.dateTo?.message}
             hint="Volitelné - pro vícedenní události"
@@ -220,12 +224,22 @@ export default function EventForm({
               error={errors.dateTo?.message}
             />
           </FormField>
+
+          <FormField
+            label="Čas do"
+            error={errors.eventTimeTo?.message}
+          >
+            <TimePicker
+              {...register('eventTimeTo')}
+              error={errors.eventTimeTo?.message}
+            />
+          </FormField>
         </div>
 
         <FormField
-          label="Datum zveřejnění"
+          label="Kdy nejpozději je nutné zveřejnit"
           error={errors.publishDate?.message}
-          hint="Referenční datum pro administraci"
+          hint="Referenční datum pro administrátora"
         >
           <DatePicker
             {...register('publishDate')}
@@ -242,20 +256,35 @@ export default function EventForm({
             value={description || ''}
             onChange={(e) => setValue('description', e.target.value)}
             placeholder="Popis události..."
-            rows={6}
             error={errors.description?.message}
           />
         </FormField>
 
-        <FormField label="Požaduji fotografa">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('requiresPhotographer')}
-              className="w-5 h-5 rounded border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
-            />
-            <span className="text-text-primary">Ano, potřebuji fotografa na akci</span>
-          </label>
+        <FormField label="Požaduji na akci fotografa">
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="true"
+                {...register('requiresPhotographer')}
+                checked={watch('requiresPhotographer') === true}
+                onChange={() => setValue('requiresPhotographer', true)}
+                className="w-5 h-5 border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
+              />
+              <span className="text-text-primary">Ano</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="false"
+                {...register('requiresPhotographer')}
+                checked={watch('requiresPhotographer') === false}
+                onChange={() => setValue('requiresPhotographer', false)}
+                className="w-5 h-5 border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
+              />
+              <span className="text-text-primary">Ne</span>
+            </label>
+          </div>
         </FormField>
 
         <FormField
@@ -272,26 +301,25 @@ export default function EventForm({
           <FileUpload onChange={setFiles} />
         </FormField>
 
-        <div className="flex gap-4">
+        <div className="space-y-4">
           <Button
             type="submit"
             variant="primary"
             size="lg"
             disabled={isLoading}
-            className="flex-1"
+            className="w-full"
           >
-            {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Vytvořit událost'}
+            {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit událost'}
           </Button>
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="lg"
             onClick={() => router.back()}
             disabled={isLoading}
+            className="w-full text-center text-sm text-muted underline hover:text-foreground disabled:opacity-50"
           >
             Zrušit
-          </Button>
+          </button>
         </div>
       </form>
     </>

@@ -237,7 +237,7 @@ export default function MatchResultForm({
         </FormField>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         <FormField
           label="Skóre domácích"
           error={errors.homeScore?.message}
@@ -300,7 +300,6 @@ export default function MatchResultForm({
           value={matchReport || ''}
           onChange={(e) => setValue('matchReport', e.target.value)}
           placeholder="Popis průběhu zápasu..."
-          rows={6}
           error={errors.matchReport?.message}
         />
       </FormField>
@@ -332,26 +331,25 @@ export default function MatchResultForm({
         <FileUpload onChange={setFiles} />
       </FormField>
 
-      <div className="flex gap-4">
+      <div className="space-y-4">
         <Button
           type="submit"
           variant="primary"
           size="lg"
           disabled={isLoading}
-          className="flex-1"
+          className="w-full"
         >
-          {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Vytvořit výsledek'}
+          {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit výsledek'}
         </Button>
 
-        <Button
+        <button
           type="button"
-          variant="secondary"
-          size="lg"
           onClick={() => router.back()}
           disabled={isLoading}
+          className="w-full text-center text-sm text-muted underline hover:text-foreground disabled:opacity-50"
         >
           Zrušit
-        </Button>
+        </button>
       </div>
     </form>
     </>

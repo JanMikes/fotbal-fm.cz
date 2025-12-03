@@ -248,26 +248,25 @@ export default function TournamentMatchForm({
           />
         </FormField>
 
-        <div className="flex gap-4">
+        <div className="space-y-4">
           <Button
             type="submit"
             variant="primary"
             size="lg"
             disabled={isLoading}
-            className="flex-1"
+            className="w-full"
           >
             {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Přidat zápas'}
           </Button>
 
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="lg"
             onClick={() => router.back()}
             disabled={isLoading}
+            className="w-full text-center text-sm text-muted underline hover:text-foreground disabled:opacity-50"
           >
             Zrušit
-          </Button>
+          </button>
         </div>
       </form>
     </>

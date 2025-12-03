@@ -16,6 +16,10 @@ const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
           transition-all duration-200
           ${error ? 'border-danger focus:ring-danger' : 'border-border hover:border-border-light'}
           disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-hover
+          [&::-webkit-calendar-picker-indicator]:cursor-pointer
+          [&::-webkit-calendar-picker-indicator]:p-1
+          [&::-webkit-calendar-picker-indicator]:rounded
+          [&::-webkit-calendar-picker-indicator]:hover:bg-surface-hover
           ${className}`}
         {...props}
       />

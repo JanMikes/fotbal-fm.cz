@@ -118,7 +118,7 @@ function EventsPageContent() {
             <Link href="/nova-udalost">
               <Button variant="primary" size="lg">
                 <Plus className="w-5 h-5 mr-2" />
-                Vytvořit první událost
+                Přidat první událost
               </Button>
             </Link>
           </div>

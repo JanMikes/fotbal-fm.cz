@@ -70,14 +70,14 @@ export default function DashboardPage() {
             Vítejte, {user.firstName}!
           </h1>
           <p className="text-text-secondary">
-            Zde je přehled nejnovější aktivity
+            Zde je přehled nejnovějších aktivit
           </p>
         </div>
 
         {loading ? (
           <LoadingSpinner />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3 items-start">
             {/* Recent Match Results */}
             <Card variant="elevated">
               <div className="flex items-center justify-between mb-4">
@@ -112,9 +112,12 @@ export default function DashboardPage() {
                             {mr.awayTeam}
                           </span>
                         </div>
-                        <p className="text-xs text-text-muted text-center mt-2">
-                          {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-text-muted">{mr.category}</span>
+                          <span className="text-xs text-text-muted">
+                            {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                        </div>
                       </div>
                     </Link>
                   ))}
