@@ -21,7 +21,7 @@ import { Event } from '@/types/event';
 interface EventFormProps {
   mode?: 'create' | 'edit';
   initialData?: Event;
-  recordId?: number;
+  recordId?: string;
 }
 
 export default function EventForm({

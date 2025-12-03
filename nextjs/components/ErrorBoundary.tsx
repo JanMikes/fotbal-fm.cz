@@ -70,7 +70,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
             <div className="text-center">
               <div className="mb-6">
                 <svg
-                  className="mx-auto h-16 w-16 text-red-500"
+                  className="mx-auto h-16 w-16 text-danger"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -94,11 +94,11 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="text-left mb-6 p-4 bg-red-50 rounded border border-red-200">
-                  <summary className="cursor-pointer text-sm font-semibold text-red-900 mb-2">
+                <details className="text-left mb-6 p-4 bg-danger-bg rounded border border-danger-border">
+                  <summary className="cursor-pointer text-sm font-semibold text-danger-text mb-2">
                     Technické detaily (pouze pro vývoj)
                   </summary>
-                  <pre className="text-xs text-red-800 overflow-auto">
+                  <pre className="text-xs text-danger-text overflow-auto">
                     <code>
                       {this.state.error.toString()}
                       {'\n\n'}

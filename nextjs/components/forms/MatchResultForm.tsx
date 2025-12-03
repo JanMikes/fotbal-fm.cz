@@ -20,7 +20,7 @@ import { MatchResult } from '@/types/match-result';
 interface MatchResultFormProps {
   mode?: 'create' | 'edit';
   initialData?: MatchResult;
-  recordId?: number;
+  recordId?: string;
 }
 
 export default function MatchResultForm({

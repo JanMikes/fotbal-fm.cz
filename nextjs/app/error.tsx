@@ -16,15 +16,15 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <h2 className="mb-4 text-2xl font-bold">Něco se pokazilo!</h2>
-        <p className="mb-6 text-gray-600">
+        <h2 className="mb-4 text-2xl font-bold text-text-primary">Něco se pokazilo!</h2>
+        <p className="mb-6 text-text-secondary">
           Omlouváme se, došlo k neočekávané chybě.
         </p>
         <button
           onClick={reset}
-          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="rounded-md bg-primary px-4 py-2 text-white hover:bg-primary-hover transition-colors"
         >
           Zkusit znovu
         </button>

@@ -14,10 +14,10 @@ interface AlertProps {
 }
 
 const variantStyles: Record<AlertVariant, string> = {
-  error: 'bg-red-50 border-red-200 text-red-700',
-  success: 'bg-green-50 border-green-200 text-green-700',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-  info: 'bg-blue-50 border-blue-200 text-blue-700',
+  error: 'bg-danger-bg border-danger-border text-danger-text',
+  success: 'bg-success-bg border-success-border text-success-text',
+  warning: 'bg-warning-bg border-warning-border text-warning-text',
+  info: 'bg-info-bg border-info-border text-info-text',
 };
 
 const variantIcons: Record<AlertVariant, ReactNode> = {

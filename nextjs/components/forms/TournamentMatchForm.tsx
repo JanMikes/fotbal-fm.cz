@@ -17,7 +17,7 @@ import { TournamentMatch } from '@/types/tournament-match';
 interface TournamentMatchFormProps {
   mode?: 'create' | 'edit';
   initialData?: TournamentMatch;
-  recordId?: number;
+  recordId?: string;
 }
 
 export default function TournamentMatchForm({

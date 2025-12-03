@@ -19,7 +19,7 @@ import { Tournament } from '@/types/tournament';
 interface TournamentFormProps {
   mode?: 'create' | 'edit';
   initialData?: Tournament;
-  recordId?: number;
+  recordId?: string;
 }
 
 export default function TournamentForm({
