@@ -329,19 +329,35 @@ a[aria-disabled="true"] {
 .runner-container {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 200px;
   margin: 2rem 0;
   overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Football pitch ground - shows a strip of the field */
+.pitch-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  background: url('/football-pitch.png') no-repeat;
+  background-size: 200% auto;
+  background-position: center 55%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .sprite-wrapper {
   position: absolute;
-  bottom: 20px;
+  bottom: 60px;
   left: 0;
   display: flex;
   align-items: flex-end;
   gap: 12px;
   animation: runAcross 4s linear infinite;
+  z-index: 10;
 }
 
 /*

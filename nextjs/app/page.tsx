@@ -14,10 +14,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-10">
           <h1 className="text-5xl md:text-6xl font-bold text-text-primary mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Vítejte ve Fotbal FM
+            Fotbal FM
           </h1>
-          <p className="text-xl md:text-2xl text-text-secondary mb-10 max-w-2xl mx-auto">
-            Moderní firemní aplikace pro správu a organizaci
+          <p className="text-xl md:text-2xl text-text-secondary mb-10 max-w-3xl mx-auto">
+            Aplikace fotbalu-fm je prostor pro snadné a rychlé vytváření klubového obsahu. Umožňuje nejen trenérům, ale i vedení přidávat výsledky, turnaje, události, statistiky a informace, které chce sdílet na webu, sociálních sítích nebo v mobilní aplikaci. Všechny podklady tím budou přehledně na jednom místě, připravené k dalšímu marketingovému použití.
           </p>
 
           {!loading && !user && (
