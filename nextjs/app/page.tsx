@@ -40,17 +40,17 @@ export default function Home() {
             alt="MFK Frýdek-Místek"
             width={160}
             height={192}
-            className="mx-auto mb-8"
+            className="mx-auto mb-6 md:mb-8 w-28 h-auto md:w-40"
             priority
           />
           <h1
-            className="text-5xl md:text-7xl font-bold text-white mb-8"
+            className="text-5xl md:text-7xl font-bold text-white mb-6 md:mb-8"
             style={{ textShadow: "0 4px 20px rgba(0,0,0,0.3)" }}
           >
             Fotbal FM
           </h1>
           <p
-            className="text-lg md:text-xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed"
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.2)" }}
           >
             Aplikace fotbalu-fm je prostor pro snadné a rychlé vytváření
@@ -60,7 +60,7 @@ export default function Home() {
           </p>
 
           {!loading && !user && (
-            <div className="flex justify-center gap-4 flex-wrap">
+            <div className="flex justify-center gap-3 md:gap-4 flex-wrap pb-4">
               <Link href="/prihlaseni">
                 <Button variant="primary" size="lg" className="backdrop-blur-sm bg-white/10 border border-white/20 hover:bg-white/20">
                   Přihlásit se
