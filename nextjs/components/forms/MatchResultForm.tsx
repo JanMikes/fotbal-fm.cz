@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { matchResultSchema, MatchResultFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -171,16 +172,31 @@ export default function MatchResultForm({
           error={errors.category?.message}
           required
         >
-          <select
+          <Select
             {...register('category')}
-            className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
-              errors.category ? 'border-danger' : 'border-border hover:border-border-light'
-            }`}
+            error={errors.category?.message}
           >
             <option value="">Vyberte kategorii</option>
-            <option value="Žáci">Žáci</option>
-            <option value="Dorost">Dorost</option>
-          </select>
+            <option value="Muži A">Muži A</option>
+            <option value="Muži B">Muži B</option>
+            <option value="Dorost U16">Dorost U16</option>
+            <option value="Dorost U17">Dorost U17</option>
+            <option value="Dorost U18">Dorost U18</option>
+            <option value="Dorost U19">Dorost U19</option>
+            <option value="Žáci U12">Žáci U12</option>
+            <option value="Žáci U13">Žáci U13</option>
+            <option value="Žáci U14">Žáci U14</option>
+            <option value="Žáci U15">Žáci U15</option>
+            <option value="Přípravka U8">Přípravka U8</option>
+            <option value="Přípravka U9">Přípravka U9</option>
+            <option value="Přípravka U10">Přípravka U10</option>
+            <option value="Přípravka U11">Přípravka U11</option>
+            <option value="Školička">Školička</option>
+            <option value="Ženy A">Ženy A</option>
+            <option value="Žákyně Mladší">Žákyně Mladší</option>
+            <option value="Žákyně Starší">Žákyně Starší</option>
+            <option value="Žákyně Přípravka">Žákyně Přípravka</option>
+          </Select>
         </FormField>
 
         <FormField

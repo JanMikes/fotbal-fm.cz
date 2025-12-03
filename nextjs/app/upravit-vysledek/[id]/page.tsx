@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MatchResult } from '@/types/match-result';
 import MatchResultForm from '@/components/forms/MatchResultForm';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
@@ -87,6 +88,13 @@ export default function EditMatchResultPage({ params }: PageProps) {
   return (
     <div className="bg-background py-8">
       <div className="max-w-4xl mx-auto px-4">
+        <div className="mb-6">
+          <Button variant="secondary" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zpět
+          </Button>
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             Upravit výsledek zápasu
@@ -96,11 +104,13 @@ export default function EditMatchResultPage({ params }: PageProps) {
           </p>
         </div>
 
-        <MatchResultForm
-          mode="edit"
-          initialData={matchResult}
-          recordId={matchResult.id}
-        />
+        <Card>
+          <MatchResultForm
+            mode="edit"
+            initialData={matchResult}
+            recordId={matchResult.id}
+          />
+        </Card>
       </div>
     </div>
   );

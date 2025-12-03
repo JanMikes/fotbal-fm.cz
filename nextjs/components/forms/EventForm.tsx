@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { eventSchema, EventFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -176,16 +177,14 @@ export default function EventForm({
             error={errors.eventType?.message}
             required
           >
-            <select
+            <Select
               {...register('eventType')}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
-                errors.eventType ? 'border-danger' : 'border-border hover:border-border-light'
-              }`}
+              error={errors.eventType?.message}
             >
               <option value="">Vyberte typ</option>
               <option value="nadcházející">Nadcházející</option>
               <option value="proběhlá">Proběhlá</option>
-            </select>
+            </Select>
           </FormField>
 
           <FormField

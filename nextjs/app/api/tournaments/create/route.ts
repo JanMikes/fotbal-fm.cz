@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { strapiCreateTournament } from '@/lib/strapi';
-import { tournamentApiSchema } from '@/lib/validation';
+import { strapiCreateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
+import { tournamentApiSchema, inlineMatchApiSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +47,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse and validate matches if present
+    const matchesJson = formData.get('matches') as string;
+    let validatedMatches: z.infer<typeof inlineMatchApiSchema>[] = [];
+
+    if (matchesJson) {
+      try {
+        const parsedMatches = JSON.parse(matchesJson);
+        const matchesSchema = z.array(inlineMatchApiSchema);
+        const matchesValidation = matchesSchema.safeParse(parsedMatches);
+
+        if (!matchesValidation.success) {
+          const firstError = matchesValidation.error.issues[0];
+          return NextResponse.json(
+            { success: false, error: `Chyba v zápasu: ${firstError.message}` },
+            { status: 400 }
+          );
+        }
+
+        validatedMatches = matchesValidation.data;
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Neplatný formát zápasů' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Extract photos from form data
     const photos: File[] = [];
     const photoEntries = formData.getAll('photos');
@@ -67,6 +95,26 @@ export async function POST(request: NextRequest) {
       dataToSend,
       photos
     );
+
+    // Create tournament matches if present
+    if (validatedMatches.length > 0) {
+      const tournamentId = parseInt(tournament.id, 10);
+
+      await Promise.all(
+        validatedMatches.map((match) =>
+          strapiCreateTournamentMatch(session.jwt, {
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            homeGoalscorers: match.homeGoalscorers || undefined,
+            awayGoalscorers: match.awayGoalscorers || undefined,
+            tournament: tournamentId,
+            author: session.userId,
+          })
+        )
+      );
+    }
 
     return NextResponse.json({
       success: true,

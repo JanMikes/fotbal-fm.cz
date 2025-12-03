@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { strapiGetTournament, strapiUpdateTournament } from '@/lib/strapi';
-import { tournamentApiSchema } from '@/lib/validation';
+import { strapiGetTournament, strapiUpdateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
+import { tournamentApiSchema, inlineMatchApiSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export async function GET(
   request: NextRequest,
@@ -74,11 +75,50 @@ export async function PUT(
       );
     }
 
+    // Validate matches if present
+    let validatedMatches: z.infer<typeof inlineMatchApiSchema>[] = [];
+    if (body.matches && Array.isArray(body.matches) && body.matches.length > 0) {
+      const matchesSchema = z.array(inlineMatchApiSchema);
+      const matchesValidation = matchesSchema.safeParse(body.matches);
+
+      if (!matchesValidation.success) {
+        const firstError = matchesValidation.error.issues[0];
+        return NextResponse.json(
+          { success: false, error: `Chyba v zápasu: ${firstError.message}` },
+          { status: 400 }
+        );
+      }
+
+      validatedMatches = matchesValidation.data;
+    }
+
+    // Update tournament (without matches - those are handled separately)
+    const { matches: _matches, ...tournamentData } = validationResult.data;
     const tournament = await strapiUpdateTournament(
       session.jwt,
       id,
-      validationResult.data
+      tournamentData
     );
+
+    // Create new tournament matches if present
+    if (validatedMatches.length > 0) {
+      const tournamentId = parseInt(id, 10);
+
+      await Promise.all(
+        validatedMatches.map((match) =>
+          strapiCreateTournamentMatch(session.jwt, {
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            homeGoalscorers: match.homeGoalscorers || undefined,
+            awayGoalscorers: match.awayGoalscorers || undefined,
+            tournament: tournamentId,
+            author: session.userId,
+          })
+        )
+      );
+    }
 
     return NextResponse.json({
       success: true,

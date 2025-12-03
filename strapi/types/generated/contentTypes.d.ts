@@ -549,7 +549,29 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
         number
       >;
     awayTeam: Schema.Attribute.String & Schema.Attribute.Required;
-    category: Schema.Attribute.Enumeration<['\u017D\u00E1ci', 'Dorost']> &
+    category: Schema.Attribute.Enumeration<
+      [
+        'Mu\u017Ei A',
+        'Mu\u017Ei B',
+        'Dorost U16',
+        'Dorost U17',
+        'Dorost U18',
+        'Dorost U19',
+        '\u017D\u00E1ci U12',
+        '\u017D\u00E1ci U13',
+        '\u017D\u00E1ci U14',
+        '\u017D\u00E1ci U15',
+        'P\u0159\u00EDpravka U8',
+        'P\u0159\u00EDpravka U9',
+        'P\u0159\u00EDpravka U10',
+        'P\u0159\u00EDpravka U11',
+        '\u0160koli\u010Dka',
+        '\u017Deny A',
+        '\u017D\u00E1kyn\u011B Mlad\u0161\u00ED',
+        '\u017D\u00E1kyn\u011B Star\u0161\u00ED',
+        '\u017D\u00E1kyn\u011B P\u0159\u00EDpravka',
+      ]
+    > &
       Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -658,7 +680,29 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    category: Schema.Attribute.Enumeration<['\u017D\u00E1ci', 'Dorost']> &
+    category: Schema.Attribute.Enumeration<
+      [
+        'Mu\u017Ei A',
+        'Mu\u017Ei B',
+        'Dorost U16',
+        'Dorost U17',
+        'Dorost U18',
+        'Dorost U19',
+        '\u017D\u00E1ci U12',
+        '\u017D\u00E1ci U13',
+        '\u017D\u00E1ci U14',
+        '\u017D\u00E1ci U15',
+        'P\u0159\u00EDpravka U8',
+        'P\u0159\u00EDpravka U9',
+        'P\u0159\u00EDpravka U10',
+        'P\u0159\u00EDpravka U11',
+        '\u0160koli\u010Dka',
+        '\u017Deny A',
+        '\u017D\u00E1kyn\u011B Mlad\u0161\u00ED',
+        '\u017D\u00E1kyn\u011B Star\u0161\u00ED',
+        '\u017D\u00E1kyn\u011B P\u0159\u00EDpravka',
+      ]
+    > &
       Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

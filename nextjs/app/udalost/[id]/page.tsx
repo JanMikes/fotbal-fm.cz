@@ -212,7 +212,7 @@ export default function EventDetailPage({ params }: PageProps) {
                       href={file.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-surface rounded-lg border border-border hover:border-primary transition-colors"
+                      className="flex items-center gap-3 p-3 bg-surface-elevated rounded-lg border border-border hover:border-primary transition-colors"
                     >
                       <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                         <span className="text-xs font-bold text-primary uppercase">

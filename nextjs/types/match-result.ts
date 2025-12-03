@@ -52,7 +52,26 @@ export interface StrapiFile {
   updatedAt: string;
 }
 
-export type MatchResultCategory = 'Žáci' | 'Dorost';
+export type MatchResultCategory =
+  | 'Muži A'
+  | 'Muži B'
+  | 'Dorost U16'
+  | 'Dorost U17'
+  | 'Dorost U18'
+  | 'Dorost U19'
+  | 'Žáci U12'
+  | 'Žáci U13'
+  | 'Žáci U14'
+  | 'Žáci U15'
+  | 'Přípravka U8'
+  | 'Přípravka U9'
+  | 'Přípravka U10'
+  | 'Přípravka U11'
+  | 'Školička'
+  | 'Ženy A'
+  | 'Žákyně Mladší'
+  | 'Žákyně Starší'
+  | 'Žákyně Přípravka';
 
 export interface UserInfo {
   id: number;

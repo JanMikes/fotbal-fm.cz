@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentMatchSchema, TournamentMatchFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
@@ -154,11 +155,9 @@ export default function TournamentMatchForm({
           error={errors.tournament?.message}
           required
         >
-          <select
+          <Select
             {...register('tournament', { valueAsNumber: true })}
-            className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
-              errors.tournament ? 'border-danger' : 'border-border hover:border-border-light'
-            }`}
+            error={errors.tournament?.message}
           >
             <option value="">Vyberte turnaj</option>
             {tournaments.map((tournament) => (
@@ -166,7 +165,7 @@ export default function TournamentMatchForm({
                 {tournament.name} ({tournament.category}) - {new Date(tournament.dateFrom).toLocaleDateString('cs-CZ')}
               </option>
             ))}
-          </select>
+          </Select>
         </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

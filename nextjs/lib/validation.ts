@@ -42,7 +42,27 @@ export const changePasswordSchema = z
   });
 
 // Category enum values
-const categoryEnum = z.enum(['Žáci', 'Dorost'], {
+const categoryEnum = z.enum([
+  'Muži A',
+  'Muži B',
+  'Dorost U16',
+  'Dorost U17',
+  'Dorost U18',
+  'Dorost U19',
+  'Žáci U12',
+  'Žáci U13',
+  'Žáci U14',
+  'Žáci U15',
+  'Přípravka U8',
+  'Přípravka U9',
+  'Přípravka U10',
+  'Přípravka U11',
+  'Školička',
+  'Ženy A',
+  'Žákyně Mladší',
+  'Žákyně Starší',
+  'Žákyně Přípravka',
+], {
   message: 'Kategorie je povinná',
 });
 
@@ -113,6 +133,33 @@ export const eventApiSchema = z.object({
   ),
 });
 
+// Inline match schema (for matches created within tournament form)
+export const inlineMatchSchema = z.object({
+  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
+  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
+  homeScore: z.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  awayScore: z.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  homeGoalscorers: z.string().optional(),
+  awayGoalscorers: z.string().optional(),
+});
+
+export const inlineMatchApiSchema = z.object({
+  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
+  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
+  homeScore: z.coerce.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  awayScore: z.coerce.number()
+    .int('Skóre musí být celé číslo')
+    .min(0, 'Skóre nemůže být záporné'),
+  homeGoalscorers: z.string().optional(),
+  awayGoalscorers: z.string().optional(),
+});
+
 // Tournament schemas
 export const tournamentSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
@@ -122,6 +169,7 @@ export const tournamentSchema = z.object({
   dateTo: z.string().optional(),
   category: categoryEnum,
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  matches: z.array(inlineMatchSchema).optional(),
 });
 
 export const tournamentApiSchema = z.object({
@@ -132,6 +180,7 @@ export const tournamentApiSchema = z.object({
   dateTo: z.string().optional(),
   category: categoryEnum,
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  matches: z.array(inlineMatchApiSchema).optional(),
 });
 
 // Tournament match schemas
@@ -184,4 +233,5 @@ export type MatchResultFormData = z.infer<typeof matchResultSchema>;
 export type EventFormData = z.infer<typeof eventSchema>;
 export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export type TournamentMatchFormData = z.infer<typeof tournamentMatchSchema>;
+export type InlineMatchFormData = z.infer<typeof inlineMatchSchema>;
 export type CommentFormData = z.infer<typeof commentSchema>;

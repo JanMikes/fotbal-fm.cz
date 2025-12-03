@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentSchema, TournamentFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -15,6 +16,7 @@ import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useScrollToError } from '@/hooks/useScrollToError';
 import { Tournament } from '@/types/tournament';
+import { Trash2, Plus } from 'lucide-react';
 
 interface TournamentFormProps {
   mode?: 'create' | 'edit';
@@ -38,6 +40,7 @@ export default function TournamentForm({
     formState: { errors },
     setValue,
     watch,
+    control,
   } = useForm<TournamentFormData>({
     resolver: zodResolver(tournamentSchema),
     mode: 'onSubmit',
@@ -50,8 +53,16 @@ export default function TournamentForm({
           dateTo: initialData.dateTo || '',
           category: initialData.category,
           imagesUrl: initialData.imagesUrl || '',
+          matches: [],
         }
-      : undefined,
+      : {
+          matches: [],
+        },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'matches',
   });
 
   const description = watch('description');
@@ -100,6 +111,11 @@ export default function TournamentForm({
           formData.append('imagesUrl', data.imagesUrl);
         }
 
+        // Add matches as JSON string
+        if (data.matches && data.matches.length > 0) {
+          formData.append('matches', JSON.stringify(data.matches));
+        }
+
         if (photos) {
           Array.from(photos).forEach((photo) => {
             formData.append('photos', photo);
@@ -117,7 +133,8 @@ export default function TournamentForm({
           throw new Error(result.error || 'Nepodařilo se vytvořit turnaj');
         }
 
-        router.push('/turnaje?success=true');
+        // Redirect to the tournament detail page
+        router.push(`/turnaj/${result.tournament.id}?success=true`);
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -163,16 +180,31 @@ export default function TournamentForm({
             error={errors.category?.message}
             required
           >
-            <select
+            <Select
               {...register('category')}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus focus:border-transparent transition-all duration-200 ${
-                errors.category ? 'border-danger' : 'border-border hover:border-border-light'
-              }`}
+              error={errors.category?.message}
             >
               <option value="">Vyberte kategorii</option>
-              <option value="Žáci">Žáci</option>
-              <option value="Dorost">Dorost</option>
-            </select>
+              <option value="Muži A">Muži A</option>
+              <option value="Muži B">Muži B</option>
+              <option value="Dorost U16">Dorost U16</option>
+              <option value="Dorost U17">Dorost U17</option>
+              <option value="Dorost U18">Dorost U18</option>
+              <option value="Dorost U19">Dorost U19</option>
+              <option value="Žáci U12">Žáci U12</option>
+              <option value="Žáci U13">Žáci U13</option>
+              <option value="Žáci U14">Žáci U14</option>
+              <option value="Žáci U15">Žáci U15</option>
+              <option value="Přípravka U8">Přípravka U8</option>
+              <option value="Přípravka U9">Přípravka U9</option>
+              <option value="Přípravka U10">Přípravka U10</option>
+              <option value="Přípravka U11">Přípravka U11</option>
+              <option value="Školička">Školička</option>
+              <option value="Ženy A">Ženy A</option>
+              <option value="Žákyně Mladší">Žákyně Mladší</option>
+              <option value="Žákyně Starší">Žákyně Starší</option>
+              <option value="Žákyně Přípravka">Žákyně Přípravka</option>
+            </Select>
           </FormField>
 
           <FormField
@@ -244,6 +276,156 @@ export default function TournamentForm({
             error={errors.imagesUrl?.message}
           />
         </FormField>
+
+        {/* Tournament Matches Section */}
+        <div className="border-t pt-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Zápasy turnaje</h3>
+            <Button
+              type="button"
+              variant="accent"
+              size="sm"
+              onClick={() => append({
+                homeTeam: '',
+                awayTeam: '',
+                homeScore: 0,
+                awayScore: 0,
+                homeGoalscorers: '',
+                awayGoalscorers: '',
+              })}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Přidat zápas
+            </Button>
+          </div>
+
+          {fields.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg">
+              Zatím nebyly přidány žádné zápasy. Klikněte na &quot;Přidat zápas&quot; pro přidání.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="border border-border rounded-lg p-4 bg-card"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Zápas #{index + 1}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FormField
+                      label="Domácí tým"
+                      error={errors.matches?.[index]?.homeTeam?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`matches.${index}.homeTeam`)}
+                        placeholder="Název týmu"
+                        error={errors.matches?.[index]?.homeTeam?.message}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Hostující tým"
+                      error={errors.matches?.[index]?.awayTeam?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`matches.${index}.awayTeam`)}
+                        placeholder="Název týmu"
+                        error={errors.matches?.[index]?.awayTeam?.message}
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormField
+                      label="Skóre domácích"
+                      error={errors.matches?.[index]?.homeScore?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`matches.${index}.homeScore`, { valueAsNumber: true })}
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        error={errors.matches?.[index]?.homeScore?.message}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Skóre hostů"
+                      error={errors.matches?.[index]?.awayScore?.message}
+                      required
+                    >
+                      <Input
+                        {...register(`matches.${index}.awayScore`, { valueAsNumber: true })}
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        error={errors.matches?.[index]?.awayScore?.message}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Střelci domácích"
+                      error={errors.matches?.[index]?.homeGoalscorers?.message}
+                    >
+                      <Input
+                        {...register(`matches.${index}.homeGoalscorers`)}
+                        placeholder="15' Novák"
+                        error={errors.matches?.[index]?.homeGoalscorers?.message}
+                      />
+                    </FormField>
+
+                    <FormField
+                      label="Střelci hostů"
+                      error={errors.matches?.[index]?.awayGoalscorers?.message}
+                    >
+                      <Input
+                        {...register(`matches.${index}.awayGoalscorers`)}
+                        placeholder="22' Svoboda"
+                        error={errors.matches?.[index]?.awayGoalscorers?.message}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add match button at bottom of list */}
+              <div className="flex justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  onClick={() => append({
+                    homeTeam: '',
+                    awayTeam: '',
+                    homeScore: 0,
+                    awayScore: 0,
+                    homeGoalscorers: '',
+                    awayGoalscorers: '',
+                  })}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Přidat další zápas
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-4">
           <Button

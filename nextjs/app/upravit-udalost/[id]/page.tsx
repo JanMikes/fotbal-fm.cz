@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Event } from '@/types/event';
 import EventForm from '@/components/forms/EventForm';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 import { ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
@@ -87,6 +88,13 @@ export default function EditEventPage({ params }: PageProps) {
   return (
     <div className="bg-background py-8">
       <div className="max-w-4xl mx-auto px-4">
+        <div className="mb-6">
+          <Button variant="secondary" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zpět
+          </Button>
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             Upravit událost
@@ -96,11 +104,13 @@ export default function EditEventPage({ params }: PageProps) {
           </p>
         </div>
 
-        <EventForm
-          mode="edit"
-          initialData={event}
-          recordId={event.id}
-        />
+        <Card>
+          <EventForm
+            mode="edit"
+            initialData={event}
+            recordId={event.id}
+          />
+        </Card>
       </div>
     </div>
   );

@@ -34,6 +34,7 @@ export interface CreateTournamentMatchRequest {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   tournament: number;
+  author?: number;
 }
 
 export interface StrapiTournamentMatchResponse {
