@@ -26,6 +26,10 @@ function formatUserName(user: User): string {
   return name || user.email;
 }
 
+function formatMultilineText(text: string): string {
+  return text.replace(/\n/g, '<br>');
+}
+
 function createEmailHtml(title: string, content: string): string {
   return `
     <!DOCTYPE html>
@@ -98,7 +102,7 @@ export function notifyTournamentCreated(
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
       <div class="detail-row"><span class="label">Vytvořil:</span> ${formatAuthor(tournament.author)}</div>
     </div>
-    ${tournament.description ? `<h2>Popis</h2><p>${tournament.description}</p>` : ''}
+    ${tournament.description ? `<h2>Popis</h2><p>${formatMultilineText(tournament.description)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -151,7 +155,7 @@ export function notifyMatchResultCreated(matchResult: MatchResult): void {
       ${matchResult.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${matchResult.awayGoalscorers}</div>` : ''}
       <div class="detail-row"><span class="label">Přidal:</span> ${formatAuthor(matchResult.author)}</div>
     </div>
-    ${matchResult.matchReport ? `<h2>Zápis ze zápasu</h2><p>${matchResult.matchReport}</p>` : ''}
+    ${matchResult.matchReport ? `<h2>Zápis ze zápasu</h2><p>${formatMultilineText(matchResult.matchReport)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -201,7 +205,7 @@ export function notifyEventCreated(event: Event): void {
       ${event.requiresPhotographer ? `<div class="detail-row"><span class="label">Vyžaduje fotografa:</span> Ano</div>` : ''}
       <div class="detail-row"><span class="label">Vytvořil:</span> ${formatAuthor(event.author)}</div>
     </div>
-    ${event.description ? `<h2>Popis</h2><p>${event.description}</p>` : ''}
+    ${event.description ? `<h2>Popis</h2><p>${formatMultilineText(event.description)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -261,7 +265,7 @@ export function notifyCommentAdded(
     </div>
     <h2>Obsah komentáře</h2>
     <p style="background-color: #fff; padding: 15px; border-left: 4px solid #2563eb; margin: 15px 0;">
-      ${comment.content}
+      ${formatMultilineText(comment.content)}
     </p>
   `;
 
