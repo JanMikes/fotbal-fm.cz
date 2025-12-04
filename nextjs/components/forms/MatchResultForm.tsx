@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { matchResultSchema, MatchResultFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
@@ -41,6 +41,7 @@ export default function MatchResultForm({
     formState: { errors },
     setValue,
     watch,
+    control,
   } = useForm<MatchResultFormData>({
     resolver: zodResolver(matchResultSchema),
     mode: 'onSubmit',
@@ -204,9 +205,18 @@ export default function MatchResultForm({
           error={errors.matchDate?.message}
           required
         >
-          <DatePicker
-            {...register('matchDate')}
-            error={errors.matchDate?.message}
+          <Controller
+            name="matchDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                onBlur={field.onBlur}
+                name={field.name}
+                error={errors.matchDate?.message}
+              />
+            )}
           />
         </FormField>
       </div>

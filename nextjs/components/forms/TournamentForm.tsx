@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentSchema, TournamentFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
@@ -237,9 +237,18 @@ export default function TournamentForm({
             error={errors.dateFrom?.message}
             required
           >
-            <DatePicker
-              {...register('dateFrom')}
-              error={errors.dateFrom?.message}
+            <Controller
+              name="dateFrom"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={errors.dateFrom?.message}
+                />
+              )}
             />
           </FormField>
 
@@ -248,9 +257,18 @@ export default function TournamentForm({
             error={errors.dateTo?.message}
             hint="Volitelné - pro vícedenní turnaje"
           >
-            <DatePicker
-              {...register('dateTo')}
-              error={errors.dateTo?.message}
+            <Controller
+              name="dateTo"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={errors.dateTo?.message}
+                />
+              )}
             />
           </FormField>
         </div>
