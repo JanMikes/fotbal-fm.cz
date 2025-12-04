@@ -5,29 +5,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Plus, Trophy, CalendarDays, Target, ArrowRight, CirclePlus, CalendarPlus } from 'lucide-react';
-
-const TrophyPlus = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-    <path d="M4 22h16" />
-    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-    <path d="M12 6v4" />
-    <path d="M10 8h4" />
-  </svg>
-);
+import { Plus, Trophy, CalendarDays, Target, ArrowRight } from 'lucide-react';
 import { MatchResult } from '@/types/match-result';
 import { Tournament } from '@/types/tournament';
 import { Event } from '@/types/event';
@@ -100,26 +78,26 @@ export default function DashboardPage() {
         <div className="flex gap-3">
           <Link
             href="/zadat-vysledek"
-            className="flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm font-medium"
-            title="Přidat zápas"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
+            title="Přidat výsledek"
           >
-            <CirclePlus className="w-5 h-5" />
-            Zápas
+            <Plus className="w-5 h-5" />
+            Výsledek
           </Link>
           <Link
             href="/nova-udalost"
-            className="flex items-center gap-2 px-3 py-2 bg-success/10 text-success rounded-lg hover:bg-success/20 transition-colors text-sm font-medium"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             title="Přidat událost"
           >
-            <CalendarPlus className="w-5 h-5" />
+            <Plus className="w-5 h-5" />
             Událost
           </Link>
           <Link
             href="/novy-turnaj"
-            className="flex items-center gap-2 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-sm font-medium"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             title="Přidat turnaj"
           >
-            <TrophyPlus className="w-5 h-5" />
+            <Plus className="w-5 h-5" />
             Turnaj
           </Link>
         </div>
