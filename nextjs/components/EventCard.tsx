@@ -34,8 +34,8 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
   return (
     <Card variant="elevated">
       <div className="space-y-3">
-        {/* TOP: Date & Actions */}
-        <div className="flex items-center justify-between">
+        {/* TOP: Actions & Date */}
+        <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2">
           <div className="flex items-center gap-2 text-sm text-text-muted">
             <Calendar className="w-4 h-4" />
             <span>
@@ -49,13 +49,13 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
               </>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/udalost/${event.id}`}>
-              <Button variant="secondary" size="sm">Detail</Button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Link href={`/udalost/${event.id}`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
             </Link>
             {isOwner && (
-              <Link href={`/upravit-udalost/${event.id}`}>
-                <Button variant="secondary" size="sm">
+              <Link href={`/upravit-udalost/${event.id}`} className="flex-1 md:flex-none">
+                <Button variant="secondary" size="sm" className="w-full md:w-auto">
                   <Edit className="w-4 h-4 mr-1" />
                   Upravit
                 </Button>
@@ -69,23 +69,25 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
           {event.name}
         </h3>
 
-        {/* Metadata row */}
-        <div className="flex flex-wrap items-center gap-3 text-sm">
+        {/* Badges row */}
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${eventTypeColor}`}>
             {eventTypeLabel}
           </span>
           {event.requiresPhotographer && (
-            <div className="flex items-center gap-1.5 text-warning">
-              <Camera className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/20 text-warning">
+              <Camera className="w-3 h-3" />
               <span className="text-xs font-medium">Fotograf</span>
             </div>
           )}
-          {event.photos && event.photos.length > 0 && (
-            <span className="flex items-center gap-1.5 text-text-muted">
-              <Image className="w-4 h-4" />
-              Fotografie {event.photos.length}
-            </span>
-          )}
+        </div>
+
+        {/* Photo count */}
+        <div className="flex items-center text-sm">
+          <span className="flex items-center gap-1.5 text-text-muted">
+            <Image className="w-4 h-4" />
+            Fotografie {event.photos?.length ?? 0}
+          </span>
         </div>
 
         {/* Last updated info */}

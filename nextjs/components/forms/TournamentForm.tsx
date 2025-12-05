@@ -53,7 +53,14 @@ export default function TournamentForm({
           dateTo: initialData.dateTo || '',
           category: initialData.category,
           imagesUrl: initialData.imagesUrl || '',
-          matches: [],
+          matches: initialData.matches?.map(m => ({
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            homeGoalscorers: m.homeGoalscorers || '',
+            awayGoalscorers: m.awayGoalscorers || '',
+          })) || [],
           players: initialData.players || [],
         }
       : {

@@ -251,7 +251,10 @@ export const tournamentMatchSchema = z.object({
     .min(0, 'Skóre nemůže být záporné'),
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
-  tournament: z.number({ message: 'Turnaj je povinný' }).int().positive('Vyberte turnaj'),
+  tournament: z.union([
+    z.string().min(1, 'Turnaj je povinný'),
+    z.number().int().positive('Vyberte turnaj'),
+  ], { message: 'Turnaj je povinný' }),
 });
 
 export const tournamentMatchApiSchema = z.object({
@@ -265,7 +268,10 @@ export const tournamentMatchApiSchema = z.object({
     .min(0, 'Skóre nemůže být záporné'),
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
-  tournament: z.coerce.number({ message: 'Turnaj je povinný' }).int().positive('Vyberte turnaj'),
+  tournament: z.union([
+    z.string().min(1, 'Turnaj je povinný'),
+    z.number().int().positive('Vyberte turnaj'),
+  ], { message: 'Turnaj je povinný' }),
 });
 
 // Comment schemas

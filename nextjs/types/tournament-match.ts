@@ -33,7 +33,7 @@ export interface CreateTournamentMatchRequest {
   awayScore: number;
   homeGoalscorers?: string;
   awayGoalscorers?: string;
-  tournament: number;
+  tournament: number | string;
   author?: number;
 }
 

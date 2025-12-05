@@ -820,6 +820,12 @@ function mapStrapiTournament(strapiData: any): Tournament {
           }))
         : [];
 
+    // Map tournament matches (relation: tournamentMatches)
+    const matchesData = data.tournamentMatches || data.tournament_matches;
+    const matches = Array.isArray(matchesData)
+        ? matchesData.map((m: any) => mapStrapiTournamentMatch(m))
+        : [];
+
     return {
         id: entityId,
         name: data.name,
@@ -831,6 +837,7 @@ function mapStrapiTournament(strapiData: any): Tournament {
         photos,
         imagesUrl: data.imagesUrl || undefined,
         players,
+        matches,
         authorId: userId,
         author,
         modifiedBy,

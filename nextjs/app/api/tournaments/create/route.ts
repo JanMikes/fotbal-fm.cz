@@ -127,7 +127,8 @@ export async function POST(request: NextRequest) {
 
     // Create tournament matches if present
     if (validatedMatches.length > 0) {
-      const tournamentId = parseInt(tournament.id, 10);
+      // Use documentId (string) for Strapi 5 relations
+      const tournamentId = tournament.id;
 
       await Promise.all(
         validatedMatches.map((match) =>

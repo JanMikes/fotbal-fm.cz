@@ -124,8 +124,7 @@ export async function PUT(
 
     // Create new tournament matches if present
     if (validatedMatches.length > 0) {
-      const tournamentId = parseInt(id, 10);
-
+      // Use documentId (string) for Strapi 5 relations
       await Promise.all(
         validatedMatches.map((match) =>
           strapiCreateTournamentMatch(session.jwt, {
@@ -135,7 +134,7 @@ export async function PUT(
             awayScore: match.awayScore,
             homeGoalscorers: match.homeGoalscorers || undefined,
             awayGoalscorers: match.awayGoalscorers || undefined,
-            tournament: tournamentId,
+            tournament: id,
             author: session.userId,
           })
         )

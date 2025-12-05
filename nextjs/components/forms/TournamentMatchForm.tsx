@@ -156,7 +156,7 @@ export default function TournamentMatchForm({
           required
         >
           <Select
-            {...register('tournament', { valueAsNumber: true })}
+            {...register('tournament')}
             error={errors.tournament?.message}
           >
             <option value="">Vyberte turnaj</option>

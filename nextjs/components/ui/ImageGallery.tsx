@@ -54,6 +54,10 @@ export default function ImageGallery({ images, className = '' }: ImageGalleryPro
         close={() => setLightboxOpen(false)}
         index={lightboxIndex}
         slides={slides}
+        controller={{ closeOnBackdropClick: true }}
+        on={{
+          click: () => setLightboxOpen(false),
+        }}
       />
     </>
   );

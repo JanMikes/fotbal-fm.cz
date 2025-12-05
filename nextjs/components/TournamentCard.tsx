@@ -1,6 +1,6 @@
 import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
-import { Calendar, MapPin, Edit, Image, User } from 'lucide-react';
+import { Calendar, MapPin, Edit, Image, User, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
@@ -53,15 +53,21 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
           </div>
         </div>
 
-        {/* Category & Photo count */}
+        {/* Category & counts */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent">
             {tournament.category}
           </span>
-          <span className="flex items-center gap-1.5 text-text-muted">
-            <Image className="w-4 h-4" />
-            Fotografie {tournament.photos?.length ?? 0}
-          </span>
+          <div className="flex items-center gap-4 text-text-muted">
+            <span className="flex items-center gap-1.5">
+              <Trophy className="w-4 h-4" />
+              Zápasy {tournament.matches?.length ?? 0}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Image className="w-4 h-4" />
+              Fotografie {tournament.photos?.length ?? 0}
+            </span>
+          </div>
         </div>
 
         {/* Title */}
