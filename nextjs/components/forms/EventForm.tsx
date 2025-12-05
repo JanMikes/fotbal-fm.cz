@@ -67,6 +67,24 @@ export default function EventForm({
 
   useScrollToError(errors, { offset: 100 });
 
+  const onValidationError = async (errors: Record<string, any>) => {
+    // Log validation errors to server for debugging
+    try {
+      await fetch('/api/debug-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form: 'EventForm',
+          errors,
+          formValues: watch(),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        }),
+      });
+    } catch (e) {
+      // Ignore logging errors
+    }
+  };
+
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     setError(null);
@@ -161,7 +179,7 @@ export default function EventForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onValidationError)} className="space-y-6">
         {error && <Alert variant="error">{error}</Alert>}
 
         <FormField
@@ -336,6 +354,19 @@ export default function EventForm({
             size="lg"
             disabled={isLoading}
             className="w-full"
+            onClick={() => {
+              // Debug: log button click to server
+              fetch('/api/debug-log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  form: 'EventForm',
+                  event: 'submit_button_clicked',
+                  formValues: watch(),
+                  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+                }),
+              }).catch(() => {});
+            }}
           >
             {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit událost'}
           </Button>

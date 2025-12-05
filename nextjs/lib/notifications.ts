@@ -10,7 +10,7 @@ import type { User } from '@/types/user';
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 }

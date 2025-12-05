@@ -14,14 +14,14 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
   const dateFrom = new Date(event.dateFrom);
   const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 
   const formattedDateTo = event.dateTo
     ? new Date(event.dateTo).toLocaleDateString('cs-CZ', {
         day: 'numeric',
-        month: 'long',
+        month: 'numeric',
         year: 'numeric',
       })
     : null;
@@ -102,7 +102,7 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
           <span>
             {new Date(event.updatedAt).toLocaleDateString('cs-CZ', {
               day: 'numeric',
-              month: 'short',
+              month: 'numeric',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit',

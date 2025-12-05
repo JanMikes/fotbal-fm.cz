@@ -143,7 +143,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-text-muted">{mr.category}</span>
                           <span className="text-xs text-text-muted">
-                            {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                           </span>
                         </div>
                       </div>
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                           {t.name}
                         </p>
                         <p className="text-xs text-text-muted mt-1">
-                          {new Date(t.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {new Date(t.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                         </p>
                       </div>
                     </Link>
@@ -216,7 +216,7 @@ export default function DashboardPage() {
                           {e.name}
                         </p>
                         <p className="text-xs text-text-muted mt-1">
-                          {new Date(e.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {new Date(e.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                         </p>
                       </div>
                     </Link>

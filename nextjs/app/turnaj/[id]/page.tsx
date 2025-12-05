@@ -85,14 +85,14 @@ export default function TournamentDetailPage({ params }: PageProps) {
   const dateFrom = new Date(tournament.dateFrom);
   const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 
   const formattedDateTo = tournament.dateTo
     ? new Date(tournament.dateTo).toLocaleDateString('cs-CZ', {
         day: 'numeric',
-        month: 'long',
+        month: 'numeric',
         year: 'numeric',
       })
     : null;

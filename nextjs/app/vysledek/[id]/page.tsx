@@ -85,7 +85,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
   const matchDate = new Date(matchResult.createdAt);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
@@ -145,7 +145,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
 
               <div className="mx-6">
                 <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-2xl px-8 py-4 shadow-lg shadow-primary/10">
-                  <div className="text-5xl font-bold text-text-primary text-center tracking-wider">
+                  <div className="text-3xl md:text-5xl font-bold text-text-primary text-center tracking-wider">
                     {matchResult.homeScore} : {matchResult.awayScore}
                   </div>
                 </div>

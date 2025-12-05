@@ -15,7 +15,7 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
   const matchDate = new Date(matchResult.matchDate);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 
@@ -93,7 +93,7 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
           <span>
             {new Date(matchResult.updatedAt).toLocaleDateString('cs-CZ', {
               day: 'numeric',
-              month: 'short',
+              month: 'numeric',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit',

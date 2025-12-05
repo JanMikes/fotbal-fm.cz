@@ -14,14 +14,14 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
   const dateFrom = new Date(tournament.dateFrom);
   const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 
   const formattedDateTo = tournament.dateTo
     ? new Date(tournament.dateTo).toLocaleDateString('cs-CZ', {
         day: 'numeric',
-        month: 'long',
+        month: 'numeric',
         year: 'numeric',
       })
     : null;
@@ -91,7 +91,7 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
           <span>
             {new Date(tournament.updatedAt).toLocaleDateString('cs-CZ', {
               day: 'numeric',
-              month: 'short',
+              month: 'numeric',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit',

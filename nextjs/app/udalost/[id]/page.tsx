@@ -85,14 +85,14 @@ export default function EventDetailPage({ params }: PageProps) {
   const dateFrom = new Date(event.dateFrom);
   const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
     day: 'numeric',
-    month: 'long',
+    month: 'numeric',
     year: 'numeric',
   });
 
   const formattedDateTo = event.dateTo
     ? new Date(event.dateTo).toLocaleDateString('cs-CZ', {
         day: 'numeric',
-        month: 'long',
+        month: 'numeric',
         year: 'numeric',
       })
     : null;
