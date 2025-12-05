@@ -1,6 +1,52 @@
 import { z } from 'zod';
 import './zod-init'; // Initialize Czech locale for Zod error messages
 
+/**
+ * Normalize time input to Strapi's expected format: HH:mm:ss.SSS
+ * Handles various browser formats:
+ * - "HH:mm" (Chrome, Firefox)
+ * - "HH:mm:ss"
+ * - "h:mm AM/PM" or "h:mm:ss AM/PM" (Safari 12-hour format)
+ */
+export function normalizeTimeForStrapi(time: string | undefined | null): string | undefined {
+  if (!time || time.trim() === '') {
+    return undefined;
+  }
+
+  const trimmed = time.trim();
+
+  // Check for 12-hour format with AM/PM
+  const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM|am|pm)$/i);
+  if (ampmMatch) {
+    let hours = parseInt(ampmMatch[1], 10);
+    const minutes = ampmMatch[2];
+    const seconds = ampmMatch[3] || '00';
+    const period = ampmMatch[4].toUpperCase();
+
+    // Convert to 24-hour format
+    if (period === 'AM' && hours === 12) {
+      hours = 0;
+    } else if (period === 'PM' && hours !== 12) {
+      hours += 12;
+    }
+
+    const hoursStr = hours.toString().padStart(2, '0');
+    return `${hoursStr}:${minutes}:${seconds}.000`;
+  }
+
+  // Check for 24-hour format HH:mm or HH:mm:ss
+  const time24Match = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (time24Match) {
+    const hours = time24Match[1].padStart(2, '0');
+    const minutes = time24Match[2];
+    const seconds = time24Match[3] || '00';
+    return `${hours}:${minutes}:${seconds}.000`;
+  }
+
+  // If format is unrecognized, return as-is (Strapi will validate)
+  return trimmed;
+}
+
 export const loginSchema = z.object({
   email: z.string().email('Neplatný formát emailu'),
   password: z.string().min(1, 'Heslo je povinné'),

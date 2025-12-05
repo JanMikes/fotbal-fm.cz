@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiCreateEvent } from '@/lib/strapi';
-import { eventApiSchema } from '@/lib/validation';
+import { eventApiSchema, normalizeTimeForStrapi } from '@/lib/validation';
 import { notifyEventCreated } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       dateTo: formData.get('dateTo') as string,
       publishDate: formData.get('publishDate') as string,
       eventTime: formData.get('eventTime') as string,
+      eventTimeTo: formData.get('eventTimeTo') as string,
       description: formData.get('description') as string,
       requiresPhotographer: formData.get('requiresPhotographer') as string,
     };
@@ -36,7 +37,8 @@ export async function POST(request: NextRequest) {
       dateFrom: eventData.dateFrom,
       dateTo: eventData.dateTo || undefined,
       publishDate: eventData.publishDate || undefined,
-      eventTime: eventData.eventTime || undefined,
+      eventTime: normalizeTimeForStrapi(eventData.eventTime),
+      eventTimeTo: normalizeTimeForStrapi(eventData.eventTimeTo),
       description: eventData.description || undefined,
       requiresPhotographer: eventData.requiresPhotographer,
     });

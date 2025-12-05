@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { strapiGetEvent, strapiUpdateEvent } from '@/lib/strapi';
-import { eventApiSchema } from '@/lib/validation';
+import { eventApiSchema, normalizeTimeForStrapi } from '@/lib/validation';
 import { notifyEventUpdated } from '@/lib/notifications';
 
 export async function GET(
@@ -66,7 +66,15 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const validationResult = eventApiSchema.safeParse(body);
+
+    // Normalize time fields to Strapi's expected format
+    const normalizedBody = {
+      ...body,
+      eventTime: normalizeTimeForStrapi(body.eventTime),
+      eventTimeTo: normalizeTimeForStrapi(body.eventTimeTo),
+    };
+
+    const validationResult = eventApiSchema.safeParse(normalizedBody);
 
     if (!validationResult.success) {
       return NextResponse.json(
