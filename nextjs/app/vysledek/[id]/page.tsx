@@ -124,7 +124,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
                   </span>
                 )}
                 <LastUpdatedInfo
-                  updatedBy={matchResult.updatedBy}
+                  updatedBy={matchResult.modifiedBy}
                   author={matchResult.author}
                   updatedAt={matchResult.updatedAt}
                 />

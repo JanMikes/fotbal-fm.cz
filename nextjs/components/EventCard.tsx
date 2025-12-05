@@ -92,8 +92,8 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
         <div className="flex items-center gap-1.5 text-xs text-text-muted pt-2 border-t border-border">
           <User className="w-3 h-3" />
           <span>
-            {event.updatedBy
-              ? `${event.updatedBy.firstName} ${event.updatedBy.lastName}`
+            {event.modifiedBy
+              ? `${event.modifiedBy.firstName} ${event.modifiedBy.lastName}`
               : event.author
                 ? `${event.author.firstName} ${event.author.lastName}`
                 : 'Neznámý'}

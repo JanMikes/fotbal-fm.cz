@@ -128,7 +128,7 @@ export function notifyTournamentUpdated(
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
-      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(tournament.updatedBy || tournament.author)}</div>
+      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(tournament.modifiedBy || tournament.author)}</div>
     </div>
   `;
 
@@ -177,7 +177,7 @@ export function notifyMatchResultUpdated(matchResult: MatchResult): void {
       <div class="detail-row"><span class="label">Výsledek:</span> ${matchResult.homeScore} : ${matchResult.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${matchResult.category}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(matchResult.matchDate)}</div>
-      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(matchResult.updatedBy || matchResult.author)}</div>
+      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(matchResult.modifiedBy || matchResult.author)}</div>
     </div>
   `;
 
@@ -229,7 +229,7 @@ export function notifyEventUpdated(event: Event): void {
       <div class="detail-row"><span class="label">Typ:</span> ${eventTypeLabel}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
-      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(event.updatedBy || event.author)}</div>
+      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(event.modifiedBy || event.author)}</div>
     </div>
   `;
 

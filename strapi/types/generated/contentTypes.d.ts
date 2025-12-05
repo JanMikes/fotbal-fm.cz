@@ -512,6 +512,10 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::event.event'> &
       Schema.Attribute.Private;
+    modifiedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
     photos: Schema.Attribute.Media<'images', true>;
     publishDate: Schema.Attribute.Date;
@@ -658,6 +662,10 @@ export interface ApiTournamentMatchTournamentMatch
       'api::tournament-match.tournament-match'
     > &
       Schema.Attribute.Private;
+    modifiedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     tournament: Schema.Attribute.Relation<
       'manyToOne',
@@ -723,6 +731,10 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.String;
+    modifiedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
     photos: Schema.Attribute.Media<'images', true>;
     players: Schema.Attribute.Component<'tournament.player', true>;

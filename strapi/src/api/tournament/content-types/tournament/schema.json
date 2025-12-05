@@ -80,7 +80,7 @@
       "target": "api::tournament-match.tournament-match",
       "mappedBy": "tournament"
     },
-    "updatedBy": {
+    "modifiedBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"

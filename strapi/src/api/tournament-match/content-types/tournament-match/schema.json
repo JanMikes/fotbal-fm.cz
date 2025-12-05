@@ -47,7 +47,7 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
-    "updatedBy": {
+    "modifiedBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"

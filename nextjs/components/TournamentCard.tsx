@@ -81,8 +81,8 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
         <div className="flex items-center gap-1.5 text-xs text-text-muted pt-2 border-t border-border">
           <User className="w-3 h-3" />
           <span>
-            {tournament.updatedBy
-              ? `${tournament.updatedBy.firstName} ${tournament.updatedBy.lastName}`
+            {tournament.modifiedBy
+              ? `${tournament.modifiedBy.firstName} ${tournament.modifiedBy.lastName}`
               : tournament.author
                 ? `${tournament.author.firstName} ${tournament.author.lastName}`
                 : 'Neznámý'}

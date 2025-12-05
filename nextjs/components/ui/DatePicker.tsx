@@ -26,8 +26,11 @@ const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
 
     const handleChange = (date: Date | null) => {
       if (onChange) {
-        // Format as YYYY-MM-DD for form submission
-        const formattedDate = date ? date.toISOString().split('T')[0] : '';
+        // Format as YYYY-MM-DD for form submission using local date components
+        // (toISOString() converts to UTC which shifts the date in non-UTC timezones)
+        const formattedDate = date
+          ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+          : '';
         // Create a synthetic event-like object for react-hook-form compatibility
         onChange({
           target: { value: formattedDate, name },

@@ -42,7 +42,7 @@ export interface Tournament {
   matches?: TournamentMatch[];
   authorId: number;
   author?: UserInfo;
-  updatedBy?: UserInfo;
+  modifiedBy?: UserInfo;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,7 +94,7 @@ export interface StrapiTournamentResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      modifiedBy?: {
         data: {
           id: number;
           firstname?: string;
@@ -131,7 +131,7 @@ export interface StrapiTournamentsResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      modifiedBy?: {
         data: {
           id: number;
           firstname?: string;

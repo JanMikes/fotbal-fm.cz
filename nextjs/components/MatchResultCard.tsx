@@ -83,8 +83,8 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
         <div className="flex items-center gap-1.5 text-xs text-text-muted pt-2 border-t border-border">
           <User className="w-3 h-3" />
           <span>
-            {matchResult.updatedBy
-              ? `${matchResult.updatedBy.firstName} ${matchResult.updatedBy.lastName}`
+            {matchResult.modifiedBy
+              ? `${matchResult.modifiedBy.firstName} ${matchResult.modifiedBy.lastName}`
               : matchResult.author
                 ? `${matchResult.author.firstName} ${matchResult.author.lastName}`
                 : 'Neznámý'}

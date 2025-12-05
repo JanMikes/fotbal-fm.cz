@@ -95,7 +95,7 @@ export interface MatchResult {
   imagesUrl?: string;
   authorId: number;
   author?: UserInfo;
-  updatedBy?: UserInfo;
+  modifiedBy?: UserInfo;
   createdAt: string;
   updatedAt: string;
 }
@@ -161,7 +161,7 @@ export interface StrapiMatchResultResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      lastModifiedBy?: {
         data: {
           id: number;
           firstname?: string;
@@ -207,7 +207,7 @@ export interface StrapiMatchResultsResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      lastModifiedBy?: {
         data: {
           id: number;
           firstname?: string;

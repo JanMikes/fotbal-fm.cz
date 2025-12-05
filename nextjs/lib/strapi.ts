@@ -522,7 +522,7 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
     // Handle author field for userId (flattened structure has author.id)
     const userId = isFlattened ? data.author?.id : data.userId;
     const author = mapUserInfo(data.author, isFlattened);
-    const updatedBy = mapUserInfo(data.updatedBy, isFlattened);
+    const modifiedBy = mapUserInfo(data.lastModifiedBy, isFlattened);
 
     return {
         id: entityId,
@@ -540,7 +540,7 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
         files,
         authorId: userId,
         author,
-        updatedBy,
+        modifiedBy,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
     };
@@ -668,7 +668,7 @@ function mapStrapiEvent(strapiData: any): Event {
     const files = mapStrapiFiles(data, 'files', isFlattened);
     const userId = isFlattened ? data.author?.id : data.userId;
     const author = mapUserInfo(data.author, isFlattened);
-    const updatedBy = mapUserInfo(data.updatedBy, isFlattened);
+    const modifiedBy = mapUserInfo(data.modifiedBy, isFlattened);
 
     return {
         id: entityId,
@@ -684,7 +684,7 @@ function mapStrapiEvent(strapiData: any): Event {
         files,
         authorId: userId,
         author,
-        updatedBy,
+        modifiedBy,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
     };
@@ -809,7 +809,7 @@ function mapStrapiTournament(strapiData: any): Tournament {
     const photos = mapStrapiImages(data, 'photos', isFlattened);
     const userId = isFlattened ? data.author?.id : data.userId;
     const author = mapUserInfo(data.author, isFlattened);
-    const updatedBy = mapUserInfo(data.updatedBy, isFlattened);
+    const modifiedBy = mapUserInfo(data.modifiedBy, isFlattened);
 
     // Map players component (repeatable)
     const players = Array.isArray(data.players)
@@ -833,7 +833,7 @@ function mapStrapiTournament(strapiData: any): Tournament {
         players,
         authorId: userId,
         author,
-        updatedBy,
+        modifiedBy,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
     };
@@ -985,7 +985,7 @@ function mapStrapiTournamentMatch(strapiData: any): TournamentMatch {
     const userId = isFlattened ? data.author?.id : data.userId;
     const tournamentId = isFlattened ? data.tournament?.id : data.tournamentId;
     const author = mapUserInfo(data.author, isFlattened);
-    const updatedBy = mapUserInfo(data.updatedBy, isFlattened);
+    const modifiedBy = mapUserInfo(data.modifiedBy, isFlattened);
 
     return {
         id: entityId,
@@ -998,7 +998,7 @@ function mapStrapiTournamentMatch(strapiData: any): TournamentMatch {
         tournamentId,
         authorId: userId,
         author,
-        updatedBy,
+        modifiedBy,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
     };

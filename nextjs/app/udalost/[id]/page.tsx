@@ -135,7 +135,7 @@ export default function EventDetailPage({ params }: PageProps) {
                   </span>
                 )}
                 <LastUpdatedInfo
-                  updatedBy={event.updatedBy}
+                  updatedBy={event.modifiedBy}
                   author={event.author}
                   updatedAt={event.updatedAt}
                 />

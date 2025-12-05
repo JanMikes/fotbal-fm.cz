@@ -17,7 +17,7 @@ export interface Event {
   files: StrapiFile[];
   authorId: number;
   author?: UserInfo;
-  updatedBy?: UserInfo;
+  modifiedBy?: UserInfo;
   createdAt: string;
   updatedAt: string;
 }
@@ -80,7 +80,7 @@ export interface StrapiEventResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      modifiedBy?: {
         data: {
           id: number;
           firstname?: string;
@@ -125,7 +125,7 @@ export interface StrapiEventsResponse {
           lastname?: string;
         };
       };
-      updatedBy?: {
+      modifiedBy?: {
         data: {
           id: number;
           firstname?: string;

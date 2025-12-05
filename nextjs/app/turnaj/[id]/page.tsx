@@ -138,7 +138,7 @@ export default function TournamentDetailPage({ params }: PageProps) {
                   </span>
                 )}
                 <LastUpdatedInfo
-                  updatedBy={tournament.updatedBy}
+                  updatedBy={tournament.modifiedBy}
                   author={tournament.author}
                   updatedAt={tournament.updatedAt}
                 />
