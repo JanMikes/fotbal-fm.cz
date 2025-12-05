@@ -130,9 +130,7 @@ export default function EventDetailPage({ params }: PageProps) {
             <div className="flex items-center justify-between text-sm text-text-muted">
               <div className="flex items-center gap-4">
                 {event.author && (
-                  <span>
-                    Autor: <span className="font-medium text-text-secondary">{event.author.firstName} {event.author.lastName}</span>
-                  </span>
+                  <span className="font-medium text-text-secondary">{event.author.firstName} {event.author.lastName}</span>
                 )}
                 <LastUpdatedInfo
                   updatedBy={event.modifiedBy}

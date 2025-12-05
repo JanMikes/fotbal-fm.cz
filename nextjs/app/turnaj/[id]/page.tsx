@@ -133,9 +133,7 @@ export default function TournamentDetailPage({ params }: PageProps) {
             <div className="flex items-center justify-between text-sm text-text-muted">
               <div className="flex items-center gap-4">
                 {tournament.author && (
-                  <span>
-                    Autor: <span className="font-medium text-text-secondary">{tournament.author.firstName} {tournament.author.lastName}</span>
-                  </span>
+                  <span className="font-medium text-text-secondary">{tournament.author.firstName} {tournament.author.lastName}</span>
                 )}
                 <LastUpdatedInfo
                   updatedBy={tournament.modifiedBy}
