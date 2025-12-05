@@ -22,19 +22,19 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
   return (
     <Card variant="elevated">
       <div className="space-y-4">
-        {/* TOP: Date & Actions */}
-        <div className="flex items-center justify-between">
+        {/* TOP: Actions & Date */}
+        <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2">
           <div className="flex items-center gap-2 text-sm text-text-muted">
             <Calendar className="w-4 h-4" />
             <span>{formattedDate}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/vysledek/${matchResult.id}`}>
-              <Button variant="secondary" size="sm">Detail</Button>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Link href={`/vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
             </Link>
             {isOwner && (
-              <Link href={`/upravit-vysledek/${matchResult.id}`}>
-                <Button variant="secondary" size="sm">
+              <Link href={`/upravit-vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
+                <Button variant="secondary" size="sm" className="w-full md:w-auto">
                   <Edit className="w-4 h-4 mr-1" />
                   Upravit
                 </Button>
@@ -43,40 +43,38 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
           </div>
         </div>
 
+        {/* Category Badge */}
+        <div className="flex items-center justify-between text-sm">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent">
+            {matchResult.category}
+          </span>
+          <span className="flex items-center gap-1.5 text-text-muted">
+            <Image className="w-4 h-4" />
+            Fotografie {matchResult.images.length}
+          </span>
+        </div>
+
         {/* Match Score */}
         <div className="flex items-center justify-between">
           <div className="flex-1 text-right">
-            <h3 className="text-lg font-semibold text-text-primary">
+            <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
               {matchResult.homeTeam}
             </h3>
           </div>
 
-          <div className="mx-4">
-            <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-xl px-4 py-2">
-              <div className="text-2xl font-bold text-text-primary text-center tracking-wider">
+          <div className="mx-2 md:mx-4">
+            <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-xl px-3 py-1 md:px-4 md:py-2">
+              <div className="text-xl md:text-2xl font-bold text-text-primary text-center tracking-wider">
                 {matchResult.homeScore} : {matchResult.awayScore}
               </div>
             </div>
           </div>
 
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-text-primary">
+            <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
               {matchResult.awayTeam}
             </h3>
           </div>
-        </div>
-
-        {/* Category & Photo count */}
-        <div className="flex items-center justify-between text-sm">
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent">
-            {matchResult.category}
-          </span>
-          {matchResult.images.length > 0 && (
-            <span className="flex items-center gap-1.5 text-text-muted">
-              <Image className="w-4 h-4" />
-              Fotografie {matchResult.images.length}
-            </span>
-          )}
         </div>
 
         {/* Last updated info */}

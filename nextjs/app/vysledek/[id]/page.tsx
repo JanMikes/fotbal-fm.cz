@@ -133,34 +133,34 @@ export default function MatchResultDetailPage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Category Badge */}
+            <div className="text-center">
+              <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
+                {matchResult.category}
+              </span>
+            </div>
+
             {/* Match Score */}
             <div className="flex items-center justify-between">
               <div className="flex-1 text-right">
-                <h3 className="text-xl font-semibold text-text-primary">
+                <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
                   {matchResult.homeTeam}
                 </h3>
               </div>
 
-              <div className="mx-6">
-                <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-2xl px-8 py-4 shadow-lg shadow-primary/10">
-                  <div className="text-3xl md:text-5xl font-bold text-text-primary text-center tracking-wider">
+              <div className="mx-2 md:mx-6">
+                <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-2xl px-3 py-1 md:px-8 md:py-4 shadow-lg shadow-primary/10">
+                  <div className="text-xl md:text-5xl font-bold text-text-primary text-center tracking-wider">
                     {matchResult.homeScore} : {matchResult.awayScore}
                   </div>
                 </div>
               </div>
 
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-text-primary">
+                <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
                   {matchResult.awayTeam}
                 </h3>
               </div>
-            </div>
-
-            {/* Category Badge */}
-            <div className="text-center">
-              <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
-                {matchResult.category}
-              </span>
             </div>
 
             {/* Goalscorers */}

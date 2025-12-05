@@ -129,6 +129,14 @@ export default function DashboardPage() {
                   {data?.matchResults.map((mr) => (
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent">
+                            {mr.category}
+                          </span>
+                          <span className="text-xs text-text-muted">
+                            {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-medium text-text-primary truncate flex-1 text-right">
                             {mr.homeTeam}
@@ -138,12 +146,6 @@ export default function DashboardPage() {
                           </span>
                           <span className="text-sm font-medium text-text-primary truncate flex-1">
                             {mr.awayTeam}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-text-muted">{mr.category}</span>
-                          <span className="text-xs text-text-muted">
-                            {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                           </span>
                         </div>
                       </div>
