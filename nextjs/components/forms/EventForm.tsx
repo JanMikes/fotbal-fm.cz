@@ -234,9 +234,18 @@ export default function EventForm({
             label="Čas od"
             error={errors.eventTime?.message}
           >
-            <TimePicker
-              {...register('eventTime')}
-              error={errors.eventTime?.message}
+            <Controller
+              name="eventTime"
+              control={control}
+              render={({ field }) => (
+                <TimePicker
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={errors.eventTime?.message}
+                />
+              )}
             />
           </FormField>
         </div>
@@ -266,9 +275,18 @@ export default function EventForm({
             label="Čas do"
             error={errors.eventTimeTo?.message}
           >
-            <TimePicker
-              {...register('eventTimeTo')}
-              error={errors.eventTimeTo?.message}
+            <Controller
+              name="eventTimeTo"
+              control={control}
+              render={({ field }) => (
+                <TimePicker
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  error={errors.eventTimeTo?.message}
+                />
+              )}
             />
           </FormField>
         </div>
