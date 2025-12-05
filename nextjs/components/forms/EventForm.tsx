@@ -329,8 +329,7 @@ export default function EventForm({
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
-                value="true"
-                {...register('requiresPhotographer')}
+                name="requiresPhotographer"
                 checked={watch('requiresPhotographer') === true}
                 onChange={() => setValue('requiresPhotographer', true)}
                 className="w-5 h-5 border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
@@ -340,8 +339,7 @@ export default function EventForm({
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
-                value="false"
-                {...register('requiresPhotographer')}
+                name="requiresPhotographer"
                 checked={watch('requiresPhotographer') === false}
                 onChange={() => setValue('requiresPhotographer', false)}
                 className="w-5 h-5 border-border bg-white text-primary focus:ring-ring-focus focus:ring-offset-0 accent-primary"
