@@ -13,13 +13,31 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import LastUpdatedInfo from '@/components/ui/LastUpdatedInfo';
 import CommentSection from '@/components/CommentSection';
 import ImageGallery from '@/components/ui/ImageGallery';
+import * as Sentry from "@sentry/nextjs";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function TournamentDetailPage({ params }: PageProps) {
+  // Defensive check for params - capture to Sentry if undefined
+  if (!params) {
+    Sentry.captureMessage('TournamentDetailPage received undefined params', {
+      level: 'error',
+    });
+    throw new Error('Tournament page received undefined params');
+  }
+
   const { id } = use(params);
+
+  // Add breadcrumb for page load with resolved ID
+  Sentry.addBreadcrumb({
+    category: 'navigation',
+    message: 'TournamentDetailPage loaded',
+    level: 'info',
+    data: { id },
+  });
+
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
   const [tournament, setTournament] = useState<Tournament | null>(null);

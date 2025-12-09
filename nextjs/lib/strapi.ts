@@ -795,12 +795,27 @@ export async function strapiGetUserEvents(
  * Convert Strapi tournament response to Tournament type
  */
 function mapStrapiTournament(strapiData: any): Tournament {
+    // DEBUG: Log raw Strapi response (truncated for readability)
+    console.log('[mapStrapiTournament] Raw input:', JSON.stringify(strapiData, null, 2).slice(0, 500));
+
+    // Defensive check for undefined input
+    if (!strapiData) {
+        console.error('[mapStrapiTournament] Received undefined strapiData');
+        throw new Error('Invalid tournament data: strapiData is undefined');
+    }
+
     const { id, documentId, attributes } = strapiData;
     const isFlattened = !attributes && 'name' in strapiData;
     const data = isFlattened ? strapiData : attributes;
 
     // Strapi 5 uses documentId for API calls
     const entityId = documentId || id;
+
+    // Defensive check for missing ID
+    if (!entityId) {
+        console.error('[mapStrapiTournament] Missing entityId:', { id, documentId, strapiData });
+        throw new Error('Invalid tournament data: missing ID');
+    }
 
     if (!data) {
         throw new Error('Invalid tournament data: missing data');

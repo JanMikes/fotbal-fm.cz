@@ -10,13 +10,31 @@ import { ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import * as Sentry from "@sentry/nextjs";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function EditTournamentPage({ params }: PageProps) {
+  // Defensive check for params - capture to Sentry if undefined
+  if (!params) {
+    Sentry.captureMessage('EditTournamentPage received undefined params', {
+      level: 'error',
+    });
+    throw new Error('Edit tournament page received undefined params');
+  }
+
   const { id } = use(params);
+
+  // Add breadcrumb for page load with resolved ID
+  Sentry.addBreadcrumb({
+    category: 'navigation',
+    message: 'EditTournamentPage loaded',
+    level: 'info',
+    data: { id },
+  });
+
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
   const [tournament, setTournament] = useState<Tournament | null>(null);

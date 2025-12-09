@@ -3,6 +3,7 @@
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import * as Sentry from "@sentry/nextjs";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -34,18 +35,21 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error details for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
+    // Log error details for debugging
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
 
     this.setState({
       error,
       errorInfo,
     });
 
-    // TODO: Send error to error tracking service (e.g., Sentry)
-    // trackError(error, errorInfo);
+    // Send error to Sentry with React component stack
+    Sentry.withScope((scope) => {
+      scope.setContext("react", {
+        componentStack: errorInfo.componentStack,
+      });
+      Sentry.captureException(error);
+    });
   }
 
   handleReset = () => {

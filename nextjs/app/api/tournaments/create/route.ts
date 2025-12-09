@@ -4,13 +4,26 @@ import { strapiCreateTournament, strapiCreateTournamentMatch } from '@/lib/strap
 import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 import { notifyTournamentCreated } from '@/lib/notifications';
 import { z } from 'zod';
+import * as Sentry from "@sentry/nextjs";
 
 export async function POST(request: NextRequest) {
+  console.log('[Tournament Create] API route hit');
+
   try {
     // CRITICAL: Must parse formData FIRST before calling getSession()
+    console.log('[Tournament Create] Parsing formData...');
     const formData = await request.formData();
+    console.log('[Tournament Create] FormData parsed successfully');
 
+    console.log('[Tournament Create] Getting session...');
     const session = await getSession();
+    console.log('[Tournament Create] Session retrieved:', {
+      hasSession: !!session,
+      isLoggedIn: session?.isLoggedIn,
+      hasJwt: !!session?.jwt,
+      userId: session?.userId
+    });
+
     if (!session || !session.isLoggedIn || !session.jwt) {
       return NextResponse.json(
         { success: false, error: 'Nejste přihlášeni' },
@@ -19,6 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract form fields
+    console.log('[Tournament Create] Extracting form fields...');
     const tournamentData = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
@@ -28,6 +42,11 @@ export async function POST(request: NextRequest) {
       category: formData.get('category') as string,
       imagesUrl: formData.get('imagesUrl') as string,
     };
+    console.log('[Tournament Create] Form fields extracted:', {
+      name: tournamentData.name,
+      category: tournamentData.category,
+      dateFrom: tournamentData.dateFrom
+    });
 
     // Validate the data
     const validationResult = tournamentApiSchema.safeParse({
@@ -119,11 +138,37 @@ export async function POST(request: NextRequest) {
       players: validatedPlayers.length > 0 ? validatedPlayers : undefined,
     };
 
+    // Set Sentry context for debugging
+    Sentry.setContext("tournament_request", {
+      name: tournamentData.name,
+      category: tournamentData.category,
+      matchesCount: validatedMatches.length,
+      playersCount: validatedPlayers.length,
+      photosCount: photos.length,
+    });
+
+    console.log('[Tournament Create] About to call Strapi...', {
+      dataToSend: { ...dataToSend, author: '[REDACTED]' },
+      photosCount: photos.length
+    });
+
     const tournament = await strapiCreateTournament(
       session.jwt,
       dataToSend,
       photos
     );
+
+    // DEBUG: Validate response before returning
+    if (!tournament || !tournament.id) {
+      console.error('[Tournament Create] Invalid tournament response:', tournament);
+      Sentry.captureMessage('Tournament created without valid ID', {
+        level: 'error',
+        extra: { tournament, tournamentData },
+      });
+      throw new Error('Turnaj byl vytvořen, ale nepodařilo se získat jeho ID');
+    }
+
+    console.log('[Tournament Create] Success:', { id: tournament.id, name: tournament.name });
 
     // Create tournament matches if present
     if (validatedMatches.length > 0) {
@@ -155,6 +200,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Tournament creation error:', error);
+
+    // Capture to Sentry with full context
+    Sentry.withScope((scope) => {
+      scope.setLevel('error');
+      Sentry.captureException(error);
+    });
 
     if (error instanceof Error) {
       return NextResponse.json(

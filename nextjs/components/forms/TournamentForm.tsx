@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentSchema, TournamentFormData } from '@/lib/validation';
+import * as Sentry from "@sentry/nextjs";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
@@ -84,6 +85,20 @@ export default function TournamentForm({
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: TournamentFormData) => {
+    // Add Sentry breadcrumb for debugging (visible in Sentry error reports)
+    Sentry.addBreadcrumb({
+      category: 'tournament-form',
+      message: 'Form submitted',
+      level: 'info',
+      data: {
+        name: data.name,
+        category: data.category,
+        matchesCount: data.matches?.length || 0,
+        playersCount: data.players?.length || 0,
+        mode,
+      },
+    });
+
     setIsLoading(true);
     setError(null);
 
@@ -141,16 +156,52 @@ export default function TournamentForm({
           });
         }
 
+        Sentry.addBreadcrumb({
+          category: 'tournament-form',
+          message: 'Sending POST request',
+          level: 'info',
+        });
+
         const response = await fetch('/api/tournaments/create', {
           method: 'POST',
           body: formData,
         });
 
+        Sentry.addBreadcrumb({
+          category: 'tournament-form',
+          message: 'Response received',
+          level: 'info',
+          data: { status: response.status },
+        });
+
         const result = await response.json();
+
+        Sentry.addBreadcrumb({
+          category: 'tournament-form',
+          message: 'Response parsed',
+          level: 'info',
+          data: { success: result.success, hasId: !!result.tournament?.id },
+        });
 
         if (!result.success) {
           throw new Error(result.error || 'Nepodařilo se vytvořit turnaj');
         }
+
+        // Validate response before redirect
+        if (!result.tournament?.id) {
+          Sentry.captureMessage('Tournament created without valid ID', {
+            level: 'error',
+            extra: { result },
+          });
+          throw new Error('Turnaj byl vytvořen, ale nepodařilo se přejít na jeho stránku');
+        }
+
+        Sentry.addBreadcrumb({
+          category: 'tournament-form',
+          message: 'Redirecting to tournament detail',
+          level: 'info',
+          data: { tournamentId: result.tournament.id },
+        });
 
         // Redirect to the tournament detail page
         router.push(`/turnaj/${result.tournament.id}?success=true`);
