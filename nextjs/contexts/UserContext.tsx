@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/types/user';
+import * as Sentry from "@sentry/nextjs";
 
 interface UserContextType {
   user: User | null;
@@ -19,6 +20,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       setLoading(true);
+      console.log('[UserContext] Fetching user...');
 
       // Always try to fetch user data - the API will handle authentication
       const response = await fetch('/api/auth/me');
@@ -26,14 +28,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.user) {
+          console.log('[UserContext] User fetched:', { id: data.user.id, firstName: data.user.firstName });
           setUser(data.user);
         } else {
+          console.log('[UserContext] No user in response');
           setUser(null);
         }
       } else {
+        console.log('[UserContext] Response not OK:', response.status);
         setUser(null);
       }
     } catch (error) {
+      console.error('[UserContext] Error fetching user:', error);
+      Sentry.captureException(error, {
+        tags: { component: 'UserContext', phase: 'fetchUser' },
+      });
       setUser(null);
     } finally {
       setLoading(false);

@@ -85,6 +85,15 @@ export default function TournamentForm({
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: TournamentFormData) => {
+    // Log to stdout for Docker visibility
+    console.log('[TournamentForm] Form submitted:', {
+      name: data.name,
+      category: data.category,
+      matchesCount: data.matches?.length || 0,
+      playersCount: data.players?.length || 0,
+      mode,
+    });
+
     // Add Sentry breadcrumb for debugging (visible in Sentry error reports)
     Sentry.addBreadcrumb({
       category: 'tournament-form',
@@ -196,6 +205,8 @@ export default function TournamentForm({
           throw new Error('Turnaj byl vytvořen, ale nepodařilo se přejít na jeho stránku');
         }
 
+        console.log('[TournamentForm] Preparing redirect to:', `/turnaj/${result.tournament.id}?success=true`);
+
         Sentry.addBreadcrumb({
           category: 'tournament-form',
           message: 'Redirecting to tournament detail',
@@ -204,7 +215,17 @@ export default function TournamentForm({
         });
 
         // Redirect to the tournament detail page
-        router.push(`/turnaj/${result.tournament.id}?success=true`);
+        try {
+          router.push(`/turnaj/${result.tournament.id}?success=true`);
+          console.log('[TournamentForm] router.push called successfully');
+        } catch (redirectErr) {
+          console.error('[TournamentForm] CRITICAL: router.push failed:', redirectErr);
+          Sentry.captureException(redirectErr, {
+            tags: { component: 'TournamentForm', phase: 'redirect' },
+            extra: { tournamentId: result.tournament.id },
+          });
+          throw redirectErr;
+        }
       }
     } catch (err) {
       if (err instanceof Error) {

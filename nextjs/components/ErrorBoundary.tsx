@@ -35,8 +35,14 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error details for debugging
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log detailed error info for Docker stdout visibility
+    console.error('=== REACT ERROR BOUNDARY ===');
+    console.error('[ErrorBoundary] Error name:', error.name);
+    console.error('[ErrorBoundary] Error message:', error.message);
+    console.error('[ErrorBoundary] Error stack:', error.stack);
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
+    console.error('[ErrorBoundary] Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+    console.error('=== END REACT ERROR BOUNDARY ===');
 
     this.setState({
       error,
@@ -45,8 +51,14 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
     // Send error to Sentry with React component stack
     Sentry.withScope((scope) => {
+      scope.setTag('error_boundary', 'class_component');
       scope.setContext("react", {
         componentStack: errorInfo.componentStack,
+      });
+      scope.setContext("error_details", {
+        name: error.name,
+        message: error.message,
+        currentUrl: typeof window !== 'undefined' ? window.location.href : 'SSR',
       });
       Sentry.captureException(error);
     });

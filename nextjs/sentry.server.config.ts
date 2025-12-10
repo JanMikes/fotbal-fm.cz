@@ -28,9 +28,25 @@ if (process.env.SENTRY_DSN) {
     maxBreadcrumbs: 50,
 
     // Log captured events locally for debugging (visible in Docker logs)
-    beforeSend(event) {
-      console.log('[Sentry] Capturing:', event.exception?.values?.[0]?.type,
-                  event.exception?.values?.[0]?.value);
+    beforeSend(event, hint) {
+      console.log('=== SENTRY EVENT ===');
+      console.log('[Sentry] Type:', event.exception?.values?.[0]?.type);
+      console.log('[Sentry] Message:', event.exception?.values?.[0]?.value);
+      console.log('[Sentry] URL:', event.request?.url);
+      console.log('[Sentry] Transaction:', event.transaction);
+      console.log('[Sentry] Tags:', JSON.stringify(event.tags));
+      console.log('[Sentry] Breadcrumbs:', JSON.stringify(event.breadcrumbs?.slice(-10), null, 2));
+
+      // Log the original error if available
+      if (hint?.originalException) {
+        const err = hint.originalException;
+        console.log('[Sentry] Original error:', err);
+        if (err instanceof Error) {
+          console.log('[Sentry] Original stack:', err.stack);
+        }
+      }
+      console.log('=== END SENTRY EVENT ===');
+
       return event;
     },
 

@@ -22,13 +22,27 @@ interface PageProps {
 export default function TournamentDetailPage({ params }: PageProps) {
   // Defensive check for params - capture to Sentry if undefined
   if (!params) {
+    console.error('[TournamentDetailPage] CRITICAL: params is undefined');
     Sentry.captureMessage('TournamentDetailPage received undefined params', {
       level: 'error',
     });
     throw new Error('Tournament page received undefined params');
   }
 
-  const { id } = use(params);
+  // Wrap use() in try-catch to capture any async resolution errors
+  let id: string;
+  try {
+    const resolvedParams = use(params);
+    id = resolvedParams.id;
+    console.log('[TournamentDetailPage] Resolved params:', { id, params: resolvedParams });
+  } catch (err) {
+    console.error('[TournamentDetailPage] CRITICAL: Error resolving params:', err);
+    Sentry.captureException(err, {
+      tags: { component: 'TournamentDetailPage', phase: 'params_resolution' },
+      extra: { params: String(params) },
+    });
+    throw err;
+  }
 
   // Add breadcrumb for page load with resolved ID
   Sentry.addBreadcrumb({
