@@ -1,20 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
+import {
+  withErrorHandling,
+  apiSuccess,
+  addApiBreadcrumb,
+} from '@/lib/api';
 
-export async function POST(request: NextRequest) {
-  try {
-    const data = await request.json();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const data = await request.json();
 
-    console.log('=== CLIENT DEBUG LOG ===');
-    console.log('Form:', data.form);
-    console.log('User Agent:', data.userAgent);
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('Validation Errors:', JSON.stringify(data.errors, null, 2));
-    console.log('Form Values:', JSON.stringify(data.formValues, null, 2));
-    console.log('========================');
+  addApiBreadcrumb('Client debug log', {
+    form: data.form,
+  });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Debug log error:', error);
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-}
+  // Log to console
+  console.log('=== CLIENT DEBUG LOG ===');
+  console.log('Form:', data.form);
+  console.log('User Agent:', data.userAgent);
+  console.log('Timestamp:', new Date().toISOString());
+  console.log('Validation Errors:', JSON.stringify(data.errors, null, 2));
+  console.log('Form Values:', JSON.stringify(data.formValues, null, 2));
+  console.log('========================');
+
+  // Also send to Sentry as breadcrumb for debugging
+  Sentry.addBreadcrumb({
+    category: 'debug',
+    message: `Client validation debug: ${data.form}`,
+    level: 'info',
+    data: {
+      form: data.form,
+      errorCount: data.errors?.length || 0,
+      hasFormValues: !!data.formValues,
+    },
+  });
+
+  return apiSuccess(null);
+});

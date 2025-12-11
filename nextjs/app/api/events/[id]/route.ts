@@ -1,114 +1,106 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiGetEvent, strapiUpdateEvent } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  withAuthFormData,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+  setFormContext,
+  getStringField,
+  getFiles,
+} from '@/lib/api';
+import { EventService } from '@/lib/services';
 import { eventApiSchema, normalizeTimeForStrapi } from '@/lib/validation';
-import { notifyEventUpdated } from '@/lib/notifications';
 
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { jwt }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Getting event', { id });
+
+  const service = EventService.forUser(jwt);
+  const result = await service.getById(id);
+
+  if (!result.success) {
+    if (result.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(result.error.message);
     }
-
-    const { id } = await params;
-    const event = await strapiGetEvent(session.jwt, id);
-
-    return NextResponse.json({
-      success: true,
-      event,
-    });
-  } catch (error) {
-    console.error('Fetch event error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při načítání události' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(result.error.message);
   }
-}
 
-export async function PUT(
+  return apiSuccess({ event: result.data });
+});
+
+export const PUT = withAuthFormData(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { userId, jwt, formData }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Updating event', { id, userId });
+
+  setFormContext('EventForm', {
+    mode: 'edit',
+    entityId: id,
+    fields: [...formData.keys()],
+    hasFiles: formData.has('photos') || formData.has('files'),
+  });
+
+  const service = EventService.forUser(jwt);
+
+  // Check ownership
+  const existingResult = await service.getById(id);
+  if (!existingResult.success) {
+    if (existingResult.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(existingResult.error.message);
     }
-
-    const { id } = await params;
-
-    // Check ownership
-    const existingRecord = await strapiGetEvent(session.jwt, id);
-    if (existingRecord.authorId !== session.userId) {
-      return NextResponse.json(
-        { success: false, error: 'Nemáte oprávnění upravit tento záznam' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-
-    // Normalize time fields to Strapi's expected format
-    const normalizedBody = {
-      ...body,
-      eventTime: normalizeTimeForStrapi(body.eventTime),
-      eventTimeTo: normalizeTimeForStrapi(body.eventTimeTo),
-    };
-
-    const validationResult = eventApiSchema.safeParse(normalizedBody);
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { success: false, error: validationResult.error.issues[0].message },
-        { status: 400 }
-      );
-    }
-
-    const event = await strapiUpdateEvent(
-      session.jwt,
-      id,
-      validationResult.data
-    );
-
-    // Send notification (non-blocking)
-    notifyEventUpdated(event);
-
-    return NextResponse.json({
-      success: true,
-      event,
-    });
-  } catch (error) {
-    console.error('Update event error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při aktualizaci události' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(existingResult.error.message);
   }
-}
+
+  if (existingResult.data.authorId !== userId) {
+    return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
+  }
+
+  // Extract form fields
+  const eventData = {
+    name: getStringField(formData, 'name'),
+    eventType: getStringField(formData, 'eventType'),
+    dateFrom: getStringField(formData, 'dateFrom'),
+    dateTo: getStringField(formData, 'dateTo'),
+    publishDate: getStringField(formData, 'publishDate'),
+    eventTime: normalizeTimeForStrapi(getStringField(formData, 'eventTime')),
+    eventTimeTo: normalizeTimeForStrapi(getStringField(formData, 'eventTimeTo')),
+    description: getStringField(formData, 'description'),
+    requiresPhotographer: getStringField(formData, 'requiresPhotographer'),
+  };
+
+  const validationResult = eventApiSchema.safeParse(eventData);
+
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
+  }
+
+  // Extract files from form data
+  const photos = getFiles(formData, 'photos');
+  const files = getFiles(formData, 'files');
+
+  // Update the event
+  const updateResult = await service.update(id, validationResult.data, { photos, files });
+
+  if (!updateResult.success) {
+    return ApiErrors.serverError(updateResult.error.message);
+  }
+
+  return apiSuccess(
+    { event: updateResult.data.event },
+    { warnings: updateResult.data.uploadWarnings }
+  );
+});

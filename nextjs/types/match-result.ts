@@ -126,6 +126,7 @@ export interface CreateMatchResultRequest {
   category: MatchResultCategory;
   matchDate: string;
   imagesUrl?: string;
+  author?: number;
 }
 
 export interface StrapiMatchResultResponse {

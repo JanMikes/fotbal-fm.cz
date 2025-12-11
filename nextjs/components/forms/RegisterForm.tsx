@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,16 +10,31 @@ import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import { useUser } from '@/contexts/UserContext';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useMutation } from '@/hooks/api';
+import { User } from '@/types/user';
 
 interface RegisterFormProps {
   secret: string;
 }
 
+interface RegisterResponse {
+  user: User;
+}
+
 export default function RegisterForm({ secret }: RegisterFormProps) {
   const router = useRouter();
   const { refreshUser } = useUser();
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+
+  const { mutate, isLoading, error } = useMutation<RegisterResponse, RegisterFormData & { secret: string }>({
+    endpoint: '/api/auth/register',
+    method: 'POST',
+    transformVariables: (data) => JSON.stringify(data),
+    onSuccess: async () => {
+      // Refresh user context to update navbar and auth state
+      await refreshUser();
+      router.push('/dashboard');
+    },
+  });
 
   const {
     register,
@@ -34,32 +48,7 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: RegisterFormData) => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ...data, secret }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Refresh user context to update navbar and auth state
-        await refreshUser();
-        router.push('/dashboard');
-      } else {
-        setError(result.error || 'Chyba při registraci');
-      }
-    } catch (err) {
-      setError('Nastala neočekávaná chyba');
-    } finally {
-      setLoading(false);
-    }
+    await mutate({ ...data, secret });
   };
 
   return (
@@ -113,8 +102,8 @@ export default function RegisterForm({ secret }: RegisterFormProps) {
         />
       </FormField>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Registruji...' : 'Zaregistrovat se'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Registruji...' : 'Zaregistrovat se'}
       </Button>
     </form>
   );

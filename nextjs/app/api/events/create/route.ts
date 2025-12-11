@@ -1,107 +1,69 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiCreateEvent } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuthFormData,
+  apiSuccess,
+  ApiErrors,
+  getStringField,
+  getFiles,
+  addApiBreadcrumb,
+  setFormContext,
+} from '@/lib/api';
+import { EventService } from '@/lib/services';
 import { eventApiSchema, normalizeTimeForStrapi } from '@/lib/validation';
-import { notifyEventCreated } from '@/lib/notifications';
 
-export async function POST(request: NextRequest) {
-  try {
-    // CRITICAL: Must parse formData FIRST before calling getSession()
-    const formData = await request.formData();
+export const POST = withAuthFormData(async (request, { userId, jwt, formData }) => {
+  addApiBreadcrumb('Creating event', {
+    userId,
+    formFields: [...formData.keys()],
+  });
 
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
-    }
+  setFormContext('EventForm', {
+    mode: 'create',
+    fields: [...formData.keys()],
+    hasFiles: formData.has('photos') || formData.has('files'),
+  });
 
-    // Extract form fields
-    const eventData = {
-      name: formData.get('name') as string,
-      eventType: formData.get('eventType') as string,
-      dateFrom: formData.get('dateFrom') as string,
-      dateTo: formData.get('dateTo') as string,
-      publishDate: formData.get('publishDate') as string,
-      eventTime: formData.get('eventTime') as string,
-      eventTimeTo: formData.get('eventTimeTo') as string,
-      description: formData.get('description') as string,
-      requiresPhotographer: formData.get('requiresPhotographer') as string,
-    };
+  // Extract form fields
+  const eventData = {
+    name: getStringField(formData, 'name'),
+    eventType: getStringField(formData, 'eventType'),
+    dateFrom: getStringField(formData, 'dateFrom'),
+    dateTo: getStringField(formData, 'dateTo'),
+    publishDate: getStringField(formData, 'publishDate'),
+    eventTime: normalizeTimeForStrapi(getStringField(formData, 'eventTime')),
+    eventTimeTo: normalizeTimeForStrapi(getStringField(formData, 'eventTimeTo')),
+    description: getStringField(formData, 'description'),
+    requiresPhotographer: getStringField(formData, 'requiresPhotographer'),
+  };
 
-    // Validate the data
-    const validationResult = eventApiSchema.safeParse({
-      name: eventData.name,
-      eventType: eventData.eventType,
-      dateFrom: eventData.dateFrom,
-      dateTo: eventData.dateTo || undefined,
-      publishDate: eventData.publishDate || undefined,
-      eventTime: normalizeTimeForStrapi(eventData.eventTime),
-      eventTimeTo: normalizeTimeForStrapi(eventData.eventTimeTo),
-      description: eventData.description || undefined,
-      requiresPhotographer: eventData.requiresPhotographer,
-    });
+  // Validate the data
+  const validationResult = eventApiSchema.safeParse(eventData);
 
-    if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0];
-      return NextResponse.json(
-        { success: false, error: firstError.message },
-        { status: 400 }
-      );
-    }
-
-    // Extract photos from form data
-    const photos: File[] = [];
-    const photoEntries = formData.getAll('photos');
-    for (const entry of photoEntries) {
-      if (entry instanceof File && entry.size > 0) {
-        photos.push(entry);
-      }
-    }
-
-    // Extract files from form data
-    const files: File[] = [];
-    const fileEntries = formData.getAll('files');
-    for (const entry of fileEntries) {
-      if (entry instanceof File && entry.size > 0) {
-        files.push(entry);
-      }
-    }
-
-    // Create event in Strapi with author relationship
-    const dataToSend = {
-      ...validationResult.data,
-      author: session.userId,
-    };
-
-    const event = await strapiCreateEvent(
-      session.jwt,
-      dataToSend,
-      photos,
-      files
-    );
-
-    // Send notification (non-blocking)
-    notifyEventCreated(event);
-
-    return NextResponse.json({
-      success: true,
-      event,
-    });
-  } catch (error) {
-    console.error('Event creation error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při vytváření události' },
-      { status: 500 }
-    );
+  if (!validationResult.success) {
+    const firstError = validationResult.error.issues[0];
+    return ApiErrors.validationFailed(firstError.message);
   }
-}
+
+  // Extract files from form data
+  const photos = getFiles(formData, 'photos');
+  const files = getFiles(formData, 'files');
+
+  // Use the service to create event
+  const service = EventService.forUser(jwt);
+  const result = await service.create(
+    {
+      ...validationResult.data,
+      author: userId,
+    },
+    { photos, files }
+  );
+
+  if (!result.success) {
+    return ApiErrors.serverError(result.error.message);
+  }
+
+  return apiSuccess(
+    { event: result.data.event },
+    { warnings: result.data.uploadWarnings }
+  );
+});

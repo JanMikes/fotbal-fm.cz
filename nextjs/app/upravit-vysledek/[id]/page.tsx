@@ -37,12 +37,12 @@ export default function EditMatchResultPage({ params }: PageProps) {
         }
 
         // Check ownership
-        if (data.matchResult.authorId !== user.id) {
+        if (data.data.matchResult.authorId !== user.id) {
           setError('Nemáte oprávnění upravit tento záznam');
           return;
         }
 
-        setMatchResult(data.matchResult);
+        setMatchResult(data.data.matchResult);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

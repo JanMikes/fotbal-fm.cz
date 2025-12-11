@@ -46,6 +46,7 @@ export interface CreateEventRequest {
   eventTimeTo?: string;
   description?: string;
   requiresPhotographer?: boolean;
+  author?: number;
 }
 
 export interface StrapiEventResponse {

@@ -1,106 +1,107 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiGetMatchResult, strapiUpdateMatchResult } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  withAuthFormData,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+  setFormContext,
+  getStringField,
+  getFiles,
+} from '@/lib/api';
+import { MatchResultService } from '@/lib/services';
 import { matchResultApiSchema } from '@/lib/validation';
-import { notifyMatchResultUpdated } from '@/lib/notifications';
 
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { jwt }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Getting match result', { id });
+
+  const service = MatchResultService.forUser(jwt);
+  const result = await service.getById(id);
+
+  if (!result.success) {
+    if (result.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(result.error.message);
     }
-
-    const { id } = await params;
-    const matchResult = await strapiGetMatchResult(session.jwt, id);
-
-    return NextResponse.json({
-      success: true,
-      matchResult,
-    });
-  } catch (error) {
-    console.error('Fetch match result error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při načítání výsledku zápasu' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(result.error.message);
   }
-}
 
-export async function PUT(
+  return apiSuccess({ matchResult: result.data });
+});
+
+export const PUT = withAuthFormData(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { userId, jwt, formData }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Updating match result', { id, userId });
+
+  setFormContext('MatchResultForm', {
+    mode: 'edit',
+    entityId: id,
+    fields: [...formData.keys()],
+    hasFiles: formData.has('images') || formData.has('files'),
+  });
+
+  const service = MatchResultService.forUser(jwt);
+
+  // Check ownership
+  const existingResult = await service.getById(id);
+  if (!existingResult.success) {
+    if (existingResult.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(existingResult.error.message);
     }
-
-    const { id } = await params;
-
-    // Check ownership
-    const existingRecord = await strapiGetMatchResult(session.jwt, id);
-    if (existingRecord.authorId !== session.userId) {
-      return NextResponse.json(
-        { success: false, error: 'Nemáte oprávnění upravit tento záznam' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const validationResult = matchResultApiSchema.safeParse(body);
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { success: false, error: validationResult.error.issues[0].message },
-        { status: 400 }
-      );
-    }
-
-    const matchResult = await strapiUpdateMatchResult(
-      session.jwt,
-      id,
-      validationResult.data
-    );
-
-    // Send notification (non-blocking)
-    notifyMatchResultUpdated(matchResult);
-
-    return NextResponse.json({
-      success: true,
-      matchResult,
-    });
-  } catch (error) {
-    console.error('Update match result error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při aktualizaci výsledku zápasu' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(existingResult.error.message);
   }
-}
+
+  if (existingResult.data.authorId !== userId) {
+    return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
+  }
+
+  // Extract form fields
+  const matchData = {
+    homeTeam: getStringField(formData, 'homeTeam'),
+    awayTeam: getStringField(formData, 'awayTeam'),
+    homeScore: getStringField(formData, 'homeScore'),
+    awayScore: getStringField(formData, 'awayScore'),
+    homeGoalscorers: getStringField(formData, 'homeGoalscorers'),
+    awayGoalscorers: getStringField(formData, 'awayGoalscorers'),
+    matchReport: getStringField(formData, 'matchReport'),
+    category: getStringField(formData, 'category'),
+    matchDate: getStringField(formData, 'matchDate'),
+    imagesUrl: getStringField(formData, 'imagesUrl'),
+  };
+
+  const validationResult = matchResultApiSchema.safeParse(matchData);
+
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
+  }
+
+  // Extract files from form data
+  const images = getFiles(formData, 'images');
+  const files = getFiles(formData, 'files');
+
+  // Update the match result
+  const updateResult = await service.update(id, validationResult.data, { images, files });
+
+  if (!updateResult.success) {
+    return ApiErrors.serverError(updateResult.error.message);
+  }
+
+  return apiSuccess(
+    { matchResult: updateResult.data.matchResult },
+    { warnings: updateResult.data.uploadWarnings }
+  );
+});

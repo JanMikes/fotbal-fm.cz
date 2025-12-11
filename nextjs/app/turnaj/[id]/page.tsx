@@ -13,44 +13,15 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import LastUpdatedInfo from '@/components/ui/LastUpdatedInfo';
 import CommentSection from '@/components/CommentSection';
 import ImageGallery from '@/components/ui/ImageGallery';
-import * as Sentry from "@sentry/nextjs";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function TournamentDetailPage({ params }: PageProps) {
-  // Defensive check for params - capture to Sentry if undefined
-  if (!params) {
-    console.error('[TournamentDetailPage] CRITICAL: params is undefined');
-    Sentry.captureMessage('TournamentDetailPage received undefined params', {
-      level: 'error',
-    });
-    throw new Error('Tournament page received undefined params');
-  }
-
-  // Wrap use() in try-catch to capture any async resolution errors
-  let id: string;
-  try {
-    const resolvedParams = use(params);
-    id = resolvedParams.id;
-    console.log('[TournamentDetailPage] Resolved params:', { id, params: resolvedParams });
-  } catch (err) {
-    console.error('[TournamentDetailPage] CRITICAL: Error resolving params:', err);
-    Sentry.captureException(err, {
-      tags: { component: 'TournamentDetailPage', phase: 'params_resolution' },
-      extra: { params: String(params) },
-    });
-    throw err;
-  }
-
-  // Add breadcrumb for page load with resolved ID
-  Sentry.addBreadcrumb({
-    category: 'navigation',
-    message: 'TournamentDetailPage loaded',
-    level: 'info',
-    data: { id },
-  });
+  // use() hook handles async params resolution in React 19
+  // Do NOT wrap in try/catch - it throws a special Suspense exception during resolution
+  const { id } = use(params);
 
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
@@ -71,7 +42,7 @@ export default function TournamentDetailPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst turnaj');
         }
 
-        setTournament(data.tournament);
+        setTournament(data.data.tournament);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

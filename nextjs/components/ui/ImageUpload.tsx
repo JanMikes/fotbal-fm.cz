@@ -45,21 +45,21 @@ export default function ImageUpload({ onChange, error }: ImageUploadProps) {
   };
 
   const removeImage = (index: number) => {
-    setPreviews((prev) => {
-      const newPreviews = [...prev];
-      URL.revokeObjectURL(newPreviews[index].url);
-      newPreviews.splice(index, 1);
+    // Clean up the URL and create new previews array
+    const newPreviews = [...previews];
+    URL.revokeObjectURL(newPreviews[index].url);
+    newPreviews.splice(index, 1);
 
-      // Update the file input
-      if (fileInputRef.current) {
-        const dt = new DataTransfer();
-        newPreviews.forEach((p) => dt.items.add(p.file));
-        fileInputRef.current.files = dt.files;
-        onChange(dt.files);
-      }
+    // Update the file input
+    const dt = new DataTransfer();
+    newPreviews.forEach((p) => dt.items.add(p.file));
+    if (fileInputRef.current) {
+      fileInputRef.current.files = dt.files;
+    }
 
-      return newPreviews;
-    });
+    // Update state and notify parent
+    setPreviews(newPreviews);
+    onChange(dt.files.length > 0 ? dt.files : null);
   };
 
   return (

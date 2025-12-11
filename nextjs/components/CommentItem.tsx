@@ -57,7 +57,9 @@ export default function CommentItem({
         <div className="flex items-start justify-between gap-2 mb-2">
           <div>
             <span className="font-medium text-text-primary">
-              {comment.author.firstName} {comment.author.lastName}
+              {comment.author.firstName || comment.author.lastName
+                ? `${comment.author.firstName} ${comment.author.lastName}`.trim()
+                : 'Neznámý uživatel'}
             </span>
             {isOwn && (
               <span className="ml-2 text-xs text-primary font-medium">(Vy)</span>

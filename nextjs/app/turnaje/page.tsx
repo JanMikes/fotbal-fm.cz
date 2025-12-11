@@ -31,7 +31,7 @@ function TournamentsPageContent() {
         throw new Error(data.error || 'Nepodařilo se načíst turnaje');
       }
 
-      setTournaments(data.tournaments);
+      setTournaments(data.data.tournaments);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

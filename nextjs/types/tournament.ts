@@ -68,6 +68,7 @@ export interface CreateTournamentRequest {
   category: TournamentCategory;
   imagesUrl?: string;
   players?: TournamentPlayer[];
+  author?: number;
 }
 
 export interface StrapiTournamentResponse {

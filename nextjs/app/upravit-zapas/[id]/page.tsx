@@ -37,12 +37,12 @@ export default function EditTournamentMatchPage({ params }: PageProps) {
         }
 
         // Check ownership
-        if (data.tournamentMatch.authorId !== user.id) {
+        if (data.data.tournamentMatch.authorId !== user.id) {
           setError('Nemáte oprávnění upravit tento záznam');
           return;
         }
 
-        setTournamentMatch(data.tournamentMatch);
+        setTournamentMatch(data.data.tournamentMatch);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

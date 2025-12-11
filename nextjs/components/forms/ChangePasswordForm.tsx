@@ -9,11 +9,10 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useChangePassword } from '@/hooks/api';
 
 export default function ChangePasswordForm() {
-  const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -24,39 +23,19 @@ export default function ChangePasswordForm() {
     resolver: zodResolver(changePasswordSchema),
   });
 
+  const { mutate, isLoading, error } = useChangePassword({
+    onSuccess: () => {
+      setSuccess('Heslo bylo úspěšně změněno');
+      reset();
+    },
+  });
+
   // Automatically scroll to the first error field
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: ChangePasswordFormData) => {
-    try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
-      const response = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSuccess('Heslo bylo úspěšně změněno');
-        reset();
-      } else {
-        setError(result.error || 'Chyba při změně hesla');
-      }
-    } catch (err) {
-      setError('Nastala neočekávaná chyba');
-    } finally {
-      setLoading(false);
-    }
+    setSuccess('');
+    await mutate(data);
   };
 
   return (
@@ -96,8 +75,8 @@ export default function ChangePasswordForm() {
         />
       </FormField>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Měním heslo...' : 'Změnit heslo'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Měním heslo...' : 'Změnit heslo'}
       </Button>
     </form>
   );

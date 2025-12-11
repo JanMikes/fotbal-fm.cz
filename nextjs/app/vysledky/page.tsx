@@ -31,7 +31,7 @@ function MatchResultsPageContent() {
         throw new Error(data.error || 'Nepodařilo se načíst výsledky');
       }
 
-      setMatchResults(data.matchResults);
+      setMatchResults(data.data.matchResults);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

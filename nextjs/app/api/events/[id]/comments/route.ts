@@ -1,40 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiGetComments } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+} from '@/lib/api';
+import { CommentService } from '@/lib/services';
 
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
-    }
+  { jwt }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  // Path is /api/events/[id]/comments, so id is at index -2
+  const id = pathParts[pathParts.length - 2];
 
-    const { id } = await params;
-    const comments = await strapiGetComments(session.jwt, 'event', id);
+  addApiBreadcrumb('Getting event comments', { id });
 
-    return NextResponse.json({
-      success: true,
-      comments,
-    });
-  } catch (error) {
-    console.error('Fetch event comments error:', error);
+  const service = CommentService.forUser(jwt);
+  const result = await service.getByEntity('event', id);
 
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při načítání komentářů' },
-      { status: 500 }
-    );
+  if (!result.success) {
+    return ApiErrors.serverError(result.error.message);
   }
-}
+
+  return apiSuccess({ comments: result.data });
+});

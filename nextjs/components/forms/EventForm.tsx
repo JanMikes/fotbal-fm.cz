@@ -17,6 +17,7 @@ import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useCreateEvent, useUpdateEvent } from '@/hooks/api';
 import { Event } from '@/types/event';
 
 interface EventFormProps {
@@ -31,10 +32,25 @@ export default function EventForm({
   recordId,
 }: EventFormProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<FileList | null>(null);
+  const [images, setImages] = useState<FileList | null>(null);
   const [files, setFiles] = useState<FileList | null>(null);
+
+  // Use the appropriate mutation hook based on mode
+  const createMutation = useCreateEvent({
+    onSuccess: () => {
+      router.push('/udalosti?success=true');
+    },
+  });
+
+  const updateMutation = useUpdateEvent(recordId || '', {
+    onSuccess: () => {
+      router.push(`/udalost/${recordId}?success=true`);
+    },
+  });
+
+  // Select the active mutation based on mode
+  const mutation = mode === 'edit' ? updateMutation : createMutation;
+  const { isLoading, error, warnings } = mutation;
 
   const {
     register,
@@ -67,103 +83,11 @@ export default function EventForm({
 
   useScrollToError(errors, { offset: 100 });
 
-  const onValidationError = async (errors: Record<string, any>) => {
-    // Log validation errors to server for debugging
-    try {
-      await fetch('/api/debug-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          form: 'EventForm',
-          errors,
-          formValues: watch(),
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-        }),
-      });
-    } catch (e) {
-      // Ignore logging errors
-    }
-  };
-
   const onSubmit = async (data: EventFormData) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (mode === 'edit' && recordId) {
-        // Update existing record
-        const response = await fetch(`/api/events/${recordId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se aktualizovat událost');
-        }
-
-        router.push(`/udalost/${recordId}?success=true`);
-      } else {
-        // Create new record
-        const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('eventType', data.eventType);
-        formData.append('dateFrom', data.dateFrom);
-
-        if (data.dateTo) {
-          formData.append('dateTo', data.dateTo);
-        }
-        if (data.publishDate) {
-          formData.append('publishDate', data.publishDate);
-        }
-        if (data.eventTime) {
-          formData.append('eventTime', data.eventTime);
-        }
-        if (data.eventTimeTo) {
-          formData.append('eventTimeTo', data.eventTimeTo);
-        }
-        if (data.description) {
-          formData.append('description', data.description);
-        }
-        formData.append('requiresPhotographer', String(data.requiresPhotographer || false));
-
-        if (photos) {
-          Array.from(photos).forEach((photo) => {
-            formData.append('photos', photo);
-          });
-        }
-
-        if (files) {
-          Array.from(files).forEach((file) => {
-            formData.append('files', file);
-          });
-        }
-
-        const response = await fetch('/api/events/create', {
-          method: 'POST',
-          body: formData,
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se vytvořit událost');
-        }
-
-        router.push('/udalosti?success=true');
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(mode === 'edit' ? 'Nepodařilo se aktualizovat událost' : 'Nepodařilo se vytvořit událost');
-      }
-    } finally {
-      setIsLoading(false);
+    if (mode === 'edit') {
+      await updateMutation.mutate({ data, images, files });
+    } else {
+      await createMutation.mutate({ data, images, files });
     }
   };
 
@@ -179,8 +103,16 @@ export default function EventForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit, onValidationError)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && <Alert variant="error">{error}</Alert>}
+
+        {warnings && warnings.length > 0 && (
+          <Alert variant="warning">
+            {warnings.map((warning, index) => (
+              <div key={index}>{warning}</div>
+            ))}
+          </Alert>
+        )}
 
         <FormField
           label="Název události"
@@ -353,7 +285,7 @@ export default function EventForm({
           label="Fotografie"
           hint="Můžete nahrát fotografie z události"
         >
-          <ImageUpload onChange={setPhotos} />
+          <ImageUpload onChange={setImages} />
         </FormField>
 
         <FormField
@@ -370,19 +302,6 @@ export default function EventForm({
             size="lg"
             disabled={isLoading}
             className="w-full"
-            onClick={() => {
-              // Debug: log button click to server
-              fetch('/api/debug-log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  form: 'EventForm',
-                  event: 'submit_button_clicked',
-                  formValues: watch(),
-                  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-                }),
-              }).catch(() => {});
-            }}
           >
             {isLoading ? 'Ukládání...' : mode === 'edit' ? 'Uložit změny' : 'Uložit událost'}
           </Button>

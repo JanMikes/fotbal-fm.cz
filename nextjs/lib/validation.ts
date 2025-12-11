@@ -136,6 +136,12 @@ export const matchResultSchema = z.object({
 });
 
 // Schema for API validation (receives FormData as strings, uses coerce)
+// Transform empty strings to undefined for optional fields
+const emptyToUndefined = z.preprocess(
+  (val) => (val === '' ? undefined : val),
+  z.string().optional()
+);
+
 export const matchResultApiSchema = z.object({
   homeTeam: z.string().min(1, 'Domácí tým je povinný'),
   awayTeam: z.string().min(1, 'Hostující tým je povinný'),
@@ -145,12 +151,15 @@ export const matchResultApiSchema = z.object({
   awayScore: z.coerce.number()
     .int('Skóre musí být celé číslo')
     .min(0, 'Skóre nemůže být záporné'),
-  homeGoalscorers: z.string().optional(),
-  awayGoalscorers: z.string().optional(),
-  matchReport: z.string().optional(),
+  homeGoalscorers: emptyToUndefined,
+  awayGoalscorers: emptyToUndefined,
+  matchReport: emptyToUndefined,
   category: categoryEnum,
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
-  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  imagesUrl: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url('Neplatná URL adresa').optional()
+  ),
 });
 
 // Event schemas
@@ -170,11 +179,11 @@ export const eventApiSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
   eventType: eventTypeEnum,
   dateFrom: z.string().min(1, 'Datum začátku je povinné'),
-  dateTo: z.string().optional(),
-  publishDate: z.string().optional(),
-  eventTime: z.string().optional(),
-  eventTimeTo: z.string().optional(),
-  description: z.string().optional(),
+  dateTo: emptyToUndefined,
+  publishDate: emptyToUndefined,
+  eventTime: emptyToUndefined,
+  eventTimeTo: emptyToUndefined,
+  description: emptyToUndefined,
   requiresPhotographer: z.preprocess(
     (val) => val === 'true' || val === true,
     z.boolean().optional()
@@ -229,12 +238,15 @@ export const tournamentSchema = z.object({
 
 export const tournamentApiSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
-  description: z.string().optional(),
-  location: z.string().optional(),
+  description: emptyToUndefined,
+  location: emptyToUndefined,
   dateFrom: z.string().min(1, 'Datum začátku je povinné'),
-  dateTo: z.string().optional(),
+  dateTo: emptyToUndefined,
   category: categoryEnum,
-  imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  imagesUrl: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url('Neplatná URL adresa').optional()
+  ),
   matches: z.array(inlineMatchApiSchema).optional(),
   players: z.array(tournamentPlayerSchema).optional(),
 });

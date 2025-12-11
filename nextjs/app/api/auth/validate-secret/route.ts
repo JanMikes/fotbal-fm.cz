@@ -1,26 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import {
+  withErrorHandling,
+  apiSuccess,
+  addApiBreadcrumb,
+} from '@/lib/api';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { secret } = body;
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const body = await request.json();
+  const { secret } = body;
 
-    const registrationSecret = process.env.REGISTRATION_SECRET;
+  addApiBreadcrumb('Validating registration secret');
 
-    if (!registrationSecret) {
-      return NextResponse.json(
-        { valid: false },
-        { status: 500 }
-      );
-    }
+  const registrationSecret = process.env.REGISTRATION_SECRET;
 
-    const isValid = secret === registrationSecret;
-
-    return NextResponse.json({ valid: isValid });
-  } catch (error) {
-    return NextResponse.json(
-      { valid: false },
-      { status: 400 }
-    );
+  if (!registrationSecret) {
+    return apiSuccess({ valid: false });
   }
-}
+
+  const isValid = secret === registrationSecret;
+
+  return apiSuccess({ valid: isValid });
+});

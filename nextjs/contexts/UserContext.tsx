@@ -27,9 +27,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.user) {
-          console.log('[UserContext] User fetched:', { id: data.user.id, firstName: data.user.firstName });
-          setUser(data.user);
+        // API returns { success: true, data: { user: {...} } }
+        const user = data.data?.user;
+        if (data.success && user) {
+          console.log('[UserContext] User fetched:', { id: user.id, firstName: user.firstName });
+          setUser(user);
         } else {
           console.log('[UserContext] No user in response');
           setUser(null);

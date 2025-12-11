@@ -39,7 +39,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst výsledek');
         }
 
-        setMatchResult(data.matchResult);
+        setMatchResult(data.data.matchResult);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,12 +10,19 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useLogin } from '@/hooks/api';
 
 export default function LoginForm() {
   const router = useRouter();
   const { refreshUser } = useUser();
-  const [error, setError] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+
+  const { mutate, isLoading, error } = useLogin({
+    onSuccess: async () => {
+      // Refresh user context to update the UI immediately
+      await refreshUser();
+      router.push('/dashboard');
+    },
+  });
 
   const {
     register,
@@ -30,32 +36,7 @@ export default function LoginForm() {
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Refresh user context to update the UI immediately
-        await refreshUser();
-        router.push('/dashboard');
-      } else {
-        setError(result.error || 'Chyba při přihlašování');
-      }
-    } catch (err) {
-      setError('Nastala neočekávaná chyba');
-    } finally {
-      setLoading(false);
-    }
+    await mutate(data);
   };
 
   return (
@@ -82,8 +63,8 @@ export default function LoginForm() {
         />
       </FormField>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Přihlašuji...' : 'Přihlásit se'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Přihlašuji...' : 'Přihlásit se'}
       </Button>
     </form>
   );

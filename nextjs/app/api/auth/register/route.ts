@@ -1,79 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { strapiRegister } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withErrorHandling,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+} from '@/lib/api';
+import { getAuthService } from '@/lib/services';
 import { createSession } from '@/lib/session';
 import { registerSchema } from '@/lib/validation';
-import { notifyUserRegistered } from '@/lib/notifications';
-import { AuthResponse } from '@/types/api';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const body = await request.json();
 
-    // Validate registration secret
-    const registrationSecret = process.env.REGISTRATION_SECRET;
-    if (!registrationSecret) {
-      console.error('REGISTRATION_SECRET environment variable is not set');
-      return NextResponse.json<AuthResponse>(
-        {
-          success: false,
-          error: 'Registrace je momentálně nedostupná',
-        },
-        { status: 500 }
-      );
-    }
+  addApiBreadcrumb('User registration attempt', { email: body.email });
 
-    if (!body.secret || body.secret !== registrationSecret) {
-      return NextResponse.json<AuthResponse>(
-        {
-          success: false,
-          error: 'Neplatný registrační kód',
-        },
-        { status: 403 }
-      );
-    }
-
-    // Validate request data
-    const validationResult = registerSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json<AuthResponse>(
-        {
-          success: false,
-          error: validationResult.error.issues[0].message,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { email, password, firstName, lastName, jobTitle } = validationResult.data;
-
-    // Register with Strapi
-    const { user, jwt } = await strapiRegister({
-      email,
-      password,
-      firstName,
-      lastName,
-      jobTitle,
-    });
-
-    // Automatically log in - create session
-    await createSession(user.id, user.email, jwt);
-
-    // Send notification (non-blocking)
-    notifyUserRegistered(user);
-
-    return NextResponse.json<AuthResponse>({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-
-    return NextResponse.json<AuthResponse>(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Chyba při registraci',
-      },
-      { status: 400 }
-    );
+  // Validate registration secret
+  const registrationSecret = process.env.REGISTRATION_SECRET;
+  if (!registrationSecret) {
+    return ApiErrors.serverError('Registrace je momentálně nedostupná');
   }
-}
+
+  if (!body.secret || body.secret !== registrationSecret) {
+    return ApiErrors.forbidden('Neplatný registrační kód');
+  }
+
+  // Validate request data
+  const validationResult = registerSchema.safeParse(body);
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
+  }
+
+  const { email, password, firstName, lastName, jobTitle } = validationResult.data;
+
+  // Register with auth service
+  const authService = getAuthService();
+  const result = await authService.register({
+    email,
+    password,
+    firstName,
+    lastName,
+    jobTitle,
+  });
+
+  if (!result.success) {
+    return ApiErrors.badRequest(result.error.message);
+  }
+
+  // Automatically log in - create session
+  await createSession(result.data.user.id, result.data.user.email, result.data.jwt);
+
+  return apiSuccess({ user: result.data.user });
+});

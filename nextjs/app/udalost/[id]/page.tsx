@@ -39,7 +39,7 @@ export default function EventDetailPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst událost');
         }
 
-        setEvent(data.event);
+        setEvent(data.data.event);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

@@ -39,9 +39,9 @@ export default function DashboardPage() {
         ]);
 
         setData({
-          matchResults: (mrData.matchResults || []).slice(0, 3),
-          tournaments: (tData.tournaments || []).slice(0, 3),
-          events: (eData.events || []).slice(0, 3),
+          matchResults: (mrData.data?.matchResults || []).slice(0, 3),
+          tournaments: (tData.data?.tournaments || []).slice(0, 3),
+          events: (eData.data?.events || []).slice(0, 3),
         });
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);

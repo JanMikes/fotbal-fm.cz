@@ -1,61 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiUpdateProfile } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+} from '@/lib/api';
+import { getAuthService } from '@/lib/services';
 import { updateProfileSchema } from '@/lib/validation';
-import { AuthResponse } from '@/types/api';
 
-export async function PUT(request: NextRequest) {
-  try {
-    // IMPORTANT: Parse body BEFORE calling getSession() to avoid
-    // "Response body object should not be disturbed or locked" error in production
-    const body = await request.json();
+export const PUT = withAuth(async (
+  request: NextRequest,
+  { userId, jwt }
+) => {
+  // Parse body - already after session check in withAuth
+  const body = await request.json();
 
-    const session = await getSession();
+  addApiBreadcrumb('Updating profile', { userId });
 
-    if (!session.isLoggedIn || !session.jwt) {
-      return NextResponse.json<AuthResponse>(
-        {
-          success: false,
-          error: 'Nepřihlášený uživatel',
-        },
-        { status: 401 }
-      );
-    }
-
-    // Validate request data
-    const validationResult = updateProfileSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json<AuthResponse>(
-        {
-          success: false,
-          error: validationResult.error.issues[0].message,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { firstName, lastName, jobTitle } = validationResult.data;
-
-    // Update profile in Strapi
-    const user = await strapiUpdateProfile(session.jwt, session.userId, {
-      firstName,
-      lastName,
-      jobTitle,
-    });
-
-    return NextResponse.json<AuthResponse>({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-
-    return NextResponse.json<AuthResponse>(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Chyba při aktualizaci profilu',
-      },
-      { status: 500 }
-    );
+  // Validate request data
+  const validationResult = updateProfileSchema.safeParse(body);
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
   }
-}
+
+  const { firstName, lastName, jobTitle } = validationResult.data;
+
+  // Update profile
+  const authService = getAuthService();
+  const result = await authService.updateProfile(jwt, userId!, {
+    firstName,
+    lastName,
+    jobTitle,
+  });
+
+  if (!result.success) {
+    if (result.error.statusCode === 401) {
+      return ApiErrors.unauthorized(result.error.message);
+    }
+    if (result.error.statusCode === 403) {
+      return ApiErrors.forbidden(result.error.message);
+    }
+    return ApiErrors.serverError(result.error.message);
+  }
+
+  return apiSuccess({ user: result.data });
+});

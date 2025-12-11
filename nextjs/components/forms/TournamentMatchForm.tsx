@@ -12,6 +12,7 @@ import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useCreateTournamentMatch, useUpdateTournamentMatch } from '@/hooks/api';
 import { Tournament } from '@/types/tournament';
 import { TournamentMatch } from '@/types/tournament-match';
 
@@ -27,10 +28,26 @@ export default function TournamentMatchForm({
   recordId,
 }: TournamentMatchFormProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
+  const [tournamentsError, setTournamentsError] = useState<string | null>(null);
+
+  // Use the appropriate mutation hook based on mode
+  const createMutation = useCreateTournamentMatch({
+    onSuccess: () => {
+      router.push('/turnaje?success=true');
+    },
+  });
+
+  const updateMutation = useUpdateTournamentMatch(recordId || '', {
+    onSuccess: () => {
+      router.push(`/turnaje?success=true`);
+    },
+  });
+
+  // Select the active mutation based on mode
+  const mutation = mode === 'edit' ? updateMutation : createMutation;
+  const { isLoading, error } = mutation;
 
   const {
     register,
@@ -62,12 +79,12 @@ export default function TournamentMatchForm({
         const result = await response.json();
 
         if (result.success) {
-          setTournaments(result.tournaments);
+          setTournaments(result.data.tournaments);
         } else {
-          setError('Nepodařilo se načíst seznam turnajů');
+          setTournamentsError('Nepodařilo se načíst seznam turnajů');
         }
       } catch {
-        setError('Nepodařilo se načíst seznam turnajů');
+        setTournamentsError('Nepodařilo se načíst seznam turnajů');
       } finally {
         setLoadingTournaments(false);
       }
@@ -77,53 +94,10 @@ export default function TournamentMatchForm({
   }, []);
 
   const onSubmit = async (data: TournamentMatchFormData) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (mode === 'edit' && recordId) {
-        // Update existing record
-        const response = await fetch(`/api/tournament-matches/${recordId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se aktualizovat turnajový zápas');
-        }
-
-        router.push(`/turnaj/${data.tournament}?success=true`);
-      } else {
-        // Create new record
-        const response = await fetch('/api/tournament-matches/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se vytvořit turnajový zápas');
-        }
-
-        router.push('/turnaje?success=true');
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(mode === 'edit' ? 'Nepodařilo se aktualizovat turnajový zápas' : 'Nepodařilo se vytvořit turnajový zápas');
-      }
-    } finally {
-      setIsLoading(false);
+    if (mode === 'edit') {
+      await updateMutation.mutate({ data });
+    } else {
+      await createMutation.mutate({ data });
     }
   };
 
@@ -148,7 +122,7 @@ export default function TournamentMatchForm({
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {error && <Alert variant="error">{error}</Alert>}
+        {(error || tournamentsError) && <Alert variant="error">{error || tournamentsError}</Alert>}
 
         <FormField
           label="Turnaj"

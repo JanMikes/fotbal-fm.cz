@@ -37,7 +37,7 @@ export default function CommentSection({
         return;
       }
 
-      setComments(result.comments);
+      setComments(result.data.comments);
       setError(null);
     } catch {
       setError('Nepodařilo se načíst komentáře');

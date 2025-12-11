@@ -50,20 +50,20 @@ export default function FileUpload({ onChange, error, accept, multiple = true }:
   };
 
   const removeFile = (index: number) => {
-    setFiles((prev) => {
-      const newFiles = [...prev];
-      newFiles.splice(index, 1);
+    // Create new files array
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
 
-      // Update the file input
-      if (fileInputRef.current) {
-        const dt = new DataTransfer();
-        newFiles.forEach((f) => dt.items.add(f.file));
-        fileInputRef.current.files = dt.files;
-        onChange(dt.files.length > 0 ? dt.files : null);
-      }
+    // Update the file input
+    const dt = new DataTransfer();
+    newFiles.forEach((f) => dt.items.add(f.file));
+    if (fileInputRef.current) {
+      fileInputRef.current.files = dt.files;
+    }
 
-      return newFiles;
-    });
+    // Update state and notify parent
+    setFiles(newFiles);
+    onChange(dt.files.length > 0 ? dt.files : null);
   };
 
   return (

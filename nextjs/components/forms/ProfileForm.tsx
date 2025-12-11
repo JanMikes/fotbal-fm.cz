@@ -10,12 +10,18 @@ import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import Alert from '@/components/ui/Alert';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useUpdateProfile } from '@/hooks/api';
 
 export default function ProfileForm() {
   const { user, refreshUser } = useUser();
-  const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+
+  const { mutate, isLoading, error } = useUpdateProfile({
+    onSuccess: async () => {
+      setSuccess('Profil byl úspěšně aktualizován');
+      await refreshUser();
+    },
+  });
 
   const {
     register,
@@ -34,32 +40,8 @@ export default function ProfileForm() {
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: UpdateProfileFormData) => {
-    try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
-      const response = await fetch('/api/auth/update-profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSuccess('Profil byl úspěšně aktualizován');
-        await refreshUser();
-      } else {
-        setError(result.error || 'Chyba při aktualizaci profilu');
-      }
-    } catch (err) {
-      setError('Nastala neočekávaná chyba');
-    } finally {
-      setLoading(false);
-    }
+    setSuccess('');
+    await mutate(data);
   };
 
   return (
@@ -99,8 +81,8 @@ export default function ProfileForm() {
         />
       </FormField>
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Ukládám...' : 'Uložit změny'}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Ukládám...' : 'Uložit změny'}
       </Button>
     </form>
   );

@@ -10,44 +10,15 @@ import { ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import * as Sentry from "@sentry/nextjs";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function EditTournamentPage({ params }: PageProps) {
-  // Defensive check for params - capture to Sentry if undefined
-  if (!params) {
-    console.error('[EditTournamentPage] CRITICAL: params is undefined');
-    Sentry.captureMessage('EditTournamentPage received undefined params', {
-      level: 'error',
-    });
-    throw new Error('Edit tournament page received undefined params');
-  }
-
-  // Wrap use() in try-catch to capture any async resolution errors
-  let id: string;
-  try {
-    const resolvedParams = use(params);
-    id = resolvedParams.id;
-    console.log('[EditTournamentPage] Resolved params:', { id, params: resolvedParams });
-  } catch (err) {
-    console.error('[EditTournamentPage] CRITICAL: Error resolving params:', err);
-    Sentry.captureException(err, {
-      tags: { component: 'EditTournamentPage', phase: 'params_resolution' },
-      extra: { params: String(params) },
-    });
-    throw err;
-  }
-
-  // Add breadcrumb for page load with resolved ID
-  Sentry.addBreadcrumb({
-    category: 'navigation',
-    message: 'EditTournamentPage loaded',
-    level: 'info',
-    data: { id },
-  });
+  // use() hook handles async params resolution in React 19
+  // Do NOT wrap in try/catch - it throws a special Suspense exception during resolution
+  const { id } = use(params);
 
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
@@ -69,12 +40,12 @@ export default function EditTournamentPage({ params }: PageProps) {
         }
 
         // Check ownership
-        if (data.tournament.authorId !== user.id) {
+        if (data.data.tournament.authorId !== user.id) {
           setError('Nemáte oprávnění upravit tento záznam');
           return;
         }
 
-        setTournament(data.tournament);
+        setTournament(data.data.tournament);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

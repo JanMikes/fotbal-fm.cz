@@ -1,168 +1,171 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiGetTournament, strapiUpdateTournament, strapiCreateTournamentMatch } from '@/lib/strapi';
-import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
-import { notifyTournamentUpdated } from '@/lib/notifications';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import {
+  withAuth,
+  withAuthFormData,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+  setFormContext,
+  getStringField,
+  getFiles,
+} from '@/lib/api';
+import { TournamentService, TournamentMatchService } from '@/lib/services';
+import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { jwt }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Getting tournament', { id });
+
+  const service = TournamentService.forUser(jwt);
+  const result = await service.getById(id);
+
+  if (!result.success) {
+    if (result.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(result.error.message);
     }
-
-    const { id } = await params;
-    const tournament = await strapiGetTournament(session.jwt, id);
-
-    return NextResponse.json({
-      success: true,
-      tournament,
-    });
-  } catch (error) {
-    console.error('Fetch tournament error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při načítání turnaje' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(result.error.message);
   }
-}
 
-export async function PUT(
+  return apiSuccess({ tournament: result.data });
+});
+
+export const PUT = withAuthFormData(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
+  { userId, jwt, formData }
+) => {
+  // Extract ID from URL
+  const url = new URL(request.url);
+  const pathParts = url.pathname.split('/');
+  const id = pathParts[pathParts.length - 1];
+
+  addApiBreadcrumb('Updating tournament', { id, userId });
+
+  setFormContext('TournamentForm', {
+    mode: 'edit',
+    entityId: id,
+    fields: [...formData.keys()],
+    hasFiles: formData.has('photos') || formData.has('files'),
+  });
+
+  const service = TournamentService.forUser(jwt);
+
+  // Check ownership
+  const existingResult = await service.getById(id);
+  if (!existingResult.success) {
+    if (existingResult.error.code === 'NOT_FOUND') {
+      return ApiErrors.notFound(existingResult.error.message);
     }
-
-    const { id } = await params;
-
-    // Check ownership
-    const existingRecord = await strapiGetTournament(session.jwt, id);
-    if (existingRecord.authorId !== session.userId) {
-      return NextResponse.json(
-        { success: false, error: 'Nemáte oprávnění upravit tento záznam' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const validationResult = tournamentApiSchema.safeParse(body);
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { success: false, error: validationResult.error.issues[0].message },
-        { status: 400 }
-      );
-    }
-
-    // Validate matches if present
-    let validatedMatches: z.infer<typeof inlineMatchApiSchema>[] = [];
-    if (body.matches && Array.isArray(body.matches) && body.matches.length > 0) {
-      const matchesSchema = z.array(inlineMatchApiSchema);
-      const matchesValidation = matchesSchema.safeParse(body.matches);
-
-      if (!matchesValidation.success) {
-        const firstError = matchesValidation.error.issues[0];
-        return NextResponse.json(
-          { success: false, error: `Chyba v zápasu: ${firstError.message}` },
-          { status: 400 }
-        );
-      }
-
-      validatedMatches = matchesValidation.data;
-    }
-
-    // Validate players if present
-    let validatedPlayers: z.infer<typeof tournamentPlayerSchema>[] = [];
-    if (body.players && Array.isArray(body.players) && body.players.length > 0) {
-      const playersSchema = z.array(tournamentPlayerSchema);
-      const playersValidation = playersSchema.safeParse(body.players);
-
-      if (!playersValidation.success) {
-        const firstError = playersValidation.error.issues[0];
-        return NextResponse.json(
-          { success: false, error: `Chyba v hráči: ${firstError.message}` },
-          { status: 400 }
-        );
-      }
-
-      validatedPlayers = playersValidation.data;
-    }
-
-    // Update tournament (without matches - those are handled separately)
-    // Players are a component and are updated directly with the tournament
-    const { matches: _matches, players: _players, ...tournamentData } = validationResult.data;
-    const tournament = await strapiUpdateTournament(
-      session.jwt,
-      id,
-      {
-        ...tournamentData,
-        players: validatedPlayers.length > 0 ? validatedPlayers : [],
-      }
-    );
-
-    // Create new tournament matches if present
-    if (validatedMatches.length > 0) {
-      // Use documentId (string) for Strapi 5 relations
-      await Promise.all(
-        validatedMatches.map((match) =>
-          strapiCreateTournamentMatch(session.jwt, {
-            homeTeam: match.homeTeam,
-            awayTeam: match.awayTeam,
-            homeScore: match.homeScore,
-            awayScore: match.awayScore,
-            homeGoalscorers: match.homeGoalscorers || undefined,
-            awayGoalscorers: match.awayGoalscorers || undefined,
-            tournament: id,
-            author: session.userId,
-          })
-        )
-      );
-    }
-
-    // Send notification (non-blocking)
-    // Include existing matches count + new matches
-    const existingMatchCount = tournament.matches?.length || 0;
-    notifyTournamentUpdated(tournament, existingMatchCount + validatedMatches.length);
-
-    return NextResponse.json({
-      success: true,
-      tournament,
-    });
-  } catch (error) {
-    console.error('Update tournament error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při aktualizaci turnaje' },
-      { status: 500 }
-    );
+    return ApiErrors.serverError(existingResult.error.message);
   }
-}
+
+  if (existingResult.data.authorId !== userId) {
+    return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
+  }
+
+  // Extract form fields
+  const tournamentData = {
+    name: getStringField(formData, 'name'),
+    dateFrom: getStringField(formData, 'dateFrom'),
+    dateTo: getStringField(formData, 'dateTo'),
+    category: getStringField(formData, 'category'),
+    description: getStringField(formData, 'description'),
+    location: getStringField(formData, 'location'),
+    imagesUrl: getStringField(formData, 'imagesUrl'),
+  };
+
+  const validationResult = tournamentApiSchema.safeParse(tournamentData);
+
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
+  }
+
+  // Parse matches from JSON string if present
+  const matchesJson = getStringField(formData, 'matches');
+  let validatedMatches: z.infer<typeof inlineMatchApiSchema>[] = [];
+  if (matchesJson) {
+    try {
+      const parsedMatches = JSON.parse(matchesJson);
+      if (Array.isArray(parsedMatches) && parsedMatches.length > 0) {
+        const matchesSchema = z.array(inlineMatchApiSchema);
+        const matchesValidation = matchesSchema.safeParse(parsedMatches);
+
+        if (!matchesValidation.success) {
+          const firstError = matchesValidation.error.issues[0];
+          return ApiErrors.validationFailed(`Chyba v zápasu: ${firstError.message}`);
+        }
+
+        validatedMatches = matchesValidation.data;
+      }
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát dat zápasů');
+    }
+  }
+
+  // Parse players from JSON string if present
+  const playersJson = getStringField(formData, 'players');
+  let validatedPlayers: z.infer<typeof tournamentPlayerSchema>[] = [];
+  if (playersJson) {
+    try {
+      const parsedPlayers = JSON.parse(playersJson);
+      if (Array.isArray(parsedPlayers) && parsedPlayers.length > 0) {
+        const playersSchema = z.array(tournamentPlayerSchema);
+        const playersValidation = playersSchema.safeParse(parsedPlayers);
+
+        if (!playersValidation.success) {
+          const firstError = playersValidation.error.issues[0];
+          return ApiErrors.validationFailed(`Chyba v hráči: ${firstError.message}`);
+        }
+
+        validatedPlayers = playersValidation.data;
+      }
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát dat hráčů');
+    }
+  }
+
+  // Extract photos from form data (tournaments don't support file attachments)
+  const photos = getFiles(formData, 'photos');
+
+  // Update tournament (without matches - those are handled separately)
+  // Players are a component and are updated directly with the tournament
+  const updateResult = await service.update(id, {
+    ...validationResult.data,
+    players: validatedPlayers.length > 0 ? validatedPlayers : [],
+  }, { photos });
+
+  if (!updateResult.success) {
+    return ApiErrors.serverError(updateResult.error.message);
+  }
+
+  const tournament = updateResult.data.tournament;
+
+  // Create new tournament matches if present
+  if (validatedMatches.length > 0) {
+    const matchService = TournamentMatchService.forUser(jwt);
+    const matchesWithAuthor = validatedMatches.map((match) => ({
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      homeGoalscorers: match.homeGoalscorers || undefined,
+      awayGoalscorers: match.awayGoalscorers || undefined,
+      tournament: id,
+      author: userId,
+    }));
+
+    await matchService.createMany(matchesWithAuthor);
+  }
+
+  return apiSuccess(
+    { tournament },
+    { warnings: updateResult.data.uploadWarnings }
+  );
+});

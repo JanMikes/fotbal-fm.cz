@@ -1,59 +1,43 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiCreateTournamentMatch } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+  setFormContext,
+} from '@/lib/api';
+import { TournamentMatchService } from '@/lib/services';
 import { tournamentMatchApiSchema } from '@/lib/validation';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
+export const POST = withAuth(async (
+  request: NextRequest,
+  { userId, jwt }
+) => {
+  const body = await request.json();
 
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
-    }
+  addApiBreadcrumb('Creating tournament match', { userId });
 
-    // Validate the data
-    const validationResult = tournamentMatchApiSchema.safeParse(body);
+  setFormContext('TournamentMatchForm', {
+    mode: 'create',
+  });
 
-    if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0];
-      return NextResponse.json(
-        { success: false, error: firstError.message },
-        { status: 400 }
-      );
-    }
+  // Validate the data
+  const validationResult = tournamentMatchApiSchema.safeParse(body);
 
-    // Create tournament match in Strapi with author relationship
-    const dataToSend = {
-      ...validationResult.data,
-      author: session.userId,
-    };
-
-    const tournamentMatch = await strapiCreateTournamentMatch(
-      session.jwt,
-      dataToSend
-    );
-
-    return NextResponse.json({
-      success: true,
-      tournamentMatch,
-    });
-  } catch (error) {
-    console.error('Tournament match creation error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při vytváření turnajového zápasu' },
-      { status: 500 }
-    );
+  if (!validationResult.success) {
+    return ApiErrors.validationFailed(validationResult.error.issues[0].message);
   }
-}
+
+  // Create tournament match with author relationship
+  const service = TournamentMatchService.forUser(jwt);
+  const result = await service.create({
+    ...validationResult.data,
+    author: userId!,
+  });
+
+  if (!result.success) {
+    return ApiErrors.serverError(result.error.message);
+  }
+
+  return apiSuccess({ tournamentMatch: result.data });
+});

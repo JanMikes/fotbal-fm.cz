@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentSchema, TournamentFormData } from '@/lib/validation';
-import * as Sentry from "@sentry/nextjs";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
@@ -16,6 +15,7 @@ import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useScrollToError } from '@/hooks/useScrollToError';
+import { useCreateTournament, useUpdateTournament } from '@/hooks/api';
 import { Tournament } from '@/types/tournament';
 import { Trash2, Plus } from 'lucide-react';
 
@@ -31,9 +31,24 @@ export default function TournamentForm({
   recordId,
 }: TournamentFormProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<FileList | null>(null);
+  const [images, setImages] = useState<FileList | null>(null);
+
+  // Use the appropriate mutation hook based on mode
+  const createMutation = useCreateTournament({
+    onSuccess: (data) => {
+      router.push(`/turnaj/${data.tournament.id}?success=true`);
+    },
+  });
+
+  const updateMutation = useUpdateTournament(recordId || '', {
+    onSuccess: () => {
+      router.push(`/turnaj/${recordId}?success=true`);
+    },
+  });
+
+  // Select the active mutation based on mode
+  const mutation = mode === 'edit' ? updateMutation : createMutation;
+  const { isLoading, error, warnings } = mutation;
 
   const {
     register,
@@ -85,156 +100,10 @@ export default function TournamentForm({
   useScrollToError(errors, { offset: 100 });
 
   const onSubmit = async (data: TournamentFormData) => {
-    // Log to stdout for Docker visibility
-    console.log('[TournamentForm] Form submitted:', {
-      name: data.name,
-      category: data.category,
-      matchesCount: data.matches?.length || 0,
-      playersCount: data.players?.length || 0,
-      mode,
-    });
-
-    // Add Sentry breadcrumb for debugging (visible in Sentry error reports)
-    Sentry.addBreadcrumb({
-      category: 'tournament-form',
-      message: 'Form submitted',
-      level: 'info',
-      data: {
-        name: data.name,
-        category: data.category,
-        matchesCount: data.matches?.length || 0,
-        playersCount: data.players?.length || 0,
-        mode,
-      },
-    });
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (mode === 'edit' && recordId) {
-        // Update existing record
-        const response = await fetch(`/api/tournaments/${recordId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se aktualizovat turnaj');
-        }
-
-        router.push(`/turnaj/${recordId}?success=true`);
-      } else {
-        // Create new record
-        const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('dateFrom', data.dateFrom);
-        formData.append('category', data.category);
-
-        if (data.description) {
-          formData.append('description', data.description);
-        }
-        if (data.location) {
-          formData.append('location', data.location);
-        }
-        if (data.dateTo) {
-          formData.append('dateTo', data.dateTo);
-        }
-        if (data.imagesUrl) {
-          formData.append('imagesUrl', data.imagesUrl);
-        }
-
-        // Add matches as JSON string
-        if (data.matches && data.matches.length > 0) {
-          formData.append('matches', JSON.stringify(data.matches));
-        }
-
-        // Add players as JSON string
-        if (data.players && data.players.length > 0) {
-          formData.append('players', JSON.stringify(data.players));
-        }
-
-        if (photos) {
-          Array.from(photos).forEach((photo) => {
-            formData.append('photos', photo);
-          });
-        }
-
-        Sentry.addBreadcrumb({
-          category: 'tournament-form',
-          message: 'Sending POST request',
-          level: 'info',
-        });
-
-        const response = await fetch('/api/tournaments/create', {
-          method: 'POST',
-          body: formData,
-        });
-
-        Sentry.addBreadcrumb({
-          category: 'tournament-form',
-          message: 'Response received',
-          level: 'info',
-          data: { status: response.status },
-        });
-
-        const result = await response.json();
-
-        Sentry.addBreadcrumb({
-          category: 'tournament-form',
-          message: 'Response parsed',
-          level: 'info',
-          data: { success: result.success, hasId: !!result.tournament?.id },
-        });
-
-        if (!result.success) {
-          throw new Error(result.error || 'Nepodařilo se vytvořit turnaj');
-        }
-
-        // Validate response before redirect
-        if (!result.tournament?.id) {
-          Sentry.captureMessage('Tournament created without valid ID', {
-            level: 'error',
-            extra: { result },
-          });
-          throw new Error('Turnaj byl vytvořen, ale nepodařilo se přejít na jeho stránku');
-        }
-
-        console.log('[TournamentForm] Preparing redirect to:', `/turnaj/${result.tournament.id}?success=true`);
-
-        Sentry.addBreadcrumb({
-          category: 'tournament-form',
-          message: 'Redirecting to tournament detail',
-          level: 'info',
-          data: { tournamentId: result.tournament.id },
-        });
-
-        // Redirect to the tournament detail page
-        try {
-          router.push(`/turnaj/${result.tournament.id}?success=true`);
-          console.log('[TournamentForm] router.push called successfully');
-        } catch (redirectErr) {
-          console.error('[TournamentForm] CRITICAL: router.push failed:', redirectErr);
-          Sentry.captureException(redirectErr, {
-            tags: { component: 'TournamentForm', phase: 'redirect' },
-            extra: { tournamentId: result.tournament.id },
-          });
-          throw redirectErr;
-        }
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(mode === 'edit' ? 'Nepodařilo se aktualizovat turnaj' : 'Nepodařilo se vytvořit turnaj');
-      }
-    } finally {
-      setIsLoading(false);
+    if (mode === 'edit') {
+      await updateMutation.mutate({ data, images, files: null });
+    } else {
+      await createMutation.mutate({ data, images, files: null });
     }
   };
 
@@ -252,6 +121,14 @@ export default function TournamentForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {error && <Alert variant="error">{error}</Alert>}
+
+        {warnings && warnings.length > 0 && (
+          <Alert variant="warning">
+            {warnings.map((warning, index) => (
+              <div key={index}>{warning}</div>
+            ))}
+          </Alert>
+        )}
 
         <FormField
           label="Název turnaje"
@@ -369,7 +246,7 @@ export default function TournamentForm({
           label="Fotografie"
           hint="Můžete nahrát fotografie z turnaje"
         >
-          <ImageUpload onChange={setPhotos} />
+          <ImageUpload onChange={setImages} />
         </FormField>
 
         <FormField

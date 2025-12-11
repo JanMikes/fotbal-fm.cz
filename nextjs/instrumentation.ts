@@ -11,10 +11,10 @@ export async function register() {
 }
 
 // Custom error handler that logs detailed info to stdout
-export const onRequestError: Sentry.RequestErrorHandler = (
-  error,
-  request,
-  context
+export const onRequestError = (
+  error: unknown,
+  request: Request,
+  context: { routerKind: string; routePath: string; routeType: string; renderSource: string }
 ) => {
   // Log detailed error info to stdout (visible in Docker logs)
   console.error('=== REQUEST ERROR ===');
@@ -27,6 +27,13 @@ export const onRequestError: Sentry.RequestErrorHandler = (
   console.error('Context:', JSON.stringify(context, null, 2));
   console.error('=== END REQUEST ERROR ===');
 
+  // Convert Request to the format Sentry expects
+  const requestInfo = {
+    path: new URL(request.url).pathname,
+    method: request.method,
+    headers: Object.fromEntries(request.headers.entries()),
+  };
+
   // Also send to Sentry
-  Sentry.captureRequestError(error, request, context);
+  Sentry.captureRequestError(error, requestInfo, context);
 };

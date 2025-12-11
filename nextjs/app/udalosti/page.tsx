@@ -31,7 +31,7 @@ function EventsPageContent() {
         throw new Error(data.error || 'Nepodařilo se načíst události');
       }
 
-      setEvents(data.events);
+      setEvents(data.data.events);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

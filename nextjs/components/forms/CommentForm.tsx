@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { commentSchema, CommentFormData } from '@/lib/validation';
 import Button from '@/components/ui/Button';
+import { useCreateComment } from '@/hooks/api';
 
 interface CommentFormProps {
   entityType: 'matchResult' | 'tournament' | 'event';
@@ -23,9 +23,6 @@ export default function CommentForm({
   onCancel,
   placeholder = 'Napište komentář...',
 }: CommentFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
@@ -35,37 +32,20 @@ export default function CommentForm({
     resolver: zodResolver(commentSchema),
   });
 
-  const onSubmit = async (data: CommentFormData) => {
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: data.content,
-          [entityType]: entityId,
-          ...(parentCommentId && { parentComment: parentCommentId }),
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!result.success) {
-        setError(result.error || 'Nepodařilo se přidat komentář');
-        return;
-      }
-
+  const { mutate, isLoading, error } = useCreateComment({
+    onSuccess: () => {
       reset();
       onSuccess();
-    } catch {
-      setError('Nepodařilo se přidat komentář');
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+  });
+
+  const onSubmit = async (data: CommentFormData) => {
+    await mutate({
+      content: data.content,
+      entityType,
+      entityId,
+      parentCommentId,
+    });
   };
 
   return (
@@ -81,7 +61,7 @@ export default function CommentForm({
             transition-all duration-200 resize-none
             ${errors.content ? 'border-danger focus:ring-danger' : 'border-border hover:border-border-light'}
             disabled:opacity-50 disabled:cursor-not-allowed`}
-          disabled={isSubmitting}
+          disabled={isLoading}
         />
         {errors.content && (
           <p className="mt-1 text-sm text-danger">{errors.content.message}</p>
@@ -96,9 +76,9 @@ export default function CommentForm({
         <Button
           type="submit"
           size="sm"
-          disabled={isSubmitting}
+          disabled={isLoading}
         >
-          {isSubmitting ? 'Odesílám...' : parentCommentId ? 'Odpovědět' : 'Přidat komentář'}
+          {isLoading ? 'Odesílám...' : parentCommentId ? 'Odpovědět' : 'Přidat komentář'}
         </Button>
         {onCancel && (
           <Button
@@ -106,7 +86,7 @@ export default function CommentForm({
             variant="secondary"
             size="sm"
             onClick={onCancel}
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Zrušit
           </Button>

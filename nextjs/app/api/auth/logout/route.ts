@@ -1,23 +1,14 @@
-import { NextResponse } from 'next/server';
+import {
+  withErrorHandling,
+  apiSuccess,
+  addApiBreadcrumb,
+} from '@/lib/api';
 import { destroySession } from '@/lib/session';
-import { ApiResponse } from '@/types/api';
 
-export async function POST() {
-  try {
-    await destroySession();
+export const POST = withErrorHandling(async () => {
+  addApiBreadcrumb('User logout');
 
-    return NextResponse.json<ApiResponse>({
-      success: true,
-    });
-  } catch (error) {
-    console.error('Logout error:', error);
+  await destroySession();
 
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        error: 'Chyba při odhlašování',
-      },
-      { status: 500 }
-    );
-  }
-}
+  return apiSuccess(null);
+});

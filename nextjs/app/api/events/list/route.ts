@@ -1,42 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-import { strapiGetAllEvents } from '@/lib/strapi';
+import { NextRequest } from 'next/server';
+import {
+  withAuth,
+  apiSuccess,
+  ApiErrors,
+  addApiBreadcrumb,
+} from '@/lib/api';
+import { EventService } from '@/lib/services';
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getSession();
-    if (!session || !session.isLoggedIn || !session.jwt) {
-      return NextResponse.json(
-        { success: false, error: 'Nejste přihlášeni' },
-        { status: 401 }
-      );
-    }
+export const GET = withAuth(async (
+  request: NextRequest,
+  { userId, jwt }
+) => {
+  const { searchParams } = new URL(request.url);
+  const onlyMine = searchParams.get('onlyMine') === 'true';
 
-    const { searchParams } = new URL(request.url);
-    const onlyMine = searchParams.get('onlyMine') === 'true';
+  addApiBreadcrumb('Listing events', { onlyMine, userId });
 
-    const events = await strapiGetAllEvents(
-      session.jwt,
-      onlyMine ? session.userId : undefined
-    );
+  const service = EventService.forUser(jwt);
+  const result = await service.getAll(onlyMine ? userId : undefined);
 
-    return NextResponse.json({
-      success: true,
-      events,
-    });
-  } catch (error) {
-    console.error('Fetch events error:', error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Chyba při načítání událostí' },
-      { status: 500 }
-    );
+  if (!result.success) {
+    return ApiErrors.serverError(result.error.message);
   }
-}
+
+  return apiSuccess({ events: result.data });
+});
