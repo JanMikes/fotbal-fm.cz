@@ -9,6 +9,7 @@ import { EventRepository, UploadResults } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserEventRepository } from '@/lib/di';
+import { NotificationService, getNotificationService } from './notification.service';
 
 /**
  * Result of a create/update operation with file uploads
@@ -35,7 +36,14 @@ function buildUploadWarnings(uploads: UploadResults): string[] {
 }
 
 export class EventService {
-  constructor(private readonly repository: EventRepository) {}
+  private readonly notificationService: NotificationService;
+
+  constructor(
+    private readonly repository: EventRepository,
+    notificationService?: NotificationService
+  ) {
+    this.notificationService = notificationService ?? getNotificationService();
+  }
 
   /**
    * Create a service instance authenticated with user's JWT
@@ -169,6 +177,9 @@ export class EventService {
         });
       }
 
+      // Send notification (non-blocking)
+      this.notificationService.notifyEventCreated(event);
+
       return ok({ event, uploadWarnings });
     } catch (error) {
       Sentry.captureException(error, {
@@ -228,6 +239,9 @@ export class EventService {
           },
         });
       }
+
+      // Send notification (non-blocking)
+      this.notificationService.notifyEventUpdated(event);
 
       return ok({ event, uploadWarnings });
     } catch (error) {

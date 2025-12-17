@@ -9,6 +9,7 @@ import { MatchResultRepository, UploadResults, PaginatedResult } from '@/lib/rep
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserMatchResultRepository } from '@/lib/di';
+import { NotificationService, getNotificationService } from './notification.service';
 
 /**
  * Result of a create/update operation with file uploads
@@ -35,7 +36,14 @@ function buildUploadWarnings(uploads: UploadResults): string[] {
 }
 
 export class MatchResultService {
-  constructor(private readonly repository: MatchResultRepository) {}
+  private readonly notificationService: NotificationService;
+
+  constructor(
+    private readonly repository: MatchResultRepository,
+    notificationService?: NotificationService
+  ) {
+    this.notificationService = notificationService ?? getNotificationService();
+  }
 
   /**
    * Create a service instance authenticated with user's JWT
@@ -170,6 +178,9 @@ export class MatchResultService {
         });
       }
 
+      // Send notification (non-blocking)
+      this.notificationService.notifyMatchResultCreated(matchResult);
+
       return ok({ matchResult, uploadWarnings });
     } catch (error) {
       Sentry.captureException(error, {
@@ -229,6 +240,9 @@ export class MatchResultService {
           },
         });
       }
+
+      // Send notification (non-blocking)
+      this.notificationService.notifyMatchResultUpdated(matchResult);
 
       return ok({ matchResult, uploadWarnings });
     } catch (error) {

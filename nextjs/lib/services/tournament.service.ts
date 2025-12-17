@@ -9,6 +9,7 @@ import { TournamentRepository, UploadResults } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserTournamentRepository } from '@/lib/di';
+import { NotificationService, getNotificationService } from './notification.service';
 
 /**
  * Result of a create/update operation with file uploads
@@ -32,7 +33,14 @@ function buildUploadWarnings(uploads: UploadResults): string[] {
 }
 
 export class TournamentService {
-  constructor(private readonly repository: TournamentRepository) {}
+  private readonly notificationService: NotificationService;
+
+  constructor(
+    private readonly repository: TournamentRepository,
+    notificationService?: NotificationService
+  ) {
+    this.notificationService = notificationService ?? getNotificationService();
+  }
 
   /**
    * Create a service instance authenticated with user's JWT
@@ -187,6 +195,10 @@ export class TournamentService {
         });
       }
 
+      // Send notification (non-blocking)
+      // matchCount is 0 here as matches are created separately in API route
+      this.notificationService.notifyTournamentCreated(tournament, 0);
+
       return ok({ tournament, uploadWarnings });
     } catch (error) {
       Sentry.captureException(error, {
@@ -244,6 +256,9 @@ export class TournamentService {
           },
         });
       }
+
+      // Send notification (non-blocking)
+      this.notificationService.notifyTournamentUpdated(tournament, 0);
 
       return ok({ tournament, uploadWarnings });
     } catch (error) {
