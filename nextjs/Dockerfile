@@ -18,6 +18,8 @@ ENV NODE_ENV=production
 ARG SENTRY_AUTH_TOKEN
 
 # Pass ARG as environment variable only for the build step (not persisted in image)
-RUN SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN npm run build
+# Use Webpack instead of Turbopack for production builds
+# Turbopack has known issues with Route Handlers + FormData in Next.js 16
+RUN SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN npx next build --webpack
 
 CMD ["npm", "run", "start"]
