@@ -20,6 +20,7 @@ export { EventRepository } from './event.repository';
 export { TournamentRepository } from './tournament.repository';
 export { TournamentMatchRepository } from './tournament-match.repository';
 export { CommentRepository, type CommentableEntity } from './comment.repository';
+export { CategoryRepository } from './category.repository';
 export {
   UserRepository,
   type LoginResult,

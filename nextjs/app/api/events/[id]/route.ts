@@ -69,6 +69,17 @@ export const PUT = withAuthFormData(async (
     return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
   }
 
+  // Parse categories from JSON (optional for events)
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] | undefined;
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const eventData = {
     name: getStringField(formData, 'name'),
@@ -80,6 +91,7 @@ export const PUT = withAuthFormData(async (
     eventTimeTo: normalizeTimeForStrapi(getStringField(formData, 'eventTimeTo')),
     description: getStringField(formData, 'description'),
     requiresPhotographer: getStringField(formData, 'requiresPhotographer'),
+    categories,
   };
 
   const validationResult = eventApiSchema.safeParse(eventData);

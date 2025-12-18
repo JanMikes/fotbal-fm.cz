@@ -119,19 +119,41 @@ export class EventRepository implements RepositoryWithUploads<
   }
 
   async create(data: CreateEventRequest): Promise<Event> {
+    // Transform categories array to Strapi 5 relation format (optional for events)
+    // Using shorthand syntax: connect: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories && categories.length > 0) {
+      strapiData.categories = {
+        connect: categories,
+      };
+    }
+
     const raw = await this.client.create<StrapiRawEvent>(
       CONTENT_TYPE,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapEvent(raw);
   }
 
   async update(id: string, data: Partial<CreateEventRequest>): Promise<Event> {
+    // Transform categories array to Strapi 5 relation format (optional for events)
+    // Using shorthand syntax: set: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories !== undefined) {
+      strapiData.categories = {
+        set: categories,
+      };
+    }
+
     const raw = await this.client.update<StrapiRawEvent>(
       CONTENT_TYPE,
       id,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapEvent(raw);

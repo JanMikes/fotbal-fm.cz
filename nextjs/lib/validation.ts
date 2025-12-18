@@ -87,31 +87,6 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   });
 
-// Category enum values
-const categoryEnum = z.enum([
-  'Muži A',
-  'Muži B',
-  'Dorost U16',
-  'Dorost U17',
-  'Dorost U18',
-  'Dorost U19',
-  'Žáci U12',
-  'Žáci U13',
-  'Žáci U14',
-  'Žáci U15',
-  'Přípravka U8',
-  'Přípravka U9',
-  'Přípravka U10',
-  'Přípravka U11',
-  'Školička',
-  'Ženy A',
-  'Žákyně Mladší',
-  'Žákyně Starší',
-  'Žákyně Přípravka',
-], {
-  message: 'Kategorie je povinná',
-});
-
 // Event type enum values
 const eventTypeEnum = z.enum(['nadcházející', 'proběhlá'], {
   message: 'Typ události je povinný',
@@ -130,7 +105,7 @@ export const matchResultSchema = z.object({
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
   matchReport: z.string().optional(),
-  category: categoryEnum,
+  categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
 });
@@ -154,7 +129,7 @@ export const matchResultApiSchema = z.object({
   homeGoalscorers: emptyToUndefined,
   awayGoalscorers: emptyToUndefined,
   matchReport: emptyToUndefined,
-  category: categoryEnum,
+  categories: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
   imagesUrl: z.preprocess(
     (val) => (val === '' ? undefined : val),
@@ -173,6 +148,7 @@ export const eventSchema = z.object({
   eventTimeTo: z.string().optional(),
   description: z.string().optional(),
   requiresPhotographer: z.boolean().optional(),
+  categoryIds: z.array(z.string()).optional(),
 });
 
 export const eventApiSchema = z.object({
@@ -188,6 +164,7 @@ export const eventApiSchema = z.object({
     (val) => val === 'true' || val === true,
     z.boolean().optional()
   ),
+  categories: z.array(z.string()).optional(),
 });
 
 // Inline match schema (for matches created within tournament form)
@@ -230,7 +207,7 @@ export const tournamentSchema = z.object({
   location: z.string().optional(),
   dateFrom: z.string().min(1, 'Datum začátku je povinné'),
   dateTo: z.string().optional(),
-  category: categoryEnum,
+  categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
   matches: z.array(inlineMatchSchema).optional(),
   players: z.array(tournamentPlayerSchema).optional(),
@@ -242,7 +219,7 @@ export const tournamentApiSchema = z.object({
   location: emptyToUndefined,
   dateFrom: z.string().min(1, 'Datum začátku je povinné'),
   dateTo: emptyToUndefined,
-  category: categoryEnum,
+  categories: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   imagesUrl: z.preprocess(
     (val) => (val === '' ? undefined : val),
     z.string().url('Neplatná URL adresa').optional()

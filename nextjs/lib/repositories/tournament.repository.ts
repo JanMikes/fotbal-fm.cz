@@ -136,19 +136,41 @@ export class TournamentRepository implements RepositoryWithUploads<
   }
 
   async create(data: CreateTournamentRequest): Promise<Tournament> {
+    // Transform categories array to Strapi 5 relation format
+    // Using shorthand syntax: connect: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories && categories.length > 0) {
+      strapiData.categories = {
+        connect: categories,
+      };
+    }
+
     const raw = await this.client.create<StrapiRawTournament>(
       CONTENT_TYPE,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapTournament(raw);
   }
 
   async update(id: string, data: Partial<CreateTournamentRequest>): Promise<Tournament> {
+    // Transform categories array to Strapi 5 relation format
+    // Using shorthand syntax: set: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories !== undefined) {
+      strapiData.categories = {
+        set: categories,
+      };
+    }
+
     const raw = await this.client.update<StrapiRawTournament>(
       CONTENT_TYPE,
       id,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapTournament(raw);

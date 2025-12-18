@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categories",
+  "info": {
+    "singularName": "category",
+    "pluralName": "categories",
+    "displayName": "Category",
+    "description": "Football team categories"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "tournaments": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tournament.tournament",
+      "mappedBy": "categories"
+    },
+    "matchResults": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::match-result.match-result",
+      "mappedBy": "categories"
+    },
+    "events": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::event.event",
+      "mappedBy": "categories"
+    }
+  }
+}

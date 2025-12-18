@@ -6,7 +6,6 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tournamentSchema, TournamentFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
 import ImageUpload from '@/components/ui/ImageUpload';
@@ -14,6 +13,7 @@ import DatePicker from '@/components/ui/DatePicker';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import CategorySelect from '@/components/ui/CategorySelect';
 import { useScrollToError } from '@/hooks/useScrollToError';
 import { useCreateTournament, useUpdateTournament } from '@/hooks/api';
 import { Tournament } from '@/types/tournament';
@@ -67,7 +67,7 @@ export default function TournamentForm({
           location: initialData.location || '',
           dateFrom: initialData.dateFrom,
           dateTo: initialData.dateTo || '',
-          category: initialData.category,
+          categoryIds: initialData.categories?.map(c => c.id) || [],
           imagesUrl: initialData.imagesUrl || '',
           matches: initialData.matches?.map(m => ({
             homeTeam: m.homeTeam,
@@ -80,6 +80,7 @@ export default function TournamentForm({
           players: initialData.players || [],
         }
       : {
+          categoryIds: [],
           matches: [],
           players: [],
         },
@@ -142,50 +143,35 @@ export default function TournamentForm({
           />
         </FormField>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            label="Kategorie"
-            error={errors.category?.message}
-            required
-          >
-            <Select
-              {...register('category')}
-              error={errors.category?.message}
-            >
-              <option value="">Vyberte kategorii</option>
-              <option value="Muži A">Muži A</option>
-              <option value="Muži B">Muži B</option>
-              <option value="Dorost U16">Dorost U16</option>
-              <option value="Dorost U17">Dorost U17</option>
-              <option value="Dorost U18">Dorost U18</option>
-              <option value="Dorost U19">Dorost U19</option>
-              <option value="Žáci U12">Žáci U12</option>
-              <option value="Žáci U13">Žáci U13</option>
-              <option value="Žáci U14">Žáci U14</option>
-              <option value="Žáci U15">Žáci U15</option>
-              <option value="Přípravka U8">Přípravka U8</option>
-              <option value="Přípravka U9">Přípravka U9</option>
-              <option value="Přípravka U10">Přípravka U10</option>
-              <option value="Přípravka U11">Přípravka U11</option>
-              <option value="Školička">Školička</option>
-              <option value="Ženy A">Ženy A</option>
-              <option value="Žákyně Mladší">Žákyně Mladší</option>
-              <option value="Žákyně Starší">Žákyně Starší</option>
-              <option value="Žákyně Přípravka">Žákyně Přípravka</option>
-            </Select>
-          </FormField>
+        <FormField
+          label="Kategorie"
+          error={errors.categoryIds?.message}
+          required
+        >
+          <Controller
+            name="categoryIds"
+            control={control}
+            render={({ field }) => (
+              <CategorySelect
+                value={field.value || []}
+                onChange={field.onChange}
+                error={errors.categoryIds?.message}
+                required
+              />
+            )}
+          />
+        </FormField>
 
-          <FormField
-            label="Místo konání"
+        <FormField
+          label="Místo konání"
+          error={errors.location?.message}
+        >
+          <Input
+            {...register('location')}
+            placeholder="Město, stadion..."
             error={errors.location?.message}
-          >
-            <Input
-              {...register('location')}
-              placeholder="Město, stadion..."
-              error={errors.location?.message}
-            />
-          </FormField>
-        </div>
+          />
+        </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField

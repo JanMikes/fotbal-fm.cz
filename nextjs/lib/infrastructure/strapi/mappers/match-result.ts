@@ -4,8 +4,9 @@
  */
 
 import { z } from 'zod';
-import { MatchResult, MatchResultCategory } from '@/types/match-result';
-import { StrapiRawMatchResult, strapiRawMatchResultSchema } from '../types';
+import { MatchResult } from '@/types/match-result';
+import { Category } from '@/types/category';
+import { StrapiRawMatchResult, StrapiRawCategory, strapiRawMatchResultSchema, strapiRawCategorySchema } from '../types';
 import {
   mapMediaToImages,
   mapMediaToFiles,
@@ -14,6 +15,22 @@ import {
   nullToUndefined,
 } from './shared';
 import { ValidationError } from '@/lib/core/errors';
+
+/**
+ * Map raw Strapi categories to domain Category array
+ */
+function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | null | undefined): Category[] {
+  if (!categories || !Array.isArray(categories)) {
+    return [];
+  }
+
+  return categories.map((c) => ({
+    id: c.documentId,
+    name: c.name,
+    slug: c.slug,
+    sortOrder: c.sortOrder,
+  }));
+}
 
 /**
  * Map raw Strapi match result to domain MatchResult
@@ -41,8 +58,7 @@ export function mapMatchResult(raw: unknown): MatchResult {
     homeGoalscorers: nullToUndefined(data.homeGoalscorers),
     awayGoalscorers: nullToUndefined(data.awayGoalscorers),
     matchReport: nullToUndefined(data.matchReport),
-    // Handle legacy records that may have null category/matchDate
-    category: (data.category ?? 'Muži A') as MatchResultCategory,
+    categories: mapCategories(data.categories),
     matchDate: data.matchDate ?? data.createdAt.split('T')[0],
     imagesUrl: nullToUndefined(data.imagesUrl),
     images: mapMediaToImages(data.images),

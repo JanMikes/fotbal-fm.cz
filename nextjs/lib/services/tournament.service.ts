@@ -173,7 +173,7 @@ export class TournamentService {
         level: 'info',
         data: {
           name: data.name,
-          category: data.category,
+          categoriesCount: data.categories?.length || 0,
           hasPhotos: !!files.photos?.length,
         },
       });

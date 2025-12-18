@@ -37,7 +37,7 @@ export default function Home() {
         <div className="text-center max-w-4xl">
           <Image
             src="/logo.svg"
-            alt="MFK Frýdek-Místek"
+            alt="Fotbal Frýdek-Místek"
             width={160}
             height={192}
             className="mx-auto mb-6 md:mb-8 w-28 h-auto md:w-40"

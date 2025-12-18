@@ -49,7 +49,7 @@ export function useCreateTournament(options?: {
       // Add form fields - match schema field names
       formData.append('name', data.name);
       formData.append('dateFrom', data.dateFrom);
-      formData.append('category', data.category);
+      formData.append('categoryIds', JSON.stringify(data.categoryIds));
 
       if (data.dateTo) {
         formData.append('dateTo', data.dateTo);
@@ -119,7 +119,7 @@ export function useUpdateTournament(
       // Add form fields
       formData.append('name', data.name);
       formData.append('dateFrom', data.dateFrom);
-      formData.append('category', data.category);
+      formData.append('categoryIds', JSON.stringify(data.categoryIds));
 
       if (data.dateTo) {
         formData.append('dateTo', data.dateTo);

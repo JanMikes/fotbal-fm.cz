@@ -51,7 +51,7 @@ export function useCreateMatchResult(options?: {
       formData.append('awayTeam', data.awayTeam);
       formData.append('homeScore', data.homeScore.toString());
       formData.append('awayScore', data.awayScore.toString());
-      formData.append('category', data.category);
+      formData.append('categoryIds', JSON.stringify(data.categoryIds));
       formData.append('matchDate', data.matchDate);
 
       if (data.homeGoalscorers) {
@@ -118,7 +118,7 @@ export function useUpdateMatchResult(
       formData.append('awayTeam', data.awayTeam);
       formData.append('homeScore', data.homeScore.toString());
       formData.append('awayScore', data.awayScore.toString());
-      formData.append('category', data.category);
+      formData.append('categoryIds', JSON.stringify(data.categoryIds));
       formData.append('matchDate', data.matchDate);
 
       if (data.homeGoalscorers) {

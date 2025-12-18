@@ -23,6 +23,17 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     hasFiles: formData.has('photos') || formData.has('files'),
   });
 
+  // Parse categories from JSON (optional for events)
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] | undefined;
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const eventData = {
     name: getStringField(formData, 'name'),
@@ -34,6 +45,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     eventTimeTo: normalizeTimeForStrapi(getStringField(formData, 'eventTimeTo')),
     description: getStringField(formData, 'description'),
     requiresPhotographer: getStringField(formData, 'requiresPhotographer'),
+    categories,
   };
 
   // Validate the data

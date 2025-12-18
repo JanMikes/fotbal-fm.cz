@@ -16,6 +16,7 @@ import TimePicker from '@/components/ui/TimePicker';
 import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import CategorySelect from '@/components/ui/CategorySelect';
 import { useScrollToError } from '@/hooks/useScrollToError';
 import { useCreateEvent, useUpdateEvent } from '@/hooks/api';
 import { Event } from '@/types/event';
@@ -73,9 +74,11 @@ export default function EventForm({
           eventTimeTo: initialData.eventTimeTo || '',
           description: initialData.description || '',
           requiresPhotographer: initialData.requiresPhotographer || false,
+          categoryIds: initialData.categories?.map(c => c.id) || [],
         }
       : {
           requiresPhotographer: false,
+          categoryIds: [],
         },
   });
 
@@ -139,6 +142,24 @@ export default function EventForm({
             <option value="nadcházející">Nadcházející</option>
             <option value="proběhlá">Proběhlá</option>
           </Select>
+        </FormField>
+
+        <FormField
+          label="Kategorie"
+          error={errors.categoryIds?.message}
+          hint="Volitelné - přiřaďte kategorii pro filtrování"
+        >
+          <Controller
+            name="categoryIds"
+            control={control}
+            render={({ field }) => (
+              <CategorySelect
+                value={field.value || []}
+                onChange={field.onChange}
+                error={errors.categoryIds?.message}
+              />
+            )}
+          />
         </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

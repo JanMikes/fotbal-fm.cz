@@ -53,11 +53,24 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
           </div>
         </div>
 
-        {/* Category & counts */}
+        {/* Categories & counts */}
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent">
-            {tournament.category}
-          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {tournament.categories?.length > 0 ? (
+              tournament.categories.map((category) => (
+                <span
+                  key={category.id}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent"
+                >
+                  {category.name}
+                </span>
+              ))
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-surface-hover text-text-muted">
+                Bez kategorie
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-4 text-text-muted">
             <span className="flex items-center gap-1.5">
               <Trophy className="w-4 h-4" />

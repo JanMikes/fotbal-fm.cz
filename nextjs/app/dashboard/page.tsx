@@ -130,9 +130,19 @@ export default function DashboardPage() {
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent">
-                            {mr.category}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {mr.categories?.length > 0 ? (
+                              mr.categories.map((cat) => (
+                                <span key={cat.id} className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent">
+                                  {cat.name}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface-hover text-text-muted">
+                                Bez kategorie
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-text-muted">
                             {new Date(mr.matchDate).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
                           </span>

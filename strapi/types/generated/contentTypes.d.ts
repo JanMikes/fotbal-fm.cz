@@ -430,6 +430,50 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
+  collectionName: 'categories';
+  info: {
+    description: 'Football team categories';
+    displayName: 'Category';
+    pluralName: 'categories';
+    singularName: 'category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    events: Schema.Attribute.Relation<'manyToMany', 'api::event.event'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category.category'
+    > &
+      Schema.Attribute.Private;
+    matchResults: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::match-result.match-result'
+    >;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    tournaments: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCommentComment extends Struct.CollectionTypeSchema {
   collectionName: 'comments';
   info: {
@@ -493,6 +537,10 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -554,30 +602,10 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
         number
       >;
     awayTeam: Schema.Attribute.String & Schema.Attribute.Required;
-    category: Schema.Attribute.Enumeration<
-      [
-        'Mu\u017Ei A',
-        'Mu\u017Ei B',
-        'Dorost U16',
-        'Dorost U17',
-        'Dorost U18',
-        'Dorost U19',
-        '\u017D\u00E1ci U12',
-        '\u017D\u00E1ci U13',
-        '\u017D\u00E1ci U14',
-        '\u017D\u00E1ci U15',
-        'P\u0159\u00EDpravka U8',
-        'P\u0159\u00EDpravka U9',
-        'P\u0159\u00EDpravka U10',
-        'P\u0159\u00EDpravka U11',
-        '\u0160koli\u010Dka',
-        '\u017Deny A',
-        '\u017D\u00E1kyn\u011B Mlad\u0161\u00ED',
-        '\u017D\u00E1kyn\u011B Star\u0161\u00ED',
-        '\u017D\u00E1kyn\u011B P\u0159\u00EDpravka',
-      ]
-    > &
-      Schema.Attribute.Required;
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -693,30 +721,10 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    category: Schema.Attribute.Enumeration<
-      [
-        'Mu\u017Ei A',
-        'Mu\u017Ei B',
-        'Dorost U16',
-        'Dorost U17',
-        'Dorost U18',
-        'Dorost U19',
-        '\u017D\u00E1ci U12',
-        '\u017D\u00E1ci U13',
-        '\u017D\u00E1ci U14',
-        '\u017D\u00E1ci U15',
-        'P\u0159\u00EDpravka U8',
-        'P\u0159\u00EDpravka U9',
-        'P\u0159\u00EDpravka U10',
-        'P\u0159\u00EDpravka U11',
-        '\u0160koli\u010Dka',
-        '\u017Deny A',
-        '\u017D\u00E1kyn\u011B Mlad\u0161\u00ED',
-        '\u017D\u00E1kyn\u011B Star\u0161\u00ED',
-        '\u017D\u00E1kyn\u011B P\u0159\u00EDpravka',
-      ]
-    > &
-      Schema.Attribute.Required;
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1006,8 +1014,8 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
-    alternativeText: Schema.Attribute.String;
-    caption: Schema.Attribute.String;
+    alternativeText: Schema.Attribute.Text;
+    caption: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1031,7 +1039,7 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     mime: Schema.Attribute.String & Schema.Attribute.Required;
     name: Schema.Attribute.String & Schema.Attribute.Required;
-    previewUrl: Schema.Attribute.String;
+    previewUrl: Schema.Attribute.Text;
     provider: Schema.Attribute.String & Schema.Attribute.Required;
     provider_metadata: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
@@ -1040,7 +1048,7 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    url: Schema.Attribute.String & Schema.Attribute.Required;
+    url: Schema.Attribute.Text & Schema.Attribute.Required;
     width: Schema.Attribute.Integer;
   };
 }
@@ -1261,6 +1269,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
       'api::match-result.match-result': ApiMatchResultMatchResult;

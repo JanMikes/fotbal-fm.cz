@@ -29,30 +29,11 @@
     "dateTo": {
       "type": "date"
     },
-    "category": {
-      "type": "enumeration",
-      "enum": [
-        "Muži A",
-        "Muži B",
-        "Dorost U16",
-        "Dorost U17",
-        "Dorost U18",
-        "Dorost U19",
-        "Žáci U12",
-        "Žáci U13",
-        "Žáci U14",
-        "Žáci U15",
-        "Přípravka U8",
-        "Přípravka U9",
-        "Přípravka U10",
-        "Přípravka U11",
-        "Školička",
-        "Ženy A",
-        "Žákyně Mladší",
-        "Žákyně Starší",
-        "Žákyně Přípravka"
-      ],
-      "required": true
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "inversedBy": "tournaments"
     },
     "photos": {
       "type": "media",

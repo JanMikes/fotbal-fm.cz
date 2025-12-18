@@ -133,11 +133,21 @@ export default function MatchResultDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Category Badge */}
+            {/* Category Badges */}
             <div className="text-center">
-              <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
-                {matchResult.category}
-              </span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {matchResult.categories?.length > 0 ? (
+                  matchResult.categories.map((cat) => (
+                    <span key={cat.id} className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
+                      {cat.name}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-surface-hover text-text-muted">
+                    Bez kategorie
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Match Score */}

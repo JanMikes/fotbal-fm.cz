@@ -121,19 +121,41 @@ export class MatchResultRepository implements RepositoryWithUploads<
   }
 
   async create(data: CreateMatchResultRequest): Promise<MatchResult> {
+    // Transform categories array to Strapi 5 relation format
+    // Using shorthand syntax: connect: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories && categories.length > 0) {
+      strapiData.categories = {
+        connect: categories,
+      };
+    }
+
     const raw = await this.client.create<StrapiRawMatchResult>(
       CONTENT_TYPE,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapMatchResult(raw);
   }
 
   async update(id: string, data: Partial<CreateMatchResultRequest>): Promise<MatchResult> {
+    // Transform categories array to Strapi 5 relation format
+    // Using shorthand syntax: set: ['documentId1', 'documentId2']
+    const { categories, ...rest } = data;
+    const strapiData: Record<string, unknown> = { ...rest };
+
+    if (categories !== undefined) {
+      strapiData.categories = {
+        set: categories,
+      };
+    }
+
     const raw = await this.client.update<StrapiRawMatchResult>(
       CONTENT_TYPE,
       id,
-      data as unknown as Record<string, unknown>
+      strapiData
     );
 
     return mapMatchResult(raw);

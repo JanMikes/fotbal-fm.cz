@@ -20,6 +20,7 @@
     "react-dom": "19.2.0",
     "react-hook-form": "^7.66.1",
     "react-markdown": "^10.1.0",
+    "swr": "^2.3.8",
     "yet-another-react-lightbox": "^3.25.0",
     "zod": "^4.1.12"
   },

@@ -69,6 +69,17 @@ export const PUT = withAuthFormData(async (
     return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
   }
 
+  // Parse categories from JSON
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] = [];
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const matchData = {
     homeTeam: getStringField(formData, 'homeTeam'),
@@ -78,7 +89,7 @@ export const PUT = withAuthFormData(async (
     homeGoalscorers: getStringField(formData, 'homeGoalscorers'),
     awayGoalscorers: getStringField(formData, 'awayGoalscorers'),
     matchReport: getStringField(formData, 'matchReport'),
-    category: getStringField(formData, 'category'),
+    categories,
     matchDate: getStringField(formData, 'matchDate'),
     imagesUrl: getStringField(formData, 'imagesUrl'),
   };

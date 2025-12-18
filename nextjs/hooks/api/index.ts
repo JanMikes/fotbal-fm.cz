@@ -49,3 +49,6 @@ export {
   useCreateComment,
   useDeleteComment,
 } from './use-comments';
+
+// Categories
+export { useCategories } from './use-categories';

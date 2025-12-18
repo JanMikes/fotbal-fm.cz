@@ -1,32 +1,12 @@
 import { StrapiImage, UserInfo } from './match-result';
 import { TournamentMatch } from './tournament-match';
+import { Category } from './category';
 
 export interface TournamentPlayer {
   id?: number;
   title: string;
   playerName: string;
 }
-
-export type TournamentCategory =
-  | 'Muži A'
-  | 'Muži B'
-  | 'Dorost U16'
-  | 'Dorost U17'
-  | 'Dorost U18'
-  | 'Dorost U19'
-  | 'Žáci U12'
-  | 'Žáci U13'
-  | 'Žáci U14'
-  | 'Žáci U15'
-  | 'Přípravka U8'
-  | 'Přípravka U9'
-  | 'Přípravka U10'
-  | 'Přípravka U11'
-  | 'Školička'
-  | 'Ženy A'
-  | 'Žákyně Mladší'
-  | 'Žákyně Starší'
-  | 'Žákyně Přípravka';
 
 export interface Tournament {
   id: string;
@@ -35,7 +15,7 @@ export interface Tournament {
   location?: string;
   dateFrom: string;
   dateTo?: string;
-  category: TournamentCategory;
+  categories: Category[];
   photos: StrapiImage[];
   imagesUrl?: string;
   players?: TournamentPlayer[];
@@ -53,7 +33,7 @@ export interface TournamentFormData {
   location?: string;
   dateFrom: string;
   dateTo?: string;
-  category: TournamentCategory;
+  categoryIds: string[];
   photos?: FileList;
   imagesUrl?: string;
   players?: TournamentPlayer[];
@@ -65,7 +45,7 @@ export interface CreateTournamentRequest {
   location?: string;
   dateFrom: string;
   dateTo?: string;
-  category: TournamentCategory;
+  categories: string[];
   imagesUrl?: string;
   players?: TournamentPlayer[];
   author?: number;
@@ -80,7 +60,15 @@ export interface StrapiTournamentResponse {
       location: string | null;
       dateFrom: string;
       dateTo: string | null;
-      category: TournamentCategory;
+      categories: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       photos: {
         data: Array<{
           id: number;
@@ -117,7 +105,15 @@ export interface StrapiTournamentsResponse {
       location: string | null;
       dateFrom: string;
       dateTo: string | null;
-      category: TournamentCategory;
+      categories: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       photos: {
         data: Array<{
           id: number;

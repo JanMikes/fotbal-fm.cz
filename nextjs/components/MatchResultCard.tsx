@@ -43,11 +43,24 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
           </div>
         </div>
 
-        {/* Category Badge */}
+        {/* Category Badges */}
         <div className="flex items-center justify-between text-sm">
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent">
-            {matchResult.category}
-          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {matchResult.categories?.length > 0 ? (
+              matchResult.categories.map((category) => (
+                <span
+                  key={category.id}
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent"
+                >
+                  {category.name}
+                </span>
+              ))
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-surface-hover text-text-muted">
+                Bez kategorie
+              </span>
+            )}
+          </div>
           <span className="flex items-center gap-1.5 text-text-muted">
             <Image className="w-4 h-4" />
             Fotografie {matchResult.images.length}

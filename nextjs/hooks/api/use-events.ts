@@ -69,6 +69,9 @@ export function useCreateEvent(options?: {
       if (data.requiresPhotographer !== undefined) {
         formData.append('requiresPhotographer', String(data.requiresPhotographer));
       }
+      if (data.categoryIds && data.categoryIds.length > 0) {
+        formData.append('categoryIds', JSON.stringify(data.categoryIds));
+      }
 
       // Add photos (images field maps to 'photos' in Strapi)
       if (images) {
@@ -138,6 +141,9 @@ export function useUpdateEvent(
       }
       if (data.requiresPhotographer !== undefined) {
         formData.append('requiresPhotographer', String(data.requiresPhotographer));
+      }
+      if (data.categoryIds && data.categoryIds.length > 0) {
+        formData.append('categoryIds', JSON.stringify(data.categoryIds));
       }
 
       // Add photos

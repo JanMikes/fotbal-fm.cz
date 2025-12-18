@@ -146,9 +146,21 @@ export default function EventDetailPage({ params }: PageProps) {
                 <h1 className="text-3xl font-bold text-text-primary mb-2">
                   {event.name}
                 </h1>
-                <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium ${eventTypeColor}`}>
-                  {eventTypeLabel}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium ${eventTypeColor}`}>
+                    {eventTypeLabel}
+                  </span>
+                  {event.categories && event.categories.length > 0 && (
+                    event.categories.map((cat) => (
+                      <span
+                        key={cat.id}
+                        className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent"
+                      >
+                        {cat.name}
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
               {event.requiresPhotographer && (
                 <div className="flex items-center gap-2 text-warning bg-warning/10 px-3 py-2 rounded-lg">

@@ -136,7 +136,7 @@ export default function TournamentMatchForm({
             <option value="">Vyberte turnaj</option>
             {tournaments.map((tournament) => (
               <option key={tournament.id} value={tournament.id}>
-                {tournament.name} ({tournament.category}) - {new Date(tournament.dateFrom).toLocaleDateString('cs-CZ')}
+                {tournament.name} ({tournament.categories?.map(c => c.name).join(', ') || 'Bez kategorie'}) - {new Date(tournament.dateFrom).toLocaleDateString('cs-CZ')}
               </option>
             ))}
           </Select>

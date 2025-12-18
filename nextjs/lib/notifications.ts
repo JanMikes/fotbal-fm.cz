@@ -51,7 +51,7 @@ function createEmailHtml(title: string, content: string): string {
     <body>
       ${content}
       <div class="footer">
-        <p>Tato zpráva byla automaticky vygenerována systémem MFK FM.</p>
+        <p>Tato zpráva byla automaticky vygenerována systémem Fotbal FM.</p>
         <p>Prosím neodpovídejte na tento email.</p>
       </div>
     </body>
@@ -92,11 +92,15 @@ export function notifyTournamentCreated(
 ): void {
   const subject = `Nový turnaj: ${tournament.name}`;
 
+  const categoriesText = tournament.categories?.length > 0
+    ? tournament.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Vytvořen nový turnaj</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
-      <div class="detail-row"><span class="label">Kategorie:</span> ${tournament.category}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
@@ -120,11 +124,15 @@ export function notifyTournamentUpdated(
 ): void {
   const subject = `Turnaj upraven: ${tournament.name}`;
 
+  const categoriesText = tournament.categories?.length > 0
+    ? tournament.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Turnaj byl upraven</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
-      <div class="detail-row"><span class="label">Kategorie:</span> ${tournament.category}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
@@ -144,12 +152,16 @@ export function notifyTournamentUpdated(
 export function notifyMatchResultCreated(matchResult: MatchResult): void {
   const subject = `Nový výsledek: ${matchResult.homeTeam} ${matchResult.homeScore}:${matchResult.awayScore} ${matchResult.awayTeam}`;
 
+  const categoriesText = matchResult.categories?.length > 0
+    ? matchResult.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Přidán nový výsledek zápasu</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Zápas:</span> ${matchResult.homeTeam} vs ${matchResult.awayTeam}</div>
       <div class="detail-row"><span class="label">Výsledek:</span> ${matchResult.homeScore} : ${matchResult.awayScore}</div>
-      <div class="detail-row"><span class="label">Kategorie:</span> ${matchResult.category}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(matchResult.matchDate)}</div>
       ${matchResult.homeGoalscorers ? `<div class="detail-row"><span class="label">Střelci (domácí):</span> ${matchResult.homeGoalscorers}</div>` : ''}
       ${matchResult.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${matchResult.awayGoalscorers}</div>` : ''}
@@ -170,12 +182,16 @@ export function notifyMatchResultCreated(matchResult: MatchResult): void {
 export function notifyMatchResultUpdated(matchResult: MatchResult): void {
   const subject = `Výsledek upraven: ${matchResult.homeTeam} ${matchResult.homeScore}:${matchResult.awayScore} ${matchResult.awayTeam}`;
 
+  const categoriesText = matchResult.categories?.length > 0
+    ? matchResult.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Výsledek zápasu byl upraven</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Zápas:</span> ${matchResult.homeTeam} vs ${matchResult.awayTeam}</div>
       <div class="detail-row"><span class="label">Výsledek:</span> ${matchResult.homeScore} : ${matchResult.awayScore}</div>
-      <div class="detail-row"><span class="label">Kategorie:</span> ${matchResult.category}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(matchResult.matchDate)}</div>
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(matchResult.modifiedBy || matchResult.author)}</div>
     </div>

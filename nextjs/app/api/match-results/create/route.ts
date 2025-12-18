@@ -23,6 +23,17 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     hasFiles: formData.has('images') || formData.has('files'),
   });
 
+  // Parse categories from JSON
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] = [];
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const matchData = {
     homeTeam: getStringField(formData, 'homeTeam'),
@@ -32,7 +43,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     homeGoalscorers: getStringField(formData, 'homeGoalscorers'),
     awayGoalscorers: getStringField(formData, 'awayGoalscorers'),
     matchReport: getStringField(formData, 'matchReport'),
-    category: getStringField(formData, 'category'),
+    categories,
     matchDate: getStringField(formData, 'matchDate'),
     imagesUrl: getStringField(formData, 'imagesUrl'),
   };

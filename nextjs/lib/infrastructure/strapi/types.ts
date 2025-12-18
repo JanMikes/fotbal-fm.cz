@@ -104,6 +104,19 @@ export interface StrapiRawUserInfo {
 }
 
 /**
+ * Raw category from Strapi
+ */
+export interface StrapiRawCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
  * Raw match result from Strapi (flattened Strapi 5 response)
  */
 export interface StrapiRawMatchResult {
@@ -116,8 +129,8 @@ export interface StrapiRawMatchResult {
   homeGoalscorers?: string | null;
   awayGoalscorers?: string | null;
   matchReport?: string | null;
-  category: string;
-  matchDate: string;
+  categories?: StrapiRawCategory[] | null;
+  matchDate?: string | null;
   imagesUrl?: string | null;
   images?: StrapiRawMedia[];
   files?: StrapiRawMedia[];
@@ -142,6 +155,7 @@ export interface StrapiRawEvent {
   eventTimeTo?: string | null;
   description?: string | null;
   requiresPhotographer?: boolean;
+  categories?: StrapiRawCategory[] | null;
   photos?: StrapiRawMedia[];
   files?: StrapiRawMedia[];
   author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo };
@@ -189,7 +203,7 @@ export interface StrapiRawTournament {
   location?: string | null;
   dateFrom: string;
   dateTo?: string | null;
-  category: string;
+  categories?: StrapiRawCategory[] | null;
   imagesUrl?: string | null;
   photos?: StrapiRawMedia[] | null;
   players?: StrapiRawTournamentPlayer[] | null;
@@ -274,6 +288,19 @@ export const strapiRawUserInfoSchema = z.object({
 });
 
 /**
+ * Schema for validating raw category
+ */
+export const strapiRawCategorySchema = z.object({
+  id: z.number(),
+  documentId: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  sortOrder: z.number(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+
+/**
  * Schema for validating raw match result
  */
 export const strapiRawMatchResultSchema = z.object({
@@ -286,7 +313,7 @@ export const strapiRawMatchResultSchema = z.object({
   homeGoalscorers: z.string().nullable().optional(),
   awayGoalscorers: z.string().nullable().optional(),
   matchReport: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
+  categories: z.array(strapiRawCategorySchema).nullable().optional(),
   matchDate: z.string().nullable().optional(),
   imagesUrl: z.string().nullable().optional(),
   images: z.array(strapiRawMediaSchema).nullable().optional(),
@@ -318,6 +345,7 @@ export const strapiRawEventSchema = z.object({
   eventTimeTo: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   requiresPhotographer: z.boolean().optional(),
+  categories: z.array(strapiRawCategorySchema).nullable().optional(),
   photos: z.array(strapiRawMediaSchema).nullable().optional(),
   files: z.array(strapiRawMediaSchema).nullable().optional(),
   author: z.union([

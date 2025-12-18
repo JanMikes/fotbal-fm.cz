@@ -70,12 +70,23 @@ export const PUT = withAuthFormData(async (
     return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
   }
 
+  // Parse categories from JSON
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] = [];
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const tournamentData = {
     name: getStringField(formData, 'name'),
     dateFrom: getStringField(formData, 'dateFrom'),
     dateTo: getStringField(formData, 'dateTo'),
-    category: getStringField(formData, 'category'),
+    categories,
     description: getStringField(formData, 'description'),
     location: getStringField(formData, 'location'),
     imagesUrl: getStringField(formData, 'imagesUrl'),

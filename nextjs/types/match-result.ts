@@ -1,3 +1,5 @@
+import { Category } from './category';
+
 export interface StrapiImage {
   id: number;
   name: string;
@@ -52,27 +54,6 @@ export interface StrapiFile {
   updatedAt: string;
 }
 
-export type MatchResultCategory =
-  | 'Muži A'
-  | 'Muži B'
-  | 'Dorost U16'
-  | 'Dorost U17'
-  | 'Dorost U18'
-  | 'Dorost U19'
-  | 'Žáci U12'
-  | 'Žáci U13'
-  | 'Žáci U14'
-  | 'Žáci U15'
-  | 'Přípravka U8'
-  | 'Přípravka U9'
-  | 'Přípravka U10'
-  | 'Přípravka U11'
-  | 'Školička'
-  | 'Ženy A'
-  | 'Žákyně Mladší'
-  | 'Žákyně Starší'
-  | 'Žákyně Přípravka';
-
 export interface UserInfo {
   id: number;
   firstName: string;
@@ -90,7 +71,7 @@ export interface MatchResult {
   matchReport?: string;
   images: StrapiImage[];
   files: StrapiFile[];
-  category: MatchResultCategory;
+  categories: Category[];
   matchDate: string;
   imagesUrl?: string;
   authorId: number;
@@ -108,7 +89,7 @@ export interface MatchResultFormData {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
-  category: MatchResultCategory;
+  categoryIds: string[];
   matchDate: string;
   imagesUrl?: string;
   images?: FileList;
@@ -123,7 +104,7 @@ export interface CreateMatchResultRequest {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
-  category: MatchResultCategory;
+  categories: string[];
   matchDate: string;
   imagesUrl?: string;
   author?: number;
@@ -140,7 +121,15 @@ export interface StrapiMatchResultResponse {
       homeGoalscorers: string | null;
       awayGoalscorers: string | null;
       matchReport: string | null;
-      category: MatchResultCategory;
+      categories: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       matchDate: string;
       imagesUrl: string | null;
       images: {
@@ -186,7 +175,15 @@ export interface StrapiMatchResultsResponse {
       homeGoalscorers: string | null;
       awayGoalscorers: string | null;
       matchReport: string | null;
-      category: MatchResultCategory;
+      categories: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       matchDate: string;
       imagesUrl: string | null;
       images: {

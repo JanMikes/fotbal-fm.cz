@@ -4,9 +4,10 @@
  */
 
 import { z } from 'zod';
-import { Tournament, TournamentCategory, TournamentPlayer } from '@/types/tournament';
+import { Tournament, TournamentPlayer } from '@/types/tournament';
+import { Category } from '@/types/category';
 import { TournamentMatch } from '@/types/tournament-match';
-import { StrapiRawTournament, strapiRawUserInfoSchema, strapiRawMediaSchema } from '../types';
+import { StrapiRawTournament, StrapiRawCategory, strapiRawUserInfoSchema, strapiRawMediaSchema, strapiRawCategorySchema } from '../types';
 import {
   mapMediaToImages,
   mapUserInfo,
@@ -36,7 +37,7 @@ const strapiRawTournamentSchema = z.object({
   location: z.string().nullable().optional(),
   dateFrom: z.string(),
   dateTo: z.string().nullable().optional(),
-  category: z.string(),
+  categories: z.array(strapiRawCategorySchema).nullable().optional(),
   imagesUrl: z.string().nullable().optional(),
   photos: z.array(strapiRawMediaSchema).nullable().optional(),
   players: z.array(tournamentPlayerSchema).nullable().optional(),
@@ -66,6 +67,22 @@ function mapPlayers(players: z.infer<typeof tournamentPlayerSchema>[] | null | u
     id: p.id,
     title: p.title,
     playerName: p.playerName,
+  }));
+}
+
+/**
+ * Map raw Strapi categories to domain Category array
+ */
+function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | null | undefined): Category[] {
+  if (!categories || !Array.isArray(categories)) {
+    return [];
+  }
+
+  return categories.map((c) => ({
+    id: c.documentId,
+    name: c.name,
+    slug: c.slug,
+    sortOrder: c.sortOrder,
   }));
 }
 
@@ -105,7 +122,7 @@ export function mapTournament(raw: unknown): Tournament {
     location: nullToUndefined(data.location),
     dateFrom: data.dateFrom,
     dateTo: nullToUndefined(data.dateTo),
-    category: data.category as TournamentCategory,
+    categories: mapCategories(data.categories),
     photos: mapMediaToImages(data.photos),
     imagesUrl: nullToUndefined(data.imagesUrl),
     players: mapPlayers(data.players),

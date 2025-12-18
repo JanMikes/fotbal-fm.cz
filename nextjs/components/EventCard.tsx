@@ -74,6 +74,16 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${eventTypeColor}`}>
             {eventTypeLabel}
           </span>
+          {event.categories && event.categories.length > 0 && (
+            event.categories.map((cat) => (
+              <span
+                key={cat.id}
+                className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent"
+              >
+                {cat.name}
+              </span>
+            ))
+          )}
           {event.requiresPhotographer && (
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning/20 text-warning">
               <Camera className="w-3 h-3" />

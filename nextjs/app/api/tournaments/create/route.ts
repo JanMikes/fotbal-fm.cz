@@ -25,6 +25,17 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     hasFiles: formData.has('photos'),
   });
 
+  // Parse categories from JSON
+  const categoryIdsJson = getStringField(formData, 'categoryIds');
+  let categories: string[] = [];
+  if (categoryIdsJson) {
+    try {
+      categories = JSON.parse(categoryIdsJson);
+    } catch {
+      return ApiErrors.validationFailed('Neplatný formát kategorií');
+    }
+  }
+
   // Extract form fields
   const tournamentData = {
     name: getStringField(formData, 'name'),
@@ -32,7 +43,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     location: getStringField(formData, 'location'),
     dateFrom: getStringField(formData, 'dateFrom'),
     dateTo: getStringField(formData, 'dateTo'),
-    category: getStringField(formData, 'category'),
+    categories,
     imagesUrl: getStringField(formData, 'imagesUrl'),
   };
 
@@ -92,7 +103,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
   // Set Sentry context for debugging
   Sentry.setContext('tournament_request', {
     name: tournamentData.name,
-    category: tournamentData.category,
+    categoriesCount: tournamentData.categories.length,
     matchesCount: validatedMatches.length,
     playersCount: validatedPlayers.length,
     photosCount: photos.length,

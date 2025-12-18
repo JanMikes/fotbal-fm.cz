@@ -68,7 +68,7 @@ export default function Navbar() {
             >
               <Image
                 src="/logo.svg"
-                alt="MFK Frýdek-Místek"
+                alt="Fotbal Frýdek-Místek"
                 width={75}
                 height={90}
                 className="h-[90px] w-auto"

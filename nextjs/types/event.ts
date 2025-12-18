@@ -1,4 +1,5 @@
 import { StrapiImage, StrapiFile, UserInfo } from './match-result';
+import { Category } from './category';
 
 export type EventType = 'nadcházející' | 'proběhlá';
 
@@ -15,6 +16,7 @@ export interface Event {
   requiresPhotographer: boolean;
   photos: StrapiImage[];
   files: StrapiFile[];
+  categories?: Category[];
   authorId: number;
   author?: UserInfo;
   modifiedBy?: UserInfo;
@@ -32,6 +34,7 @@ export interface EventFormData {
   eventTimeTo?: string;
   description?: string;
   requiresPhotographer?: boolean;
+  categoryIds?: string[];
   photos?: FileList;
   files?: FileList;
 }
@@ -46,6 +49,7 @@ export interface CreateEventRequest {
   eventTimeTo?: string;
   description?: string;
   requiresPhotographer?: boolean;
+  categories?: string[];
   author?: number;
 }
 
@@ -62,6 +66,15 @@ export interface StrapiEventResponse {
       eventTimeTo: string | null;
       description: string | null;
       requiresPhotographer: boolean;
+      categories?: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       photos: {
         data: Array<{
           id: number;
@@ -107,6 +120,15 @@ export interface StrapiEventsResponse {
       eventTimeTo: string | null;
       description: string | null;
       requiresPhotographer: boolean;
+      categories?: {
+        data: Array<{
+          id: number;
+          documentId: string;
+          name: string;
+          slug: string;
+          sortOrder: number;
+        }>;
+      };
       photos: {
         data: Array<{
           id: number;

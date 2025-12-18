@@ -3,8 +3,10 @@
  * Transforms raw Strapi event data into domain Event type.
  */
 
+import { z } from 'zod';
 import { Event, EventType } from '@/types/event';
-import { StrapiRawEvent, strapiRawEventSchema } from '../types';
+import { Category } from '@/types/category';
+import { StrapiRawEvent, StrapiRawCategory, strapiRawEventSchema, strapiRawCategorySchema } from '../types';
 import {
   mapMediaToImages,
   mapMediaToFiles,
@@ -13,6 +15,22 @@ import {
   nullToUndefined,
 } from './shared';
 import { ValidationError } from '@/lib/core/errors';
+
+/**
+ * Map raw Strapi categories to domain Category array
+ */
+function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | null | undefined): Category[] {
+  if (!categories || !Array.isArray(categories)) {
+    return [];
+  }
+
+  return categories.map((c) => ({
+    id: c.documentId,
+    name: c.name,
+    slug: c.slug,
+    sortOrder: c.sortOrder,
+  }));
+}
 
 /**
  * Map raw Strapi event to domain Event
@@ -31,6 +49,8 @@ export function mapEvent(raw: unknown): Event {
 
   const data = parseResult.data;
 
+  const categories = mapCategories(data.categories);
+
   return {
     id: data.documentId,
     name: data.name,
@@ -42,6 +62,7 @@ export function mapEvent(raw: unknown): Event {
     eventTimeTo: nullToUndefined(data.eventTimeTo),
     description: nullToUndefined(data.description),
     requiresPhotographer: data.requiresPhotographer ?? false,
+    categories: categories.length > 0 ? categories : undefined,
     photos: mapMediaToImages(data.photos),
     files: mapMediaToFiles(data.files),
     authorId: extractUserId(data.author) ?? 0,

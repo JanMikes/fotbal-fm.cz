@@ -151,9 +151,19 @@ export default function TournamentDetailPage({ params }: PageProps) {
               <h1 className="text-3xl font-bold text-text-primary mb-2">
                 {tournament.name}
               </h1>
-              <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
-                {tournament.category}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                {tournament.categories?.length > 0 ? (
+                  tournament.categories.map((cat) => (
+                    <span key={cat.id} className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
+                      {cat.name}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-surface-hover text-text-muted">
+                    Bez kategorie
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Date & Location */}

@@ -524,6 +524,16 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
     const author = mapUserInfo(data.author, isFlattened);
     const modifiedBy = mapUserInfo(data.lastModifiedBy, isFlattened);
 
+    // Map categories
+    const categories = Array.isArray(data.categories)
+        ? data.categories.map((c: any) => ({
+            id: c.documentId || String(c.id),
+            name: c.name,
+            slug: c.slug,
+            sortOrder: c.sortOrder || 0,
+          }))
+        : [];
+
     return {
         id: entityId,
         homeTeam: data.homeTeam,
@@ -533,7 +543,7 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
         homeGoalscorers: data.homeGoalscorers || undefined,
         awayGoalscorers: data.awayGoalscorers || undefined,
         matchReport: data.matchReport || undefined,
-        category: data.category,
+        categories,
         matchDate: data.matchDate,
         imagesUrl: data.imagesUrl || undefined,
         images,
@@ -841,6 +851,16 @@ function mapStrapiTournament(strapiData: any): Tournament {
         ? matchesData.map((m: any) => mapStrapiTournamentMatch(m))
         : [];
 
+    // Map categories
+    const categories = Array.isArray(data.categories)
+        ? data.categories.map((c: any) => ({
+            id: c.documentId || String(c.id),
+            name: c.name,
+            slug: c.slug,
+            sortOrder: c.sortOrder || 0,
+          }))
+        : [];
+
     return {
         id: entityId,
         name: data.name,
@@ -848,7 +868,7 @@ function mapStrapiTournament(strapiData: any): Tournament {
         location: data.location || undefined,
         dateFrom: data.dateFrom,
         dateTo: data.dateTo || undefined,
-        category: data.category,
+        categories,
         photos,
         imagesUrl: data.imagesUrl || undefined,
         players,
