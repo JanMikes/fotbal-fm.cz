@@ -12,6 +12,19 @@ const protectedRoutes = ['/dashboard', '/nastaveni'];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Block invalid server action requests from bots/scanners
+  // This project has no server actions, so any request with next-action header is invalid
+  const nextAction = request.headers.get("next-action");
+  if (nextAction) {
+    console.log(
+      `[Proxy] Blocked invalid server action request: ${nextAction} from ${request.headers.get("x-forwarded-for") || "unknown"}`
+    );
+    return new NextResponse("Bad Request", {
+      status: 400,
+      statusText: "Invalid server action",
+    });
+  }
+
   // Skip session check for API routes - they handle their own authentication
   // This prevents body locking issues with formData uploads
   if (pathname.startsWith('/api/')) {
