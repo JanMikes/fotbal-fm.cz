@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'accent';
+  variant?: 'primary' | 'secondary' | 'danger' | 'accent' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: ReactNode;
 }
@@ -31,6 +31,8 @@ export default function Button({
       'bg-danger text-white hover:bg-danger-hover focus:ring-ring-focus shadow-md hover:shadow-lg active:scale-95',
     accent:
       'bg-accent text-white hover:bg-accent-hover focus:ring-ring-focus shadow-md hover:shadow-lg active:scale-95',
+    ghost:
+      'bg-transparent text-text-muted hover:text-text-primary hover:bg-surface-hover focus:ring-ring-focus active:scale-95',
   };
 
   return (

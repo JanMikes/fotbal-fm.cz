@@ -245,7 +245,7 @@ export default function EventDetailPage({ params }: PageProps) {
         </Card>
 
         {/* Comments Section */}
-        <div className="mt-8">
+        <div id="komentare" className="mt-8 scroll-mt-4">
           <Card variant="elevated">
             <CommentSection
               entityType="event"

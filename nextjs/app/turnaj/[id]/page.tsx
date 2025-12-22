@@ -257,7 +257,7 @@ export default function TournamentDetailPage({ params }: PageProps) {
         </Card>
 
         {/* Comments Section */}
-        <div className="mt-8">
+        <div id="komentare" className="mt-8 scroll-mt-4">
           <Card variant="elevated">
             <CommentSection
               entityType="tournament"

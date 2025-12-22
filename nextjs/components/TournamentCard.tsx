@@ -1,6 +1,6 @@
 import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
-import { Calendar, MapPin, Edit, Image, User, Trophy } from 'lucide-react';
+import { Calendar, MapPin, Edit, Image, User, Trophy, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
@@ -41,6 +41,12 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Link href={`/turnaj/${tournament.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
+            </Link>
+            <Link href={`/turnaj/${tournament.id}#komentare`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                Okomentovat
+              </Button>
             </Link>
             {isOwner && (
               <Link href={`/upravit-turnaj/${tournament.id}`} className="flex-1 md:flex-none">

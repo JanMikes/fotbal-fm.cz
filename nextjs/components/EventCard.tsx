@@ -1,6 +1,6 @@
 import { Event } from '@/types/event';
 import Card from '@/components/ui/Card';
-import { Calendar, Clock, Camera, Edit, Image, User } from 'lucide-react';
+import { Calendar, Clock, Camera, Edit, Image, User, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
@@ -52,6 +52,12 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Link href={`/udalost/${event.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
+            </Link>
+            <Link href={`/udalost/${event.id}#komentare`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                Okomentovat
+              </Button>
             </Link>
             {isOwner && (
               <Link href={`/upravit-udalost/${event.id}`} className="flex-1 md:flex-none">

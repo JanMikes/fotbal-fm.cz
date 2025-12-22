@@ -1,6 +1,6 @@
 import { MatchResult } from '@/types/match-result';
 import Card from '@/components/ui/Card';
-import { Calendar, Edit, Image, User } from 'lucide-react';
+import { Calendar, Edit, Image, User, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
@@ -31,6 +31,12 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Link href={`/vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
+            </Link>
+            <Link href={`/vysledek/${matchResult.id}#komentare`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <MessageCircle className="w-4 h-4 mr-1" />
+                Okomentovat
+              </Button>
             </Link>
             {isOwner && (
               <Link href={`/upravit-vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
