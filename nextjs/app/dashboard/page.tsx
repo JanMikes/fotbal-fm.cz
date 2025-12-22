@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import DashboardCalendar from '@/components/DashboardCalendar';
 import { Plus, Trophy, CalendarDays, Target, ArrowRight } from 'lucide-react';
 import { MatchResult } from '@/types/match-result';
 import { Tournament } from '@/types/tournament';
@@ -39,9 +40,9 @@ export default function DashboardPage() {
         ]);
 
         setData({
-          matchResults: (mrData.data?.matchResults || []).slice(0, 3),
-          tournaments: (tData.data?.tournaments || []).slice(0, 3),
-          events: (eData.data?.events || []).slice(0, 3),
+          matchResults: mrData.data?.matchResults || [],
+          tournaments: tData.data?.tournaments || [],
+          events: eData.data?.events || [],
         });
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -102,6 +103,15 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {/* Calendar Section */}
+        {!loading && data && (
+          <DashboardCalendar
+            matchResults={data.matchResults}
+            tournaments={data.tournaments}
+            events={data.events}
+          />
+        )}
+
         {loading ? (
           <LoadingSpinner />
         ) : (
@@ -126,7 +136,7 @@ export default function DashboardPage() {
                 <p className="text-text-muted text-sm">Žádné výsledky</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.matchResults.map((mr) => (
+                  {data?.matchResults.slice(0, 3).map((mr) => (
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <div className="flex items-center justify-between mb-2">
@@ -185,7 +195,7 @@ export default function DashboardPage() {
                 <p className="text-text-muted text-sm">Žádné turnaje</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.tournaments.map((t) => (
+                  {data?.tournaments.slice(0, 3).map((t) => (
                     <Link key={t.id} href={`/turnaj/${t.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
@@ -221,7 +231,7 @@ export default function DashboardPage() {
                 <p className="text-text-muted text-sm">Žádné události</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.events.map((e) => (
+                  {data?.events.slice(0, 3).map((e) => (
                     <Link key={e.id} href={`/udalost/${e.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
