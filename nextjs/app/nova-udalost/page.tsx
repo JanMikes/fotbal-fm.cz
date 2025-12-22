@@ -23,18 +23,18 @@ export default function NewEventPage() {
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             Vytvořit novou událost
           </h1>
-          <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
-            <p className="text-amber-800 text-sm">
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+            <p className="text-red-800 text-sm">
               Tato sekce slouží k zadávání všech klubových událostí a aktivit, které nepatří do sekcí Výsledky ani Turnaje.
               Vyplňuj ji vždy, když se jedná o cokoliv jiného než soutěžní zápas nebo turnaj.
             </p>
-            <p className="text-amber-700 text-sm mt-2">
+            <p className="text-red-700 text-sm mt-2">
               Patří sem zejména přátelská utkání, mimořádné a přípravné zápasy, přestupy a změny v kádru,
               zajímavosti a novinky z klubu, charitativní a komunitní akce, reprezentační a výběrové akce hráčů
               a další aktivity spojené s klubem, které chceme komunikovat navenek.
             </p>
-            <p className="text-amber-900 text-sm font-semibold mt-2 flex items-start gap-2">
-              <span className="text-amber-500">⚠️</span>
+            <p className="text-red-900 text-sm font-semibold mt-2 flex items-start gap-2">
+              <span className="text-red-500">⚠️</span>
               <span>Soutěžní zápasy a turnaje vždy zadávej do příslušných sekcí.</span>
             </p>
           </div>
