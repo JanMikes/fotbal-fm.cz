@@ -55,8 +55,10 @@ jobs:
                     cache-from: type=gha, scope=${{ github.workflow }}
                     cache-to: type=gha, scope=${{ github.workflow }}
                     # Pass Sentry auth token for source map upload and release tracking
+                    # APP_VERSION matches the Sentry release version created below
                     build-args: |
                         SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+                        APP_VERSION=${{ github.sha }}
                     secrets: |
                         SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
 

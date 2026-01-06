@@ -17,6 +17,11 @@ ENV NODE_ENV=production
 # Using ARG only (not ENV) ensures the token is not baked into the final image
 ARG SENTRY_AUTH_TOKEN
 
+# Accept APP_VERSION for Sentry release tracking
+# This allows Sentry to correlate errors with specific deployments
+ARG APP_VERSION
+ENV SENTRY_RELEASE="${APP_VERSION}"
+
 # Pass ARG as environment variable only for the build step (not persisted in image)
 # Use Webpack instead of Turbopack for production builds
 # Turbopack has known issues with Route Handlers + FormData in Next.js 16
