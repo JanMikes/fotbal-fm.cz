@@ -10,6 +10,7 @@ import Card from '@/components/ui/Card';
 import { MatchResult } from '@/types/match-result';
 import { Tournament } from '@/types/tournament';
 import { Event } from '@/types/event';
+import { Category } from '@/types/category';
 
 interface DashboardCalendarProps {
   matchResults: MatchResult[];
@@ -24,6 +25,7 @@ interface CalendarItem {
   subtitle?: string;
   date: Date;
   link: string;
+  categories?: Category[];
 }
 
 export default function DashboardCalendar({
@@ -98,6 +100,7 @@ export default function DashboardCalendar({
           title: `${mr.homeTeam} ${mr.homeScore}:${mr.awayScore} ${mr.awayTeam}`,
           date: matchDate,
           link: `/vysledek/${mr.id}`,
+          categories: mr.categories,
         });
       }
     });
@@ -115,6 +118,7 @@ export default function DashboardCalendar({
           subtitle: t.location,
           date: start,
           link: `/turnaj/${t.id}`,
+          categories: t.categories,
         });
       }
     });
@@ -132,6 +136,7 @@ export default function DashboardCalendar({
           subtitle: e.eventTime ? `${e.eventTime}${e.eventTimeTo ? ` - ${e.eventTimeTo}` : ''}` : undefined,
           date: start,
           link: `/udalost/${e.id}`,
+          categories: e.categories,
         });
       }
     });
@@ -228,6 +233,18 @@ export default function DashboardCalendar({
                     </p>
                     {item.subtitle && (
                       <p className="text-xs text-text-muted truncate">{item.subtitle}</p>
+                    )}
+                    {item.categories && item.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.categories.map((cat) => (
+                          <span
+                            key={cat.id}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent"
+                          >
+                            {cat.name}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <span className="text-xs text-text-muted flex-shrink-0">
