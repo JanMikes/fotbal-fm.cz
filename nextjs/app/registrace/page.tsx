@@ -44,7 +44,7 @@ function RegisterPageContent() {
         });
 
         const result = await response.json();
-        setSecretValid(result.valid);
+        setSecretValid(result.data?.valid ?? false);
       } catch (error) {
         setSecretValid(false);
       } finally {
