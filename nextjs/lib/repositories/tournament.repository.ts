@@ -18,16 +18,29 @@ const CONTENT_TYPE = 'tournaments';
 const STRAPI_REF = 'api::tournament.tournament';
 
 /**
+ * Default populate configuration for tournaments.
+ * Explicitly includes author email for notification purposes.
+ */
+const DEFAULT_POPULATE = {
+  categories: true,
+  photos: true,
+  players: true,
+  tournamentMatches: true,
+  author: { fields: ['id', 'documentId', 'firstname', 'lastname', 'email'] },
+  modifiedBy: { fields: ['id', 'documentId', 'firstname', 'lastname'] },
+};
+
+/**
  * Build Strapi query options from find options
  */
 function buildQueryOptions(options?: UserFilterOptions) {
   const queryOptions: {
-    populate?: string;
+    populate?: typeof DEFAULT_POPULATE;
     sort?: string | string[];
     pagination?: { page?: number; pageSize?: number; limit?: number };
     filters?: Record<string, unknown>;
   } = {
-    populate: '*',
+    populate: DEFAULT_POPULATE,
   };
 
   if (options?.sort) {
@@ -67,7 +80,7 @@ export class TournamentRepository implements RepositoryWithUploads<
 
   async findById(id: string, options?: FindOptions): Promise<Tournament | null> {
     const queryOptions = {
-      populate: options?.populate ?? '*',
+      populate: options?.populate ?? DEFAULT_POPULATE,
     };
 
     const raw = await this.client.findOne<StrapiRawTournament>(

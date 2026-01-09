@@ -101,6 +101,7 @@ export interface StrapiRawUserInfo {
   documentId?: string;
   firstname?: string;
   lastname?: string;
+  email?: string;
 }
 
 /**
@@ -285,6 +286,7 @@ export const strapiRawUserInfoSchema = z.object({
   documentId: z.string().optional(),
   firstname: z.string().optional(),
   lastname: z.string().optional(),
+  email: z.string().optional(),
 });
 
 /**

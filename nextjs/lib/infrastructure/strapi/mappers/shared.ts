@@ -170,7 +170,7 @@ export function mapUserInfo(
 ): UserInfo | undefined {
   if (!userData) return undefined;
 
-  // Handle nested structure: { data: { id, firstname, lastname } }
+  // Handle nested structure: { data: { id, firstname, lastname, email } }
   if ('data' in userData) {
     const nested = userData.data;
     if (!nested) return undefined;
@@ -178,10 +178,11 @@ export function mapUserInfo(
       id: nested.id,
       firstName: nested.firstname ?? '',
       lastName: nested.lastname ?? '',
+      email: nested.email,
     };
   }
 
-  // Handle flattened structure: { id, firstname, lastname }
+  // Handle flattened structure: { id, firstname, lastname, email }
   const raw = userData as StrapiRawUserInfo;
   if (!raw.id) return undefined;
 
@@ -189,6 +190,7 @@ export function mapUserInfo(
     id: raw.id,
     firstName: raw.firstname ?? '',
     lastName: raw.lastname ?? '',
+    email: raw.email,
   };
 }
 

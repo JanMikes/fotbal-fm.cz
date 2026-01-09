@@ -227,10 +227,11 @@ export class CommentService {
         return;
       }
 
+      const commentAuthorId = userResult.data.id;
       const commentWithAuthor = {
         ...comment,
         author: {
-          id: userResult.data.id,
+          id: commentAuthorId,
           firstName: userResult.data.firstName,
           lastName: userResult.data.lastName,
         },
@@ -238,6 +239,8 @@ export class CommentService {
 
       let entityType: 'matchResult' | 'tournament' | 'event';
       let entityName = '';
+      let entityAuthorEmail: string | undefined;
+      let entityAuthorId: number | undefined;
 
       if (matchResult) {
         entityType = 'matchResult';
@@ -245,6 +248,8 @@ export class CommentService {
         const result = await service.getById(matchResult);
         if (result.success) {
           entityName = `${result.data.homeTeam} vs ${result.data.awayTeam} (${result.data.homeScore}:${result.data.awayScore})`;
+          entityAuthorEmail = result.data.author?.email;
+          entityAuthorId = result.data.author?.id;
         }
       } else if (tournament) {
         entityType = 'tournament';
@@ -252,6 +257,8 @@ export class CommentService {
         const result = await service.getById(tournament);
         if (result.success) {
           entityName = result.data.name;
+          entityAuthorEmail = result.data.author?.email;
+          entityAuthorId = result.data.author?.id;
         }
       } else {
         entityType = 'event';
@@ -259,6 +266,8 @@ export class CommentService {
         const result = await service.getById(event!);
         if (result.success) {
           entityName = result.data.name;
+          entityAuthorEmail = result.data.author?.email;
+          entityAuthorId = result.data.author?.id;
         }
       }
 
@@ -266,7 +275,15 @@ export class CommentService {
         entityName = `ID: ${matchResult || tournament || event}`;
       }
 
-      this.notificationService.notifyCommentAdded(commentWithAuthor, entityType, entityName);
+      // Don't notify entity author if they are the comment author (avoid self-notification)
+      const shouldNotifyEntityAuthor = entityAuthorEmail && entityAuthorId !== commentAuthorId;
+
+      this.notificationService.notifyCommentAdded(
+        commentWithAuthor,
+        entityType,
+        entityName,
+        shouldNotifyEntityAuthor ? entityAuthorEmail : undefined
+      );
     } catch (error) {
       // Log but don't fail - comment was already created
       Sentry.captureException(error, {

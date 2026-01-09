@@ -257,11 +257,13 @@ export function notifyEventUpdated(event: Event): void {
 
 /**
  * Notify about new comment
+ * @param entityAuthorEmail - Optional email of the entity author to also notify
  */
 export function notifyCommentAdded(
   comment: Comment,
   entityType: 'matchResult' | 'tournament' | 'event',
-  entityName: string
+  entityName: string,
+  entityAuthorEmail?: string
 ): void {
   const entityTypeLabels = {
     matchResult: 'výsledek zápasu',
@@ -285,8 +287,15 @@ export function notifyCommentAdded(
     </p>
   `;
 
+  // Build additional recipients list (entity author if provided)
+  const additionalRecipients: string[] = [];
+  if (entityAuthorEmail) {
+    additionalRecipients.push(entityAuthorEmail);
+  }
+
   sendEmailAsync({
     subject,
     html: createEmailHtml(subject, content),
+    additionalRecipients: additionalRecipients.length > 0 ? additionalRecipients : undefined,
   });
 }

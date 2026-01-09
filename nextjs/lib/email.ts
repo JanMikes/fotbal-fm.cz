@@ -7,6 +7,7 @@ export interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  additionalRecipients?: string[];
 }
 
 let transporter: nodemailer.Transporter | null = null;
@@ -43,16 +44,27 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
     const transport = getTransporter();
 
+    // Build recipient list: primary recipient + any additional unique recipients
+    const recipients = [config.EMAIL_TO];
+    if (options.additionalRecipients) {
+      for (const email of options.additionalRecipients) {
+        // Avoid duplicates (case-insensitive comparison)
+        if (email && !recipients.some(r => r.toLowerCase() === email.toLowerCase())) {
+          recipients.push(email);
+        }
+      }
+    }
+
     await transport.sendMail({
       from: config.EMAIL_FROM,
-      to: config.EMAIL_TO,
+      to: recipients.join(', '),
       subject: options.subject,
       html: options.html,
       text: options.text || options.html.replace(/<[^>]*>/g, ''),
     });
 
     if (isDevelopment()) {
-      console.log(`[Email] Sent: ${options.subject}`);
+      console.log(`[Email] Sent: ${options.subject} to ${recipients.join(', ')}`);
     }
 
     return true;

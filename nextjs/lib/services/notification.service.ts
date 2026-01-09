@@ -183,21 +183,23 @@ export class NotificationService {
 
   /**
    * Notify about new comment
+   * @param entityAuthorEmail - Optional email of the entity author to also notify
    */
   notifyCommentAdded(
     comment: Comment,
     entityType: 'matchResult' | 'tournament' | 'event',
-    entityName: string
+    entityName: string,
+    entityAuthorEmail?: string
   ): void {
     try {
       Sentry.addBreadcrumb({
         category: 'notification',
         message: 'Sending comment added notification',
         level: 'info',
-        data: { commentId: comment.id, entityType, entityName },
+        data: { commentId: comment.id, entityType, entityName, hasEntityAuthorEmail: !!entityAuthorEmail },
       });
 
-      baseNotifyCommentAdded(comment, entityType, entityName);
+      baseNotifyCommentAdded(comment, entityType, entityName, entityAuthorEmail);
     } catch (error) {
       Sentry.captureException(error, {
         tags: { service: 'NotificationService', method: 'notifyCommentAdded' },

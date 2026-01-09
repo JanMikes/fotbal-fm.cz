@@ -19,16 +19,28 @@ const CONTENT_TYPE = 'match-results';
 const STRAPI_REF = 'api::match-result.match-result';
 
 /**
+ * Default populate configuration for match results.
+ * Explicitly includes author email for notification purposes.
+ */
+const DEFAULT_POPULATE = {
+  categories: true,
+  images: true,
+  files: true,
+  author: { fields: ['id', 'documentId', 'firstname', 'lastname', 'email'] },
+  lastModifiedBy: { fields: ['id', 'documentId', 'firstname', 'lastname'] },
+};
+
+/**
  * Build Strapi query options from find options
  */
 function buildQueryOptions(options?: UserFilterOptions) {
   const queryOptions: {
-    populate?: string;
+    populate?: typeof DEFAULT_POPULATE;
     sort?: string | string[];
     pagination?: { page?: number; pageSize?: number; limit?: number };
     filters?: Record<string, unknown>;
   } = {
-    populate: '*',
+    populate: DEFAULT_POPULATE,
   };
 
   if (options?.sort) {
@@ -68,7 +80,7 @@ export class MatchResultRepository implements RepositoryWithUploads<
 
   async findById(id: string, options?: FindOptions): Promise<MatchResult | null> {
     const queryOptions = {
-      populate: options?.populate ?? '*',
+      populate: options?.populate ?? DEFAULT_POPULATE,
     };
 
     const raw = await this.client.findOne<StrapiRawMatchResult>(
