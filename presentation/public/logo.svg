@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Shield Background -->
+  <path d="M50 5 L95 20 L95 55 C95 75 75 90 50 95 C25 90 5 75 5 55 L5 20 L50 5Z" fill="#081E44"/>
+
+  <!-- Inner Border -->
+  <path d="M50 10 L90 23 L90 55 C90 72 72 85 50 90 C28 85 10 72 10 55 L10 23 L50 10Z" fill="none" stroke="#149AD5" stroke-width="2"/>
+
+  <!-- FK Letters -->
+  <text x="50" y="50" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="24" fill="#FFFFFF">FK</text>
+
+  <!-- FM Letters -->
+  <text x="50" y="72" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="16" fill="#149AD5">FM</text>
+
+  <!-- Year -->
+  <text x="50" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="8" fill="#FFFFFF" opacity="0.7">1920</text>
+
+  <!-- Top Star -->
+  <polygon points="50,15 52,20 57,20 53,24 55,29 50,26 45,29 47,24 43,20 48,20" fill="#149AD5"/>
+</svg>

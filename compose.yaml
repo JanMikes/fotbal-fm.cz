@@ -82,6 +82,20 @@ services:
             - mailpit
         command: bash -c "npm install && npm run dev"
 
+    presentation:
+        image: node:24
+        restart: unless-stopped
+        tty: true
+        working_dir: /app
+        ports:
+            - "3001:3001"
+        volumes:
+            - ./presentation:/app
+        environment:
+            NODE_ENV: development
+            PORT: 3001
+        command: bash -c "npm install && npm run dev -- -p 3001"
+
     nginx:
         image: nginx:alpine
         restart: unless-stopped

@@ -1,0 +1,345 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #081E44;
+  --color-accent-dark: #065A8F;
+  --color-accent: #149AD5;
+  --color-accent-light: #3DB5E8;
+  --color-surface-light: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-surface-dark: #1A1A1A;
+}
+
+@theme inline {
+  /* Primary colors */
+  --color-primary-50: #0E3A7D;
+  --color-primary-100: #0C326B;
+  --color-primary-200: #0A2A59;
+  --color-primary-300: #081E44;
+  --color-primary-400: #061832;
+  --color-primary-500: #041220;
+  --color-primary-600: #020C0E;
+  --color-primary: #081E44;
+
+  /* Accent colors */
+  --color-accent-dark: #065A8F;
+  --color-accent: #149AD5;
+  --color-accent-light: #3DB5E8;
+
+  /* Surface colors */
+  --color-surface-light: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-surface-dark: #1A1A1A;
+
+  /* Font family */
+  --font-sans: var(--font-montserrat), system-ui, sans-serif;
+
+  /* Font sizes */
+  --text-hero: clamp(3rem, 8vw, 7.5rem);
+  --text-section: clamp(2.5rem, 5vw, 4rem);
+  --text-subheading: clamp(1.5rem, 3vw, 2rem);
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+
+  /* Custom spacing */
+  --spacing-section: 7.5rem;
+  --spacing-section-sm: 5rem;
+  --spacing-component: 3rem;
+  --spacing-card: 2rem;
+
+  /* Border radius */
+  --radius-card: 0;
+  --radius-button: 0;
+
+  /* Box shadows */
+  --shadow-card: 0 4px 20px rgba(8, 30, 68, 0.08);
+  --shadow-card-hover: 0 12px 40px rgba(8, 30, 68, 0.15);
+  --shadow-button: 0 4px 14px rgba(20, 154, 213, 0.35);
+
+  /* Transition timing */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.6s ease-out forwards;
+  --animate-slide-up: slideUp 0.6s ease-out forwards;
+  --animate-slide-in-right: slideInRight 0.6s ease-out forwards;
+  --animate-scale-in: scaleIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  0% { opacity: 0; transform: translateX(-30px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-surface-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01' on, 'ss02' on;
+}
+
+/* Custom selection color */
+::selection {
+  background-color: rgba(20, 154, 213, 0.2);
+  color: var(--color-primary);
+}
+
+
+@layer components {
+  /* Brand gradient overlays for images */
+  .bg-gradient-hero {
+    background: linear-gradient(
+      135deg,
+      rgba(8, 30, 68, 0.85) 0%,
+      rgba(6, 90, 143, 0.5) 50%,
+      rgba(20, 154, 213, 0.3) 100%
+    );
+  }
+
+  .bg-gradient-card {
+    background: linear-gradient(
+      to top,
+      rgba(8, 30, 68, 0.95) 0%,
+      rgba(6, 90, 143, 0.6) 40%,
+      rgba(20, 154, 213, 0.2) 70%,
+      transparent 100%
+    );
+  }
+
+  .bg-gradient-news {
+    background: linear-gradient(
+      to top,
+      rgba(8, 30, 68, 0.9) 0%,
+      rgba(6, 90, 143, 0.5) 50%,
+      rgba(20, 154, 213, 0.15) 80%,
+      transparent 100%
+    );
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-dark {
+    background-color: rgba(8, 30, 68, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Diagonal clip paths */
+  .clip-diagonal {
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  }
+
+  .clip-diagonal-reverse {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 85%);
+  }
+
+  .clip-diagonal-bottom {
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 50% 100%, 0 90%);
+  }
+
+  /* Section accent underline */
+  .accent-underline {
+    position: relative;
+    display: inline-block;
+  }
+
+  .accent-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 6rem;
+    height: 0.375rem;
+    background-color: var(--color-accent);
+    transform: translateY(0.75rem);
+  }
+
+  /* Link hover animation */
+  .link-hover {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .link-hover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 0.125rem;
+    background-color: var(--color-accent);
+    transition: all 0.3s;
+    transform: translateX(-50%);
+  }
+
+  .link-hover:hover::after {
+    width: 100%;
+  }
+
+  /* Card lift effect */
+  .card-lift {
+    transition: all 0.3s var(--ease-smooth);
+  }
+
+  .card-lift:hover {
+    transform: translateY(-0.5rem);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Button slide effect */
+  .btn-slide {
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  .btn-slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-accent-dark);
+    z-index: -1;
+    transform: translateX(-101%);
+    transition: transform 0.3s ease-out;
+  }
+
+  .btn-slide:hover::before {
+    transform: translateX(0);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #065A8F 0%, #149AD5 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Number display (for jersey numbers, scores) */
+  .number-display {
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: var(--color-surface-light);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(8, 30, 68, 0.2);
+    transition: background-color 0.3s;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(8, 30, 68, 0.4);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  .stagger-6 { animation-delay: 0.6s; }
+
+  /* Text balance for better typography */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Aspect ratios */
+  .aspect-match-card {
+    aspect-ratio: 4 / 5;
+  }
+
+  .aspect-news-card {
+    aspect-ratio: 16 / 9;
+  }
+
+  .aspect-player-card {
+    aspect-ratio: 3 / 4;
+  }
+
+  /* Container queries support */
+  @supports (container-type: inline-size) {
+    .container-query {
+      container-type: inline-size;
+    }
+  }
+}
+
+/* Embla Carousel custom styles */
+.embla {
+  overflow: hidden;
+}
+
+.embla__container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+/* Framer Motion initial state prevention */
+.motion-safe {
+  opacity: 0;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
