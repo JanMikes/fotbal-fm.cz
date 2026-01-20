@@ -88,7 +88,7 @@ export default function Hero() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.1 }}
-                              className="text-accent font-semibold uppercase tracking-wider mb-4"
+                              className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-6"
                             >
                               {slide.subtitle}
                             </motion.p>
@@ -98,31 +98,31 @@ export default function Hero() {
                               initial={{ opacity: 0, y: 30 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.2 }}
-                              className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-6 lg:gap-12 mb-8"
+                              className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-10 mb-6"
                             >
                               {/* Home Team */}
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="w-20 h-20 lg:w-28 lg:h-28 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                  <span className="text-2xl lg:text-3xl font-bold text-white">FM</span>
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
+                                  <span className="text-lg lg:text-xl font-black text-white">FM</span>
                                 </div>
-                                <span className="text-white font-semibold text-lg">
+                                <span className="text-white font-bold text-sm uppercase tracking-wide">
                                   {slide.match.homeTeam.name}
                                 </span>
                               </div>
 
                               {/* VS */}
-                              <div className="flex flex-col items-center">
-                                <span className="text-5xl lg:text-7xl font-black text-white/30">VS</span>
+                              <div className="flex flex-col items-center px-4">
+                                <span className="text-3xl lg:text-4xl font-black text-white/20">VS</span>
                               </div>
 
                               {/* Away Team */}
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="w-20 h-20 lg:w-28 lg:h-28 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                  <span className="text-2xl lg:text-3xl font-bold text-white/70">
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
+                                  <span className="text-lg lg:text-xl font-black text-white/60">
                                     {slide.match.awayTeam.name.substring(0, 2).toUpperCase()}
                                   </span>
                                 </div>
-                                <span className="text-white/80 font-semibold text-lg">
+                                <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
                                   {slide.match.awayTeam.name}
                                 </span>
                               </div>
@@ -133,10 +133,10 @@ export default function Hero() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.3 }}
-                              className="text-white/70 mb-8 space-y-1"
+                              className="text-white/60 mb-6"
                             >
-                              <p className="text-lg">{slide.match.date} &bull; {slide.match.time}</p>
-                              <p>{slide.match.venue}</p>
+                              <p className="text-sm font-semibold">{slide.match.date} &bull; {slide.match.time}</p>
+                              <p className="text-xs mt-1">{slide.match.venue}</p>
                             </motion.div>
 
                             {slide.ctaText && (
@@ -145,7 +145,7 @@ export default function Hero() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
                               >
-                                <Button variant="primary" size="lg">
+                                <Button variant="primary" size="md">
                                   {slide.ctaText}
                                 </Button>
                               </motion.div>
@@ -155,13 +155,13 @@ export default function Hero() {
 
                         {/* News/Promo Slide */}
                         {(slide.type === 'news' || slide.type === 'promo') && (
-                          <div className="text-center lg:text-left">
+                          <div className="text-center lg:text-left max-w-3xl">
                             {slide.subtitle && (
                               <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 }}
-                                className="text-accent font-semibold uppercase tracking-wider mb-4"
+                                className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-4"
                               >
                                 {slide.subtitle}
                               </motion.p>
@@ -171,7 +171,7 @@ export default function Hero() {
                               initial={{ opacity: 0, y: 30 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.2 }}
-                              className="text-hero text-white uppercase mb-6"
+                              className="text-3xl md:text-4xl lg:text-5xl text-white font-black uppercase leading-tight mb-4"
                             >
                               {slide.title}
                             </motion.h1>
@@ -181,7 +181,7 @@ export default function Hero() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
-                                className="text-white/70 text-body-lg max-w-2xl mb-8"
+                                className="text-white/60 text-sm lg:text-base font-medium max-w-xl mb-6 leading-relaxed"
                               >
                                 {slide.description}
                               </motion.p>
@@ -193,7 +193,7 @@ export default function Hero() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
                               >
-                                <Button variant="outline" size="lg">
+                                <Button variant="outline" size="md">
                                   {slide.ctaText}
                                 </Button>
                               </motion.div>

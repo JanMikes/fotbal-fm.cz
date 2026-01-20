@@ -88,13 +88,13 @@ services:
         tty: true
         working_dir: /app
         ports:
-            - "3001:3001"
+            - "3001:3000"
         volumes:
             - ./presentation:/app
         environment:
             NODE_ENV: development
-            PORT: 3001
-        command: bash -c "npm install && npm run dev -- -p 3001"
+            PORT: 3000
+        command: bash -c "npm install && npm run dev"
 
     nginx:
         image: nginx:alpine

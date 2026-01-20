@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///app/src/app/providers.tsx"],"sourcesContent":["'use client';\n\nimport { LazyMotion, domAnimation } from 'framer-motion';\n\nexport default function Providers({ children }: { children: React.ReactNode }) {\n  return (\n    <LazyMotion features={domAnimation} strict>\n      {children}\n    </LazyMotion>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEA;AAAA;AAFA;;;AAIe,SAAS,UAAU,EAAE,QAAQ,EAAiC;IAC3E,qBACE,8OAAC,kMAAU;QAAC,UAAU,yMAAY;QAAE,MAAM;kBACvC;;;;;;AAGP"}}]
-}
