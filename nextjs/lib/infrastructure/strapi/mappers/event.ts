@@ -46,6 +46,7 @@ export function mapEvent(raw: unknown): Event {
     throw new ValidationError(
       'Neplatná data události ze Strapi',
       { zodErrors: parseResult.error.issues, raw }
+    );
   }
 
   const data = parseResult.data;
