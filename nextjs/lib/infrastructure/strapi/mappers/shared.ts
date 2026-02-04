@@ -15,8 +15,8 @@ interface RawMediaLike {
   name: string;
   alternativeText?: string | null;
   caption?: string | null;
-  width?: number;
-  height?: number;
+  width?: number | null;
+  height?: number | null;
   formats?: {
     thumbnail?: { url: string; width: number; height: number };
     small?: { url: string; width: number; height: number };
@@ -25,7 +25,7 @@ interface RawMediaLike {
   } | null;
   url: string;
   previewUrl?: string | null;
-  provider: string;
+  provider?: string;
   size: number;
   ext: string;
   mime: string;
@@ -106,7 +106,7 @@ export function mapRawMediaToImage(media: RawMediaLike): StrapiImage {
     formats: transformImageFormats(media.formats),
     url: transformImageUrl(media.url),
     previewUrl: media.previewUrl ?? null,
-    provider: media.provider,
+    provider: media.provider ?? 'local',
     size: media.size,
     ext: media.ext,
     mime: media.mime,
@@ -126,7 +126,7 @@ export function mapRawMediaToFile(media: RawMediaLike): StrapiFile {
     caption: media.caption ?? null,
     url: transformImageUrl(media.url),
     previewUrl: media.previewUrl ?? null,
-    provider: media.provider,
+    provider: media.provider ?? 'local',
     size: media.size,
     ext: media.ext,
     mime: media.mime,

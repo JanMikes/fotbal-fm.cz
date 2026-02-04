@@ -82,7 +82,7 @@ function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | n
     id: c.documentId,
     name: c.name,
     slug: c.slug,
-    sortOrder: c.sortOrder,
+    sortOrder: c.sortOrder ?? 0,
   }));
 }
 
@@ -102,7 +102,9 @@ export function mapTournament(raw: unknown): Tournament {
   const parseResult = strapiRawTournamentSchema.safeParse(raw);
 
   if (!parseResult.success) {
-    console.error('[mapTournament] Validation failed:', parseResult.error.issues);
+    // Log detailed error information for debugging
+    console.error('[mapTournament] Validation failed. Errors:', JSON.stringify(parseResult.error.issues, null, 2));
+    console.error('[mapTournament] Raw data received:', JSON.stringify(raw, null, 2));
     throw new ValidationError(
       'Neplatná data turnaje ze Strapi',
       { zodErrors: parseResult.error.issues, raw }

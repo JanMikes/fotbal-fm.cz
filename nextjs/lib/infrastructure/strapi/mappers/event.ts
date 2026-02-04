@@ -28,7 +28,7 @@ function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | n
     id: c.documentId,
     name: c.name,
     slug: c.slug,
-    sortOrder: c.sortOrder,
+    sortOrder: c.sortOrder ?? 0,
   }));
 }
 
@@ -40,11 +40,12 @@ export function mapEvent(raw: unknown): Event {
   const parseResult = strapiRawEventSchema.safeParse(raw);
 
   if (!parseResult.success) {
-    console.error('[mapEvent] Validation failed:', parseResult.error.issues);
+    // Log detailed error information for debugging
+    console.error('[mapEvent] Validation failed. Errors:', JSON.stringify(parseResult.error.issues, null, 2));
+    console.error('[mapEvent] Raw data received:', JSON.stringify(raw, null, 2));
     throw new ValidationError(
       'Neplatná data události ze Strapi',
       { zodErrors: parseResult.error.issues, raw }
-    );
   }
 
   const data = parseResult.data;
