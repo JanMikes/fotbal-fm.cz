@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "players",
+  "info": {
+    "singularName": "player",
+    "pluralName": "players",
+    "displayName": "Player",
+    "description": "Team players and coaching staff"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["hráč", "realizační tým"],
+      "required": true
+    },
+    "number": {
+      "type": "integer"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "position": {
+      "type": "enumeration",
+      "enum": ["brankář", "obránce", "záložník", "útočník"]
+    },
+    "positionText": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "twitter": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "inversedBy": "players"
+    }
+  }
+}

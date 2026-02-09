@@ -49,6 +49,12 @@
       "relation": "manyToMany",
       "target": "api::news-article.news-article",
       "mappedBy": "categories"
+    },
+    "players": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::player.player",
+      "mappedBy": "categories"
     }
   }
 }

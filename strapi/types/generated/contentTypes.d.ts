@@ -463,6 +463,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::news-article.news-article'
     >;
+    players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.String &
       Schema.Attribute.Required &
@@ -698,6 +699,59 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     video: Schema.Attribute.String;
+  };
+}
+
+export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
+  collectionName: 'players';
+  info: {
+    description: 'Team players and coaching staff';
+    displayName: 'Player';
+    pluralName: 'players';
+    singularName: 'player';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    bio: Schema.Attribute.Text;
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    facebook: Schema.Attribute.String;
+    instagram: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player.player'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    number: Schema.Attribute.Integer;
+    photo: Schema.Attribute.Media<'images'>;
+    position: Schema.Attribute.Enumeration<
+      [
+        'brank\u00E1\u0159',
+        'obr\u00E1nce',
+        'z\u00E1lo\u017En\u00EDk',
+        '\u00FAto\u010Dn\u00EDk',
+      ]
+    >;
+    positionText: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    twitter: Schema.Attribute.String;
+    type: Schema.Attribute.Enumeration<
+      ['hr\u00E1\u010D', 'realiza\u010Dn\u00ED t\u00FDm']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1363,6 +1417,7 @@ declare module '@strapi/strapi' {
       'api::event.event': ApiEventEvent;
       'api::match-result.match-result': ApiMatchResultMatchResult;
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
+      'api::player.player': ApiPlayerPlayer;
       'api::team-logo.team-logo': ApiTeamLogoTeamLogo;
       'api::tournament-match.tournament-match': ApiTournamentMatchTournamentMatch;
       'api::tournament.tournament': ApiTournamentTournament;
