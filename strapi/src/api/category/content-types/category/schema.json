@@ -43,6 +43,12 @@
       "relation": "manyToMany",
       "target": "api::event.event",
       "mappedBy": "categories"
+    },
+    "newsArticles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::news-article.news-article",
+      "mappedBy": "categories"
     }
   }
 }
