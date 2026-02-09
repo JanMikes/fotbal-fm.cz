@@ -644,6 +644,38 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiTeamLogoTeamLogo extends Struct.CollectionTypeSchema {
+  collectionName: 'team_logos';
+  info: {
+    description: 'Reusable team logos (crests) that can be referenced from other content types';
+    displayName: 'Team Logo';
+    pluralName: 'team-logos';
+    singularName: 'team-logo';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::team-logo.team-logo'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiTournamentMatchTournamentMatch
   extends Struct.CollectionTypeSchema {
   collectionName: 'tournament_matches';
@@ -1273,6 +1305,7 @@ declare module '@strapi/strapi' {
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
       'api::match-result.match-result': ApiMatchResultMatchResult;
+      'api::team-logo.team-logo': ApiTeamLogoTeamLogo;
       'api::tournament-match.tournament-match': ApiTournamentMatchTournamentMatch;
       'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;

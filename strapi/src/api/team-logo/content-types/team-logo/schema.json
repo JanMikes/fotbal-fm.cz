@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "team_logos",
+  "info": {
+    "singularName": "team-logo",
+    "pluralName": "team-logos",
+    "displayName": "Team Logo",
+    "description": "Reusable team logos (crests) that can be referenced from other content types"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}
