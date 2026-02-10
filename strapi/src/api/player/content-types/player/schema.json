@@ -16,6 +16,10 @@
       "type": "string",
       "required": true
     },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
     "type": {
       "type": "enumeration",
       "enum": ["hráč", "realizační tým"],

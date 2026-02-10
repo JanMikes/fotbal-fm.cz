@@ -649,6 +649,43 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiNewsArticleTypeNewsArticleType
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'news_article_types';
+  info: {
+    description: 'Types/badges for news articles (e.g. Akademie, Fanshop, Rozhovor)';
+    displayName: 'News Article Type';
+    pluralName: 'news-article-types';
+    singularName: 'news-article-type';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::news-article-type.news-article-type'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    newsArticles: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::news-article.news-article'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
   collectionName: 'news_articles';
   info: {
@@ -689,11 +726,16 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    newsArticleType: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::news-article-type.news-article-type'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     relatedNews: Schema.Attribute.Relation<
       'manyToMany',
       'api::news-article.news-article'
     >;
+    slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -743,6 +785,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     >;
     positionText: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'>;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     twitter: Schema.Attribute.String;
     type: Schema.Attribute.Enumeration<
@@ -1416,6 +1459,7 @@ declare module '@strapi/strapi' {
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
       'api::match-result.match-result': ApiMatchResultMatchResult;
+      'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
       'api::player.player': ApiPlayerPlayer;
       'api::team-logo.team-logo': ApiTeamLogoTeamLogo;

@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "news_article_types",
+  "info": {
+    "singularName": "news-article-type",
+    "pluralName": "news-article-types",
+    "displayName": "News Article Type",
+    "description": "Types/badges for news articles (e.g. Akademie, Fanshop, Rozhovor)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "newsArticles": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::news-article.news-article",
+      "mappedBy": "newsArticleType"
+    }
+  }
+}

@@ -4,11 +4,31 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { NewsCard } from '../ui';
 import Button from '../ui/Button';
-import { news } from '@/data/mockData';
+import type { NewsArticleSummary } from '@/lib/types';
 
-export default function News() {
-  const featuredNews = news[0];
-  const otherNews = news.slice(1, 6);
+interface NewsListProps {
+  articles: NewsArticleSummary[];
+  categorySlug: string;
+}
+
+export default function NewsList({ articles, categorySlug }: NewsListProps) {
+  if (articles.length === 0) {
+    return (
+      <section className="py-section bg-white">
+        <div className="container mx-auto px-4 lg:px-8">
+          <h2 className="text-section text-primary uppercase accent-underline mb-4">
+            Novinky
+          </h2>
+          <p className="text-body-lg text-primary/60">
+            Zatím zde nejsou žádné novinky.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const featuredNews = articles[0];
+  const otherNews = articles.slice(1, 6);
 
   return (
     <section className="py-section bg-white">
@@ -48,41 +68,34 @@ export default function News() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-7 lg:row-span-2"
           >
-            <NewsCard article={featuredNews} featured />
+            <NewsCard article={featuredNews} categorySlug={categorySlug} featured />
           </motion.div>
 
           {/* Secondary Articles */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="lg:col-span-5"
-          >
-            <NewsCard article={otherNews[0]} />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="lg:col-span-5"
-          >
-            <NewsCard article={otherNews[1]} />
-          </motion.div>
+          {otherNews.slice(0, 2).map((article, index) => (
+            <motion.div
+              key={article.documentId}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
+              className="lg:col-span-5"
+            >
+              <NewsCard article={article} categorySlug={categorySlug} />
+            </motion.div>
+          ))}
 
           {/* Bottom Row */}
           {otherNews.slice(2, 5).map((article, index) => (
             <motion.div
-              key={article.id}
+              key={article.documentId}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
               className="lg:col-span-4"
             >
-              <NewsCard article={article} />
+              <NewsCard article={article} categorySlug={categorySlug} />
             </motion.div>
           ))}
         </div>

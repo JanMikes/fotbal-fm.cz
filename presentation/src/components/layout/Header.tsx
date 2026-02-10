@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import type { Category } from '@/lib/types';
 
 const mainNavItems = [
   {
@@ -22,14 +23,6 @@ const mainNavItems = [
   { label: 'Kontakt', href: '/kontakt' },
 ];
 
-const categoryTabs = [
-  { label: 'Muži', id: 'muzi' },
-  { label: 'Dorostenci', id: 'dorostenci' },
-  { label: 'Ženy', id: 'zeny' },
-  { label: 'Mladší žáci', id: 'mladsi-zaci' },
-  { label: 'Starší žáci', id: 'starsi-zaci' },
-];
-
 const socialLinks = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
   { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
@@ -37,11 +30,32 @@ const socialLinks = [
   { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
 ];
 
-export default function Header() {
+interface HeaderProps {
+  categories: Category[];
+  activeCategorySlug: string;
+}
+
+export default function Header({ categories, activeCategorySlug }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('muzi');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const updateScrollIndicators = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  }, []);
+
+  const scrollCategories = useCallback((direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.6;
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,6 +65,33 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Track category scroll state & auto-scroll active item into view
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    updateScrollIndicators();
+    el.addEventListener('scroll', updateScrollIndicators, { passive: true });
+
+    const resizeObserver = new ResizeObserver(updateScrollIndicators);
+    resizeObserver.observe(el);
+
+    // Scroll active category into view
+    const activeLink = el.querySelector('[data-active="true"]') as HTMLElement | null;
+    if (activeLink) {
+      const elRect = el.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+      if (linkRect.left < elRect.left || linkRect.right > elRect.right) {
+        activeLink.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+      }
+    }
+
+    return () => {
+      el.removeEventListener('scroll', updateScrollIndicators);
+      resizeObserver.disconnect();
+    };
+  }, [categories, activeCategorySlug, updateScrollIndicators]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -184,22 +225,61 @@ export default function Header() {
 
         {/* Level 2 - Category Tabs */}
         <div className="border-t transition-all duration-300 border-primary/10">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2">
-              {categoryTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveCategory(tab.id)}
+          <div className="container mx-auto px-4 lg:px-8 relative">
+            {/* Left scroll indicator */}
+            <div
+              className={clsx(
+                'absolute left-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200 lg:left-8',
+                canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              )}
+            >
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+              <button
+                onClick={() => scrollCategories('left')}
+                className="relative w-7 h-7 rounded-full bg-white shadow-md border border-primary/10 flex items-center justify-center text-primary/60 hover:text-primary hover:shadow-lg transition-all"
+                aria-label="Posunout kategorie doleva"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Scrollable categories */}
+            <div
+              ref={scrollRef}
+              className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2"
+            >
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/${cat.slug}`}
+                  data-active={activeCategorySlug === cat.slug}
                   className={clsx(
                     'px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300',
-                    activeCategory === tab.id
+                    activeCategorySlug === cat.slug
                       ? 'bg-accent text-white'
                       : 'text-primary/70 hover:text-primary hover:bg-surface-light'
                   )}
                 >
-                  {tab.label}
-                </button>
+                  {cat.name}
+                </Link>
               ))}
+            </div>
+
+            {/* Right scroll indicator */}
+            <div
+              className={clsx(
+                'absolute right-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200 lg:right-8',
+                canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              )}
+            >
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+              <button
+                onClick={() => scrollCategories('right')}
+                className="relative w-7 h-7 rounded-full bg-white shadow-md border border-primary/10 flex items-center justify-center text-primary/60 hover:text-primary hover:shadow-lg transition-all"
+                aria-label="Posunout kategorie doprava"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -282,22 +362,20 @@ export default function Header() {
                   Týmy
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {categoryTabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveCategory(tab.id);
-                        setIsMobileMenuOpen(false);
-                      }}
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.slug}
+                      href={`/${cat.slug}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
                       className={clsx(
                         'px-4 py-2 text-sm font-medium transition-colors',
-                        activeCategory === tab.id
+                        activeCategorySlug === cat.slug
                           ? 'bg-accent text-white'
                           : 'bg-white/10 text-white/70 hover:text-white'
                       )}
                     >
-                      {tab.label}
-                    </button>
+                      {cat.name}
+                    </Link>
                   ))}
                 </div>
               </div>

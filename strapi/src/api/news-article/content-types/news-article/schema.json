@@ -16,6 +16,10 @@
       "type": "string",
       "required": true
     },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
     "description": {
       "type": "richtext"
     },
@@ -56,6 +60,12 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::news-article.news-article"
+    },
+    "newsArticleType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::news-article-type.news-article-type",
+      "inversedBy": "newsArticles"
     },
     "author": {
       "type": "relation",
