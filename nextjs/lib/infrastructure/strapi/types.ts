@@ -6,55 +6,26 @@
 import { z } from 'zod';
 
 // =============================================================================
-// Generic Strapi Response Types
+// Re-export shared types from @fotbal-fm/strapi-client
+// =============================================================================
+
+export type {
+  StrapiPagination,
+  StrapiSingleResponse,
+  StrapiCollectionResponse,
+  StrapiErrorResponse,
+  StrapiRawCategory,
+  StrapiQueryOptions,
+} from '@fotbal-fm/strapi-client';
+
+export { buildStrapiQueryString } from '@fotbal-fm/strapi-client';
+
+// =============================================================================
+// Raw Strapi Entity Types (nextjs-specific, as returned from API)
 // =============================================================================
 
 /**
- * Strapi pagination metadata
- */
-export interface StrapiPagination {
-  page: number;
-  pageSize: number;
-  pageCount: number;
-  total: number;
-}
-
-/**
- * Generic Strapi single response
- */
-export interface StrapiSingleResponse<T> {
-  data: T | null;
-  meta?: Record<string, unknown>;
-}
-
-/**
- * Generic Strapi collection response
- */
-export interface StrapiCollectionResponse<T> {
-  data: T[];
-  meta?: {
-    pagination?: StrapiPagination;
-  };
-}
-
-/**
- * Strapi error response structure
- */
-export interface StrapiErrorResponse {
-  error: {
-    status: number;
-    name: string;
-    message: string;
-    details?: unknown;
-  };
-}
-
-// =============================================================================
-// Raw Strapi Entity Types (as returned from API)
-// =============================================================================
-
-/**
- * Raw media attributes from Strapi
+ * Raw media format attributes from Strapi
  */
 export interface StrapiRawMediaFormat {
   name: string;
@@ -105,19 +76,6 @@ export interface StrapiRawUserInfo {
 }
 
 /**
- * Raw category from Strapi
- */
-export interface StrapiRawCategory {
-  id: number;
-  documentId: string;
-  name: string;
-  slug: string;
-  sortOrder: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-/**
  * Raw match result from Strapi (flattened Strapi 5 response)
  */
 export interface StrapiRawMatchResult {
@@ -130,7 +88,7 @@ export interface StrapiRawMatchResult {
   homeGoalscorers?: string | null;
   awayGoalscorers?: string | null;
   matchReport?: string | null;
-  categories?: StrapiRawCategory[] | null;
+  categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   matchDate?: string | null;
   imagesUrl?: string | null;
   images?: StrapiRawMedia[];
@@ -156,7 +114,7 @@ export interface StrapiRawEvent {
   eventTimeTo?: string | null;
   description?: string | null;
   requiresPhotographer?: boolean;
-  categories?: StrapiRawCategory[] | null;
+  categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   photos?: StrapiRawMedia[];
   files?: StrapiRawMedia[];
   author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo };
@@ -204,7 +162,7 @@ export interface StrapiRawTournament {
   location?: string | null;
   dateFrom: string;
   dateTo?: string | null;
-  categories?: StrapiRawCategory[] | null;
+  categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   imagesUrl?: string | null;
   photos?: StrapiRawMedia[] | null;
   players?: StrapiRawTournamentPlayer[] | null;
@@ -383,98 +341,4 @@ export interface EntityUploadResults {
   images?: UploadResult;
   files?: UploadResult;
   photos?: UploadResult;
-}
-
-// =============================================================================
-// Query Options
-// =============================================================================
-
-/**
- * Options for Strapi queries
- */
-export interface StrapiQueryOptions {
-  populate?: string | string[] | Record<string, unknown>;
-  filters?: Record<string, unknown>;
-  sort?: string | string[];
-  pagination?: {
-    page?: number;
-    pageSize?: number;
-    limit?: number;
-  };
-  fields?: string[];
-}
-
-/**
- * Build query string from StrapiQueryOptions
- */
-export function buildStrapiQueryString(options: StrapiQueryOptions): string {
-  const params = new URLSearchParams();
-
-  // Handle populate
-  if (options.populate) {
-    if (typeof options.populate === 'string') {
-      params.append('populate', options.populate);
-    } else if (Array.isArray(options.populate)) {
-      options.populate.forEach((p, i) => params.append(`populate[${i}]`, p));
-    } else {
-      // Complex populate object - convert to Strapi format
-      const flattenPopulate = (obj: Record<string, unknown>, prefix = 'populate'): void => {
-        for (const [key, value] of Object.entries(obj)) {
-          if (Array.isArray(value)) {
-            // Handle arrays like fields: ['id', 'firstname', 'lastname']
-            value.forEach((item, i) => params.append(`${prefix}[${key}][${i}]`, String(item)));
-          } else if (typeof value === 'object' && value !== null) {
-            flattenPopulate(value as Record<string, unknown>, `${prefix}[${key}]`);
-          } else {
-            params.append(`${prefix}[${key}]`, String(value));
-          }
-        }
-      };
-      flattenPopulate(options.populate);
-    }
-  }
-
-  // Handle filters
-  if (options.filters) {
-    const flattenFilters = (obj: Record<string, unknown>, prefix = 'filters'): void => {
-      for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          flattenFilters(value as Record<string, unknown>, `${prefix}[${key}]`);
-        } else {
-          params.append(`${prefix}[${key}]`, String(value));
-        }
-      }
-    };
-    flattenFilters(options.filters);
-  }
-
-  // Handle sort
-  if (options.sort) {
-    if (typeof options.sort === 'string') {
-      params.append('sort', options.sort);
-    } else {
-      options.sort.forEach((s, i) => params.append(`sort[${i}]`, s));
-    }
-  }
-
-  // Handle pagination
-  if (options.pagination) {
-    if (options.pagination.page !== undefined) {
-      params.append('pagination[page]', String(options.pagination.page));
-    }
-    if (options.pagination.pageSize !== undefined) {
-      params.append('pagination[pageSize]', String(options.pagination.pageSize));
-    }
-    if (options.pagination.limit !== undefined) {
-      params.append('pagination[limit]', String(options.pagination.limit));
-    }
-  }
-
-  // Handle fields
-  if (options.fields) {
-    options.fields.forEach((f, i) => params.append(`fields[${i}]`, f));
-  }
-
-  const queryString = params.toString();
-  return queryString ? `?${queryString}` : '';
 }

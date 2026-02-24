@@ -4,12 +4,19 @@ EXPOSE 3000
 
 WORKDIR /app
 
+# Copy workspace root and shared packages
 COPY package.json package-lock.json ./
+COPY packages/ ./packages/
+COPY nextjs/ ./nextjs/
+
+# Create stubs for other workspace members
+RUN mkdir -p presentation && echo '{"name":"@fotbal-fm/presentation","version":"0.1.0","private":true}' > presentation/package.json
+RUN mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json
 
 # Install dependencies (including devDependencies needed for build)
 RUN npm ci
 
-COPY . .
+WORKDIR /app/nextjs
 
 ENV NODE_ENV=production
 

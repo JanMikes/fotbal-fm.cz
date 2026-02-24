@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Generate source maps for error tracking, but don't serve them publicly
   productionBrowserSourceMaps: false,
+  transpilePackages: ['@fotbal-fm/strapi-client'],
 };
 
 // Only enable Sentry instrumentation if DSN is provided (production builds)

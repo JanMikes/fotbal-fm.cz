@@ -1,0 +1,10 @@
+{
+  "name": "@fotbal-fm/root",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "nextjs",
+    "presentation",
+    "api"
+  ]
+}

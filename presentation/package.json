@@ -1,5 +1,5 @@
 {
-  "name": "fk-frydek-mistek-presentation",
+  "name": "@fotbal-fm/presentation",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,7 +16,8 @@
     "embla-carousel-react": "^8.5.1",
     "embla-carousel-autoplay": "^8.5.1",
     "lucide-react": "^0.469.0",
-    "clsx": "^2.1.1"
+    "clsx": "^2.1.1",
+    "@fotbal-fm/strapi-client": "*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

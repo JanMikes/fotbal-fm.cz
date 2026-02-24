@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.claude
+docs
+strapi/
+nginx/
+**/node_modules
+**/.next
+**/.env*
+**/dist
