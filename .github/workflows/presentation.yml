@@ -12,11 +12,13 @@ on:
         paths:
             - 'presentation/**'
             - 'packages/**'
+            - 'package-lock.json'
             - '.github/workflows/presentation.yml'
     pull_request:
         paths:
             - 'presentation/**'
             - 'packages/**'
+            - 'package-lock.json'
             - '.github/workflows/presentation.yml'
 
 jobs:

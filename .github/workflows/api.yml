@@ -12,6 +12,7 @@ on:
         paths:
             - 'api/**'
             - 'packages/**'
+            - 'package-lock.json'
             - '.github/workflows/api.yml'
 
 jobs:
