@@ -23,7 +23,7 @@
     "react-select": "^5.10.2",
     "swr": "^2.3.8",
     "yet-another-react-lightbox": "^3.25.0",
-    "zod": "^4.1.12",
+    "zod": "^3.25.0",
     "@fotbal-fm/strapi-client": "*"
   },
   "devDependencies": {

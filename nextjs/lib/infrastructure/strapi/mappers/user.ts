@@ -3,7 +3,7 @@
  * Transforms raw Strapi user data into domain User type.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { User } from '@/types/user';
 import { StrapiRawUser } from '../types';
 import { ValidationError } from '@/lib/core/errors';

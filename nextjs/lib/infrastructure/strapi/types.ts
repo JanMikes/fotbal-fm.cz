@@ -3,7 +3,7 @@
  * These types represent the raw response structures from Strapi 5 CMS.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 // =============================================================================
 // Re-export shared types from @fotbal-fm/strapi-client

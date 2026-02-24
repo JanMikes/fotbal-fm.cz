@@ -3,7 +3,7 @@
  * Transforms raw Strapi match result data into domain MatchResult type.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { MatchResult } from '@/types/match-result';
 import { Category } from '@/types/category';
 import { StrapiRawMatchResult, StrapiRawCategory, strapiRawMatchResultSchema, strapiRawCategorySchema } from '../types';

@@ -3,7 +3,7 @@
  * Transforms raw Strapi event data into domain Event type.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { Event, EventType } from '@/types/event';
 import { Category } from '@/types/category';
 import { StrapiRawEvent, StrapiRawCategory, strapiRawEventSchema, strapiRawCategorySchema } from '../types';

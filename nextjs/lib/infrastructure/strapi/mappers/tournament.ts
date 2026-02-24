@@ -3,7 +3,7 @@
  * Transforms raw Strapi tournament data into domain Tournament type.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { Tournament, TournamentPlayer } from '@/types/tournament';
 import { Category } from '@/types/category';
 import { TournamentMatch } from '@/types/tournament-match';

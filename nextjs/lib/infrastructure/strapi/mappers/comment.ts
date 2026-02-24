@@ -3,7 +3,7 @@
  * Transforms raw Strapi comment data into domain Comment type.
  */
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { Comment } from '@/types/comment';
 import { StrapiRawComment, strapiRawUserInfoSchema } from '../types';
 import { mapUserInfo } from './shared';
