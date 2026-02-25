@@ -1,7 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { swaggerUI } from '@hono/swagger-ui';
 import { categoriesRoute } from './routes/categories.js';
-import { authLoginRoute } from './routes/auth.js';
+import { authLoginRoute, authRegisterRoute } from './routes/auth.js';
 
 export const app = new OpenAPIHono();
 
@@ -11,6 +11,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 // Register API routes
 app.route('/api/v1', categoriesRoute);
 app.route('/api/v1', authLoginRoute);
+app.route('/api/v1', authRegisterRoute);
 
 // OpenAPI spec
 app.doc('/openapi.json', {

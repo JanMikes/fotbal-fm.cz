@@ -34,9 +34,17 @@ export async function strapiPost<T>(
 ): Promise<T> {
   const url = `${STRAPI_URL}/api${path}`;
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (STRAPI_API_TOKEN) {
+    headers['Authorization'] = `Bearer ${STRAPI_API_TOKEN}`;
+  }
+
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
 
