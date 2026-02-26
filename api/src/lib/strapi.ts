@@ -28,7 +28,62 @@ export async function strapiGet<T>(
   return res.json() as Promise<StrapiCollectionResponse<T>>;
 }
 
+export async function strapiGetSingle<T>(
+  path: string,
+  authToken?: string,
+): Promise<T> {
+  const url = `${STRAPI_URL}/api${path}`;
+  const token = authToken ?? STRAPI_API_TOKEN;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { headers });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    throw new Error(JSON.stringify(error));
+  }
+
+  return res.json() as Promise<T>;
+}
+
 export async function strapiPost<T>(
+  path: string,
+  body: unknown,
+  authToken?: string,
+): Promise<T> {
+  const url = `${STRAPI_URL}/api${path}`;
+  const token = authToken ?? STRAPI_API_TOKEN;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    throw new Error(JSON.stringify(error));
+  }
+
+  return res.json() as Promise<T>;
+}
+
+export async function strapiPut<T>(
   path: string,
   body: unknown,
 ): Promise<T> {
@@ -43,9 +98,37 @@ export async function strapiPost<T>(
   }
 
   const res = await fetch(url, {
-    method: 'POST',
+    method: 'PUT',
     headers,
     body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: { message: res.statusText } }));
+    throw new Error(JSON.stringify(error));
+  }
+
+  return res.json() as Promise<T>;
+}
+
+export async function strapiDelete<T>(
+  path: string,
+  authToken?: string,
+): Promise<T> {
+  const url = `${STRAPI_URL}/api${path}`;
+  const token = authToken ?? STRAPI_API_TOKEN;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers,
   });
 
   if (!res.ok) {

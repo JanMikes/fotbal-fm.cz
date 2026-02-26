@@ -83,8 +83,8 @@ export interface StrapiRawMatchResult {
   documentId: string;
   homeTeam: string;
   awayTeam: string;
-  homeScore: number;
-  awayScore: number;
+  homeScore: number | null;
+  awayScore: number | null;
   homeGoalscorers?: string | null;
   awayGoalscorers?: string | null;
   matchReport?: string | null;
@@ -95,6 +95,15 @@ export interface StrapiRawMatchResult {
   files?: StrapiRawMedia[];
   author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo };
   lastModifiedBy?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null };
+  facrId?: string | null;
+  round?: number | null;
+  venue?: string | null;
+  matchTime?: string | null;
+  competitionName?: string | null;
+  competitionCode?: string | null;
+  season?: number | null;
+  period?: string | null;
+  organizingBody?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -257,6 +266,7 @@ export const strapiRawCategorySchema = z.object({
   name: z.string(),
   slug: z.string(),
   sortOrder: z.number().optional().nullable(),
+  hidden: z.boolean().optional().nullable(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
 });
@@ -269,8 +279,8 @@ export const strapiRawMatchResultSchema = z.object({
   documentId: z.string(),
   homeTeam: z.string(),
   awayTeam: z.string(),
-  homeScore: z.number(),
-  awayScore: z.number(),
+  homeScore: z.number().nullable(),
+  awayScore: z.number().nullable(),
   homeGoalscorers: z.string().nullable().optional(),
   awayGoalscorers: z.string().nullable().optional(),
   matchReport: z.string().nullable().optional(),
@@ -287,6 +297,15 @@ export const strapiRawMatchResultSchema = z.object({
     strapiRawUserInfoSchema,
     z.object({ data: strapiRawUserInfoSchema.nullable().optional() }),
   ]).nullable().optional(),
+  facrId: z.string().nullable().optional(),
+  round: z.number().nullable().optional(),
+  venue: z.string().nullable().optional(),
+  matchTime: z.string().nullable().optional(),
+  competitionName: z.string().nullable().optional(),
+  competitionCode: z.string().nullable().optional(),
+  season: z.number().nullable().optional(),
+  period: z.string().nullable().optional(),
+  organizingBody: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

@@ -61,6 +61,22 @@
       "relation": "manyToMany",
       "target": "api::category.category",
       "inversedBy": "players"
+    },
+    "facrId": {
+      "type": "string"
+    },
+    "dateOfBirth": {
+      "type": "date"
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "facrUuid": {
+      "type": "string"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

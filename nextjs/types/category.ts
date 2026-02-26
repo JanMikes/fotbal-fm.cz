@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   slug: string;
   sortOrder: number;
+  hidden?: boolean;
 }
 
 export interface StrapiRawCategory {

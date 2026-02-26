@@ -55,6 +55,22 @@
       "relation": "manyToMany",
       "target": "api::player.player",
       "mappedBy": "categories"
+    },
+    "hidden": {
+      "type": "boolean",
+      "default": false
+    },
+    "categoryCodes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category-code.category-code",
+      "mappedBy": "category"
+    },
+    "competitions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::competition.competition",
+      "mappedBy": "category"
     }
   }
 }

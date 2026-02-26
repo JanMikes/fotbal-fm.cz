@@ -45,6 +45,33 @@ export interface StrapiRawPlayer {
   twitter: string | null;
   facebook: string | null;
   categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
+  facrId: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  facrUuid: string | null;
+  isActive: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrapiRawMatchResult {
+  id: number;
+  documentId: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  matchDate: string;
+  matchTime: string | null;
+  venue: string | null;
+  round: number | null;
+  competitionName: string | null;
+  competitionCode: string | null;
+  season: number | null;
+  period: string | null;
+  organizingBody: string | null;
+  facrId: string | null;
+  categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   createdAt: string;
   updatedAt: string;
 }

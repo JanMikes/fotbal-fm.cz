@@ -35,6 +35,20 @@ export interface NewsArticle extends NewsArticleSummary {
   relatedNews: NewsArticleSummary[];
 }
 
+export interface Match {
+  id: number;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  matchDate: string;
+  matchTime: string;
+  venue: string;
+  round: number | null;
+  competitionName: string;
+  status: 'upcoming' | 'finished';
+}
+
 export interface Player {
   documentId: string;
   name: string;
@@ -50,4 +64,8 @@ export interface Player {
   twitter: string | null;
   facebook: string | null;
   categories: Category[];
+  facrId: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  isActive: boolean;
 }

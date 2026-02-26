@@ -125,6 +125,20 @@ docker compose ps
 docker compose up --build
 ```
 
+### CLI Commands (Data Sync)
+```bash
+# Sync competitions from FAČR IS to Strapi
+# Requires FACR_EMAIL and FACR_PASSWORD env vars (set in compose.override.yaml)
+docker compose exec api npx tsx src/cli/sync-competitions.ts
+
+# Sync players from FAČR IS to Strapi (scrapes list + detail pages, uploads photos)
+docker compose exec api npx tsx src/cli/sync-players.ts
+
+# For cron (non-interactive, no TTY)
+docker compose exec -T api npx tsx src/cli/sync-competitions.ts
+docker compose exec -T api npx tsx src/cli/sync-players.ts
+```
+
 ## Configuration Notes
 
 ### Strapi Database

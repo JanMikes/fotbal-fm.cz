@@ -22,12 +22,10 @@
     },
     "homeScore": {
       "type": "integer",
-      "required": true,
       "min": 0
     },
     "awayScore": {
       "type": "integer",
-      "required": true,
       "min": 0
     },
     "homeGoalscorers": {
@@ -78,6 +76,34 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
+    },
+    "facrId": {
+      "type": "string",
+      "unique": true
+    },
+    "round": {
+      "type": "integer"
+    },
+    "venue": {
+      "type": "string"
+    },
+    "matchTime": {
+      "type": "string"
+    },
+    "competitionName": {
+      "type": "string"
+    },
+    "competitionCode": {
+      "type": "string"
+    },
+    "season": {
+      "type": "integer"
+    },
+    "period": {
+      "type": "string"
+    },
+    "organizingBody": {
+      "type": "string"
     }
   }
 }

@@ -48,6 +48,7 @@ export interface StrapiRawCategory {
   name: string;
   slug: string;
   sortOrder: number;
+  hidden?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

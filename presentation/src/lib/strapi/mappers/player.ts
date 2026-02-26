@@ -19,5 +19,9 @@ export function mapPlayer(raw: StrapiRawPlayer): Player {
     twitter: raw.twitter,
     facebook: raw.facebook,
     categories: mapCategories(raw.categories),
+    facrId: raw.facrId,
+    dateOfBirth: raw.dateOfBirth,
+    nationality: raw.nationality,
+    isActive: raw.isActive ?? true,
   };
 }

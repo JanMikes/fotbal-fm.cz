@@ -1,22 +1,26 @@
 import type {
   Category,
+  Match,
   NewsArticle,
   NewsArticleSummary,
   Player,
 } from '@/lib/types';
 import type {
   StrapiRawCategory,
+  StrapiRawMatchResult,
   StrapiRawNewsArticle,
   StrapiRawPlayer,
 } from './types';
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
+import { mapMatchResult } from './mappers/match-result';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
 import { mapPlayer } from './mappers/player';
 
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
   const { data } = await client.findMany<StrapiRawCategory>('categories', {
+    filters: { hidden: { $ne: true } },
     sort: 'sortOrder:asc',
     pagination: { pageSize: 100 },
   });
@@ -76,6 +80,18 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapNewsArticle(data[0]) : null;
+}
+
+export async function getMatchesByCategory(categorySlug: string): Promise<Match[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawMatchResult>('match-results', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+    },
+    sort: 'matchDate:desc',
+    pagination: { pageSize: 20 },
+  });
+  return data.map(mapMatchResult);
 }
 
 export async function getPlayersByCategory(categorySlug: string): Promise<Player[]> {

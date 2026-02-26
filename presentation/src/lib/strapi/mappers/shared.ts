@@ -13,9 +13,9 @@ export function mapMedia(raw: StrapiRawMedia | null | undefined): MediaImage | n
   if (!raw?.url) return null;
   return {
     url: transformImageUrl(raw.url),
-    alternativeText: raw.alternativeText,
-    width: raw.width,
-    height: raw.height,
+    alternativeText: raw.alternativeText ?? null,
+    width: raw.width ?? 0,
+    height: raw.height ?? 0,
   };
 }
 

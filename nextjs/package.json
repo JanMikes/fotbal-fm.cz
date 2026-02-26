@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fotbal-fm/strapi-client": "*",
     "@hookform/resolvers": "^5.2.2",
     "@sentry/nextjs": "^10.26",
     "iron-session": "^8.0.4",
+    "lightningcss-linux-arm64-gnu": "^1.31.1",
     "lucide-react": "^0.554.0",
     "next": "^16.0",
     "nodemailer": "^7.0.11",
@@ -23,8 +25,7 @@
     "react-select": "^5.10.2",
     "swr": "^2.3.8",
     "yet-another-react-lightbox": "^3.25.0",
-    "zod": "^3.25.0",
-    "@fotbal-fm/strapi-client": "*"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

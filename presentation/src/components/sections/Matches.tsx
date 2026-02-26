@@ -6,14 +6,14 @@ import { clsx } from 'clsx';
 import { ArrowRight, Calendar } from 'lucide-react';
 import { MatchCard } from '../ui';
 import Button from '../ui/Button';
-import { matches } from '@/data/mockData';
+import type { Match } from '@/lib/types';
 
 type MatchFilter = 'upcoming' | 'finished';
 
-export default function Matches() {
+export default function Matches({ matches }: { matches: Match[] }) {
   const [filter, setFilter] = useState<MatchFilter>('upcoming');
 
-  const upcomingMatches = matches.filter((m) => m.status === 'upcoming' || m.status === 'live');
+  const upcomingMatches = matches.filter((m) => m.status === 'upcoming');
   const finishedMatches = matches.filter((m) => m.status === 'finished');
 
   const displayedMatches = filter === 'upcoming' ? upcomingMatches : finishedMatches;

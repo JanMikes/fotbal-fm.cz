@@ -430,6 +430,39 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCategoryCodeCategoryCode
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'category_codes';
+  info: {
+    description: 'Maps FA\u010CR competition codes to categories';
+    displayName: 'Category Code';
+    pluralName: 'category-codes';
+    singularName: 'category-code';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
+    code: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category-code.category-code'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
@@ -442,10 +475,19 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    categoryCodes: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category-code.category-code'
+    >;
+    competitions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::competition.competition'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     events: Schema.Attribute.Relation<'manyToMany', 'api::event.event'>;
+    hidden: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -526,6 +568,46 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiCompetitionCompetition extends Struct.CollectionTypeSchema {
+  collectionName: 'competitions';
+  info: {
+    description: 'Football competitions from FA\u010CR IS';
+    displayName: 'Competition';
+    pluralName: 'competitions';
+    singularName: 'competition';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
+    categoryLetter: Schema.Attribute.String & Schema.Attribute.Required;
+    code: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    facrId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    group: Schema.Attribute.String;
+    level: Schema.Attribute.Integer;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::competition.competition'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    organizingBody: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    season: Schema.Attribute.Integer & Schema.Attribute.Required;
+    type: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
@@ -599,7 +681,6 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
     >;
     awayGoalscorers: Schema.Attribute.Text;
     awayScore: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<
         {
           min: 0;
@@ -611,16 +692,18 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::category.category'
     >;
+    competitionCode: Schema.Attribute.String;
+    competitionName: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    facrId: Schema.Attribute.String & Schema.Attribute.Unique;
     files: Schema.Attribute.Media<
       'files' | 'images' | 'videos' | 'audios',
       true
     >;
     homeGoalscorers: Schema.Attribute.Text;
     homeScore: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<
         {
           min: 0;
@@ -642,10 +725,16 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     matchDate: Schema.Attribute.Date & Schema.Attribute.Required;
     matchReport: Schema.Attribute.Text;
+    matchTime: Schema.Attribute.String;
+    organizingBody: Schema.Attribute.String;
+    period: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    round: Schema.Attribute.Integer;
+    season: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    venue: Schema.Attribute.String;
   };
 }
 
@@ -764,8 +853,12 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    dateOfBirth: Schema.Attribute.Date;
     facebook: Schema.Attribute.String;
+    facrId: Schema.Attribute.String;
+    facrUuid: Schema.Attribute.String;
     instagram: Schema.Attribute.String;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -773,6 +866,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    nationality: Schema.Attribute.String;
     number: Schema.Attribute.Integer;
     photo: Schema.Attribute.Media<'images'>;
     position: Schema.Attribute.Enumeration<
@@ -1456,8 +1550,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::category-code.category-code': ApiCategoryCodeCategoryCode;
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
+      'api::competition.competition': ApiCompetitionCompetition;
       'api::event.event': ApiEventEvent;
       'api::match-result.match-result': ApiMatchResultMatchResult;
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;

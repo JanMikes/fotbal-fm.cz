@@ -106,7 +106,7 @@ export default function Hero() {
                                   <span className="text-lg lg:text-xl font-black text-white">FM</span>
                                 </div>
                                 <span className="text-white font-bold text-sm uppercase tracking-wide">
-                                  {slide.match.homeTeam.name}
+                                  {slide.match.homeTeam}
                                 </span>
                               </div>
 
@@ -119,11 +119,11 @@ export default function Hero() {
                               <div className="flex flex-col items-center gap-2">
                                 <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
                                   <span className="text-lg lg:text-xl font-black text-white/60">
-                                    {slide.match.awayTeam.name.substring(0, 2).toUpperCase()}
+                                    {slide.match.awayTeam.substring(0, 2).toUpperCase()}
                                   </span>
                                 </div>
                                 <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
-                                  {slide.match.awayTeam.name}
+                                  {slide.match.awayTeam}
                                 </span>
                               </div>
                             </motion.div>

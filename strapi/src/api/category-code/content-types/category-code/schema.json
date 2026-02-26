@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "category_codes",
+  "info": {
+    "singularName": "category-code",
+    "pluralName": "category-codes",
+    "displayName": "Category Code",
+    "description": "Maps FAČR competition codes to categories"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "categoryCodes"
+    }
+  }
+}

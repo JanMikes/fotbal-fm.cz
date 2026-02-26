@@ -65,8 +65,8 @@ export interface MatchResult {
   id: string;
   homeTeam: string;
   awayTeam: string;
-  homeScore: number;
-  awayScore: number;
+  homeScore: number | null;
+  awayScore: number | null;
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
@@ -78,6 +78,15 @@ export interface MatchResult {
   authorId: number;
   author?: UserInfo;
   modifiedBy?: UserInfo;
+  facrId?: string;
+  round?: number;
+  venue?: string;
+  matchTime?: string;
+  competitionName?: string;
+  competitionCode?: string;
+  season?: number;
+  period?: string;
+  organizingBody?: string;
   createdAt: string;
   updatedAt: string;
 }

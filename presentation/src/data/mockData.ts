@@ -1,23 +1,4 @@
 // Types
-export interface Team {
-  name: string;
-  logo?: string;
-}
-
-export interface Match {
-  id: string;
-  homeTeam: Team;
-  awayTeam: Team;
-  homeScore?: number;
-  awayScore?: number;
-  date: string;
-  time: string;
-  venue: string;
-  round: number;
-  status: 'upcoming' | 'live' | 'finished';
-  competition: string;
-}
-
 export interface NewsArticle {
   id: string;
   title: string;
@@ -56,6 +37,14 @@ export interface Staff {
   };
 }
 
+export interface HeroMatchData {
+  homeTeam: string;
+  awayTeam: string;
+  date: string;
+  time: string;
+  venue: string;
+}
+
 export interface HeroSlide {
   id: string;
   type: 'match' | 'news' | 'promo';
@@ -63,76 +52,12 @@ export interface HeroSlide {
   title: string;
   subtitle?: string;
   description?: string;
-  match?: Match;
+  match?: HeroMatchData;
   ctaText?: string;
   ctaLink?: string;
 }
 
 // Mock Data
-export const matches: Match[] = [
-  {
-    id: '1',
-    homeTeam: { name: 'FK Frýdek-Místek' },
-    awayTeam: { name: 'FC Baník Ostrava B' },
-    date: 'So 25. 1.',
-    time: '15:00',
-    venue: 'Městský stadion',
-    round: 16,
-    status: 'upcoming',
-    competition: 'MSFL',
-  },
-  {
-    id: '2',
-    homeTeam: { name: 'SK Sigma Olomouc B' },
-    awayTeam: { name: 'FK Frýdek-Místek' },
-    date: 'So 1. 2.',
-    time: '10:30',
-    venue: 'Andrův stadion',
-    round: 17,
-    status: 'upcoming',
-    competition: 'MSFL',
-  },
-  {
-    id: '3',
-    homeTeam: { name: 'FK Frýdek-Místek' },
-    awayTeam: { name: 'MFK Vítkovice' },
-    homeScore: 3,
-    awayScore: 1,
-    date: 'So 18. 1.',
-    time: '15:00',
-    venue: 'Městský stadion',
-    round: 15,
-    status: 'finished',
-    competition: 'MSFL',
-  },
-  {
-    id: '4',
-    homeTeam: { name: 'SFC Opava' },
-    awayTeam: { name: 'FK Frýdek-Místek' },
-    homeScore: 2,
-    awayScore: 2,
-    date: 'So 11. 1.',
-    time: '14:00',
-    venue: 'Městský stadion Opava',
-    round: 14,
-    status: 'finished',
-    competition: 'MSFL',
-  },
-  {
-    id: '5',
-    homeTeam: { name: 'FK Frýdek-Místek' },
-    awayTeam: { name: 'FC Hlučín' },
-    homeScore: 2,
-    awayScore: 0,
-    date: 'Ne 5. 1.',
-    time: '15:00',
-    venue: 'Městský stadion',
-    round: 13,
-    status: 'finished',
-    competition: 'MSFL',
-  },
-];
-
 export const news: NewsArticle[] = [
   {
     id: '1',
@@ -370,7 +295,13 @@ export const heroSlides: HeroSlide[] = [
     image: '/hero/hero-1.jpg',
     title: 'Další domácí zápas',
     subtitle: 'MSFL • 16. kolo',
-    match: matches[0],
+    match: {
+      homeTeam: 'FK Frýdek-Místek',
+      awayTeam: 'FC Baník Ostrava B',
+      date: 'So 25. 1.',
+      time: '15:00',
+      venue: 'Městský stadion',
+    },
     ctaText: 'Koupit vstupenky',
     ctaLink: '/vstupenky',
   },
