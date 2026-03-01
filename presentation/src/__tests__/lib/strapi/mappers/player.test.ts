@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { StrapiRawPlayer } from '../../../../lib/strapi/types';
 
 vi.mock('@/lib/config', () => ({
   config: {
@@ -9,7 +10,7 @@ vi.mock('@/lib/config', () => ({
 
 const { mapPlayer } = await import('../../../../lib/strapi/mappers/player');
 
-function makeRawPlayer(overrides: Record<string, unknown> = {}) {
+function makeRawPlayer(overrides: Record<string, unknown> = {}): StrapiRawPlayer {
   return {
     id: 1,
     documentId: 'player-1',
@@ -42,12 +43,12 @@ function makeRawPlayer(overrides: Record<string, unknown> = {}) {
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-06-01T00:00:00Z',
     ...overrides,
-  };
+  } as StrapiRawPlayer;
 }
 
 describe('mapPlayer', () => {
   it('maps all fields correctly', () => {
-    const result = mapPlayer(makeRawPlayer() as any);
+    const result = mapPlayer(makeRawPlayer());
 
     expect(result.documentId).toBe('player-1');
     expect(result.name).toBe('Jan Novák');
@@ -68,38 +69,38 @@ describe('mapPlayer', () => {
   });
 
   it('maps photo with transformed URL', () => {
-    const result = mapPlayer(makeRawPlayer() as any);
+    const result = mapPlayer(makeRawPlayer());
     expect(result.photo?.url).toBe('http://uploads.test/uploads/jan.jpg');
   });
 
   it('maps categories', () => {
-    const result = mapPlayer(makeRawPlayer() as any);
+    const result = mapPlayer(makeRawPlayer());
     expect(result.categories).toHaveLength(1);
     expect(result.categories[0].slug).toBe('muzi');
   });
 
   it('handles null photo', () => {
-    const result = mapPlayer(makeRawPlayer({ photo: null }) as any);
+    const result = mapPlayer(makeRawPlayer({ photo: null }));
     expect(result.photo).toBeNull();
   });
 
   it('handles null categories', () => {
-    const result = mapPlayer(makeRawPlayer({ categories: null }) as any);
+    const result = mapPlayer(makeRawPlayer({ categories: null }));
     expect(result.categories).toEqual([]);
   });
 
   it('defaults isActive to true when null', () => {
-    const result = mapPlayer(makeRawPlayer({ isActive: null }) as any);
+    const result = mapPlayer(makeRawPlayer({ isActive: null }));
     expect(result.isActive).toBe(true);
   });
 
   it('falls back to documentId when slug is null', () => {
-    const result = mapPlayer(makeRawPlayer({ slug: null }) as any);
+    const result = mapPlayer(makeRawPlayer({ slug: null }));
     expect(result.slug).toBe('player-1');
   });
 
   it('defaults sortOrder to 0 when missing', () => {
-    const result = mapPlayer(makeRawPlayer({ sortOrder: undefined }) as any);
+    const result = mapPlayer(makeRawPlayer({ sortOrder: undefined }));
     expect(result.sortOrder).toBe(0);
   });
 
@@ -113,7 +114,7 @@ describe('mapPlayer', () => {
       facrId: null,
       dateOfBirth: null,
       nationality: null,
-    }) as any);
+    }));
 
     expect(result.number).toBeNull();
     expect(result.position).toBeNull();

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { StrapiRawNewsArticle } from '../../../../lib/strapi/types';
 
 vi.mock('@/lib/config', () => ({
   config: {
@@ -9,7 +10,7 @@ vi.mock('@/lib/config', () => ({
 
 const { mapNewsArticleSummary, mapNewsArticle } = await import('../../../../lib/strapi/mappers/news-article');
 
-function makeRawArticle(overrides: Record<string, unknown> = {}) {
+function makeRawArticle(overrides: Record<string, unknown> = {}): StrapiRawNewsArticle {
   return {
     id: 1,
     documentId: 'article-1',
@@ -38,12 +39,12 @@ function makeRawArticle(overrides: Record<string, unknown> = {}) {
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T12:00:00Z',
     ...overrides,
-  };
+  } as StrapiRawNewsArticle;
 }
 
 describe('mapNewsArticleSummary', () => {
   it('maps basic article summary', () => {
-    const result = mapNewsArticleSummary(makeRawArticle() as any);
+    const result = mapNewsArticleSummary(makeRawArticle());
 
     expect(result.documentId).toBe('article-1');
     expect(result.title).toBe('Výhra nad soupeřem');
@@ -53,38 +54,38 @@ describe('mapNewsArticleSummary', () => {
   });
 
   it('maps mainPhoto with transformed URL', () => {
-    const result = mapNewsArticleSummary(makeRawArticle() as any);
+    const result = mapNewsArticleSummary(makeRawArticle());
     expect(result.mainPhoto?.url).toBe('http://uploads.test/uploads/photo.jpg');
   });
 
   it('maps categories', () => {
-    const result = mapNewsArticleSummary(makeRawArticle() as any);
+    const result = mapNewsArticleSummary(makeRawArticle());
     expect(result.categories).toHaveLength(1);
     expect(result.categories[0].name).toBe('Muži');
   });
 
   it('maps newsArticleType', () => {
-    const result = mapNewsArticleSummary(makeRawArticle() as any);
+    const result = mapNewsArticleSummary(makeRawArticle());
     expect(result.newsArticleType?.name).toBe('Zápasy');
   });
 
   it('handles null mainPhoto', () => {
-    const result = mapNewsArticleSummary(makeRawArticle({ mainPhoto: null }) as any);
+    const result = mapNewsArticleSummary(makeRawArticle({ mainPhoto: null }));
     expect(result.mainPhoto).toBeNull();
   });
 
   it('handles null categories', () => {
-    const result = mapNewsArticleSummary(makeRawArticle({ categories: null }) as any);
+    const result = mapNewsArticleSummary(makeRawArticle({ categories: null }));
     expect(result.categories).toEqual([]);
   });
 
   it('handles null newsArticleType', () => {
-    const result = mapNewsArticleSummary(makeRawArticle({ newsArticleType: null }) as any);
+    const result = mapNewsArticleSummary(makeRawArticle({ newsArticleType: null }));
     expect(result.newsArticleType).toBeNull();
   });
 
   it('falls back to documentId when slug is null', () => {
-    const result = mapNewsArticleSummary(makeRawArticle({ slug: null }) as any);
+    const result = mapNewsArticleSummary(makeRawArticle({ slug: null }));
     expect(result.slug).toBe('article-1');
   });
 });
@@ -97,7 +98,7 @@ describe('mapNewsArticle', () => {
         { id: 20, url: '/uploads/gallery1.jpg', alternativeText: null, width: 400, height: 300 },
       ],
       relatedNews: [makeRawArticle({ documentId: 'related-1', title: 'Related Article' })],
-    }) as any);
+    }));
 
     expect(result.video).toBe('https://youtube.com/watch?v=123');
     expect(result.gallery).toHaveLength(1);
@@ -107,12 +108,12 @@ describe('mapNewsArticle', () => {
   });
 
   it('defaults gallery to empty array', () => {
-    const result = mapNewsArticle(makeRawArticle() as any);
+    const result = mapNewsArticle(makeRawArticle());
     expect(result.gallery).toEqual([]);
   });
 
   it('defaults relatedNews to empty array', () => {
-    const result = mapNewsArticle(makeRawArticle() as any);
+    const result = mapNewsArticle(makeRawArticle());
     expect(result.relatedNews).toEqual([]);
   });
 });

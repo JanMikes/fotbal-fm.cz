@@ -65,8 +65,8 @@ export default function MatchResultForm({
       ? {
           homeTeam: initialData.homeTeam,
           awayTeam: initialData.awayTeam,
-          homeScore: initialData.homeScore,
-          awayScore: initialData.awayScore,
+          homeScore: initialData.homeScore ?? undefined,
+          awayScore: initialData.awayScore ?? undefined,
           homeGoalscorers: initialData.homeGoalscorers || '',
           awayGoalscorers: initialData.awayGoalscorers || '',
           matchReport: initialData.matchReport || '',

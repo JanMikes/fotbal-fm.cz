@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import type { StrapiRawCategory } from '@fotbal-fm/strapi-client';
 import { mapCategory, mapCategories } from '../../../../lib/strapi/mappers/category';
 
 describe('mapCategory', () => {
   it('maps raw category to domain category', () => {
-    const raw = {
+    const raw: StrapiRawCategory = {
       id: 1,
       documentId: 'cat-1',
       name: 'Muži',
@@ -28,8 +29,8 @@ describe('mapCategory', () => {
       documentId: 'cat-1',
       name: 'Test',
       slug: 'test',
-      sortOrder: undefined as any,
-    };
+      sortOrder: undefined,
+    } as unknown as StrapiRawCategory;
 
     expect(mapCategory(raw).sortOrder).toBe(0);
   });
@@ -37,12 +38,12 @@ describe('mapCategory', () => {
 
 describe('mapCategories', () => {
   it('maps array of raw categories', () => {
-    const raw = [
+    const raw: StrapiRawCategory[] = [
       { id: 1, documentId: 'cat-1', name: 'A', slug: 'a', sortOrder: 1 },
       { id: 2, documentId: 'cat-2', name: 'B', slug: 'b', sortOrder: 2 },
     ];
 
-    const result = mapCategories(raw as any);
+    const result = mapCategories(raw);
     expect(result).toHaveLength(2);
     expect(result[0].name).toBe('A');
     expect(result[1].name).toBe('B');

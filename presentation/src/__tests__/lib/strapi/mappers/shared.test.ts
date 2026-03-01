@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { StrapiRawMedia } from '@fotbal-fm/strapi-client';
 
 vi.mock('@/lib/config', () => ({
   config: {
@@ -25,7 +26,7 @@ describe('transformImageUrl', () => {
 
 describe('mapMedia', () => {
   it('maps valid media object', () => {
-    const raw = {
+    const raw: StrapiRawMedia = {
       id: 1,
       documentId: 'doc-1',
       url: '/uploads/photo.jpg',
@@ -52,18 +53,18 @@ describe('mapMedia', () => {
   });
 
   it('returns null for media without url', () => {
-    expect(mapMedia({ id: 1 } as any)).toBeNull();
+    expect(mapMedia({ id: 1 } as unknown as StrapiRawMedia)).toBeNull();
   });
 
   it('defaults alternativeText to null', () => {
-    const raw = { id: 1, url: '/uploads/photo.jpg', width: 100, height: 100 };
-    const result = mapMedia(raw as any);
+    const raw: StrapiRawMedia = { id: 1, url: '/uploads/photo.jpg', width: 100, height: 100 };
+    const result = mapMedia(raw);
     expect(result?.alternativeText).toBeNull();
   });
 
   it('defaults dimensions to 0', () => {
-    const raw = { id: 1, url: '/uploads/photo.jpg' };
-    const result = mapMedia(raw as any);
+    const raw: StrapiRawMedia = { id: 1, url: '/uploads/photo.jpg' };
+    const result = mapMedia(raw);
     expect(result?.width).toBe(0);
     expect(result?.height).toBe(0);
   });
@@ -71,12 +72,12 @@ describe('mapMedia', () => {
 
 describe('mapMediaArray', () => {
   it('maps array of media objects', () => {
-    const raw = [
+    const raw: StrapiRawMedia[] = [
       { id: 1, url: '/uploads/a.jpg', alternativeText: null, width: 100, height: 100 },
       { id: 2, url: '/uploads/b.jpg', alternativeText: 'B', width: 200, height: 200 },
     ];
 
-    const result = mapMediaArray(raw as any);
+    const result = mapMediaArray(raw);
     expect(result).toHaveLength(2);
     expect(result[0].url).toBe('http://uploads.test/uploads/a.jpg');
     expect(result[1].url).toBe('http://uploads.test/uploads/b.jpg');
@@ -94,8 +95,8 @@ describe('mapMediaArray', () => {
     const raw = [
       { id: 1, url: '/uploads/a.jpg', width: 100, height: 100 },
       { id: 2 },
-    ];
-    const result = mapMediaArray(raw as any);
+    ] as unknown as StrapiRawMedia[];
+    const result = mapMediaArray(raw);
     expect(result).toHaveLength(1);
   });
 });
