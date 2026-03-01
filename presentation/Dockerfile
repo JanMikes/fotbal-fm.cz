@@ -15,7 +15,11 @@ RUN npm ci
 
 WORKDIR /app/presentation
 
+ENV NODE_ENV=production
+
+RUN npx next build
+
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
