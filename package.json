@@ -6,5 +6,11 @@
     "nextjs",
     "presentation",
     "api"
-  ]
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.1"
+  }
 }
