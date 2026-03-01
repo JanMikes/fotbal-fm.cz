@@ -13,7 +13,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@sentry/nextjs": "^10.26",
     "iron-session": "^8.0.4",
-    "lightningcss-linux-arm64-gnu": "^1.31.1",
     "lucide-react": "^0.554.0",
     "next": "^16.0",
     "nodemailer": "^7.0.11",
@@ -37,8 +36,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.18"
+    "typescript": "^5"
   }
 }
