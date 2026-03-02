@@ -223,6 +223,7 @@ export async function getStandingsByCategory(categorySlug: string): Promise<Stan
     },
     populate: {
       tournament: { fields: ['name'] },
+      team: { fields: ['name'] },
     },
     sort: 'position:asc',
     pagination: { pageSize: 100 },

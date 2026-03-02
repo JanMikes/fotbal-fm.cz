@@ -4,7 +4,7 @@ import type { StrapiRawStanding } from '../types';
 export function mapStanding(raw: StrapiRawStanding): Standing {
   return {
     position: raw.position,
-    teamName: raw.teamName,
+    teamName: raw.team?.name ?? '',
     matchesPlayed: raw.matchesPlayed,
     wins: raw.wins,
     draws: raw.draws,

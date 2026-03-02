@@ -97,7 +97,7 @@ export interface StrapiRawStanding {
   id: number;
   documentId: string;
   position: number;
-  teamName: string;
+  team: StrapiRawTeam | null;
   matchesPlayed: number;
   wins: number;
   draws: number;
