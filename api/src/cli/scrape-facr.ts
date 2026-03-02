@@ -30,6 +30,7 @@ import {
   scrapePlayers,
   parseMatchRows,
   type FacrPlayer,
+  type XlsxRow,
 } from '../lib/facr.js';
 
 const DATA_DIR = path.join(__dirname, '../../data');
@@ -94,7 +95,7 @@ async function main() {
   const xlsxBuffer = await scrapeMatchesXlsx(email, password);
   const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
   const sheetName = workbook.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]) as XlsxRow[];
   const matches = parseMatchRows(rows);
   fs.writeFileSync(
     path.join(DATA_DIR, 'matches.json'),

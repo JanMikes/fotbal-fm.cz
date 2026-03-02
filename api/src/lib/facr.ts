@@ -426,17 +426,16 @@ export interface FacrMatch {
 }
 
 export interface XlsxRow {
-  Cislo?: string;
-  Domaci?: string;
-  Hoste?: string;
-  Vysledek?: string;
-  'Datum a cas'?: string;
+  'Číslo zápasu'?: string;
+  'Domácí'?: string;
+  'Hosté'?: string;
+  'Výsledek'?: string;
+  'Datum a čas'?: string;
   Kolo?: number | string;
-  'Hriste/Stadion'?: string;
-  Soutez?: string;
-  Kod?: string;
-  Rocnik?: number | string;
-  Obdobi?: string;
+  'Pořadí v kole'?: number | string;
+  'Hřiště'?: string;
+  'Soutěž'?: string;
+  'Číslo soutěže'?: string;
   'Org. jednotka'?: string;
 }
 
@@ -471,30 +470,52 @@ function parseMatchDateTime(dateTimeStr: string | undefined): { matchDate: strin
  * Parse XLSX rows into FacrMatch objects.
  * Shared by scrape-facr.ts (for saving to JSON) and sync-matches.ts (for direct import).
  */
+/**
+ * Strip club ID prefix from team name.
+ * E.g. "8020091 - FK Frýdek-Místek" → "FK Frýdek-Místek"
+ */
+function stripClubId(teamStr: string): string {
+  return teamStr.replace(/^\d+\s*-\s*/, '').trim();
+}
+
+/**
+ * Extract competition code and season from "Číslo soutěže".
+ * E.g. "2025003A1A" → { code: "A1A", season: 2025 }
+ * Format: YYYYNNNCODE where YYYY=season, NNN=3-digit number, CODE=variable-length code.
+ */
+function parseCompetitionNumber(numStr: string): { code: string; season: number | null } {
+  const match = numStr.match(/^(\d{4})\d{3}(.+)$/);
+  if (!match) return { code: '', season: null };
+  return { code: match[2], season: parseInt(match[1], 10) };
+}
+
 export function parseMatchRows(rows: XlsxRow[]): FacrMatch[] {
   const matches: FacrMatch[] = [];
   for (const row of rows) {
-    const facrId = row.Cislo?.toString().trim();
+    const facrId = row['Číslo zápasu']?.toString().trim();
     if (!facrId) continue;
 
-    const [homeScore, awayScore] = parseScore(row.Vysledek);
-    const { matchDate, matchTime } = parseMatchDateTime(row['Datum a cas']);
+    const [homeScore, awayScore] = parseScore(row['Výsledek']);
+    const { matchDate, matchTime } = parseMatchDateTime(row['Datum a čas']);
     if (!matchDate) continue;
+
+    const compNum = row['Číslo soutěže']?.toString().trim() ?? '';
+    const { code: competitionCode, season } = parseCompetitionNumber(compNum);
 
     matches.push({
       facrId,
-      homeTeam: row.Domaci?.trim() ?? '',
-      awayTeam: row.Hoste?.trim() ?? '',
+      homeTeam: stripClubId(row['Domácí']?.trim() ?? ''),
+      awayTeam: stripClubId(row['Hosté']?.trim() ?? ''),
       homeScore,
       awayScore,
       matchDate,
       matchTime,
       round: row.Kolo ? parseInt(row.Kolo.toString(), 10) || null : null,
-      venue: row['Hriste/Stadion']?.trim() ?? '',
-      competitionName: row.Soutez?.trim() ?? '',
-      competitionCode: row.Kod?.toString().trim() ?? '',
-      season: row.Rocnik ? parseInt(row.Rocnik.toString(), 10) || null : null,
-      period: row.Obdobi?.trim() ?? '',
+      venue: row['Hřiště']?.trim() ?? '',
+      competitionName: row['Soutěž']?.trim() ?? '',
+      competitionCode,
+      season,
+      period: '',
       organizingBody: row['Org. jednotka']?.trim() ?? '',
     });
   }
@@ -523,17 +544,70 @@ export async function scrapeMatchesXlsx(
   jar.addFromResponse(pageRes);
   const pageHtml = await pageRes.text();
 
-  const viewState = extractFormField(pageHtml, '__VIEWSTATE');
-  const viewStateGenerator = extractFormField(pageHtml, '__VIEWSTATEGENERATOR');
-  const eventValidation = extractFormField(pageHtml, '__EVENTVALIDATION');
+  let viewState = extractFormField(pageHtml, '__VIEWSTATE');
+  let viewStateGenerator = extractFormField(pageHtml, '__VIEWSTATEGENERATOR');
+  let eventValidation = extractFormField(pageHtml, '__EVENTVALIDATION');
 
   if (!viewState) {
     throw new Error('Failed to extract __VIEWSTATE from matches page');
   }
 
-  // Step 4: POST export request to download Excel
-  console.log('[FAČR] Step 4: Downloading Excel export...');
-  const formData = new URLSearchParams({
+  // Step 4: POST search to load results (required before export)
+  console.log('[FAČR] Step 4: Searching matches...');
+  const searchFormData = new URLSearchParams({
+    __EVENTTARGET: 'ctl00$MainContent$btnSearch',
+    __EVENTARGUMENT: '',
+    __LASTFOCUS: '',
+    __VIEWSTATE: viewState,
+    __VIEWSTATEGENERATOR: viewStateGenerator,
+    __EVENTVALIDATION: eventValidation,
+    'ctl00$TopMenu$listChangeSport': '1',
+    'ctl00$MainContent$listSearchDruhSouteze': '0',
+    'ctl00$MainContent$txtSearchSoutezNazev': '',
+    'ctl00$MainContent$txtSearchSoutezCislo': '',
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
+    'ctl00$MainContent$listOddilTyp': '0',
+    'ctl00$MainContent$txtDatumOd': '',
+    'ctl00$MainContent$txtDatumDo': '',
+    'ctl00$MainContent$txtSearchHriste': '',
+    'ctl00$MainContent$listSearchRocnik': '18',
+    'ctl00$MainContent$txtSearchCislo': '',
+    'ctl00$MainContent$txtSearchkolo': '',
+    'ctl00$MainContent$listZapasZahajen': '0',
+    'ctl00$MainContent$listZapis': '0',
+    'ctl00$MainContent$listObdobi': '',
+  });
+
+  const searchRes = await fetch(
+    `${FACR_BASE}/public/zapasy/prehled-zapasu.aspx?klub=1&lite=1`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Cookie: `access_token=${accessToken}; ${jar.toString()}`,
+      },
+      body: searchFormData.toString(),
+      redirect: 'follow',
+    },
+  );
+
+  const searchHtml = await searchRes.text();
+
+  // Extract fresh ViewState from search results page
+  viewState = extractFormField(searchHtml, '__VIEWSTATE');
+  viewStateGenerator = extractFormField(searchHtml, '__VIEWSTATEGENERATOR');
+  eventValidation = extractFormField(searchHtml, '__EVENTVALIDATION');
+
+  if (!viewState) {
+    throw new Error('Failed to extract __VIEWSTATE from matches search results');
+  }
+
+  // Step 5: POST export request to download Excel
+  console.log('[FAČR] Step 5: Downloading Excel export...');
+  const exportFormData = new URLSearchParams({
     __EVENTTARGET: 'ctl00$MainContent$btnExport',
     __EVENTARGUMENT: '',
     __LASTFOCUS: '',
@@ -541,6 +615,23 @@ export async function scrapeMatchesXlsx(
     __VIEWSTATEGENERATOR: viewStateGenerator,
     __EVENTVALIDATION: eventValidation,
     'ctl00$TopMenu$listChangeSport': '1',
+    'ctl00$MainContent$listSearchDruhSouteze': '0',
+    'ctl00$MainContent$txtSearchSoutezNazev': '',
+    'ctl00$MainContent$txtSearchSoutezCislo': '',
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
+    'ctl00$MainContent$listOddilTyp': '0',
+    'ctl00$MainContent$txtDatumOd': '',
+    'ctl00$MainContent$txtDatumDo': '',
+    'ctl00$MainContent$txtSearchHriste': '',
+    'ctl00$MainContent$listSearchRocnik': '18',
+    'ctl00$MainContent$txtSearchCislo': '',
+    'ctl00$MainContent$txtSearchkolo': '',
+    'ctl00$MainContent$listZapasZahajen': '0',
+    'ctl00$MainContent$listZapis': '0',
+    'ctl00$MainContent$listObdobi': '',
   });
 
   const exportRes = await fetch(
@@ -551,7 +642,7 @@ export async function scrapeMatchesXlsx(
         'Content-Type': 'application/x-www-form-urlencoded',
         Cookie: `access_token=${accessToken}; ${jar.toString()}`,
       },
-      body: formData.toString(),
+      body: exportFormData.toString(),
       redirect: 'follow',
     },
   );
@@ -623,19 +714,20 @@ function parsePlayerListRows(html: string): PlayerListEntry[] {
 
     const facrUuid = linkMatch[1];
 
-    // Extract cells
-    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-    const cells: string[] = [];
-    let cellMatch;
-    while ((cellMatch = cellRegex.exec(row)) !== null) {
-      cells.push(stripHtml(cellMatch[1]));
-    }
+    // The first cell "ID / Osoba" contains both ID and name in a single link:
+    // <a href="..."><span>19010400</span><h4>Antonín Adamík</h4></a>
+    // Extract ID from <span> and name from <h4> within the first <td>.
+    const firstCellMatch = row.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+    if (!firstCellMatch) continue;
 
-    // Cell 0 = ID člena, Cell 1 = name (from link)
-    if (cells.length >= 2) {
+    const firstCellHtml = firstCellMatch[1];
+    const idMatch = firstCellHtml.match(/<span[^>]*>(\d+)<\/span>/i);
+    const nameMatch = firstCellHtml.match(/<h4[^>]*>([\s\S]*?)<\/h4>/i);
+
+    if (idMatch && nameMatch) {
       players.push({
-        facrId: cells[0],
-        name: cells[1],
+        facrId: idMatch[1].trim(),
+        name: stripHtml(nameMatch[1]),
         facrUuid,
       });
     }
@@ -647,28 +739,15 @@ function parsePlayerListRows(html: string): PlayerListEntry[] {
 /**
  * Check if there are more pages in the pagination.
  * Returns the next page number or null if on the last page.
+ *
+ * The pagination uses Bootstrap-style <nav><ul><li><a> with links like:
+ *   __doPostBack('ctl00$MainContent$VypisHracu$gridData','Page$2')
  */
-function getNextPageNumber(html: string): number | null {
-  // ASP.NET pagination renders page links. Look for the current page (non-link number)
-  // and see if there's a next one.
-  // Pattern: <td><span>2</span></td><td><a ...>3</a></td> means current=2, next=3
-  const pagerMatch = html.match(/<tr[^>]*class="[^"]*pager[^"]*"[^>]*>([\s\S]*?)<\/tr>/i);
-  if (!pagerMatch) return null;
-
-  const pagerHtml = pagerMatch[1];
-
-  // Find the current page (rendered as <span> not <a>)
-  const currentMatch = pagerHtml.match(/<span[^>]*>(\d+)<\/span>/);
-  if (!currentMatch) return null;
-
-  const currentPage = parseInt(currentMatch[1], 10);
-
-  // Check if there's a link for the next page
+function getNextPageNumber(html: string, currentPage: number): number | null {
   const nextPageRegex = new RegExp(`Page\\$${currentPage + 1}`, 'i');
-  if (nextPageRegex.test(pagerHtml)) {
+  if (nextPageRegex.test(html)) {
     return currentPage + 1;
   }
-
   return null;
 }
 
@@ -797,13 +876,14 @@ export async function scrapePlayers(
   console.log(`[FAČR]   Page 1: ${pagePlayers.length} players`);
 
   // Handle pagination
-  let nextPage = getNextPageNumber(resultHtml);
+  let currentPage = 1;
+  let nextPage = getNextPageNumber(resultHtml, currentPage);
   while (nextPage !== null) {
     const pageViewState = extractFormField(resultHtml, '__VIEWSTATE');
     const pageViewStateGenerator = extractFormField(resultHtml, '__VIEWSTATEGENERATOR');
 
     const pageFormData = new URLSearchParams({
-      __EVENTTARGET: 'ctl00$MainContent$gridData',
+      __EVENTTARGET: 'ctl00$MainContent$VypisHracu$gridData',
       __EVENTARGUMENT: `Page$${nextPage}`,
       __LASTFOCUS: '',
       __VIEWSTATE: pageViewState,
@@ -829,7 +909,8 @@ export async function scrapePlayers(
     allPlayers.push(...pagePlayers);
     console.log(`[FAČR]   Page ${nextPage}: ${pagePlayers.length} players`);
 
-    nextPage = getNextPageNumber(resultHtml);
+    currentPage = nextPage;
+    nextPage = getNextPageNumber(resultHtml, currentPage);
   }
 
   console.log(`[FAČR] Total players from list: ${allPlayers.length}`);
