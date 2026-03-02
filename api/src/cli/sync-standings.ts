@@ -7,14 +7,17 @@
  *
  * Usage:
  *   docker compose exec api npx tsx src/cli/sync-standings.ts
+ *   docker compose exec api npx tsx src/cli/sync-standings.ts --from-file
  *
  * Environment variables:
- *   FACR_EMAIL    - FAČR IS login email
- *   FACR_PASSWORD - FAČR IS login password
+ *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
+ *   FACR_PASSWORD - FAČR IS login password (not needed with --from-file)
  *   STRAPI_URL    - Strapi URL (default: http://localhost:1337)
  *   STRAPI_API_TOKEN - Strapi API token
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { scrapeStandings, type FacrStanding } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
 
@@ -45,16 +48,26 @@ interface StrapiStanding {
 }
 
 async function main() {
-  const email = process.env.FACR_EMAIL;
-  const password = process.env.FACR_PASSWORD;
+  const fromFile = process.argv.includes('--from-file');
 
-  if (!email || !password) {
-    console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
-    process.exit(1);
+  let scraped: FacrStanding[];
+  if (fromFile) {
+    const filePath = path.join(__dirname, '../../data/standings.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    scraped = JSON.parse(raw);
+    console.log(`Loaded ${scraped.length} competition standings from file`);
+  } else {
+    const email = process.env.FACR_EMAIL;
+    const password = process.env.FACR_PASSWORD;
+
+    if (!email || !password) {
+      console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
+      process.exit(1);
+    }
+
+    // 1. Scrape standings from FAČR
+    scraped = await scrapeStandings(email, password);
   }
-
-  // 1. Scrape standings from FAČR
-  const scraped = await scrapeStandings(email, password);
 
   // 2. Load category-code mappings from Strapi
   const categoryCodesRes = await strapiGet<StrapiCategoryCode>(

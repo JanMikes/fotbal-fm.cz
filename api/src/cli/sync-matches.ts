@@ -6,16 +6,19 @@
  *
  * Usage:
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts
+ *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --from-file
  *
  * Environment variables:
- *   FACR_EMAIL    - FAČR IS login email
- *   FACR_PASSWORD - FAČR IS login password
+ *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
+ *   FACR_PASSWORD - FAČR IS login password (not needed with --from-file)
  *   STRAPI_URL    - Strapi URL (default: http://localhost:1337)
  *   STRAPI_API_TOKEN - Strapi API token
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import * as XLSX from 'xlsx';
-import { scrapeMatchesXlsx } from '../lib/facr.js';
+import { scrapeMatchesXlsx, parseMatchRows, type FacrMatch } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 
 interface StrapiCategoryCode {
@@ -41,76 +44,37 @@ interface StrapiTournament {
   season: number | null;
 }
 
-interface XlsxRow {
-  Cislo?: string;
-  Domaci?: string;
-  Hoste?: string;
-  Vysledek?: string;
-  'Datum a cas'?: string;
-  Kolo?: number | string;
-  'Hriste/Stadion'?: string;
-  Soutez?: string;
-  Kod?: string;
-  Rocnik?: number | string;
-  Obdobi?: string;
-  'Org. jednotka'?: string;
-}
-
-/**
- * Parse score string like "3 : 1" into [home, away].
- * Returns [null, null] for "-", empty, or unparseable values.
- */
-function parseScore(scoreStr: string | undefined): [number | null, number | null] {
-  if (!scoreStr || scoreStr.trim() === '-' || scoreStr.trim() === '') {
-    return [null, null];
-  }
-
-  const match = scoreStr.match(/(\d+)\s*:\s*(\d+)/);
-  if (!match) {
-    return [null, null];
-  }
-
-  return [parseInt(match[1], 10), parseInt(match[2], 10)];
-}
-
-/**
- * Parse date+time string like "01.03.2026 12:30" into { matchDate, matchTime }.
- */
-function parseDateTime(dateTimeStr: string | undefined): { matchDate: string; matchTime: string } {
-  if (!dateTimeStr) {
-    return { matchDate: '', matchTime: '' };
-  }
-
-  const match = dateTimeStr.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s*(\d{1,2}:\d{2})?/);
-  if (!match) {
-    return { matchDate: '', matchTime: '' };
-  }
-
-  const [, day, month, year, time] = match;
-  const matchDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  const matchTime = time ?? '';
-
-  return { matchDate, matchTime };
-}
-
 async function main() {
-  const email = process.env.FACR_EMAIL;
-  const password = process.env.FACR_PASSWORD;
+  const fromFile = process.argv.includes('--from-file');
 
-  if (!email || !password) {
-    console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
-    process.exit(1);
+  let parsedMatches: FacrMatch[];
+  if (fromFile) {
+    const filePath = path.join(__dirname, '../../data/matches.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    parsedMatches = JSON.parse(raw);
+    console.log(`Loaded ${parsedMatches.length} matches from file`);
+  } else {
+    const email = process.env.FACR_EMAIL;
+    const password = process.env.FACR_PASSWORD;
+
+    if (!email || !password) {
+      console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
+      process.exit(1);
+    }
+
+    // 1. Download Excel from FAČR
+    const xlsxBuffer = await scrapeMatchesXlsx(email, password);
+
+    // 2. Parse Excel
+    console.log('\nParsing Excel...');
+    const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    console.log(`Parsed ${rows.length} rows from sheet "${sheetName}"`);
+
+    parsedMatches = parseMatchRows(rows);
+    console.log(`Parsed ${parsedMatches.length} valid matches`);
   }
-
-  // 1. Download Excel from FAČR
-  const xlsxBuffer = await scrapeMatchesXlsx(email, password);
-
-  // 2. Parse Excel
-  console.log('\nParsing Excel...');
-  const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json<XlsxRow>(workbook.Sheets[sheetName]);
-  console.log(`Parsed ${rows.length} rows from sheet "${sheetName}"`);
 
   // 3. Load category-code mappings from Strapi
   const categoryCodesRes = await strapiGet<StrapiCategoryCode>(
@@ -177,75 +141,49 @@ async function main() {
   // 6. Upsert matches
   let created = 0;
   let updated = 0;
-  let skipped = 0;
   const withoutCategory: string[] = [];
   let linkedToTournament = 0;
 
-  /** Fields that should never be overwritten by the scraper on update */
-  const ADMIN_ONLY_FIELDS = [
-    'matchReport', 'images', 'files', 'homeGoalscorers',
-    'awayGoalscorers', 'imagesUrl', 'author', 'lastModifiedBy',
-  ];
-
-  for (const row of rows) {
-    const facrId = row.Cislo?.toString().trim();
-    if (!facrId) {
-      skipped++;
-      continue;
+  for (const match of parsedMatches) {
+    const categoryDocumentId = codeToCategory.get(match.competitionCode);
+    if (match.competitionCode && !categoryDocumentId) {
+      withoutCategory.push(match.competitionCode);
     }
-
-    const [homeScore, awayScore] = parseScore(row.Vysledek);
-    const { matchDate, matchTime } = parseDateTime(row['Datum a cas']);
-
-    if (!matchDate) {
-      console.warn(`  Skipping ${facrId}: no date`);
-      skipped++;
-      continue;
-    }
-
-    const competitionCode = row.Kod?.toString().trim() ?? '';
-    const categoryDocumentId = codeToCategory.get(competitionCode);
-    if (competitionCode && !categoryDocumentId) {
-      withoutCategory.push(competitionCode);
-    }
-
-    const season = row.Rocnik ? parseInt(row.Rocnik.toString(), 10) || null : null;
 
     // Look up tournament by code + season
-    const tournamentKey = competitionCode && season ? `${competitionCode}:${season}` : '';
+    const tournamentKey = match.competitionCode && match.season
+      ? `${match.competitionCode}:${match.season}` : '';
     const tournamentDocumentId = tournamentKey ? tournamentLookup.get(tournamentKey) : undefined;
     if (tournamentDocumentId) {
       linkedToTournament++;
     }
 
     const scrapedFields: Record<string, unknown> = {
-      facrId,
-      homeTeam: row.Domaci?.trim() ?? '',
-      awayTeam: row.Hoste?.trim() ?? '',
-      homeScore,
-      awayScore,
-      matchDate,
-      matchTime,
-      round: row.Kolo ? parseInt(row.Kolo.toString(), 10) || null : null,
-      venue: row['Hriste/Stadion']?.trim() ?? '',
-      competitionName: row.Soutez?.trim() ?? '',
-      competitionCode,
-      season,
-      period: row.Obdobi?.trim() ?? '',
-      organizingBody: row['Org. jednotka']?.trim() ?? '',
+      facrId: match.facrId,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      matchDate: match.matchDate,
+      matchTime: match.matchTime,
+      round: match.round,
+      venue: match.venue,
+      competitionName: match.competitionName,
+      competitionCode: match.competitionCode,
+      season: match.season,
+      period: match.period,
+      organizingBody: match.organizingBody,
     };
 
     if (tournamentDocumentId) {
       scrapedFields.tournament = tournamentDocumentId;
     }
 
-    const existingDocId = existingByFacrId.get(facrId);
+    const existingDocId = existingByFacrId.get(match.facrId);
     if (existingDocId) {
-      // Update: only send scraped fields, never overwrite admin fields
       await strapiPut(`/matches/${existingDocId}`, { data: scrapedFields });
       updated++;
     } else {
-      // Create: include category relation
       await strapiPost('/matches', {
         data: {
           ...scrapedFields,
@@ -259,12 +197,11 @@ async function main() {
   const uniqueWithout = [...new Set(withoutCategory)];
 
   console.log(`\nSync complete:`);
-  console.log(`  Total rows: ${rows.length}`);
-  console.log(`  Created:    ${created}`);
-  console.log(`  Updated:    ${updated}`);
-  console.log(`  Skipped:    ${skipped}`);
+  console.log(`  Total:    ${parsedMatches.length}`);
+  console.log(`  Created:  ${created}`);
+  console.log(`  Updated:  ${updated}`);
   console.log(`  Linked to tournament: ${linkedToTournament}`);
-  console.log(`  Matched:    ${rows.length - skipped - uniqueWithout.length} with category`);
+  console.log(`  Matched:  ${parsedMatches.length - uniqueWithout.length} with category`);
   if (uniqueWithout.length > 0) {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }

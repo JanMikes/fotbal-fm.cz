@@ -416,13 +416,89 @@ export interface FacrMatch {
   awayScore: number | null;
   matchDate: string;
   matchTime: string;
-  round: number;
+  round: number | null;
   venue: string;
   competitionName: string;
   competitionCode: string;
-  season: number;
+  season: number | null;
   period: string;
   organizingBody: string;
+}
+
+export interface XlsxRow {
+  Cislo?: string;
+  Domaci?: string;
+  Hoste?: string;
+  Vysledek?: string;
+  'Datum a cas'?: string;
+  Kolo?: number | string;
+  'Hriste/Stadion'?: string;
+  Soutez?: string;
+  Kod?: string;
+  Rocnik?: number | string;
+  Obdobi?: string;
+  'Org. jednotka'?: string;
+}
+
+/**
+ * Parse score string like "3 : 1" into [home, away].
+ * Returns [null, null] for "-", empty, or unparseable values.
+ */
+function parseScore(scoreStr: string | undefined): [number | null, number | null] {
+  if (!scoreStr || scoreStr.trim() === '-' || scoreStr.trim() === '') {
+    return [null, null];
+  }
+  const match = scoreStr.match(/(\d+)\s*:\s*(\d+)/);
+  if (!match) return [null, null];
+  return [parseInt(match[1], 10), parseInt(match[2], 10)];
+}
+
+/**
+ * Parse date+time string like "01.03.2026 12:30" into { matchDate, matchTime }.
+ */
+function parseMatchDateTime(dateTimeStr: string | undefined): { matchDate: string; matchTime: string } {
+  if (!dateTimeStr) return { matchDate: '', matchTime: '' };
+  const match = dateTimeStr.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s*(\d{1,2}:\d{2})?/);
+  if (!match) return { matchDate: '', matchTime: '' };
+  const [, day, month, year, time] = match;
+  return {
+    matchDate: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
+    matchTime: time ?? '',
+  };
+}
+
+/**
+ * Parse XLSX rows into FacrMatch objects.
+ * Shared by scrape-facr.ts (for saving to JSON) and sync-matches.ts (for direct import).
+ */
+export function parseMatchRows(rows: XlsxRow[]): FacrMatch[] {
+  const matches: FacrMatch[] = [];
+  for (const row of rows) {
+    const facrId = row.Cislo?.toString().trim();
+    if (!facrId) continue;
+
+    const [homeScore, awayScore] = parseScore(row.Vysledek);
+    const { matchDate, matchTime } = parseMatchDateTime(row['Datum a cas']);
+    if (!matchDate) continue;
+
+    matches.push({
+      facrId,
+      homeTeam: row.Domaci?.trim() ?? '',
+      awayTeam: row.Hoste?.trim() ?? '',
+      homeScore,
+      awayScore,
+      matchDate,
+      matchTime,
+      round: row.Kolo ? parseInt(row.Kolo.toString(), 10) || null : null,
+      venue: row['Hriste/Stadion']?.trim() ?? '',
+      competitionName: row.Soutez?.trim() ?? '',
+      competitionCode: row.Kod?.toString().trim() ?? '',
+      season: row.Rocnik ? parseInt(row.Rocnik.toString(), 10) || null : null,
+      period: row.Obdobi?.trim() ?? '',
+      organizingBody: row['Org. jednotka']?.trim() ?? '',
+    });
+  }
+  return matches;
 }
 
 /**

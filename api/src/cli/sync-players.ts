@@ -4,14 +4,17 @@
  *
  * Usage:
  *   docker compose exec api npx tsx src/cli/sync-players.ts
+ *   docker compose exec api npx tsx src/cli/sync-players.ts --from-file
  *
  * Environment variables:
- *   FACR_EMAIL    - FAČR IS login email
- *   FACR_PASSWORD - FAČR IS login password
+ *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
+ *   FACR_PASSWORD - FAČR IS login password (not needed with --from-file)
  *   STRAPI_URL    - Strapi URL (default: http://localhost:1337)
  *   STRAPI_API_TOKEN - Strapi API token
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { scrapePlayers, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 
@@ -26,11 +29,16 @@ interface StrapiPlayer {
   photo: { id: number } | null;
 }
 
+/** Player data from scrape-facr.ts JSON (includes photoFilename instead of photoUrl) */
+interface FilePlayer extends FacrPlayer {
+  photoFilename: string | null;
+}
+
 /**
  * Download a photo from FAČR and upload it to Strapi media library.
  * Returns the Strapi media ID.
  */
-async function uploadPhotoToStrapi(photoUrl: string, playerName: string): Promise<number | null> {
+async function uploadPhotoFromUrl(photoUrl: string, playerName: string): Promise<number | null> {
   try {
     const res = await fetch(photoUrl);
     if (!res.ok) {
@@ -39,9 +47,40 @@ async function uploadPhotoToStrapi(photoUrl: string, playerName: string): Promis
     }
 
     const buffer = await res.arrayBuffer();
+    return uploadPhotoBuffer(Buffer.from(buffer), playerName);
+  } catch (err) {
+    console.warn(`  Photo error for ${playerName}: ${err}`);
+    return null;
+  }
+}
+
+/**
+ * Upload a local photo file to Strapi media library.
+ * Returns the Strapi media ID.
+ */
+async function uploadPhotoFromFile(photoFilename: string, playerName: string): Promise<number | null> {
+  try {
+    const filePath = path.join(__dirname, '../../data/photos', photoFilename);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Photo file not found for ${playerName}: ${filePath}`);
+      return null;
+    }
+    const buffer = fs.readFileSync(filePath);
+    return uploadPhotoBuffer(buffer, playerName);
+  } catch (err) {
+    console.warn(`  Photo error for ${playerName}: ${err}`);
+    return null;
+  }
+}
+
+/**
+ * Upload a photo buffer to Strapi media library.
+ * Returns the Strapi media ID.
+ */
+async function uploadPhotoBuffer(buffer: Buffer, playerName: string): Promise<number | null> {
+  try {
     const blob = new Blob([buffer], { type: 'image/jpeg' });
 
-    // Sanitize filename
     const safeName = playerName
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -71,22 +110,34 @@ async function uploadPhotoToStrapi(photoUrl: string, playerName: string): Promis
     const uploaded = await uploadRes.json() as Array<{ id: number }>;
     return uploaded[0]?.id ?? null;
   } catch (err) {
-    console.warn(`  Photo error for ${playerName}: ${err}`);
+    console.warn(`  Photo upload error for ${playerName}: ${err}`);
     return null;
   }
 }
 
 async function main() {
-  const email = process.env.FACR_EMAIL;
-  const password = process.env.FACR_PASSWORD;
+  const fromFile = process.argv.includes('--from-file');
 
-  if (!email || !password) {
-    console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
-    process.exit(1);
+  let scraped: FacrPlayer[];
+  let filePlayers: FilePlayer[] | null = null;
+  if (fromFile) {
+    const filePath = path.join(__dirname, '../../data/players.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    filePlayers = JSON.parse(raw);
+    scraped = filePlayers!;
+    console.log(`Loaded ${scraped.length} players from file`);
+  } else {
+    const email = process.env.FACR_EMAIL;
+    const password = process.env.FACR_PASSWORD;
+
+    if (!email || !password) {
+      console.error('Missing FACR_EMAIL or FACR_PASSWORD environment variables');
+      process.exit(1);
+    }
+
+    // 1. Scrape players from FAČR
+    scraped = await scrapePlayers(email, password);
   }
-
-  // 1. Scrape players from FAČR
-  const scraped = await scrapePlayers(email, password);
 
   // 2. Load existing players from Strapi
   const existingRes = await strapiGet<StrapiPlayer>(
@@ -132,8 +183,16 @@ async function main() {
 
     // Upload photo if available and not already set
     let photoId: number | null = null;
-    if (player.photoUrl && (!existing || !existing.photo)) {
-      photoId = await uploadPhotoToStrapi(player.photoUrl, player.name);
+    if (!existing || !existing.photo) {
+      const filePlayer = filePlayers
+        ? filePlayers.find((fp) => fp.facrId === player.facrId)
+        : null;
+
+      if (filePlayer?.photoFilename) {
+        photoId = await uploadPhotoFromFile(filePlayer.photoFilename, player.name);
+      } else if (player.photoUrl) {
+        photoId = await uploadPhotoFromUrl(player.photoUrl, player.name);
+      }
       if (photoId) photosUploaded++;
     }
 
