@@ -6,12 +6,12 @@ import {
 } from '@/types/api';
 import {User} from '@/types/user';
 import {
-    MatchResult,
-    CreateMatchResultRequest,
+    Match,
+    CreateMatchRequest,
     StrapiImage,
     StrapiFile,
     UserInfo,
-} from '@/types/match-result';
+} from '@/types/match';
 import {
     Comment,
     CreateCommentRequest,
@@ -25,13 +25,9 @@ import {
     CreateTournamentRequest,
 } from '@/types/tournament';
 import {
-    TournamentMatch,
-    CreateTournamentMatchRequest,
-} from '@/types/tournament-match';
-import {
-    StrapiMatchResultData,
-    StrapiMatchResultsCollectionResponse,
-    StrapiMatchResultSingleResponse,
+    StrapiMatchData,
+    StrapiMatchesCollectionResponse,
+    StrapiMatchSingleResponse,
     StrapiMediaAttributes,
     StrapiDataWrapper,
 } from '@/types/strapi-responses';
@@ -502,7 +498,7 @@ async function uploadFilesToStrapi(
  * Strapi 5 with populate=* returns flattened structure (fields directly on data)
  * Strapi 5 without populate returns nested structure (fields in attributes)
  */
-function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchResult {
+function mapStrapiMatchResult(strapiData: StrapiMatchData | any): Match {
     const { id, documentId, attributes } = strapiData;
 
     // Strapi 5: determine if response is flattened or nested
@@ -561,10 +557,10 @@ function mapStrapiMatchResult(strapiData: StrapiMatchResultData | any): MatchRes
  */
 export async function strapiCreateMatchResult(
     jwt: string,
-    data: CreateMatchResultRequest,
+    data: CreateMatchRequest,
     images: File[],
     files: File[] = []
-): Promise<MatchResult> {
+): Promise<Match> {
     try {
         // First, create the match result without media
         const createResponse = await fetch(`${STRAPI_URL}/api/match-results`, {
@@ -581,7 +577,7 @@ export async function strapiCreateMatchResult(
             handleStrapiError(error);
         }
 
-        const createData: StrapiMatchResultSingleResponse = await createResponse.json();
+        const createData: StrapiMatchSingleResponse = await createResponse.json();
 
         if (!createData.data) {
             throw new Error('Nepodařilo se vytvořit výsledek zápasu');
@@ -607,7 +603,7 @@ export async function strapiCreateMatchResult(
         );
 
         if (getResponse.ok) {
-            const getData: StrapiMatchResultSingleResponse = await getResponse.json();
+            const getData: StrapiMatchSingleResponse = await getResponse.json();
             if (getData.data) {
                 return mapStrapiMatchResult(getData.data);
             }
@@ -628,7 +624,7 @@ export async function strapiCreateMatchResult(
 export async function strapiGetUserMatchResults(
     jwt: string,
     userId: number
-): Promise<MatchResult[]> {
+): Promise<Match[]> {
     try {
         const response = await fetch(
             `${STRAPI_URL}/api/match-results?populate=*&sort=createdAt:desc&filters[author][id][$eq]=${userId}`,
@@ -646,7 +642,7 @@ export async function strapiGetUserMatchResults(
             handleStrapiError(error);
         }
 
-        const responseData: StrapiMatchResultsCollectionResponse = await response.json();
+        const responseData: StrapiMatchesCollectionResponse = await response.json();
 
         return responseData.data.map(mapStrapiMatchResult);
     } catch (error) {
@@ -1012,7 +1008,7 @@ export async function strapiGetAllTournaments(jwt: string): Promise<Tournament[]
 /**
  * Convert Strapi tournament match response to TournamentMatch type
  */
-function mapStrapiTournamentMatch(strapiData: any): TournamentMatch {
+function mapStrapiTournamentMatch(strapiData: any): Match {
     const { id, documentId, attributes } = strapiData;
     const isFlattened = !attributes && 'homeTeam' in strapiData;
     const data = isFlattened ? strapiData : attributes;
@@ -1037,6 +1033,10 @@ function mapStrapiTournamentMatch(strapiData: any): TournamentMatch {
         awayScore: data.awayScore,
         homeGoalscorers: data.homeGoalscorers || undefined,
         awayGoalscorers: data.awayGoalscorers || undefined,
+        images: [],
+        files: [],
+        categories: [],
+        matchDate: data.matchDate || data.createdAt?.split('T')[0] || '',
         tournamentId,
         authorId: userId,
         author,
@@ -1051,8 +1051,8 @@ function mapStrapiTournamentMatch(strapiData: any): TournamentMatch {
  */
 export async function strapiCreateTournamentMatch(
     jwt: string,
-    data: CreateTournamentMatchRequest
-): Promise<TournamentMatch> {
+    data: CreateMatchRequest
+): Promise<Match> {
     try {
         const createResponse = await fetch(`${STRAPI_URL}/api/tournament-matches`, {
             method: 'POST',
@@ -1089,7 +1089,7 @@ export async function strapiCreateTournamentMatch(
 export async function strapiGetTournamentMatches(
     jwt: string,
     tournamentId: number
-): Promise<TournamentMatch[]> {
+): Promise<Match[]> {
     try {
         const response = await fetch(
             `${STRAPI_URL}/api/tournament-matches?populate=*&sort=createdAt:asc&filters[tournament][id][$eq]=${tournamentId}`,
@@ -1125,7 +1125,7 @@ export async function strapiGetTournamentMatches(
 export async function strapiGetAllMatchResults(
     jwt: string,
     userId?: number
-): Promise<MatchResult[]> {
+): Promise<Match[]> {
     try {
         let url = `${STRAPI_URL}/api/match-results?populate=*&sort=createdAt:desc&pagination[limit]=100`;
         if (userId) {
@@ -1235,7 +1235,7 @@ export async function strapiGetTournamentsWithFilter(
 export async function strapiGetMatchResult(
     jwt: string,
     id: number | string
-): Promise<MatchResult> {
+): Promise<Match> {
     try {
         const response = await fetch(
             `${STRAPI_URL}/api/match-results/${id}?populate=*`,
@@ -1337,7 +1337,7 @@ export async function strapiGetTournament(
 export async function strapiGetTournamentMatch(
     jwt: string,
     id: number | string
-): Promise<TournamentMatch> {
+): Promise<Match> {
     try {
         const response = await fetch(
             `${STRAPI_URL}/api/tournament-matches/${id}?populate=*`,
@@ -1373,10 +1373,10 @@ export async function strapiGetTournamentMatch(
 export async function strapiUpdateMatchResult(
     jwt: string,
     id: number | string,
-    data: Partial<CreateMatchResultRequest>,
+    data: Partial<CreateMatchRequest>,
     images?: File[],
     files?: File[]
-): Promise<MatchResult> {
+): Promise<Match> {
     try {
         const updateResponse = await fetch(`${STRAPI_URL}/api/match-results/${id}`, {
             method: 'PUT',
@@ -1511,8 +1511,8 @@ export async function strapiUpdateTournament(
 export async function strapiUpdateTournamentMatch(
     jwt: string,
     id: number | string,
-    data: Partial<CreateTournamentMatchRequest>
-): Promise<TournamentMatch> {
+    data: Partial<CreateMatchRequest>
+): Promise<Match> {
     try {
         const updateResponse = await fetch(`${STRAPI_URL}/api/tournament-matches/${id}`, {
             method: 'PUT',
