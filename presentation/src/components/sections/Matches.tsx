@@ -163,28 +163,20 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
           </div>
         </div>
 
-        {/* CTAs */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="text-center"
         >
-          <Link href={`/kategorie/${categorySlug}/zapasy?tab=upcoming`}>
+          <Link href={`/kategorie/${categorySlug}/zapasy`}>
             <Button
               variant="ghost"
               icon={<ArrowRight className="w-5 h-5" />}
             >
-              Všechny nadcházející zápasy
-            </Button>
-          </Link>
-          <Link href={`/kategorie/${categorySlug}/zapasy?tab=finished`}>
-            <Button
-              variant="ghost"
-              icon={<ArrowRight className="w-5 h-5" />}
-            >
-              Všechny odehrané zápasy
+              Všechny zápasy
             </Button>
           </Link>
         </motion.div>
