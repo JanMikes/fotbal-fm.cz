@@ -27,6 +27,7 @@ const {
   getPageBySlug,
   getPartners,
   getPartnerBySlug,
+  getStandingsByCategory,
 } = await import('../../../lib/strapi/data');
 
 describe('data layer', () => {
@@ -459,6 +460,66 @@ describe('data layer', () => {
       expect(callArgs.populate).toHaveProperty('logo');
       expect(callArgs.populate).toHaveProperty('content');
       expect(callArgs.populate).toHaveProperty('panel');
+    });
+  });
+
+  describe('getStandingsByCategory', () => {
+    it('returns mapped standings with team name from relation', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1, documentId: 'standing-1', position: 1,
+            team: { id: 1, documentId: 'team-1', name: 'FK Frýdek-Místek' },
+            matchesPlayed: 10, wins: 8, draws: 1, losses: 1,
+            goalsFor: 25, goalsAgainst: 8, points: 25,
+            competitionCode: 'A1A', season: 2025,
+            tournament: { id: 1, documentId: 'tourn-1', name: 'Divize E' },
+            categories: null,
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getStandingsByCategory('muzi');
+      expect(result).toHaveLength(1);
+      expect(result[0].teamName).toBe('FK Frýdek-Místek');
+      expect(result[0].position).toBe(1);
+      expect(result[0].points).toBe(25);
+      expect(result[0].tournamentName).toBe('Divize E');
+    });
+
+    it('handles null team relation gracefully', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1, documentId: 'standing-1', position: 1,
+            team: null,
+            matchesPlayed: 10, wins: 8, draws: 1, losses: 1,
+            goalsFor: 25, goalsAgainst: 8, points: 25,
+            competitionCode: 'A1A', season: 2025,
+            tournament: null, categories: null,
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getStandingsByCategory('muzi');
+      expect(result[0].teamName).toBe('');
+    });
+
+    it('populates team and tournament relations', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getStandingsByCategory('muzi');
+
+      expect(mockFindMany).toHaveBeenCalledWith('standings', expect.objectContaining({
+        filters: { categories: { slug: { $eq: 'muzi' } } },
+        sort: 'position:asc',
+        pagination: { pageSize: 100 },
+      }));
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.populate).toHaveProperty('team');
+      expect(callArgs.populate).toHaveProperty('tournament');
     });
   });
 });
