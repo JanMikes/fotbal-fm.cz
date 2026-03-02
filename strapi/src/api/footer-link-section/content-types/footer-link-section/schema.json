@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "footer_link_sections",
+  "info": {
+    "singularName": "footer-link-section",
+    "pluralName": "footer-link-sections",
+    "displayName": "Patička - sekce odkazů"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "links": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": true,
+      "required": true
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

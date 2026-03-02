@@ -142,7 +142,9 @@ describe('data layer', () => {
       mockFindMany.mockResolvedValueOnce({
         data: [
           {
-            id: 1, documentId: 'match-1', homeTeam: 'A', awayTeam: 'B',
+            id: 1, documentId: 'match-1',
+            homeTeam: { id: 1, documentId: 'team-1', name: 'A' },
+            awayTeam: { id: 2, documentId: 'team-2', name: 'B' },
             homeScore: null, awayScore: null, matchDate: '2026-06-15',
             matchTime: '17:00', venue: 'Stadion', round: 1,
             competitionName: 'Liga', competitionCode: null,
@@ -165,7 +167,9 @@ describe('data layer', () => {
       mockFindMany.mockResolvedValueOnce({
         data: [
           {
-            id: 1, documentId: 'match-1', homeTeam: 'A', awayTeam: 'B',
+            id: 1, documentId: 'match-1',
+            homeTeam: { id: 1, documentId: 'team-1', name: 'A' },
+            awayTeam: { id: 2, documentId: 'team-2', name: 'B' },
             homeScore: 1, awayScore: 0, matchDate: '2025-03-15',
             matchTime: '17:00', venue: 'Stadion', round: 1,
             competitionName: 'Liga', competitionCode: null,

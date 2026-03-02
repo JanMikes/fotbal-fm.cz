@@ -121,6 +121,14 @@ export type StrapiRawCategoryWithHero = import('@fotbal-fm/strapi-client').Strap
   heroSlide3Link: string | null;
 };
 
+export interface StrapiRawFooterLinkSection {
+  id: number;
+  documentId: string;
+  title: string;
+  links: StrapiRawTextLink[];
+  sortOrder: number;
+}
+
 export interface StrapiRawPartner {
   id: number;
   documentId: string;
@@ -135,11 +143,18 @@ export interface StrapiRawPartner {
   updatedAt: string;
 }
 
+export interface StrapiRawTeam {
+  id: number;
+  documentId: string;
+  name: string;
+  logo?: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+}
+
 export interface StrapiRawMatch {
   id: number;
   documentId: string;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: StrapiRawTeam | null;
+  awayTeam: StrapiRawTeam | null;
   homeScore: number | null;
   awayScore: number | null;
   matchDate: string;

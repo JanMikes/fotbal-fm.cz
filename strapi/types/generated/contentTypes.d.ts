@@ -624,6 +624,38 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFooterLinkSectionFooterLinkSection
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'footer_link_sections';
+  info: {
+    displayName: 'Pati\u010Dka - sekce odkaz\u016F';
+    pluralName: 'footer-link-sections';
+    singularName: 'footer-link-section';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    links: Schema.Attribute.Component<'elements.text-link', true> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::footer-link-section.footer-link-section'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
@@ -1691,6 +1723,7 @@ declare module '@strapi/strapi' {
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
+      'api::footer-link-section.footer-link-section': ApiFooterLinkSectionFooterLinkSection;
       'api::match.match': ApiMatchMatch;
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;

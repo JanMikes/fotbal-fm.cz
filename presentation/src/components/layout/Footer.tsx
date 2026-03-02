@@ -4,25 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import type { FooterLinkSection } from '@/lib/types';
 
-const footerLinks = {
-  klub: [
-    { label: 'O nás', href: '/o-klubu' },
-    { label: 'Historie', href: '/o-klubu/historie' },
-    { label: 'Stadion', href: '/o-klubu/stadion' },
-    { label: 'Vedení', href: '/o-klubu/vedeni' },
-  ],
-  zapasy: [
-    { label: 'Kalendář', href: '/zapasy/kalendar' },
-    { label: 'Výsledky', href: '/zapasy/vysledky' },
-    { label: 'Tabulka', href: '/zapasy/tabulka' },
-  ],
-  kontakt: [
-    { icon: MapPin, text: 'Sportovní 1234, 738 01 Frýdek-Místek' },
-    { icon: Mail, text: 'info@fkfm.cz', href: 'mailto:info@fkfm.cz' },
-    { icon: Phone, text: '+420 558 123 456', href: 'tel:+420558123456' },
-  ],
-};
+const contactItems = [
+  { icon: MapPin, text: 'Sportovní 1234, 738 01 Frýdek-Místek' },
+  { icon: Mail, text: 'info@fkfm.cz', href: 'mailto:info@fkfm.cz' },
+  { icon: Phone, text: '+420 558 123 456', href: 'tel:+420558123456' },
+];
 
 const socialLinks = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
@@ -31,7 +19,11 @@ const socialLinks = [
   { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
 ];
 
-export default function Footer() {
+interface FooterProps {
+  linkSections: FooterLinkSection[];
+}
+
+export default function Footer({ linkSections }: FooterProps) {
   const [email, setEmail] = useState('');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -45,9 +37,9 @@ export default function Footer() {
     <footer className="bg-primary-500 text-white">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          {/* Logo & Description */}
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-10 lg:gap-8">
+          {/* Logo & Description - takes 2 cols on small screens */}
+          <div className="col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-6">
               <div className="relative w-16 h-16">
                 <Image
@@ -77,45 +69,33 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links - Klub */}
-          <div>
-            <h4 className="font-bold uppercase tracking-wider text-small mb-6">
-              Klub
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.klub.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors inline-flex items-center gap-2 group"
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Links - Zápasy */}
-          <div>
-            <h4 className="font-bold uppercase tracking-wider text-small mb-6">
-              Zápasy
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.zapasy.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-white/60 hover:text-white transition-colors inline-flex items-center gap-2 group"
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Dynamic Link Sections from Strapi */}
+          {linkSections.map((section) => (
+            <div key={section.documentId}>
+              <h4 className="font-bold uppercase tracking-wider text-small mb-6">
+                {section.title}
+              </h4>
+              <ul className="space-y-3">
+                {section.links.map((link, index) => {
+                  const props = link.external
+                    ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+                    : {};
+                  return (
+                    <li key={index}>
+                      <Link
+                        href={link.href}
+                        className="text-white/60 hover:text-white transition-colors inline-flex items-center gap-2 group"
+                        {...props}
+                      >
+                        <span>{link.text}</span>
+                        <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
 
           {/* Contact */}
           <div>
@@ -123,7 +103,7 @@ export default function Footer() {
               Kontakt
             </h4>
             <ul className="space-y-4">
-              {footerLinks.kontakt.map((item, index) => (
+              {contactItems.map((item, index) => (
                 <li key={index} className="flex items-start gap-3">
                   <item.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
                   {item.href ? (

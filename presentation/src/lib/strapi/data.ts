@@ -1,6 +1,7 @@
 import type {
   Category,
   CategoryHeroData,
+  FooterLinkSection,
   Match,
   NavigationItem,
   NewsArticle,
@@ -14,6 +15,7 @@ import type {
 import type {
   StrapiRawCategory,
   StrapiRawCategoryWithHero,
+  StrapiRawFooterLinkSection,
   StrapiRawMatch,
   StrapiRawNavigation,
   StrapiRawNewsArticle,
@@ -24,6 +26,7 @@ import type {
 } from './types';
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
+import { mapFooterLinkSection } from './mappers/footer-link-section';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
@@ -32,7 +35,7 @@ import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
-import { buildNavigationPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
+import { buildNavigationPopulate, buildFooterLinkSectionPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
 
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
@@ -110,6 +113,8 @@ export async function getUpcomingMatches(categorySlug: string, limit = 3): Promi
     },
     populate: {
       tournament: { fields: ['name'] },
+      homeTeam: { fields: ['name'] },
+      awayTeam: { fields: ['name'] },
     },
     sort: 'matchDate:asc',
     pagination: { pageSize: limit },
@@ -126,6 +131,8 @@ export async function getFinishedMatches(categorySlug: string, limit = 3): Promi
     },
     populate: {
       tournament: { fields: ['name'] },
+      homeTeam: { fields: ['name'] },
+      awayTeam: { fields: ['name'] },
     },
     sort: 'matchDate:desc',
     pagination: { pageSize: limit },
@@ -141,6 +148,8 @@ export async function getAllMatchesByCategory(categorySlug: string): Promise<Mat
     },
     populate: {
       tournament: { fields: ['name'] },
+      homeTeam: { fields: ['name'] },
+      awayTeam: { fields: ['name'] },
     },
     sort: 'matchDate:desc',
   });
@@ -184,6 +193,16 @@ export async function getNavigation(): Promise<NavigationItem[]> {
     pagination: { pageSize: 100 },
   });
   return data.map(mapNavigation).filter((item): item is NavigationItem => item !== null);
+}
+
+export async function getFooterLinkSections(): Promise<FooterLinkSection[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawFooterLinkSection>('footer-link-sections', {
+    sort: 'sortOrder:asc',
+    populate: buildFooterLinkSectionPopulate(),
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapFooterLinkSection);
 }
 
 export async function getPageBySlug(slug: string): Promise<Page | null> {
@@ -264,6 +283,8 @@ export async function getUpcomingMatch(categorySlug: string): Promise<Match | nu
     },
     populate: {
       tournament: { fields: ['name'] },
+      homeTeam: { fields: ['name'] },
+      awayTeam: { fields: ['name'] },
     },
     sort: 'matchDate:asc',
     pagination: { pageSize: 1 },
@@ -280,6 +301,8 @@ export async function getLastResult(categorySlug: string): Promise<Match | null>
     },
     populate: {
       tournament: { fields: ['name'] },
+      homeTeam: { fields: ['name'] },
+      awayTeam: { fields: ['name'] },
     },
     sort: 'matchDate:desc',
     pagination: { pageSize: 1 },

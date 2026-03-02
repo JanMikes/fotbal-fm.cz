@@ -1,4 +1,4 @@
-import type { StrapiCollectionResponse, StrapiQueryOptions } from '@fotbal-fm/strapi-client';
+import type { StrapiCollectionResponse, StrapiPagination, StrapiQueryOptions, StrapiSingleResponse } from '@fotbal-fm/strapi-client';
 import { buildStrapiQueryString } from '@fotbal-fm/strapi-client';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
@@ -26,6 +26,46 @@ export async function strapiGet<T>(
   }
 
   return res.json() as Promise<StrapiCollectionResponse<T>>;
+}
+
+export async function strapiGetWithPagination<T>(
+  path: string,
+  options?: StrapiQueryOptions,
+): Promise<{ data: T[]; pagination: StrapiPagination }> {
+  const result = await strapiGet<T>(path, options);
+  const pagination = result.meta?.pagination ?? {
+    page: 1,
+    pageSize: 25,
+    pageCount: 1,
+    total: result.data.length,
+  };
+  return { data: result.data, pagination };
+}
+
+export async function strapiGetSingleEntry<T>(
+  path: string,
+  options?: StrapiQueryOptions,
+): Promise<T | null> {
+  const qs = options ? buildStrapiQueryString(options) : '';
+  const url = `${STRAPI_URL}/api${path}${qs}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (STRAPI_API_TOKEN) {
+    headers['Authorization'] = `Bearer ${STRAPI_API_TOKEN}`;
+  }
+
+  const res = await fetch(url, { headers });
+
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error(`Strapi request failed: ${res.status} ${res.statusText}`);
+  }
+
+  const json = (await res.json()) as StrapiSingleResponse<T>;
+  return json.data;
 }
 
 export async function strapiGetSingle<T>(

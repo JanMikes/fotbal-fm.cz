@@ -5,8 +5,8 @@ function makeRawMatch(overrides: Record<string, unknown> = {}) {
   return {
     id: 1,
     documentId: 'match-1',
-    homeTeam: 'FK Frýdek-Místek',
-    awayTeam: 'Baník Ostrava',
+    homeTeam: { id: 1, documentId: 'team-1', name: 'FK Frýdek-Místek' },
+    awayTeam: { id: 2, documentId: 'team-2', name: 'Baník Ostrava' },
     homeScore: 2,
     awayScore: 1,
     matchDate: '2025-03-15',

@@ -116,6 +116,14 @@ export interface PartnerDetail extends Partner {
   panel: DynamicZoneComponent[];
 }
 
+// Footer
+
+export interface FooterLinkSection {
+  documentId: string;
+  title: string;
+  links: ResolvedTextLink[];
+}
+
 // Navigation
 
 export interface NavigationItem {

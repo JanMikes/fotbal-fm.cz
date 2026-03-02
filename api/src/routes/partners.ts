@@ -1,3 +1,9 @@
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { strapiGet } from '../lib/strapi.js';
+import { PartnerSummarySchema, PartnerDetailSchema } from '../schemas/partner.js';
+import { mapPartnerSummary, mapPartnerDetail } from '../mappers/partner.js';
+import type { StrapiRawPartner } from '../types/strapi.js';
+
 const mediaFields = { fields: ['url', 'alternativeText', 'width', 'height', 'name', 'ext', 'size'] };
 
 const textLinkPopulate = {
@@ -155,42 +161,94 @@ function buildDynamicZonePopulate() {
       'components.news-articles': {
         populate: {
           categories: { fields: ['name', 'slug'] },
-          show_all_link: textLinkPopulate,
         },
       },
     },
   };
 }
 
-export function buildPagePopulate() {
-  return {
-    content: buildDynamicZonePopulate(),
-    sidebar: buildDynamicZonePopulate(),
-  };
-}
-
-export function buildPartnerPopulate() {
-  const dz = buildDynamicZonePopulate();
-  return {
-    logo: mediaFields,
-    content: dz,
-    panel: dz,
-  };
-}
-
-export function buildFooterLinkSectionPopulate() {
-  return {
-    links: textLinkPopulate,
-  };
-}
-
-export function buildNavigationPopulate() {
-  return {
-    link: {
-      populate: {
-        page: { fields: ['slug'] },
-        file: mediaFields,
+const listRoute = createRoute({
+  method: 'get',
+  path: '/partners',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(PartnerSummarySchema),
+          }),
+        },
       },
+      description: 'List of partners',
     },
-  };
-}
+  },
+});
+
+const detailRoute = createRoute({
+  method: 'get',
+  path: '/partners/{slug}',
+  request: {
+    params: z.object({
+      slug: z.string().openapi({ description: 'Partner slug' }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: PartnerDetailSchema,
+          }),
+        },
+      },
+      description: 'Partner detail with dynamic zone content',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            error: z.string(),
+          }),
+        },
+      },
+      description: 'Partner not found',
+    },
+  },
+});
+
+export const partnersRoute = new OpenAPIHono();
+
+partnersRoute.openapi(listRoute, async (c) => {
+  const result = await strapiGet<StrapiRawPartner>('/partners', {
+    sort: 'sortOrder:asc',
+    pagination: { pageSize: 100 },
+    populate: {
+      logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+    },
+  });
+
+  const data = result.data.map(mapPartnerSummary);
+  return c.json({ data });
+});
+
+partnersRoute.openapi(detailRoute, async (c) => {
+  const { slug } = c.req.valid('param');
+
+  const dz = buildDynamicZonePopulate();
+  const result = await strapiGet<StrapiRawPartner>('/partners', {
+    filters: { slug: { $eq: slug } },
+    pagination: { pageSize: 1 },
+    populate: {
+      logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+      content: dz,
+      panel: dz,
+    },
+  });
+
+  const partner = result.data[0];
+  if (!partner) {
+    return c.json({ error: 'Partner not found' }, 404);
+  }
+
+  return c.json({ data: mapPartnerDetail(partner) }, 200);
+});
