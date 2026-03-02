@@ -22,10 +22,10 @@ export default async function ZapasyPage({ params }: ZapasyPageProps) {
         {/* Back link */}
         <Link
           href={`/kategorie/${categorySlug}`}
-          className="inline-flex items-center gap-2 text-primary/60 hover:text-primary transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Zpět na kategorii</span>
+          Zpět na kategorii
         </Link>
 
         {/* Header */}

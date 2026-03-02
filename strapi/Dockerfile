@@ -14,7 +14,7 @@ RUN npm run build
 
 EXPOSE 1337
 
-HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
     CMD node -e "fetch('http://localhost:1337/_health').then(r => process.exit(r.status === 204 ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["npm", "run", "start"]
