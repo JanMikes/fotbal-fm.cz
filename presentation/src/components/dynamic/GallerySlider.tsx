@@ -11,9 +11,6 @@ interface GallerySliderProps {
 }
 
 export function GallerySlider({ data }: GallerySliderProps) {
-  const photos = data.photos?.filter((p) => p.image) ?? [];
-  if (photos.length === 0) return null;
-
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'start',
@@ -23,6 +20,9 @@ export function GallerySlider({ data }: GallerySliderProps) {
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  const photos = data.photos?.filter((p) => p.image) ?? [];
+  if (photos.length === 0) return null;
 
   return (
     <div className="relative group">

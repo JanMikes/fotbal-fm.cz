@@ -35,6 +35,34 @@ export interface NewsArticle extends NewsArticleSummary {
   relatedNews: NewsArticleSummary[];
 }
 
+export interface Standing {
+  position: number;
+  teamName: string;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+  tournamentName: string | null;
+}
+
+export interface CategoryHeroData {
+  heroSlide1Image: MediaImage | null;
+  heroSlide2Image: MediaImage | null;
+  heroSlide3Image: MediaImage | null;
+  heroSlide3NewsArticle: {
+    title: string;
+    slug: string;
+    description: string | null;
+    mainPhoto: MediaImage | null;
+  } | null;
+  heroSlide3Title: string | null;
+  heroSlide3Text: string | null;
+  heroSlide3Link: string | null;
+}
+
 export interface Match {
   id: number;
   homeTeam: string;

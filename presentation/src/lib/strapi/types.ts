@@ -93,6 +93,34 @@ export interface StrapiRawDynamicZoneComponent {
   [key: string]: unknown;
 }
 
+export interface StrapiRawStanding {
+  id: number;
+  documentId: string;
+  position: number;
+  teamName: string;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+  competitionCode: string;
+  season: number;
+  tournament: { id: number; documentId: string; name: string } | null;
+  categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
+}
+
+export interface StrapiRawCategoryWithHero extends import('@fotbal-fm/strapi-client').StrapiRawCategory {
+  heroSlide1Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+  heroSlide2Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+  heroSlide3Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+  heroSlide3NewsArticle: StrapiRawNewsArticle | null;
+  heroSlide3Title: string | null;
+  heroSlide3Text: string | null;
+  heroSlide3Link: string | null;
+}
+
 export interface StrapiRawMatch {
   id: number;
   documentId: string;

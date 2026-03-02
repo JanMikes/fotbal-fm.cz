@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -13,8 +13,6 @@ interface SliderProps {
 }
 
 export function Slider({ data }: SliderProps) {
-  if (!data.slides || data.slides.length === 0) return null;
-
   const plugins = data.autoplay
     ? [Autoplay({ delay: data.autoplay_interval || 5000, stopOnInteraction: true })]
     : [];
@@ -23,6 +21,8 @@ export function Slider({ data }: SliderProps) {
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  if (!data.slides || data.slides.length === 0) return null;
 
   return (
     <div className="relative group">

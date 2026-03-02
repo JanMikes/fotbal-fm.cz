@@ -72,8 +72,8 @@ export default function TournamentForm({
           matches: initialData.matches?.map(m => ({
             homeTeam: m.homeTeam,
             awayTeam: m.awayTeam,
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
+            homeScore: m.homeScore ?? undefined,
+            awayScore: m.awayScore ?? undefined,
             homeGoalscorers: m.homeGoalscorers || '',
             awayGoalscorers: m.awayGoalscorers || '',
           })) || [],
