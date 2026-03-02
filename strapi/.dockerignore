@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.DS_Store
+.env
+.tmp
+.cache
+.strapi
+build
+dist
+public/uploads/*
+!public/uploads/.gitkeep
+*.log
+*.md
