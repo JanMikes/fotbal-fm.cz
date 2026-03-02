@@ -190,7 +190,9 @@ async function main() {
 
       if (filePlayer?.photoFilename) {
         photoId = await uploadPhotoFromFile(filePlayer.photoFilename, player.name);
-      } else if (player.photoUrl) {
+      } else if (!fromFile && player.photoUrl) {
+        // Only fetch from FAČR URL when scraping live (not from file),
+        // as production can't reach is.fotbal.cz
         photoId = await uploadPhotoFromUrl(player.photoUrl, player.name);
       }
       if (photoId) photosUploaded++;
