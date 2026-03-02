@@ -1,0 +1,2390 @@
+[
+  {
+    "sportbmId": "261442",
+    "name": "Lukáš Tomeček",
+    "dateOfBirth": "2005-01-24",
+    "number": null,
+    "photoFilename": "lukas-tomecek.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260881",
+    "name": "Sebastián Bojda",
+    "dateOfBirth": "2007-03-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260977",
+    "name": "Daniel Dluhoš",
+    "dateOfBirth": "2007-08-13",
+    "number": null,
+    "photoFilename": "daniel-dluhos.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260946",
+    "name": "Jakub Meca",
+    "dateOfBirth": "2007-08-10",
+    "number": null,
+    "photoFilename": "jakub-meca.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260982",
+    "name": "David Tomeček",
+    "dateOfBirth": "2007-01-24",
+    "number": null,
+    "photoFilename": "david-tomecek.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260873",
+    "name": "Filip Volný",
+    "dateOfBirth": "2007-02-02",
+    "number": null,
+    "photoFilename": "filip-volny.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "261217",
+    "name": "Ondřej Strmiska",
+    "dateOfBirth": "2007-10-02",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "261246",
+    "name": "Jakub Tvarůžka",
+    "dateOfBirth": "2007-12-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "260885",
+    "name": "Lukáš Mikulenka",
+    "dateOfBirth": "2008-03-29",
+    "number": null,
+    "photoFilename": "lukas-mikulenka.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "262078",
+    "name": "Pavel Mucha",
+    "dateOfBirth": "2008-07-24",
+    "number": null,
+    "photoFilename": "pavel-mucha.jpg",
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "262974",
+    "name": "Karel Šištík",
+    "dateOfBirth": "2005-03-31",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "341513",
+    "name": "Přemysl Krpec",
+    "dateOfBirth": "2008-09-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "370858",
+    "name": "Vojtěch Macíček",
+    "dateOfBirth": "2008-09-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "378951",
+    "name": "Adam Mácha",
+    "dateOfBirth": "2008-01-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "271059",
+    "name": "Patrik Czene",
+    "dateOfBirth": "2008-04-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "263703",
+    "name": "Maxim Skotnica",
+    "dateOfBirth": "2009-05-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "263400",
+    "name": "Marek Šrubař",
+    "dateOfBirth": "2009-10-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "441510",
+    "name": "David Kolibač",
+    "dateOfBirth": "2008-02-08",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "441904",
+    "name": "Ondrej Sojcak",
+    "dateOfBirth": "2007-02-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "443161",
+    "name": "Ivan Kameniev",
+    "dateOfBirth": "2008-12-23",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "449292",
+    "name": "Radim Zahradník",
+    "dateOfBirth": "2007-12-31",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16270
+    ]
+  },
+  {
+    "sportbmId": "262145",
+    "name": "Daniel Pavelka",
+    "dateOfBirth": "2009-03-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262152",
+    "name": "Oliver Jarotek",
+    "dateOfBirth": "2009-05-26",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262155",
+    "name": "David Markusík",
+    "dateOfBirth": "2009-03-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262440",
+    "name": "Václav Šištík",
+    "dateOfBirth": "2009-10-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262214",
+    "name": "Sebastian Van Den Eede",
+    "dateOfBirth": "2009-07-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262139",
+    "name": "Dominik Šigut",
+    "dateOfBirth": "2009-12-31",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262166",
+    "name": "Dominik Kubala",
+    "dateOfBirth": "2009-01-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262151",
+    "name": "Vratislav Rosa",
+    "dateOfBirth": "2009-07-25",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262167",
+    "name": "Ondřej Poruba",
+    "dateOfBirth": "2009-10-15",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "262147",
+    "name": "Matyáš Staník",
+    "dateOfBirth": "2010-01-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "266323",
+    "name": "Patrik Kovalčík",
+    "dateOfBirth": "2010-01-15",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "267966",
+    "name": "Jan Mikulenka",
+    "dateOfBirth": "2010-04-13",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "268083",
+    "name": "Michal Šamaj",
+    "dateOfBirth": "2010-06-29",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "399660",
+    "name": "Jonáš Seidler",
+    "dateOfBirth": "2009-09-02",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "399769",
+    "name": "Filip Feber",
+    "dateOfBirth": "2009-12-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "400536",
+    "name": "Adam Chromec",
+    "dateOfBirth": "2010-07-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "403634",
+    "name": "Quang Vu Minh",
+    "dateOfBirth": "2009-09-10",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272
+    ]
+  },
+  {
+    "sportbmId": "320625",
+    "name": "Dominik Bušovský",
+    "dateOfBirth": "2009-01-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16272,
+      16273
+    ]
+  },
+  {
+    "sportbmId": "263182",
+    "name": "Tomáš Laník",
+    "dateOfBirth": "2009-12-30",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "268552",
+    "name": "Dominik Chlebek",
+    "dateOfBirth": "2010-12-09",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "266248",
+    "name": "Dominik Čada",
+    "dateOfBirth": "2010-12-30",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "268723",
+    "name": "Vojtěch Filip",
+    "dateOfBirth": "2010-04-22",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "268485",
+    "name": "Matěj Nalewajka",
+    "dateOfBirth": "2010-12-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "267917",
+    "name": "Otto Schnapka",
+    "dateOfBirth": "2010-07-27",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "261306",
+    "name": "Dominik Strakoš",
+    "dateOfBirth": "2010-06-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "300634",
+    "name": "Petr Matusík",
+    "dateOfBirth": "2010-10-25",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "268756",
+    "name": "Sebastien Vavřač",
+    "dateOfBirth": "2010-02-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "400941",
+    "name": "Ondřej Vondrák",
+    "dateOfBirth": "2004-06-23",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "400942",
+    "name": "Jan Nagy",
+    "dateOfBirth": "2000-02-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "401001",
+    "name": "Jakub Zálešák",
+    "dateOfBirth": "2010-02-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "401029",
+    "name": "Patrik Holuša",
+    "dateOfBirth": "2009-12-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "401097",
+    "name": "Antonín Koběluš",
+    "dateOfBirth": "1988-07-15",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "401099",
+    "name": "Štěpán Pecek",
+    "dateOfBirth": "2010-09-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "404556",
+    "name": "Michal Klimunda",
+    "dateOfBirth": "2010-10-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "370729",
+    "name": "Dalibor Radvanský",
+    "dateOfBirth": "2010-03-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "378936",
+    "name": "Ondřej Mácha",
+    "dateOfBirth": "2010-08-31",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "406229",
+    "name": "Matěj Dryják",
+    "dateOfBirth": "2007-04-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "432058",
+    "name": "Jáchym Vida",
+    "dateOfBirth": "2010-12-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "464389",
+    "name": "Jan Mikulenka",
+    "dateOfBirth": "2010-07-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16273
+    ]
+  },
+  {
+    "sportbmId": "261836",
+    "name": "Matyáš Bernatík",
+    "dateOfBirth": "2011-02-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "262645",
+    "name": "Maxim Burget",
+    "dateOfBirth": "2011-11-09",
+    "number": null,
+    "photoFilename": "maxim-burget.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "262024",
+    "name": "Ondřej Dolný",
+    "dateOfBirth": "2011-05-06",
+    "number": null,
+    "photoFilename": "ondrej-dolny.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261328",
+    "name": "Šimon Frydryšek",
+    "dateOfBirth": "2011-12-11",
+    "number": null,
+    "photoFilename": "simon-frydrysek.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261320",
+    "name": "Patrik Honsa",
+    "dateOfBirth": "2011-03-26",
+    "number": null,
+    "photoFilename": "patrik-honsa.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261831",
+    "name": "Ondřej Konečný",
+    "dateOfBirth": "2011-02-18",
+    "number": null,
+    "photoFilename": "ondrej-konecny.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261311",
+    "name": "Samuel Jan Koždoň",
+    "dateOfBirth": "2011-01-11",
+    "number": null,
+    "photoFilename": "samuel-jan-kozdon.jpg",
+    "groupIds": [
+      16275,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "261736",
+    "name": "Martin Kuboš",
+    "dateOfBirth": "2011-12-22",
+    "number": null,
+    "photoFilename": "martin-kubos.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261357",
+    "name": "Filip Lumbert",
+    "dateOfBirth": "2011-11-30",
+    "number": null,
+    "photoFilename": "filip-lumbert.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261938",
+    "name": "Antonín Matýsek",
+    "dateOfBirth": "2011-06-28",
+    "number": null,
+    "photoFilename": "antonin-matysek.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "262405",
+    "name": "Matej Morong",
+    "dateOfBirth": "2011-09-12",
+    "number": null,
+    "photoFilename": "matej-morong.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "263333",
+    "name": "Cyril Morys",
+    "dateOfBirth": "2011-07-11",
+    "number": null,
+    "photoFilename": "cyril-morys.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261940",
+    "name": "Jakub Sčensný",
+    "dateOfBirth": "2011-07-07",
+    "number": null,
+    "photoFilename": "jakub-scensny.jpg",
+    "groupIds": [
+      16275,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "261322",
+    "name": "Samuel Slansky",
+    "dateOfBirth": "2011-02-25",
+    "number": null,
+    "photoFilename": "samuel-slansky.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "261455",
+    "name": "Jakub Tarkoš",
+    "dateOfBirth": "2011-06-10",
+    "number": null,
+    "photoFilename": "jakub-tarkos.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "280138",
+    "name": "Lukáš Vacca",
+    "dateOfBirth": "2011-06-22",
+    "number": null,
+    "photoFilename": "lukas-vacca.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "312449",
+    "name": "Petr Martinák",
+    "dateOfBirth": "2011-05-24",
+    "number": null,
+    "photoFilename": "petr-martinak.jpg",
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "402106",
+    "name": "Jan Mareček",
+    "dateOfBirth": "2011-04-25",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "267775",
+    "name": "Matyáš Bartoň",
+    "dateOfBirth": "2012-06-23",
+    "number": null,
+    "photoFilename": "matyas-barton.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "261978",
+    "name": "Jakub David",
+    "dateOfBirth": "1986-05-09",
+    "number": null,
+    "photoFilename": "jakub-david.jpg",
+    "groupIds": [
+      16276,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "261833",
+    "name": "Ondřej Flachs",
+    "dateOfBirth": "2012-09-27",
+    "number": null,
+    "photoFilename": "ondrej-flachs.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "269200",
+    "name": "Tobiáš Foltýn",
+    "dateOfBirth": "2012-08-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262123",
+    "name": "Oliver Gladiš",
+    "dateOfBirth": "2012-03-16",
+    "number": null,
+    "photoFilename": "oliver-gladis.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262286",
+    "name": "Kryštof Goryczka",
+    "dateOfBirth": "2012-09-04",
+    "number": null,
+    "photoFilename": "krystof-goryczka.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "269435",
+    "name": "Sebastian Hynar",
+    "dateOfBirth": "2012-12-05",
+    "number": null,
+    "photoFilename": "sebastian-hynar.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "261832",
+    "name": "Nicolas Kaláb",
+    "dateOfBirth": "2012-06-18",
+    "number": null,
+    "photoFilename": "nicolas-kalab.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262061",
+    "name": "Tomas Kondelka",
+    "dateOfBirth": "2012-01-12",
+    "number": null,
+    "photoFilename": "tomas-kondelka.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262190",
+    "name": "Adam Matýsek",
+    "dateOfBirth": "2012-11-12",
+    "number": null,
+    "photoFilename": "adam-matysek.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "263681",
+    "name": "Matěj Papřok",
+    "dateOfBirth": "2012-02-07",
+    "number": null,
+    "photoFilename": "matej-paprok.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262699",
+    "name": "Matyáš Peinlich",
+    "dateOfBirth": "2012-01-22",
+    "number": null,
+    "photoFilename": "matyas-peinlich.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "267773",
+    "name": "Vojtěch Piskoř",
+    "dateOfBirth": "2012-04-06",
+    "number": null,
+    "photoFilename": "vojtech-piskor.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "261834",
+    "name": "Miroslav Polášek",
+    "dateOfBirth": "2012-01-26",
+    "number": null,
+    "photoFilename": "miroslav-polasek.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "261906",
+    "name": "Jakub Teichman",
+    "dateOfBirth": "2012-06-04",
+    "number": null,
+    "photoFilename": "jakub-teichman.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262289",
+    "name": "Dominik Tomi",
+    "dateOfBirth": "2012-08-06",
+    "number": null,
+    "photoFilename": "dominik-tomi.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "262274",
+    "name": "Bořek Vochala",
+    "dateOfBirth": "2012-03-26",
+    "number": null,
+    "photoFilename": "borek-vochala.jpg",
+    "groupIds": [
+      16276,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "322215",
+    "name": "Ondřej Tovaryš",
+    "dateOfBirth": "2012-04-25",
+    "number": null,
+    "photoFilename": "ondrej-tovarys.jpg",
+    "groupIds": [
+      16276,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "396921",
+    "name": "Jakub Jaroš",
+    "dateOfBirth": "2012-09-04",
+    "number": null,
+    "photoFilename": "jakub-jaros.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "266682",
+    "name": "Filip Henc",
+    "dateOfBirth": "2013-02-01",
+    "number": null,
+    "photoFilename": "filip-henc.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "266846",
+    "name": "David Lex",
+    "dateOfBirth": "2013-03-07",
+    "number": null,
+    "photoFilename": "david-lex.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "400470",
+    "name": "Vojtech Kolman",
+    "dateOfBirth": "2012-08-22",
+    "number": null,
+    "photoFilename": "vojtech-kolman.jpg",
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "464019",
+    "name": "Maksym Shepta",
+    "dateOfBirth": "2012-02-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "467803",
+    "name": "Dominik Křenek",
+    "dateOfBirth": "2012-11-08",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16276
+    ]
+  },
+  {
+    "sportbmId": "269550",
+    "name": "Timon Bartoš",
+    "dateOfBirth": "2013-03-10",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "269290",
+    "name": "Van Bao Dang",
+    "dateOfBirth": "2013-11-22",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "267842",
+    "name": "Nathanael Incédi",
+    "dateOfBirth": "2013-07-10",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "267678",
+    "name": "Šimon Kowalík",
+    "dateOfBirth": "2013-08-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "266945",
+    "name": "Tobiáš Matýsek",
+    "dateOfBirth": "2013-11-18",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "272095",
+    "name": "Dominik Novotný",
+    "dateOfBirth": "2013-01-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "268922",
+    "name": "Jachym Roman",
+    "dateOfBirth": "2013-07-31",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "272215",
+    "name": "Štěpán Štefek",
+    "dateOfBirth": "2013-04-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "267377",
+    "name": "Šimon Žabenský",
+    "dateOfBirth": "2013-05-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "262020",
+    "name": "Tomáš Staněk",
+    "dateOfBirth": "2013-11-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "262350",
+    "name": "Eliáš Krupa",
+    "dateOfBirth": "2013-01-29",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "402237",
+    "name": "Dominik Besta",
+    "dateOfBirth": "2014-06-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "402276",
+    "name": "Jakub Kocian",
+    "dateOfBirth": "2013-02-13",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "402999",
+    "name": "Lola Janiak",
+    "dateOfBirth": "2012-08-14",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "405859",
+    "name": "Jan Foldyna",
+    "dateOfBirth": "2013-10-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "467415",
+    "name": "Gabriel Galia",
+    "dateOfBirth": "2014-08-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "467447",
+    "name": "Jakub Pokluda",
+    "dateOfBirth": "2013-01-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "467570",
+    "name": "Jakub Vida",
+    "dateOfBirth": "2013-03-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16277
+    ]
+  },
+  {
+    "sportbmId": "267828",
+    "name": "Šimon Novák",
+    "dateOfBirth": "2014-07-08",
+    "number": null,
+    "photoFilename": "simon-novak.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "267852",
+    "name": "David Pšenčík",
+    "dateOfBirth": "2014-04-29",
+    "number": null,
+    "photoFilename": "david-psencik.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "267881",
+    "name": "Erik Novotný",
+    "dateOfBirth": "2015-01-27",
+    "number": null,
+    "photoFilename": "erik-novotny.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "267890",
+    "name": "Jakub Holaň",
+    "dateOfBirth": "2014-01-18",
+    "number": null,
+    "photoFilename": "jakub-holan.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "267907",
+    "name": "Vojtěch Janeček",
+    "dateOfBirth": "2014-06-15",
+    "number": null,
+    "photoFilename": "vojtech-janecek.jpg",
+    "groupIds": [
+      16279,
+      16282
+    ]
+  },
+  {
+    "sportbmId": "267949",
+    "name": "Martin Oborný",
+    "dateOfBirth": "2014-07-24",
+    "number": null,
+    "photoFilename": "martin-oborny.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "268050",
+    "name": "Vojtěch Chovanec",
+    "dateOfBirth": "2014-04-02",
+    "number": null,
+    "photoFilename": "vojtech-chovanec.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "268102",
+    "name": "Sebastian Kaps",
+    "dateOfBirth": "2014-09-24",
+    "number": null,
+    "photoFilename": "sebastian-kaps.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "268419",
+    "name": "David Kubla",
+    "dateOfBirth": "2014-06-26",
+    "number": null,
+    "photoFilename": "david-kubla.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "269495",
+    "name": "Dominik Lisický",
+    "dateOfBirth": "2014-06-23",
+    "number": null,
+    "photoFilename": "dominik-lisicky.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "269620",
+    "name": "Bruno Gurňák",
+    "dateOfBirth": "2014-08-04",
+    "number": null,
+    "photoFilename": "bruno-gurnak.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "282655",
+    "name": "Matteo Dobrovski",
+    "dateOfBirth": "2014-01-14",
+    "number": null,
+    "photoFilename": "matteo-dobrovski.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "319650",
+    "name": "Václav Vochala",
+    "dateOfBirth": "2014-06-13",
+    "number": null,
+    "photoFilename": "vaclav-vochala.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "320097",
+    "name": "Šimon Prosek",
+    "dateOfBirth": "2014-02-25",
+    "number": null,
+    "photoFilename": "simon-prosek.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "320873",
+    "name": "Sebastian Štefek",
+    "dateOfBirth": "2014-07-02",
+    "number": null,
+    "photoFilename": "sebastian-stefek.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "341616",
+    "name": "Hugo Helis",
+    "dateOfBirth": "2014-04-27",
+    "number": null,
+    "photoFilename": "hugo-helis.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "267802",
+    "name": "Šimon Lex",
+    "dateOfBirth": "2015-04-07",
+    "number": null,
+    "photoFilename": "simon-lex.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "403442",
+    "name": "Šimon Glogar",
+    "dateOfBirth": "2014-08-21",
+    "number": null,
+    "photoFilename": "simon-glogar.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "420497",
+    "name": "Martin Polášek",
+    "dateOfBirth": "2014-11-18",
+    "number": null,
+    "photoFilename": "martin-polasek.jpg",
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "402084",
+    "name": "Oliver Fójcik",
+    "dateOfBirth": "2014-02-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "268905",
+    "name": "Jan Hamalčík",
+    "dateOfBirth": "2014-03-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "463257",
+    "name": "Kryštof Kuboš",
+    "dateOfBirth": "2014-04-25",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16279
+    ]
+  },
+  {
+    "sportbmId": "268015",
+    "name": "Jan Haleš",
+    "dateOfBirth": "2015-09-16",
+    "number": "9",
+    "photoFilename": "jan-hales.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267817",
+    "name": "Tomáš Kroček",
+    "dateOfBirth": "2015-10-19",
+    "number": "15",
+    "photoFilename": "tomas-krocek.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267848",
+    "name": "Vojtěch Maléř",
+    "dateOfBirth": "2015-08-04",
+    "number": "7",
+    "photoFilename": "vojtech-maler.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267920",
+    "name": "Eliáš Mika",
+    "dateOfBirth": "2015-01-26",
+    "number": "7",
+    "photoFilename": "elias-mika.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267808",
+    "name": "Šimon Rašner",
+    "dateOfBirth": "2015-02-07",
+    "number": "7",
+    "photoFilename": "simon-rasner.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267375",
+    "name": "Matyáš Stachovec",
+    "dateOfBirth": "2015-05-28",
+    "number": "4",
+    "photoFilename": "matyas-stachovec.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267880",
+    "name": "Mikuláš Stolín",
+    "dateOfBirth": "2015-01-07",
+    "number": "5",
+    "photoFilename": "mikulas-stolin.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267839",
+    "name": "Max Tofel",
+    "dateOfBirth": "2015-10-28",
+    "number": "7",
+    "photoFilename": "max-tofel.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "267798",
+    "name": "Quentin Uher",
+    "dateOfBirth": "2015-10-04",
+    "number": "9",
+    "photoFilename": "quentin-uher.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "268153",
+    "name": "Tadeáš Růžička",
+    "dateOfBirth": "2015-10-13",
+    "number": "15",
+    "photoFilename": "tadeas-ruzicka.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "268189",
+    "name": "Radan Klečka",
+    "dateOfBirth": "2015-11-23",
+    "number": "10",
+    "photoFilename": "radan-klecka.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "268222",
+    "name": "Juraj Špernoga",
+    "dateOfBirth": "2015-09-26",
+    "number": "12",
+    "photoFilename": "juraj-spernoga.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "268317",
+    "name": "Matyáš Hrabec",
+    "dateOfBirth": "2015-05-28",
+    "number": "7",
+    "photoFilename": "matyas-hrabec.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "276277",
+    "name": "Šimon Garnol",
+    "dateOfBirth": "2015-06-25",
+    "number": null,
+    "photoFilename": "simon-garnol.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "269380",
+    "name": "Adam Kalus",
+    "dateOfBirth": "2015-04-16",
+    "number": null,
+    "photoFilename": "adam-kalus.jpg",
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "387136",
+    "name": "Erik Mácha",
+    "dateOfBirth": "2015-04-07",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "430268",
+    "name": "Tobiáš Krella",
+    "dateOfBirth": "2015-01-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "449450",
+    "name": "Tomáš Kuběna",
+    "dateOfBirth": "2015-09-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16280
+    ]
+  },
+  {
+    "sportbmId": "269216",
+    "name": "David Lednický",
+    "dateOfBirth": "2016-09-15",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269218",
+    "name": "Petr Holaň",
+    "dateOfBirth": "2016-02-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269213",
+    "name": "Matyáš Minarčík",
+    "dateOfBirth": "2016-03-18",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269220",
+    "name": "Matyáš Koziel",
+    "dateOfBirth": "2016-10-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269222",
+    "name": "Daniel Mlynář",
+    "dateOfBirth": "2016-11-08",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269224",
+    "name": "Sebastian Mika",
+    "dateOfBirth": "2017-05-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269226",
+    "name": "Vojtěch Kantor",
+    "dateOfBirth": "2016-02-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269244",
+    "name": "Jáchym Konečný",
+    "dateOfBirth": "2016-10-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269266",
+    "name": "Matyáš Lisický",
+    "dateOfBirth": "2017-07-22",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269273",
+    "name": "Filip Dužda",
+    "dateOfBirth": "2016-07-27",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269429",
+    "name": "Tomáš Mikula",
+    "dateOfBirth": "2016-08-18",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269477",
+    "name": "Denis Djerzic",
+    "dateOfBirth": "2016-12-30",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "269658",
+    "name": "Jakub Teplý",
+    "dateOfBirth": "2016-06-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "373270",
+    "name": "Petr Górný",
+    "dateOfBirth": "2016-01-13",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "373296",
+    "name": "Dominik Dětský",
+    "dateOfBirth": "2016-06-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "373360",
+    "name": "Vilém Znišťal",
+    "dateOfBirth": "2016-09-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "373470",
+    "name": "Erik Bártek",
+    "dateOfBirth": "2016-07-09",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "374938",
+    "name": "Sebastian Šolc",
+    "dateOfBirth": "2016-06-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "469991",
+    "name": "Matěj Vyzina",
+    "dateOfBirth": "2016-03-02",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16281
+    ]
+  },
+  {
+    "sportbmId": "306470",
+    "name": "Jakub Matýsek",
+    "dateOfBirth": "2017-10-23",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306503",
+    "name": "Jiří Střebovský",
+    "dateOfBirth": "2017-10-30",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306533",
+    "name": "Adam Gajdušek",
+    "dateOfBirth": "2017-02-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306544",
+    "name": "Oliver Kohut",
+    "dateOfBirth": "2017-05-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306609",
+    "name": "Matouš Řehák",
+    "dateOfBirth": "2017-12-25",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306902",
+    "name": "Ondřej Polomský",
+    "dateOfBirth": "2017-04-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "306996",
+    "name": "Matěj Žídek",
+    "dateOfBirth": "2017-03-30",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "307106",
+    "name": "Tadeáš Palák",
+    "dateOfBirth": "2017-03-14",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "308102",
+    "name": "Jakub Papřok",
+    "dateOfBirth": "2017-07-26",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "308479",
+    "name": "Matěj Kaps",
+    "dateOfBirth": "2017-09-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "309586",
+    "name": "Kryštof Halama",
+    "dateOfBirth": "2017-02-18",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "310909",
+    "name": "Matyáš Milata",
+    "dateOfBirth": "2017-10-03",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "311570",
+    "name": "Dominik Kajzar",
+    "dateOfBirth": "2017-09-13",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "312354",
+    "name": "David Marek",
+    "dateOfBirth": "2017-05-23",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "313456",
+    "name": "Lukas Myslikovjan",
+    "dateOfBirth": "2017-11-15",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "381268",
+    "name": "Jan Ondera",
+    "dateOfBirth": "2017-11-21",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "381273",
+    "name": "Viktor Prokop",
+    "dateOfBirth": "2017-11-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "344707",
+    "name": "Tobiáš Nohel",
+    "dateOfBirth": "2017-01-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "269476",
+    "name": "Dominik Škorík",
+    "dateOfBirth": "2017-02-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16658
+    ]
+  },
+  {
+    "sportbmId": "348317",
+    "name": "Patrik Kukuczka",
+    "dateOfBirth": "2019-06-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "351694",
+    "name": "Matyáš Mižďoch",
+    "dateOfBirth": "2019-04-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "356465",
+    "name": "Matěj Hanko",
+    "dateOfBirth": "2019-08-02",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "360563",
+    "name": "Jakub Sklář",
+    "dateOfBirth": "2019-07-04",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "373551",
+    "name": "Štěpán Šuta",
+    "dateOfBirth": "2020-04-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434026",
+    "name": "Teodor Koval",
+    "dateOfBirth": "2019-07-26",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434029",
+    "name": "Antonín Hrtús",
+    "dateOfBirth": "2019-02-05",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434199",
+    "name": "Šimon  Otakar Maršál",
+    "dateOfBirth": "2019-01-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434203",
+    "name": "Vojtěch Bušina",
+    "dateOfBirth": "2019-03-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434212",
+    "name": "Tomáš Karas",
+    "dateOfBirth": "2019-02-27",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434359",
+    "name": "Samuel Tomeczek",
+    "dateOfBirth": "2019-11-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "434601",
+    "name": "Filip Smahel",
+    "dateOfBirth": "2019-07-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "446926",
+    "name": "Maxim Šlahor",
+    "dateOfBirth": "2020-01-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "446959",
+    "name": "Oliver Bystroň",
+    "dateOfBirth": "2019-09-24",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447053",
+    "name": "Mikuláš Šamaj",
+    "dateOfBirth": "2021-05-23",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447117",
+    "name": "Louis Thomas Chmela",
+    "dateOfBirth": "2020-01-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447163",
+    "name": "Matyas Pasečný",
+    "dateOfBirth": "2019-08-17",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447347",
+    "name": "René Moškoř",
+    "dateOfBirth": "2020-06-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447546",
+    "name": "Adam Merta",
+    "dateOfBirth": "2019-04-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "447548",
+    "name": "Jiří Pikora",
+    "dateOfBirth": "2019-09-26",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "453097",
+    "name": "Matěj Staník",
+    "dateOfBirth": "2020-06-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "453188",
+    "name": "Ondřej Halama",
+    "dateOfBirth": "2019-08-08",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "453255",
+    "name": "Alex Chrastina",
+    "dateOfBirth": "2019-08-20",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "466458",
+    "name": "Matyáš Hon",
+    "dateOfBirth": "2020-08-19",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "466470",
+    "name": "Tobias Jakubowski",
+    "dateOfBirth": "2019-06-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "342170",
+    "name": "Marek Jochman",
+    "dateOfBirth": "2018-12-29",
+    "number": null,
+    "photoFilename": "marek-jochman.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "346179",
+    "name": "Antonín Adamík",
+    "dateOfBirth": "2019-01-08",
+    "number": null,
+    "photoFilename": "antonin-adamik.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "362567",
+    "name": "Samuel Kohut",
+    "dateOfBirth": "2019-06-20",
+    "number": null,
+    "photoFilename": "samuel-kohut.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "342185",
+    "name": "Vojtěch Koziel",
+    "dateOfBirth": "2018-12-05",
+    "number": null,
+    "photoFilename": "vojtech-koziel.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "342275",
+    "name": "Samuel Miňo",
+    "dateOfBirth": "2018-03-18",
+    "number": null,
+    "photoFilename": "samuel-mino.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "342218",
+    "name": "Adrian Morsi",
+    "dateOfBirth": "2018-04-03",
+    "number": null,
+    "photoFilename": "adrian-morsi.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "349131",
+    "name": "Michael Pělucha",
+    "dateOfBirth": "2018-01-10",
+    "number": null,
+    "photoFilename": "michael-pelucha.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "352404",
+    "name": "Sebastián Pop",
+    "dateOfBirth": "2018-02-14",
+    "number": null,
+    "photoFilename": "sebastian-pop.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "344291",
+    "name": "Michael Rojíček",
+    "dateOfBirth": "2018-04-30",
+    "number": null,
+    "photoFilename": "michael-rojicek.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "342634",
+    "name": "Sebastian Sochora",
+    "dateOfBirth": "2018-11-13",
+    "number": null,
+    "photoFilename": "sebastian-sochora.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "348354",
+    "name": "Patrik Teplý",
+    "dateOfBirth": "2019-03-05",
+    "number": null,
+    "photoFilename": "patrik-teply.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "429746",
+    "name": "Patrik Čelinský",
+    "dateOfBirth": "2018-05-28",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "432719",
+    "name": "Eduard Weisz",
+    "dateOfBirth": "2018-08-09",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "342175",
+    "name": "Bastien Gmuca",
+    "dateOfBirth": "2019-05-31",
+    "number": null,
+    "photoFilename": "bastien-gmuca.jpg",
+    "groupIds": [
+      24949
+    ]
+  },
+  {
+    "sportbmId": "469326",
+    "name": "Boris Rohel",
+    "dateOfBirth": "2018-02-01",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      24949
+    ]
+  }
+]

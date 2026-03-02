@@ -21,14 +21,11 @@ export interface SportbmParticipant {
 
 export interface SportbmPlayer {
   id: number;
+  photo: string | null;
   user: {
     first_name: string;
     last_name: string;
     birth_date: string | null;
-  };
-  user_role: {
-    id: number;
-    photo: string | null;
   };
   number: number | null;
 }

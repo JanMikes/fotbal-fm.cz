@@ -152,11 +152,21 @@ docker compose exec api npx tsx src/cli/sync-standings.ts
 docker compose exec api npx tsx src/cli/sync-players.ts
 ```
 
-**Step 6 (optional): Sync players from SportBM**
+**Step 6: Sync players from SportBM**
 ```bash
 docker compose exec api npx tsx src/cli/sync-sportbm-players.ts
 ```
 Requires `sportbmCategoryId` to be set on categories in Strapi admin.
+
+**Offline scrape + sync pattern (for production where external APIs are unreachable):**
+```bash
+# Scrape locally (where SportBM/FAČR is reachable), then commit data to repo
+docker compose exec api npx tsx src/cli/scrape-facr.ts
+docker compose exec api npx tsx src/cli/scrape-sportbm.ts
+
+# Sync from file on production (uses committed JSON + photos)
+docker compose exec api npx tsx src/cli/sync-sportbm-players.ts --from-file
+```
 
 **For cron (non-interactive, no TTY) - use `-T` flag:**
 ```bash
@@ -164,9 +174,10 @@ docker compose exec -T api npx tsx src/cli/sync-tournaments.ts
 docker compose exec -T api npx tsx src/cli/sync-matches.ts
 docker compose exec -T api npx tsx src/cli/sync-standings.ts
 docker compose exec -T api npx tsx src/cli/sync-players.ts
+docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
 ```
 
-**Regular sync order:** Steps 1, 3, 4, 5 can be re-run anytime. Step 2 only when new competition codes appear (logged as "missing category mapping").
+**Regular sync order:** Steps 1, 3, 4, 5, 6 can be re-run anytime. Step 2 only when new competition codes appear (logged as "missing category mapping").
 
 ## Configuration Notes
 
