@@ -23,6 +23,8 @@ const STRAPI_REF = 'api::match.match';
  * Explicitly includes author email for notification purposes.
  */
 const DEFAULT_POPULATE = {
+  homeTeam: { fields: ['id', 'documentId', 'name'] },
+  awayTeam: { fields: ['id', 'documentId', 'name'] },
   categories: true,
   images: true,
   files: true,

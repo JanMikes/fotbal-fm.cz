@@ -30,6 +30,7 @@ class StrapiClient {
       const res = await fetch(url, {
         headers: this.headers,
         next: { revalidate: 60 },
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!res.ok) {
@@ -84,6 +85,7 @@ class StrapiClient {
       const res = await fetch(url, {
         headers: this.headers,
         next: { revalidate: 60 },
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!res.ok) {

@@ -73,8 +73,8 @@ export function mapMatch(raw: unknown): Match {
 
   return {
     id: data.documentId,
-    homeTeam: data.homeTeam,
-    awayTeam: data.awayTeam,
+    homeTeam: data.homeTeam?.name ?? '',
+    awayTeam: data.awayTeam?.name ?? '',
     homeScore: data.homeScore,
     awayScore: data.awayScore,
     homeGoalscorers: nullToUndefined(data.homeGoalscorers),

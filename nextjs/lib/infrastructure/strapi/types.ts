@@ -76,13 +76,22 @@ export interface StrapiRawUserInfo {
 }
 
 /**
+ * Raw team from Strapi (relation)
+ */
+export interface StrapiRawTeam {
+  id: number;
+  documentId: string;
+  name: string;
+}
+
+/**
  * Raw match from Strapi (unified match type)
  */
 export interface StrapiRawMatch {
   id: number;
   documentId: string;
-  homeTeam: string;
-  awayTeam: string;
+  homeTeam: StrapiRawTeam | null;
+  awayTeam: StrapiRawTeam | null;
   homeScore: number | null;
   awayScore: number | null;
   homeGoalscorers?: string | null;
@@ -261,13 +270,22 @@ export const strapiRawCategorySchema = z.object({
 });
 
 /**
+ * Schema for validating raw team (relation)
+ */
+export const strapiRawTeamSchema = z.object({
+  id: z.number(),
+  documentId: z.string(),
+  name: z.string(),
+});
+
+/**
  * Schema for validating raw match (unified)
  */
 export const strapiRawMatchSchema = z.object({
   id: z.number(),
   documentId: z.string(),
-  homeTeam: z.string(),
-  awayTeam: z.string(),
+  homeTeam: strapiRawTeamSchema.nullable(),
+  awayTeam: strapiRawTeamSchema.nullable(),
   homeScore: z.number().nullable(),
   awayScore: z.number().nullable(),
   homeGoalscorers: z.string().nullable().optional(),
