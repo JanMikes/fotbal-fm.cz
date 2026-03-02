@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPagePopulate, buildNavigationPopulate } from '@/lib/strapi/populates';
+import { buildPagePopulate, buildNavigationPopulate, buildPartnerPopulate } from '@/lib/strapi/populates';
 
 describe('buildPagePopulate', () => {
   it('returns content and sidebar populate objects', () => {
@@ -96,5 +96,34 @@ describe('buildNavigationPopulate', () => {
   it('file populate includes url field', () => {
     const result = buildNavigationPopulate();
     expect(result.link.populate.file.fields).toContain('url');
+  });
+});
+
+describe('buildPartnerPopulate', () => {
+  it('returns logo, content, and panel keys', () => {
+    const result = buildPartnerPopulate();
+    expect(result).toHaveProperty('logo');
+    expect(result).toHaveProperty('content');
+    expect(result).toHaveProperty('panel');
+  });
+
+  it('logo includes media fields', () => {
+    const result = buildPartnerPopulate();
+    expect(result.logo.fields).toContain('url');
+    expect(result.logo.fields).toContain('alternativeText');
+  });
+
+  it('content has on syntax for dynamic zone components', () => {
+    const result = buildPartnerPopulate();
+    expect(result.content.on).toBeDefined();
+    expect(result.content.on).toHaveProperty('components.text');
+    expect(result.content.on).toHaveProperty('components.heading');
+  });
+
+  it('panel has same on keys as content', () => {
+    const result = buildPartnerPopulate();
+    const contentKeys = Object.keys(result.content.on).sort();
+    const panelKeys = Object.keys(result.panel.on).sort();
+    expect(panelKeys).toEqual(contentKeys);
   });
 });

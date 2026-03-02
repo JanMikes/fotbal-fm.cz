@@ -13,12 +13,16 @@
   "pluginOptions": {},
   "attributes": {
     "homeTeam": {
-      "type": "string",
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::team.team",
+      "inversedBy": "matches_as_home"
     },
     "awayTeam": {
-      "type": "string",
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::team.team",
+      "inversedBy": "matches_as_away"
     },
     "homeScore": {
       "type": "integer",

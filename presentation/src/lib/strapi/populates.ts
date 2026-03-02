@@ -169,6 +169,15 @@ export function buildPagePopulate() {
   };
 }
 
+export function buildPartnerPopulate() {
+  const dz = buildDynamicZonePopulate();
+  return {
+    logo: mediaFields,
+    content: dz,
+    panel: dz,
+  };
+}
+
 export function buildNavigationPopulate() {
   return {
     link: {

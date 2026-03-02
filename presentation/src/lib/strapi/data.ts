@@ -6,6 +6,8 @@ import type {
   NewsArticle,
   NewsArticleSummary,
   Page,
+  Partner,
+  PartnerDetail,
   Player,
   Standing,
 } from '@/lib/types';
@@ -16,6 +18,7 @@ import type {
   StrapiRawNavigation,
   StrapiRawNewsArticle,
   StrapiRawPage,
+  StrapiRawPartner,
   StrapiRawPlayer,
   StrapiRawStanding,
 } from './types';
@@ -25,10 +28,11 @@ import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
 import { mapPage } from './mappers/page';
+import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
-import { buildNavigationPopulate, buildPagePopulate } from './populates';
+import { buildNavigationPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
 
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
@@ -95,9 +99,43 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
   return data.length > 0 ? mapNewsArticle(data[0]) : null;
 }
 
-export async function getMatchesByCategory(categorySlug: string): Promise<Match[]> {
+export async function getUpcomingMatches(categorySlug: string, limit = 3): Promise<Match[]> {
+  const today = new Date().toISOString().split('T')[0];
   const client = getStrapiClient();
   const { data } = await client.findMany<StrapiRawMatch>('matches', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+      matchDate: { $gte: today },
+      homeScore: { $null: true },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
+    },
+    sort: 'matchDate:asc',
+    pagination: { pageSize: limit },
+  });
+  return data.map(mapMatch);
+}
+
+export async function getFinishedMatches(categorySlug: string, limit = 3): Promise<Match[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawMatch>('matches', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+      homeScore: { $notNull: true },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
+    },
+    sort: 'matchDate:desc',
+    pagination: { pageSize: limit },
+  });
+  return data.map(mapMatch);
+}
+
+export async function getAllMatchesByCategory(categorySlug: string): Promise<Match[]> {
+  const client = getStrapiClient();
+  const data = await client.findAll<StrapiRawMatch>('matches', {
     filters: {
       categories: { slug: { $eq: categorySlug } },
     },
@@ -105,7 +143,6 @@ export async function getMatchesByCategory(categorySlug: string): Promise<Match[
       tournament: { fields: ['name'] },
     },
     sort: 'matchDate:desc',
-    pagination: { pageSize: 20 },
   });
   return data.map(mapMatch);
 }
@@ -248,4 +285,26 @@ export async function getLastResult(categorySlug: string): Promise<Match | null>
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapMatch(data[0]) : null;
+}
+
+export async function getPartners(): Promise<Partner[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawPartner>('partners', {
+    populate: {
+      logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+    },
+    sort: 'sortOrder:asc',
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapPartner);
+}
+
+export async function getPartnerBySlug(slug: string): Promise<PartnerDetail | null> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawPartner>('partners', {
+    filters: { slug: { $eq: slug } },
+    populate: buildPartnerPopulate(),
+    pagination: { pageSize: 1 },
+  });
+  return data.length > 0 ? mapPartnerDetail(data[0]) : null;
 }

@@ -1,0 +1,83 @@
+{
+  "kind": "collectionType",
+  "collectionName": "partners",
+  "info": {
+    "singularName": "partner",
+    "pluralName": "partners",
+    "displayName": "Partner"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "description": {
+      "type": "text"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "content": {
+      "type": "dynamiczone",
+      "components": [
+        "components.text",
+        "components.heading",
+        "components.alert",
+        "components.links-list",
+        "components.video",
+        "components.feature-cards",
+        "components.banner-cards",
+        "components.documents",
+        "components.partner-logos",
+        "components.stats-highlights",
+        "components.timeline",
+        "components.section-divider",
+        "components.slider",
+        "components.gallery-slider",
+        "components.photo-gallery",
+        "components.button-group",
+        "components.contact-cards",
+        "components.accordion-sections",
+        "components.popup",
+        "components.badges",
+        "components.image",
+        "components.news-articles"
+      ]
+    },
+    "panel": {
+      "type": "dynamiczone",
+      "components": [
+        "components.text",
+        "components.heading",
+        "components.alert",
+        "components.links-list",
+        "components.button-group",
+        "components.contact-cards",
+        "components.documents",
+        "components.section-divider",
+        "components.timeline",
+        "components.feature-cards",
+        "components.slider",
+        "components.gallery-slider",
+        "components.photo-gallery",
+        "components.news-articles",
+        "components.badges",
+        "components.image"
+      ]
+    }
+  }
+}

@@ -70,6 +70,7 @@ export interface Match {
   homeScore: number | null;
   awayScore: number | null;
   matchDate: string;
+  rawMatchDate: string;
   matchTime: string;
   venue: string;
   round: number | null;
@@ -97,6 +98,22 @@ export interface Player {
   dateOfBirth: string | null;
   nationality: string | null;
   isActive: boolean;
+}
+
+// Partners
+
+export interface Partner {
+  documentId: string;
+  name: string;
+  slug: string;
+  logo: MediaImage | null;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface PartnerDetail extends Partner {
+  content: DynamicZoneComponent[];
+  panel: DynamicZoneComponent[];
 }
 
 // Navigation

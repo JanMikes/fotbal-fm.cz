@@ -44,6 +44,12 @@ interface StrapiTournament {
   season: number | null;
 }
 
+interface StrapiTeam {
+  id: number;
+  documentId: string;
+  name: string;
+}
+
 async function main() {
   const fromFile = process.argv.includes('--from-file');
 
@@ -115,7 +121,46 @@ async function main() {
   }
   console.log(`Loaded ${tournamentLookup.size} tournaments for match linking`);
 
-  // 5. Load existing matches with facrId from Strapi (paginated)
+  // 5. Upsert teams: collect unique names, load existing, create missing
+  const allTeamNames = new Set<string>();
+  for (const match of parsedMatches) {
+    allTeamNames.add(match.homeTeam);
+    allTeamNames.add(match.awayTeam);
+  }
+
+  const teamLookup = new Map<string, string>(); // name -> documentId
+  let teamPage = 1;
+  let teamTotalPages = 1;
+  while (teamPage <= teamTotalPages) {
+    const res = await strapiGet<StrapiTeam>(
+      '/teams',
+      {
+        fields: ['name'],
+        pagination: { pageSize: 100, page: teamPage },
+      },
+    );
+    for (const t of res.data) {
+      teamLookup.set(t.name, t.documentId);
+    }
+    teamTotalPages = res.meta?.pagination?.pageCount ?? 1;
+    teamPage++;
+  }
+  console.log(`Loaded ${teamLookup.size} existing teams`);
+
+  let teamsCreated = 0;
+  for (const name of allTeamNames) {
+    if (!teamLookup.has(name)) {
+      const res = await strapiPost<{ data: StrapiTeam }>('/teams', { data: { name } });
+      teamLookup.set(name, res.data.documentId);
+      teamsCreated++;
+    }
+  }
+  if (teamsCreated > 0) {
+    console.log(`Created ${teamsCreated} new teams`);
+  }
+
+  // 6. Load existing matches with facrId from Strapi (paginated)
+
   const existingByFacrId = new Map<string, string>();
   let page = 1;
   let totalPages = 1;
@@ -138,7 +183,7 @@ async function main() {
   }
   console.log(`Loaded ${existingByFacrId.size} existing matches with facrId`);
 
-  // 6. Upsert matches
+  // 7. Upsert matches
   let created = 0;
   let updated = 0;
   const withoutCategory: string[] = [];
@@ -158,10 +203,13 @@ async function main() {
       linkedToTournament++;
     }
 
+    const homeTeamDocId = teamLookup.get(match.homeTeam);
+    const awayTeamDocId = teamLookup.get(match.awayTeam);
+
     const scrapedFields: Record<string, unknown> = {
       facrId: match.facrId,
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
+      homeTeam: homeTeamDocId,
+      awayTeam: awayTeamDocId,
       homeScore: match.homeScore,
       awayScore: match.awayScore,
       matchDate: match.matchDate,
@@ -200,6 +248,7 @@ async function main() {
   console.log(`  Total:    ${parsedMatches.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
   console.log(`  Linked to tournament: ${linkedToTournament}`);
   console.log(`  Matched:  ${parsedMatches.length - uniqueWithout.length} with category`);
   if (uniqueWithout.length > 0) {

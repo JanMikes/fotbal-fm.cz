@@ -21,6 +21,7 @@ export function mapMatch(raw: StrapiRawMatch): Match {
     homeScore: raw.homeScore,
     awayScore: raw.awayScore,
     matchDate: formatCzechDate(raw.matchDate),
+    rawMatchDate: raw.matchDate,
     matchTime: raw.matchTime ?? '',
     venue: raw.venue ?? '',
     round: raw.round,

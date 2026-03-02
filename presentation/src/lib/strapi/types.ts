@@ -121,6 +121,20 @@ export type StrapiRawCategoryWithHero = import('@fotbal-fm/strapi-client').Strap
   heroSlide3Link: string | null;
 };
 
+export interface StrapiRawPartner {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  logo: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+  description: string | null;
+  sortOrder: number;
+  content: StrapiRawDynamicZoneComponent[];
+  panel: StrapiRawDynamicZoneComponent[] | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface StrapiRawMatch {
   id: number;
   documentId: string;

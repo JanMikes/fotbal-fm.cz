@@ -19,11 +19,14 @@ const {
   getCategoryBySlug,
   getNewsArticlesByCategory,
   getNewsArticleBySlug,
-  getMatchesByCategory,
+  getUpcomingMatches,
+  getFinishedMatches,
   getPlayersByCategory,
   getPlayerBySlug,
   getNavigation,
   getPageBySlug,
+  getPartners,
+  getPartnerBySlug,
 } = await import('../../../lib/strapi/data');
 
 describe('data layer', () => {
@@ -134,8 +137,31 @@ describe('data layer', () => {
     });
   });
 
-  describe('getMatchesByCategory', () => {
-    it('returns mapped matches', async () => {
+  describe('getUpcomingMatches', () => {
+    it('returns mapped upcoming matches', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1, documentId: 'match-1', homeTeam: 'A', awayTeam: 'B',
+            homeScore: null, awayScore: null, matchDate: '2026-06-15',
+            matchTime: '17:00', venue: 'Stadion', round: 1,
+            competitionName: 'Liga', competitionCode: null,
+            season: null, period: null, organizingBody: null, facrId: null,
+            categories: null, createdAt: '2025-01-01', updatedAt: '2025-01-01',
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getUpcomingMatches('muzi');
+      expect(result).toHaveLength(1);
+      expect(result[0].homeTeam).toBe('A');
+      expect(result[0].status).toBe('upcoming');
+    });
+  });
+
+  describe('getFinishedMatches', () => {
+    it('returns mapped finished matches', async () => {
       mockFindMany.mockResolvedValueOnce({
         data: [
           {
@@ -150,7 +176,7 @@ describe('data layer', () => {
         total: 1,
       });
 
-      const result = await getMatchesByCategory('muzi');
+      const result = await getFinishedMatches('muzi');
       expect(result).toHaveLength(1);
       expect(result[0].homeTeam).toBe('A');
       expect(result[0].status).toBe('finished');
@@ -353,6 +379,82 @@ describe('data layer', () => {
       expect(result!.content).toHaveLength(1);
       expect(result!.sidebar).toHaveLength(1);
       expect(result!.sidebar[0].__component).toBe('components.heading');
+    });
+  });
+
+  describe('getPartners', () => {
+    it('returns mapped partners', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1, documentId: 'partner-1', name: 'Partner A', slug: 'partner-a',
+            logo: null, description: 'Desc', sortOrder: 1,
+            content: [], panel: null,
+            createdAt: '2025-01-01', updatedAt: '2025-01-01',
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getPartners();
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Partner A');
+      expect(result[0].slug).toBe('partner-a');
+    });
+
+    it('passes correct sort and pagination', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPartners();
+
+      expect(mockFindMany).toHaveBeenCalledWith('partners', expect.objectContaining({
+        sort: 'sortOrder:asc',
+        pagination: { pageSize: 100 },
+      }));
+    });
+  });
+
+  describe('getPartnerBySlug', () => {
+    it('returns partner when found', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1, documentId: 'partner-1', name: 'Partner A', slug: 'partner-a',
+            logo: null, description: 'Desc', sortOrder: 1,
+            content: [{ id: 10, __component: 'components.text', text: 'Hello' }],
+            panel: null,
+            createdAt: '2025-01-01', updatedAt: '2025-01-01',
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getPartnerBySlug('partner-a');
+      expect(result).not.toBeNull();
+      expect(result!.name).toBe('Partner A');
+      expect(result!.content).toHaveLength(1);
+    });
+
+    it('returns null when not found', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      const result = await getPartnerBySlug('nonexistent');
+      expect(result).toBeNull();
+    });
+
+    it('passes slug filter and populate', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPartnerBySlug('test');
+
+      expect(mockFindMany).toHaveBeenCalledWith('partners', expect.objectContaining({
+        filters: { slug: { $eq: 'test' } },
+        pagination: { pageSize: 1 },
+      }));
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.populate).toHaveProperty('logo');
+      expect(callArgs.populate).toHaveProperty('content');
+      expect(callArgs.populate).toHaveProperty('panel');
     });
   });
 });

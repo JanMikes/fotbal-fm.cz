@@ -48,6 +48,30 @@ class StrapiClient {
     }
   }
 
+  async findAll<T>(
+    contentType: string,
+    options: Omit<StrapiQueryOptions, 'pagination'> = {},
+  ): Promise<T[]> {
+    const pageSize = 100;
+    const firstPage = await this.findMany<T>(contentType, {
+      ...options,
+      pagination: { page: 1, pageSize },
+    });
+
+    const results = [...firstPage.data];
+    const totalPages = Math.ceil(firstPage.total / pageSize);
+
+    for (let page = 2; page <= totalPages; page++) {
+      const nextPage = await this.findMany<T>(contentType, {
+        ...options,
+        pagination: { page, pageSize },
+      });
+      results.push(...nextPage.data);
+    }
+
+    return results;
+  }
+
   async findOne<T>(
     contentType: string,
     documentId: string,

@@ -16,9 +16,11 @@
       "type": "integer",
       "required": true
     },
-    "teamName": {
-      "type": "string",
-      "required": true
+    "team": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::team.team",
+      "inversedBy": "standings"
     },
     "matchesPlayed": {
       "type": "integer",

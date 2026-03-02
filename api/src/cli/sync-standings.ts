@@ -44,7 +44,12 @@ interface StrapiStanding {
   competitionCode: string;
   season: number;
   position: number;
-  teamName: string;
+}
+
+interface StrapiTeam {
+  id: number;
+  documentId: string;
+  name: string;
 }
 
 async function main() {
@@ -107,7 +112,46 @@ async function main() {
   }
   console.log(`Loaded ${tournamentByCodeSeason.size} tournaments`);
 
-  // 4. Load existing standings from Strapi for cleanup
+  // 4. Upsert teams: collect unique names, load existing, create missing
+  const allTeamNames = new Set<string>();
+  for (const standing of scraped) {
+    for (const row of standing.rows) {
+      allTeamNames.add(row.teamName);
+    }
+  }
+
+  const teamLookup = new Map<string, string>(); // name -> documentId
+  let teamPage = 1;
+  let teamTotalPages = 1;
+  while (teamPage <= teamTotalPages) {
+    const res = await strapiGet<StrapiTeam>(
+      '/teams',
+      {
+        fields: ['name'],
+        pagination: { pageSize: 100, page: teamPage },
+      },
+    );
+    for (const t of res.data) {
+      teamLookup.set(t.name, t.documentId);
+    }
+    teamTotalPages = res.meta?.pagination?.pageCount ?? 1;
+    teamPage++;
+  }
+  console.log(`Loaded ${teamLookup.size} existing teams`);
+
+  let teamsCreated = 0;
+  for (const name of allTeamNames) {
+    if (!teamLookup.has(name)) {
+      const res = await strapiPost<{ data: StrapiTeam }>('/teams', { data: { name } });
+      teamLookup.set(name, res.data.documentId);
+      teamsCreated++;
+    }
+  }
+  if (teamsCreated > 0) {
+    console.log(`Created ${teamsCreated} new teams`);
+  }
+
+  // 5. Load existing standings from Strapi for cleanup
   const existingStandings = new Map<string, string>(); // "code:season:position" -> documentId
   let sPage = 1;
   let sTotalPages = 1;
@@ -115,7 +159,7 @@ async function main() {
     const res = await strapiGet<StrapiStanding>(
       '/standings',
       {
-        fields: ['competitionCode', 'season', 'position', 'teamName'],
+        fields: ['competitionCode', 'season', 'position'],
         pagination: { pageSize: 100, page: sPage },
       },
     );
@@ -128,7 +172,7 @@ async function main() {
   }
   console.log(`Loaded ${existingStandings.size} existing standings`);
 
-  // 5. Upsert standings
+  // 6. Upsert standings
   let created = 0;
   let updated = 0;
   const processedKeys = new Set<string>();
@@ -143,9 +187,11 @@ async function main() {
       const key = `${standing.competitionCode}:${standing.season}:${row.position}`;
       processedKeys.add(key);
 
-      const data = {
+      const teamDocumentId = teamLookup.get(row.teamName);
+
+      const data: Record<string, unknown> = {
         position: row.position,
-        teamName: row.teamName,
+        team: teamDocumentId,
         matchesPlayed: row.matchesPlayed,
         wins: row.wins,
         draws: row.draws,
@@ -174,7 +220,7 @@ async function main() {
     }
   }
 
-  // 6. Delete stale standings (positions that no longer exist)
+  // 7. Delete stale standings (positions that no longer exist)
   let deleted = 0;
   for (const [key, docId] of existingStandings) {
     if (!processedKeys.has(key)) {
@@ -188,6 +234,7 @@ async function main() {
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
   console.log(`  Deleted:  ${deleted}`);
+  console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
 }
 
 main().catch((err) => {

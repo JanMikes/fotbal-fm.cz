@@ -15,7 +15,7 @@ export function mapPage(raw: StrapiRawPage): Page {
   };
 }
 
-function mapDynamicZone(components: StrapiRawDynamicZoneComponent[]): DynamicZoneComponent[] {
+export function mapDynamicZone(components: StrapiRawDynamicZoneComponent[]): DynamicZoneComponent[] {
   if (!components) return [];
   return components.map(mapDynamicZoneComponent).filter((c): c is DynamicZoneComponent => c !== null);
 }

@@ -4,17 +4,15 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { ArrowRight, Calendar } from 'lucide-react';
+import Link from 'next/link';
 import { MatchCard } from '../ui';
 import Button from '../ui/Button';
 import type { Match } from '@/lib/types';
 
 type MatchFilter = 'upcoming' | 'finished';
 
-export default function Matches({ matches }: { matches: Match[] }) {
+export default function Matches({ upcomingMatches, finishedMatches, categorySlug }: { upcomingMatches: Match[]; finishedMatches: Match[]; categorySlug: string }) {
   const [filter, setFilter] = useState<MatchFilter>('upcoming');
-
-  const upcomingMatches = matches.filter((m) => m.status === 'upcoming');
-  const finishedMatches = matches.filter((m) => m.status === 'finished');
 
   const displayedMatches = filter === 'upcoming' ? upcomingMatches : finishedMatches;
 
@@ -103,12 +101,14 @@ export default function Matches({ matches }: { matches: Match[] }) {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <Button
-            variant="ghost"
-            icon={<ArrowRight className="w-5 h-5" />}
-          >
-            Zobrazit kalendář
-          </Button>
+          <Link href={`/kategorie/${categorySlug}/kalendar`}>
+            <Button
+              variant="ghost"
+              icon={<ArrowRight className="w-5 h-5" />}
+            >
+              Zobrazit kalendář
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

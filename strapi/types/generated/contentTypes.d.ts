@@ -648,7 +648,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
         },
         number
       >;
-    awayTeam: Schema.Attribute.String & Schema.Attribute.Required;
+    awayTeam: Schema.Attribute.Relation<'manyToOne', 'api::team.team'>;
     categories: Schema.Attribute.Relation<
       'manyToMany',
       'api::category.category'
@@ -671,7 +671,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
         },
         number
       >;
-    homeTeam: Schema.Attribute.String & Schema.Attribute.Required;
+    homeTeam: Schema.Attribute.Relation<'manyToOne', 'api::team.team'>;
     images: Schema.Attribute.Media<'images', true>;
     imagesUrl: Schema.Attribute.String;
     lastModifiedBy: Schema.Attribute.Relation<
@@ -900,6 +900,84 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
+  collectionName: 'partners';
+  info: {
+    displayName: 'Partner';
+    pluralName: 'partners';
+    singularName: 'partner';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.DynamicZone<
+      [
+        'components.text',
+        'components.heading',
+        'components.alert',
+        'components.links-list',
+        'components.video',
+        'components.feature-cards',
+        'components.banner-cards',
+        'components.documents',
+        'components.partner-logos',
+        'components.stats-highlights',
+        'components.timeline',
+        'components.section-divider',
+        'components.slider',
+        'components.gallery-slider',
+        'components.photo-gallery',
+        'components.button-group',
+        'components.contact-cards',
+        'components.accordion-sections',
+        'components.popup',
+        'components.badges',
+        'components.image',
+        'components.news-articles',
+      ]
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::partner.partner'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'>;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    panel: Schema.Attribute.DynamicZone<
+      [
+        'components.text',
+        'components.heading',
+        'components.alert',
+        'components.links-list',
+        'components.button-group',
+        'components.contact-cards',
+        'components.documents',
+        'components.section-divider',
+        'components.timeline',
+        'components.feature-cards',
+        'components.slider',
+        'components.gallery-slider',
+        'components.photo-gallery',
+        'components.news-articles',
+        'components.badges',
+        'components.image',
+      ]
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   collectionName: 'players';
   info: {
@@ -995,7 +1073,7 @@ export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
     position: Schema.Attribute.Integer & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     season: Schema.Attribute.Integer & Schema.Attribute.Required;
-    teamName: Schema.Attribute.String & Schema.Attribute.Required;
+    team: Schema.Attribute.Relation<'manyToOne', 'api::team.team'>;
     tournament: Schema.Attribute.Relation<
       'manyToOne',
       'api::tournament.tournament'
@@ -1007,13 +1085,12 @@ export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiTeamLogoTeamLogo extends Struct.CollectionTypeSchema {
-  collectionName: 'team_logos';
+export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
+  collectionName: 'teams';
   info: {
-    description: 'Reusable team logos (crests) that can be referenced from other content types';
-    displayName: 'Team Logo';
-    pluralName: 'team-logos';
-    singularName: 'team-logo';
+    displayName: 'Team';
+    pluralName: 'teams';
+    singularName: 'team';
   };
   options: {
     draftAndPublish: false;
@@ -1023,16 +1100,16 @@ export interface ApiTeamLogoTeamLogo extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::team-logo.team-logo'
-    > &
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::team.team'> &
       Schema.Attribute.Private;
-    logo: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    logo: Schema.Attribute.Media<'images'>;
+    matches_as_away: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
+    matches_as_home: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     name: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     publishedAt: Schema.Attribute.DateTime;
+    standings: Schema.Attribute.Relation<'oneToMany', 'api::standing.standing'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1619,9 +1696,10 @@ declare module '@strapi/strapi' {
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
       'api::page.page': ApiPagePage;
+      'api::partner.partner': ApiPartnerPartner;
       'api::player.player': ApiPlayerPlayer;
       'api::standing.standing': ApiStandingStanding;
-      'api::team-logo.team-logo': ApiTeamLogoTeamLogo;
+      'api::team.team': ApiTeamTeam;
       'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
