@@ -32,8 +32,8 @@ function makeValidRaw(overrides: Record<string, unknown> = {}) {
   return {
     id: 1,
     documentId: 'match-001',
-    homeTeam: 'FK Frýdek-Místek',
-    awayTeam: 'Baník Ostrava',
+    homeTeam: { id: 1, documentId: 'team-001', name: 'FK Frýdek-Místek' },
+    awayTeam: { id: 2, documentId: 'team-002', name: 'Baník Ostrava' },
     homeScore: 2,
     awayScore: 1,
     homeGoalscorers: 'Novák 15\', Dvořák 78\'',
@@ -123,6 +123,12 @@ describe('mapMatch', () => {
   it('uses createdAt date when matchDate is null', () => {
     const result = mapMatch(makeValidRaw({ matchDate: null }));
     expect(result.matchDate).toBe('2025-03-15');
+  });
+
+  it('handles null teams', () => {
+    const result = mapMatch(makeValidRaw({ homeTeam: null, awayTeam: null }));
+    expect(result.homeTeam).toBe('');
+    expect(result.awayTeam).toBe('');
   });
 
   it('handles null categories', () => {

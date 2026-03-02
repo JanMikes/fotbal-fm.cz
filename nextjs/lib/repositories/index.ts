@@ -15,6 +15,7 @@ export type {
 } from './base';
 
 // Entity repositories
+export { TeamRepository, type Team } from './team.repository';
 export { MatchRepository } from './match.repository';
 export { EventRepository } from './event.repository';
 export { TournamentRepository } from './tournament.repository';

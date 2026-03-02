@@ -6,6 +6,7 @@
 
 import { StrapiClient, getStrapiClient, getUserStrapiClient } from '@/lib/infrastructure/strapi';
 import {
+  TeamRepository,
   MatchRepository,
   EventRepository,
   TournamentRepository,
@@ -17,11 +18,22 @@ import {
 // Singleton Instances (Service-to-Service with API Token)
 // =============================================================================
 
+let teamRepository: TeamRepository | null = null;
 let matchRepository: MatchRepository | null = null;
 let eventRepository: EventRepository | null = null;
 let tournamentRepository: TournamentRepository | null = null;
 let commentRepository: CommentRepository | null = null;
 let userRepository: UserRepository | null = null;
+
+/**
+ * Get the team repository (singleton)
+ */
+export function getTeamRepository(): TeamRepository {
+  if (!teamRepository) {
+    teamRepository = new TeamRepository(getStrapiClient());
+  }
+  return teamRepository;
+}
 
 /**
  * Get the match repository (singleton)
@@ -121,6 +133,7 @@ export function createUserUserRepository(jwt: string): UserRepository {
  */
 export interface Container {
   strapiClient: StrapiClient;
+  teamRepository: TeamRepository;
   matchRepository: MatchRepository;
   eventRepository: EventRepository;
   tournamentRepository: TournamentRepository;
@@ -135,6 +148,7 @@ export function createServiceContainer(): Container {
   const client = getStrapiClient();
   return {
     strapiClient: client,
+    teamRepository: new TeamRepository(client),
     matchRepository: new MatchRepository(client),
     eventRepository: new EventRepository(client),
     tournamentRepository: new TournamentRepository(client),
@@ -150,6 +164,7 @@ export function createUserContainer(jwt: string): Container {
   const client = getUserStrapiClient(jwt);
   return {
     strapiClient: client,
+    teamRepository: new TeamRepository(client),
     matchRepository: new MatchRepository(client),
     eventRepository: new EventRepository(client),
     tournamentRepository: new TournamentRepository(client),
