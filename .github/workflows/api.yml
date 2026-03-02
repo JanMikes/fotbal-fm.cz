@@ -99,4 +99,3 @@ jobs:
                         docker compose exec -T api npx tsx src/cli/sync-tournaments.ts --from-file
                         docker compose exec -T api npx tsx src/cli/sync-matches.ts --from-file
                         docker compose exec -T api npx tsx src/cli/sync-standings.ts --from-file
-                        docker compose exec -T api npx tsx src/cli/sync-players.ts --from-file
