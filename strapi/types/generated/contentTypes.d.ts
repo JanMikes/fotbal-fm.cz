@@ -483,6 +483,16 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     events: Schema.Attribute.Relation<'manyToMany', 'api::event.event'>;
+    heroSlide1Image: Schema.Attribute.Media<'images'>;
+    heroSlide2Image: Schema.Attribute.Media<'images'>;
+    heroSlide3Image: Schema.Attribute.Media<'images'>;
+    heroSlide3Link: Schema.Attribute.String;
+    heroSlide3NewsArticle: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::news-article.news-article'
+    >;
+    heroSlide3Text: Schema.Attribute.Text;
+    heroSlide3Title: Schema.Attribute.String;
     hidden: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

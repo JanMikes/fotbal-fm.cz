@@ -37,26 +37,6 @@ export interface Staff {
   };
 }
 
-export interface HeroMatchData {
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  time: string;
-  venue: string;
-}
-
-export interface HeroSlide {
-  id: string;
-  type: 'match' | 'news' | 'promo';
-  image: string;
-  title: string;
-  subtitle?: string;
-  description?: string;
-  match?: HeroMatchData;
-  ctaText?: string;
-  ctaLink?: string;
-}
-
 // Mock Data
 export const news: NewsArticle[] = [
   {
@@ -285,53 +265,6 @@ export const staff: Staff[] = [
     name: 'Tomáš Konečný',
     role: 'Fyzioterapeut',
     image: '/staff/staff-5.jpg',
-  },
-];
-
-export const heroSlides: HeroSlide[] = [
-  {
-    id: '1',
-    type: 'match',
-    image: '/hero/hero-1.jpg',
-    title: 'Další domácí zápas',
-    subtitle: 'MSFL • 16. kolo',
-    match: {
-      homeTeam: 'FK Frýdek-Místek',
-      awayTeam: 'FC Baník Ostrava B',
-      date: 'So 25. 1.',
-      time: '15:00',
-      venue: 'Městský stadion',
-    },
-    ctaText: 'Koupit vstupenky',
-    ctaLink: '/vstupenky',
-  },
-  {
-    id: '2',
-    type: 'news',
-    image: '/hero/hero-2.jpg',
-    title: 'Jan Novák prodloužil smlouvu',
-    subtitle: 'Klíčový útočník zůstává do roku 2028',
-    ctaText: 'Číst více',
-    ctaLink: '/novinky/1',
-  },
-  {
-    id: '3',
-    type: 'promo',
-    image: '/hero/hero-3.jpg',
-    title: 'Staň se členem fanklubu',
-    subtitle: 'Získej exkluzivní výhody a slevy',
-    description: 'Přidej se k naší fotbalové rodině a podpoř svůj tým.',
-    ctaText: 'Registrovat se',
-    ctaLink: '/fanklub',
-  },
-  {
-    id: '4',
-    type: 'news',
-    image: '/hero/hero-4.jpg',
-    title: 'Vítězství 3:1 nad Vítkovicemi',
-    subtitle: 'Posun na třetí místo tabulky',
-    ctaText: 'Záznam zápasu',
-    ctaLink: '/zapasy/3',
   },
 ];
 

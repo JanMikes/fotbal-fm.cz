@@ -1,19 +1,23 @@
 import type {
   Category,
+  CategoryHeroData,
   Match,
   NavigationItem,
   NewsArticle,
   NewsArticleSummary,
   Page,
   Player,
+  Standing,
 } from '@/lib/types';
 import type {
   StrapiRawCategory,
+  StrapiRawCategoryWithHero,
   StrapiRawMatch,
   StrapiRawNavigation,
   StrapiRawNewsArticle,
   StrapiRawPage,
   StrapiRawPlayer,
+  StrapiRawStanding,
 } from './types';
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
@@ -22,6 +26,8 @@ import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
 import { mapPage } from './mappers/page';
 import { mapPlayer } from './mappers/player';
+import { mapStanding } from './mappers/standing';
+import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildPagePopulate } from './populates';
 
 export async function getCategories(): Promise<Category[]> {
@@ -151,4 +157,95 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapPage(data[0]) : null;
+}
+
+export async function getStandingsByCategory(categorySlug: string): Promise<Standing[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawStanding>('standings', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
+    },
+    sort: 'position:asc',
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapStanding);
+}
+
+export async function getCategoryWithHeroBySlug(
+  slug: string,
+): Promise<{ category: Category; hero: CategoryHeroData } | null> {
+  const client = getStrapiClient();
+  const mediaFields = { fields: ['url', 'alternativeText', 'width', 'height'] };
+  const { data } = await client.findMany<StrapiRawCategoryWithHero>('categories', {
+    filters: { slug: { $eq: slug } },
+    populate: {
+      heroSlide1Image: mediaFields,
+      heroSlide2Image: mediaFields,
+      heroSlide3Image: mediaFields,
+      heroSlide3NewsArticle: {
+        populate: {
+          mainPhoto: mediaFields,
+        },
+      },
+    },
+    pagination: { pageSize: 1 },
+  });
+  if (data.length === 0) return null;
+  const raw = data[0];
+  return {
+    category: mapCategory(raw),
+    hero: {
+      heroSlide1Image: mapMedia(raw.heroSlide1Image),
+      heroSlide2Image: mapMedia(raw.heroSlide2Image),
+      heroSlide3Image: mapMedia(raw.heroSlide3Image),
+      heroSlide3NewsArticle: raw.heroSlide3NewsArticle
+        ? {
+            title: raw.heroSlide3NewsArticle.title,
+            slug: raw.heroSlide3NewsArticle.slug || raw.heroSlide3NewsArticle.documentId,
+            description: raw.heroSlide3NewsArticle.description,
+            mainPhoto: mapMedia(raw.heroSlide3NewsArticle.mainPhoto),
+          }
+        : null,
+      heroSlide3Title: raw.heroSlide3Title ?? null,
+      heroSlide3Text: raw.heroSlide3Text ?? null,
+      heroSlide3Link: raw.heroSlide3Link ?? null,
+    },
+  };
+}
+
+export async function getUpcomingMatch(categorySlug: string): Promise<Match | null> {
+  const today = new Date().toISOString().split('T')[0];
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawMatch>('matches', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+      matchDate: { $gte: today },
+      homeScore: { $null: true },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
+    },
+    sort: 'matchDate:asc',
+    pagination: { pageSize: 1 },
+  });
+  return data.length > 0 ? mapMatch(data[0]) : null;
+}
+
+export async function getLastResult(categorySlug: string): Promise<Match | null> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawMatch>('matches', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+      homeScore: { $notNull: true },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
+    },
+    sort: 'matchDate:desc',
+    pagination: { pageSize: 1 },
+  });
+  return data.length > 0 ? mapMatch(data[0]) : null;
 }

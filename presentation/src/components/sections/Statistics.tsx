@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Trophy, Target, Users, TrendingUp } from 'lucide-react';
+import { Trophy, Target, TrendingUp, Award } from 'lucide-react';
+import type { Standing } from '@/lib/types';
 
 interface StatItem {
   label: string;
@@ -11,34 +12,6 @@ interface StatItem {
   icon: React.ElementType;
   description: string;
 }
-
-const stats: StatItem[] = [
-  {
-    label: 'Pozice v tabulce',
-    value: 3,
-    suffix: '.',
-    icon: Trophy,
-    description: 'MSFL 2025/26',
-  },
-  {
-    label: 'Odehraných zápasů',
-    value: 15,
-    icon: Target,
-    description: 'v aktuální sezóně',
-  },
-  {
-    label: 'Vstřelených gólů',
-    value: 28,
-    icon: TrendingUp,
-    description: 'v aktuální sezóně',
-  },
-  {
-    label: 'Hráčů v kádru',
-    value: 24,
-    icon: Users,
-    description: 'A-tým muži',
-  },
-];
 
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -73,7 +46,49 @@ function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: strin
   );
 }
 
-export default function Statistics() {
+interface StatisticsProps {
+  standings: Standing[];
+}
+
+export default function Statistics({ standings }: StatisticsProps) {
+  if (standings.length === 0) return null;
+
+  const ourTeam = standings.find((s) =>
+    s.teamName.toLowerCase().includes('frýdek')
+  );
+
+  if (!ourTeam) return null;
+
+  const tournamentName = ourTeam.tournamentName;
+
+  const stats: StatItem[] = [
+    {
+      label: 'Pozice v tabulce',
+      value: ourTeam.position,
+      suffix: '.',
+      icon: Trophy,
+      description: tournamentName ?? 'v aktuální sezóně',
+    },
+    {
+      label: 'Odehraných zápasů',
+      value: ourTeam.matchesPlayed,
+      icon: Target,
+      description: 'v aktuální sezóně',
+    },
+    {
+      label: 'Vstřelených gólů',
+      value: ourTeam.goalsFor,
+      icon: TrendingUp,
+      description: 'v aktuální sezóně',
+    },
+    {
+      label: 'Body',
+      value: ourTeam.points,
+      icon: Award,
+      description: 'v aktuální sezóně',
+    },
+  ];
+
   return (
     <section className="relative py-section-sm bg-white overflow-hidden">
       {/* Background Pattern */}
@@ -95,9 +110,11 @@ export default function Statistics() {
           <h2 className="text-section text-primary uppercase mb-4">
             Sezóna v číslech
           </h2>
-          <p className="text-body-lg text-primary/60 max-w-xl mx-auto">
-            Aktuální statistiky A-týmu v Moravskoslezské fotbalové lize
-          </p>
+          {tournamentName && (
+            <p className="text-body-lg text-primary/60 max-w-xl mx-auto">
+              Aktuální statistiky v soutěži {tournamentName}
+            </p>
+          )}
         </motion.div>
 
         {/* Stats Grid */}
@@ -136,7 +153,7 @@ export default function Statistics() {
           ))}
         </div>
 
-        {/* League Table Preview */}
+        {/* League Table */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -144,58 +161,56 @@ export default function Statistics() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-12 bg-primary p-6 lg:p-8 overflow-hidden"
         >
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div>
               <h3 className="text-xl font-bold text-white mb-2">
-                Moravskoslezská fotbalová liga
+                {tournamentName ?? 'Tabulka'}
               </h3>
               <p className="text-white/60">
-                Aktuální pozice v tabulce po 15. kole
+                Aktuální pozice v tabulce po {ourTeam.matchesPlayed}. kole
               </p>
             </div>
 
-            {/* Mini Table */}
-            <div className="bg-white/5 overflow-hidden">
-              <table className="w-full lg:w-auto text-sm">
+            {/* Full Table */}
+            <div className="bg-white/5 overflow-hidden flex-1 lg:max-w-2xl">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="text-white/40 text-xs uppercase tracking-wider">
-                    <th className="px-4 py-3 text-left">#</th>
-                    <th className="px-4 py-3 text-left">Tým</th>
-                    <th className="px-4 py-3 text-center">Z</th>
-                    <th className="px-4 py-3 text-center">B</th>
+                    <th className="px-3 py-3 text-left">#</th>
+                    <th className="px-3 py-3 text-left">Tým</th>
+                    <th className="px-3 py-3 text-center">Z</th>
+                    <th className="px-3 py-3 text-center hidden sm:table-cell">V</th>
+                    <th className="px-3 py-3 text-center hidden sm:table-cell">R</th>
+                    <th className="px-3 py-3 text-center hidden sm:table-cell">P</th>
+                    <th className="px-3 py-3 text-center hidden sm:table-cell">Skóre</th>
+                    <th className="px-3 py-3 text-center">B</th>
                   </tr>
                 </thead>
                 <tbody className="text-white">
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white/60">1.</td>
-                    <td className="px-4 py-3 font-medium">FC Baník Ostrava B</td>
-                    <td className="px-4 py-3 text-center">15</td>
-                    <td className="px-4 py-3 text-center font-bold">36</td>
-                  </tr>
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white/60">2.</td>
-                    <td className="px-4 py-3 font-medium">SFC Opava</td>
-                    <td className="px-4 py-3 text-center">15</td>
-                    <td className="px-4 py-3 text-center font-bold">32</td>
-                  </tr>
-                  <tr className="border-t border-white/10 bg-accent/20">
-                    <td className="px-4 py-3 text-accent font-bold">3.</td>
-                    <td className="px-4 py-3 font-bold text-accent">FK Frýdek-Místek</td>
-                    <td className="px-4 py-3 text-center">15</td>
-                    <td className="px-4 py-3 text-center font-bold">30</td>
-                  </tr>
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white/60">4.</td>
-                    <td className="px-4 py-3 font-medium">MFK Vítkovice</td>
-                    <td className="px-4 py-3 text-center">15</td>
-                    <td className="px-4 py-3 text-center font-bold">28</td>
-                  </tr>
-                  <tr className="border-t border-white/10">
-                    <td className="px-4 py-3 text-white/60">5.</td>
-                    <td className="px-4 py-3 font-medium">SK Sigma Olomouc B</td>
-                    <td className="px-4 py-3 text-center">15</td>
-                    <td className="px-4 py-3 text-center font-bold">25</td>
-                  </tr>
+                  {standings.map((row) => {
+                    const isOurTeam = row.teamName.toLowerCase().includes('frýdek');
+                    return (
+                      <tr
+                        key={`${row.position}-${row.teamName}`}
+                        className={`border-t border-white/10 ${isOurTeam ? 'bg-accent/20' : ''}`}
+                      >
+                        <td className={`px-3 py-3 ${isOurTeam ? 'text-accent font-bold' : 'text-white/60'}`}>
+                          {row.position}.
+                        </td>
+                        <td className={`px-3 py-3 ${isOurTeam ? 'font-bold text-accent' : 'font-medium'}`}>
+                          {row.teamName}
+                        </td>
+                        <td className="px-3 py-3 text-center">{row.matchesPlayed}</td>
+                        <td className="px-3 py-3 text-center hidden sm:table-cell">{row.wins}</td>
+                        <td className="px-3 py-3 text-center hidden sm:table-cell">{row.draws}</td>
+                        <td className="px-3 py-3 text-center hidden sm:table-cell">{row.losses}</td>
+                        <td className="px-3 py-3 text-center hidden sm:table-cell">
+                          {row.goalsFor}:{row.goalsAgainst}
+                        </td>
+                        <td className="px-3 py-3 text-center font-bold">{row.points}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

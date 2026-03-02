@@ -111,7 +111,7 @@ export interface StrapiRawStanding {
   categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
 }
 
-export interface StrapiRawCategoryWithHero extends import('@fotbal-fm/strapi-client').StrapiRawCategory {
+export type StrapiRawCategoryWithHero = import('@fotbal-fm/strapi-client').StrapiRawCategory & {
   heroSlide1Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   heroSlide2Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   heroSlide3Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
@@ -119,7 +119,7 @@ export interface StrapiRawCategoryWithHero extends import('@fotbal-fm/strapi-cli
   heroSlide3Title: string | null;
   heroSlide3Text: string | null;
   heroSlide3Link: string | null;
-}
+};
 
 export interface StrapiRawMatch {
   id: number;

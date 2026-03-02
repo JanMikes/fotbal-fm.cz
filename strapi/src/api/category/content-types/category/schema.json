@@ -68,6 +68,35 @@
     },
     "sportbmCategoryId": {
       "type": "string"
+    },
+    "heroSlide1Image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "heroSlide2Image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "heroSlide3Image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "heroSlide3NewsArticle": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::news-article.news-article"
+    },
+    "heroSlide3Title": {
+      "type": "string"
+    },
+    "heroSlide3Text": {
+      "type": "text"
+    },
+    "heroSlide3Link": {
+      "type": "string"
     }
   }
 }
