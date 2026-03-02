@@ -20,6 +20,7 @@ export type {
   StrapiRawMedia,
   StrapiRawMediaFormat,
   StrapiRawUserInfo,
+  StrapiRawTeam,
   StrapiRawMatch,
   StrapiRawEvent,
   StrapiRawTournament,

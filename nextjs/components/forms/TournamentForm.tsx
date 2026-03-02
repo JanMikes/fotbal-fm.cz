@@ -14,6 +14,7 @@ import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import CategorySelect from '@/components/ui/CategorySelect';
+import TeamSelect from '@/components/ui/TeamSelect';
 import { useScrollToError } from '@/hooks/useScrollToError';
 import { useCreateTournament, useUpdateTournament } from '@/hooks/api';
 import { Tournament } from '@/types/tournament';
@@ -313,10 +314,17 @@ export default function TournamentForm({
                       error={errors.matches?.[index]?.homeTeam?.message}
                       required
                     >
-                      <Input
-                        {...register(`matches.${index}.homeTeam`)}
-                        placeholder="Název týmu"
-                        error={errors.matches?.[index]?.homeTeam?.message}
+                      <Controller
+                        name={`matches.${index}.homeTeam`}
+                        control={control}
+                        render={({ field }) => (
+                          <TeamSelect
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Zadejte název týmu"
+                            error={errors.matches?.[index]?.homeTeam?.message}
+                          />
+                        )}
                       />
                     </FormField>
 
@@ -325,10 +333,17 @@ export default function TournamentForm({
                       error={errors.matches?.[index]?.awayTeam?.message}
                       required
                     >
-                      <Input
-                        {...register(`matches.${index}.awayTeam`)}
-                        placeholder="Název týmu"
-                        error={errors.matches?.[index]?.awayTeam?.message}
+                      <Controller
+                        name={`matches.${index}.awayTeam`}
+                        control={control}
+                        render={({ field }) => (
+                          <TeamSelect
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Zadejte název týmu"
+                            error={errors.matches?.[index]?.awayTeam?.message}
+                          />
+                        )}
                       />
                     </FormField>
                   </div>

@@ -1,6 +1,7 @@
 import { Hero, Matches, Statistics } from '@/components/sections';
 import { NewsList, TeamSection } from '@/components/sections';
 import {
+  getAllMatchesByCategory,
   getCategories,
   getCategoryWithHeroBySlug,
   getFinishedMatches,
@@ -24,7 +25,7 @@ export async function generateStaticParams() {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
 
-  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult] =
+  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches] =
     await Promise.all([
       getNewsArticlesByCategory(categorySlug, 1, 6),
       getPlayersByCategory(categorySlug),
@@ -34,6 +35,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       getCategoryWithHeroBySlug(categorySlug),
       getUpcomingMatch(categorySlug),
       getLastResult(categorySlug),
+      getAllMatchesByCategory(categorySlug),
     ]);
 
   const defaultHero = {
@@ -54,7 +56,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         heroData={categoryWithHero?.hero ?? defaultHero}
         categorySlug={categorySlug}
       />
-      <Matches upcomingMatches={upcoming} finishedMatches={finished} categorySlug={categorySlug} />
+      <Matches upcomingMatches={upcoming} finishedMatches={finished} allMatches={allMatches} categorySlug={categorySlug} />
       <Statistics standings={standings} />
       <NewsList articles={newsResult.articles} categorySlug={categorySlug} />
       <TeamSection players={players} categorySlug={categorySlug} />

@@ -25,7 +25,12 @@ const DEFAULT_POPULATE = {
   categories: true,
   photos: true,
   players: true,
-  matches: true,
+  matches: {
+    populate: {
+      homeTeam: { fields: ['id', 'documentId', 'name'] },
+      awayTeam: { fields: ['id', 'documentId', 'name'] },
+    },
+  },
   author: { fields: ['id', 'documentId', 'firstname', 'lastname', 'email'] },
   modifiedBy: { fields: ['id', 'documentId', 'firstname', 'lastname'] },
 };

@@ -15,6 +15,7 @@ import MarkdownEditor from '@/components/ui/MarkdownEditor';
 import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import CategorySelect from '@/components/ui/CategorySelect';
+import TeamSelect from '@/components/ui/TeamSelect';
 import { useScrollToError } from '@/hooks/useScrollToError';
 import { useCreateMatch, useUpdateMatch } from '@/hooks/api';
 import { Match } from '@/types/match';
@@ -164,10 +165,17 @@ export default function MatchResultForm({
           error={errors.homeTeam?.message}
           required
         >
-          <Input
-            {...register('homeTeam')}
-            placeholder="Název domácího týmu"
-            error={errors.homeTeam?.message}
+          <Controller
+            name="homeTeam"
+            control={control}
+            render={({ field }) => (
+              <TeamSelect
+                value={field.value || ''}
+                onChange={field.onChange}
+                placeholder="Zadejte název domácího týmu"
+                error={errors.homeTeam?.message}
+              />
+            )}
           />
         </FormField>
 
@@ -176,10 +184,17 @@ export default function MatchResultForm({
           error={errors.awayTeam?.message}
           required
         >
-          <Input
-            {...register('awayTeam')}
-            placeholder="Název hostujícího týmu"
-            error={errors.awayTeam?.message}
+          <Controller
+            name="awayTeam"
+            control={control}
+            render={({ field }) => (
+              <TeamSelect
+                value={field.value || ''}
+                onChange={field.onChange}
+                placeholder="Zadejte název hostujícího týmu"
+                error={errors.awayTeam?.message}
+              />
+            )}
           />
         </FormField>
       </div>

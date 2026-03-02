@@ -14,6 +14,7 @@ import {
   UserFilterOptions,
 } from './base';
 import { NotFoundError } from '@/lib/core/errors';
+import { TeamRepository } from './team.repository';
 
 const CONTENT_TYPE = 'matches';
 const STRAPI_REF = 'api::match.match';
@@ -79,7 +80,11 @@ export class MatchRepository implements RepositoryWithUploads<
   Match,
   CreateMatchRequest
 > {
-  constructor(private readonly client: StrapiClient) {}
+  private readonly teamRepository: TeamRepository;
+
+  constructor(private readonly client: StrapiClient) {
+    this.teamRepository = new TeamRepository(client);
+  }
 
   async findById(id: string, options?: FindOptions): Promise<Match | null> {
     const queryOptions = {
@@ -137,8 +142,18 @@ export class MatchRepository implements RepositoryWithUploads<
 
   async create(data: CreateMatchRequest): Promise<Match> {
     // Transform categories array to Strapi 5 relation format
-    const { categories, tournament, ...rest } = data;
+    const { categories, tournament, homeTeam, awayTeam, ...rest } = data;
     const strapiData: Record<string, unknown> = { ...rest };
+
+    // Resolve team names to documentIds (find or create)
+    if (homeTeam) {
+      const homeTeamId = await this.teamRepository.findOrCreate(homeTeam);
+      strapiData.homeTeam = homeTeamId;
+    }
+    if (awayTeam) {
+      const awayTeamId = await this.teamRepository.findOrCreate(awayTeam);
+      strapiData.awayTeam = awayTeamId;
+    }
 
     if (categories && categories.length > 0) {
       strapiData.categories = {
@@ -160,8 +175,26 @@ export class MatchRepository implements RepositoryWithUploads<
 
   async update(id: string, data: Partial<CreateMatchRequest>): Promise<Match> {
     // Transform categories array to Strapi 5 relation format
-    const { categories, tournament, ...rest } = data;
+    const { categories, tournament, homeTeam, awayTeam, ...rest } = data;
     const strapiData: Record<string, unknown> = { ...rest };
+
+    // Resolve team names to documentIds (find or create)
+    if (homeTeam !== undefined) {
+      if (homeTeam) {
+        const homeTeamId = await this.teamRepository.findOrCreate(homeTeam);
+        strapiData.homeTeam = homeTeamId;
+      } else {
+        strapiData.homeTeam = null;
+      }
+    }
+    if (awayTeam !== undefined) {
+      if (awayTeam) {
+        const awayTeamId = await this.teamRepository.findOrCreate(awayTeam);
+        strapiData.awayTeam = awayTeamId;
+      } else {
+        strapiData.awayTeam = null;
+      }
+    }
 
     if (categories !== undefined) {
       strapiData.categories = {

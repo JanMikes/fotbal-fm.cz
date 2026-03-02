@@ -181,6 +181,7 @@ export function createUserContainer(jwt: string): Container {
  * Reset all singleton instances (for testing)
  */
 export function resetContainer(): void {
+  teamRepository = null;
   matchRepository = null;
   eventRepository = null;
   tournamentRepository = null;

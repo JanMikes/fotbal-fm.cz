@@ -5,6 +5,7 @@
 
 export {
   // Singleton repository getters (service-to-service)
+  getTeamRepository,
   getMatchRepository,
   getEventRepository,
   getTournamentRepository,
