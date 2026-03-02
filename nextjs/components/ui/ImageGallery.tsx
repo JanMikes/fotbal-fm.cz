@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
-import { StrapiImage } from '@/types/match-result';
+import { StrapiImage } from '@/types/match';
 
 interface ImageGalleryProps {
   images: StrapiImage[];

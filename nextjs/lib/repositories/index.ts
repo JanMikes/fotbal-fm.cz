@@ -15,10 +15,9 @@ export type {
 } from './base';
 
 // Entity repositories
-export { MatchResultRepository } from './match-result.repository';
+export { MatchRepository } from './match.repository';
 export { EventRepository } from './event.repository';
 export { TournamentRepository } from './tournament.repository';
-export { TournamentMatchRepository } from './tournament-match.repository';
 export { CommentRepository, type CommentableEntity } from './comment.repository';
 export { CategoryRepository } from './category.repository';
 export {

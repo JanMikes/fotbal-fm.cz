@@ -1,27 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
-import type { Category } from '@/lib/types';
-
-const mainNavItems = [
-  {
-    label: 'O klubu',
-    href: '/o-klubu',
-    dropdown: [
-      { label: 'Historie', href: '/o-klubu/historie' },
-      { label: 'Vedení', href: '/o-klubu/vedeni' },
-      { label: 'Stadion', href: '/o-klubu/stadion' },
-    ],
-  },
-  { label: 'Novinky', href: '/novinky' },
-  { label: 'Fotogalerie', href: '/fotogalerie' },
-  { label: 'Kontakt', href: '/kontakt' },
-];
+import { Menu, X, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import type { Category, NavigationItem } from '@/lib/types';
 
 const socialLinks = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
@@ -32,13 +18,17 @@ const socialLinks = [
 
 interface HeaderProps {
   categories: Category[];
-  activeCategorySlug: string;
+  navigation?: NavigationItem[];
 }
 
-export default function Header({ categories, activeCategorySlug }: HeaderProps) {
+export default function Header({ categories, navigation = [] }: HeaderProps) {
+  const pathname = usePathname();
+  const activeCategorySlug = useMemo(() => {
+    const match = pathname.match(/^\/kategorie\/([^/]+)/);
+    return match ? match[1] : '';
+  }, [pathname]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -140,56 +130,25 @@ export default function Header({ categories, activeCategorySlug }: HeaderProps) 
 
               {/* Desktop Navigation */}
               <nav className="hidden lg:flex items-center gap-1">
-                {mainNavItems.map((item) => (
-                  <div
-                    key={item.label}
-                    className="relative"
-                    onMouseEnter={() => item.dropdown && setOpenDropdown(item.label)}
-                    onMouseLeave={() => setOpenDropdown(null)}
-                  >
+                {navigation.map((item) => {
+                  const linkProps = item.external
+                    ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+                    : {};
+                  return (
                     <Link
+                      key={item.href}
                       href={item.href}
+                      {...linkProps}
                       className={clsx(
                         'flex items-center gap-1 px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors',
                         'text-primary hover:text-accent',
                         'link-hover'
                       )}
                     >
-                      {item.label}
-                      {item.dropdown && (
-                        <ChevronDown className={clsx(
-                          'w-4 h-4 transition-transform',
-                          openDropdown === item.label && 'rotate-180'
-                        )} />
-                      )}
+                      {item.title}
                     </Link>
-
-                    {/* Dropdown */}
-                    {item.dropdown && (
-                      <AnimatePresence>
-                        {openDropdown === item.label && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{ duration: 0.2 }}
-                            className="absolute top-full left-0 mt-2 w-48 py-2 bg-white shadow-card-hover"
-                          >
-                            {item.dropdown.map((subItem) => (
-                              <Link
-                                key={subItem.label}
-                                href={subItem.href}
-                                className="block px-4 py-2 text-sm text-primary hover:bg-surface-light hover:text-accent transition-colors"
-                              >
-                                {subItem.label}
-                              </Link>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </nav>
 
               {/* Social Icons & Mobile Menu Button */}
@@ -251,7 +210,7 @@ export default function Header({ categories, activeCategorySlug }: HeaderProps) 
               {categories.map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={`/${cat.slug}`}
+                  href={`/kategorie/${cat.slug}`}
                   data-active={activeCategorySlug === cat.slug}
                   className={clsx(
                     'px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300',
@@ -324,9 +283,9 @@ export default function Header({ categories, activeCategorySlug }: HeaderProps) 
 
               {/* Mobile Navigation */}
               <nav className="space-y-2 mb-8">
-                {mainNavItems.map((item, index) => (
+                {navigation.map((item, index) => (
                   <motion.div
-                    key={item.label}
+                    key={item.href}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -334,24 +293,11 @@ export default function Header({ categories, activeCategorySlug }: HeaderProps) 
                     <Link
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
+                      {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                       className="block py-3 text-xl font-semibold text-white hover:text-accent transition-colors"
                     >
-                      {item.label}
+                      {item.title}
                     </Link>
-                    {item.dropdown && (
-                      <div className="pl-4 space-y-1">
-                        {item.dropdown.map((subItem) => (
-                          <Link
-                            key={subItem.label}
-                            href={subItem.href}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block py-2 text-white/70 hover:text-white transition-colors"
-                          >
-                            {subItem.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
                   </motion.div>
                 ))}
               </nav>
@@ -365,7 +311,7 @@ export default function Header({ categories, activeCategorySlug }: HeaderProps) 
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={`/${cat.slug}`}
+                      href={`/kategorie/${cat.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={clsx(
                         'px-4 py-2 text-sm font-medium transition-colors',

@@ -22,7 +22,7 @@ function formatDate(isoDate: string): string {
 }
 
 export default function NewsCard({ article, categorySlug, featured = false, className }: NewsCardProps) {
-  const href = `/${categorySlug}/clanek/${article.slug}`;
+  const href = `/kategorie/${categorySlug}/clanek/${article.slug}`;
   const imageUrl = article.mainPhoto?.url || '/news/news-1.jpg';
   const badgeLabel = article.newsArticleType?.name;
 

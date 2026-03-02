@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
-import { Footer } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
+import { getCategories, getNavigation } from '@/lib/strapi/data';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -44,14 +45,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [categories, navigation] = await Promise.all([
+    getCategories(),
+    getNavigation(),
+  ]);
+
   return (
     <html lang="cs" className={montserrat.variable}>
       <body className="font-sans">
+        <Header categories={categories} navigation={navigation} />
         {children}
         <Footer />
       </body>

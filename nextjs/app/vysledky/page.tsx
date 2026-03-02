@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import MatchResultCard from '@/components/MatchResultCard';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
@@ -15,23 +15,23 @@ import FilterToggle from '@/components/ui/FilterToggle';
 function MatchResultsPageContent() {
   const { user, loading: userLoading } = useRequireAuth();
   const searchParams = useSearchParams();
-  const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showOnlyMine, setShowOnlyMine] = useState(false);
   const showSuccess = searchParams.get('success') === 'true';
 
-  const fetchMatchResults = useCallback(async (onlyMine: boolean) => {
+  const fetchMatches = useCallback(async (onlyMine: boolean) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/match-results/list?onlyMine=${onlyMine}`);
+      const response = await fetch(`/api/matches/list?onlyMine=${onlyMine}`);
       const data = await response.json();
 
       if (!data.success) {
         throw new Error(data.error || 'Nepodařilo se načíst výsledky');
       }
 
-      setMatchResults(data.data.matchResults);
+      setMatches(data.data.matches);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -45,8 +45,8 @@ function MatchResultsPageContent() {
 
   useEffect(() => {
     if (!user) return;
-    fetchMatchResults(showOnlyMine);
-  }, [user, showOnlyMine, fetchMatchResults]);
+    fetchMatches(showOnlyMine);
+  }, [user, showOnlyMine, fetchMatches]);
 
   const handleFilterChange = (value: boolean) => {
     setShowOnlyMine(value);
@@ -81,7 +81,7 @@ function MatchResultsPageContent() {
           </Link>
         </div>
 
-        {!loading && matchResults.length > 0 && (
+        {!loading && matches.length > 0 && (
           <div className="mb-6">
             <FilterToggle
               storageKey="filter_showOnlyMine_vysledky"
@@ -104,7 +104,7 @@ function MatchResultsPageContent() {
 
         {loading ? (
           <LoadingSpinner />
-        ) : matchResults.length === 0 && !error ? (
+        ) : matches.length === 0 && !error ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-elevated rounded-full mb-4">
               <Trophy className="w-10 h-10 text-text-muted" />
@@ -124,10 +124,10 @@ function MatchResultsPageContent() {
           </div>
         ) : (
           <div className="space-y-6">
-            {matchResults.map((matchResult) => (
+            {matches.map((match) => (
               <MatchResultCard
-                key={matchResult.id}
-                matchResult={matchResult}
+                key={match.id}
+                match={match}
                 currentUserId={user.id}
               />
             ))}

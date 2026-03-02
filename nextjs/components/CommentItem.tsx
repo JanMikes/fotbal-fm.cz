@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 
 interface CommentItemProps {
   comment: Comment;
-  entityType: 'matchResult' | 'tournament' | 'event';
+  entityType: 'match' | 'tournament' | 'event';
   entityId: string;
   currentUserId: number;
   onReplyAdded: () => void;

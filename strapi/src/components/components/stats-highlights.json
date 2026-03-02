@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_stats_highlights",
+  "info": {
+    "displayName": "Statistiky",
+    "description": "Stats highlight blocks"
+  },
+  "attributes": {
+    "items": {
+      "type": "component",
+      "component": "elements.stat-item",
+      "repeatable": true
+    },
+    "columns": {
+      "type": "enumeration",
+      "enum": ["2", "3", "4"],
+      "default": "4"
+    }
+  }
+}

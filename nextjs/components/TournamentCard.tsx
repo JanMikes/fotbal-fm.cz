@@ -11,12 +11,13 @@ interface TournamentCardProps {
 
 export default function TournamentCard({ tournament, currentUserId }: TournamentCardProps) {
   const isOwner = currentUserId && tournament.authorId === currentUserId;
-  const dateFrom = new Date(tournament.dateFrom);
-  const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-  });
+  const formattedDateFrom = tournament.dateFrom
+    ? new Date(tournament.dateFrom).toLocaleDateString('cs-CZ', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      })
+    : null;
 
   const formattedDateTo = tournament.dateTo
     ? new Date(tournament.dateTo).toLocaleDateString('cs-CZ', {
@@ -31,13 +32,16 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
       <div className="space-y-3">
         {/* TOP: Actions & Date */}
         <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2">
-          <div className="flex items-center gap-2 text-sm text-text-muted">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {formattedDateFrom}
-              {formattedDateTo && ` - ${formattedDateTo}`}
-            </span>
-          </div>
+          {(formattedDateFrom || tournament.season) && (
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <Calendar className="w-4 h-4" />
+              <span>
+                {formattedDateFrom
+                  ? `${formattedDateFrom}${formattedDateTo ? ` - ${formattedDateTo}` : ''}`
+                  : `Sezóna ${tournament.season}`}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-2 w-full md:w-auto">
             <Link href={`/turnaj/${tournament.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
@@ -93,6 +97,14 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
         <h3 className="text-xl font-semibold text-text-primary">
           {tournament.name}
         </h3>
+
+        {/* Competition info */}
+        {tournament.code && (
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <span className="px-2 py-0.5 rounded bg-surface-hover font-mono">{tournament.code}</span>
+            {tournament.competitionType && <span>{tournament.competitionType}</span>}
+          </div>
+        )}
 
         {/* Location */}
         {tournament.location && (

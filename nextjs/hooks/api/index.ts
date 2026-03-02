@@ -7,12 +7,12 @@
 export { useMutation } from './useMutation';
 export type { MutationState, MutationResult, ApiResponse, FetchOptions } from './types';
 
-// Match results
+// Matches
 export {
-  useCreateMatchResult,
-  useUpdateMatchResult,
-  useDeleteMatchResult,
-} from './use-match-results';
+  useCreateMatch,
+  useUpdateMatch,
+  useDeleteMatch,
+} from './use-matches';
 
 // Events
 export {
@@ -27,13 +27,6 @@ export {
   useUpdateTournament,
   useDeleteTournament,
 } from './use-tournaments';
-
-// Tournament matches
-export {
-  useCreateTournamentMatch,
-  useUpdateTournamentMatch,
-  useDeleteTournamentMatch,
-} from './use-tournament-matches';
 
 // Auth
 export {

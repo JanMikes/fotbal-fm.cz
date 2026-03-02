@@ -7,7 +7,7 @@ import CommentItem from '@/components/CommentItem';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface CommentSectionProps {
-  entityType: 'matchResult' | 'tournament' | 'event';
+  entityType: 'match' | 'tournament' | 'event';
   entityId: string;
   currentUserId: number;
 }
@@ -22,7 +22,7 @@ export default function CommentSection({
   const [error, setError] = useState<string | null>(null);
 
   const apiPath = {
-    matchResult: 'match-results',
+    match: 'matches',
     tournament: 'tournaments',
     event: 'events',
   }[entityType];

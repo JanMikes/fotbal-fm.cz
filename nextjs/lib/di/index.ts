@@ -5,18 +5,16 @@
 
 export {
   // Singleton repository getters (service-to-service)
-  getMatchResultRepository,
+  getMatchRepository,
   getEventRepository,
   getTournamentRepository,
-  getTournamentMatchRepository,
   getCommentRepository,
   getUserRepository,
 
   // User-authenticated repository factories
-  createUserMatchResultRepository,
+  createUserMatchRepository,
   createUserEventRepository,
   createUserTournamentRepository,
-  createUserTournamentMatchRepository,
   createUserCommentRepository,
   createUserUserRepository,
 

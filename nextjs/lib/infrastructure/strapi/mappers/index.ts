@@ -19,11 +19,11 @@ export {
 
 // Entity mappers
 export {
-  mapMatchResult,
-  mapMatchResults,
-  safeMapMatchResult,
-  safeMapMatchResults,
-} from './match-result';
+  mapMatch,
+  mapMatches,
+  safeMapMatch,
+  safeMapMatches,
+} from './match';
 
 export {
   mapEvent,
@@ -38,13 +38,6 @@ export {
   safeMapTournament,
   safeMapTournaments,
 } from './tournament';
-
-export {
-  mapTournamentMatch,
-  mapTournamentMatches,
-  safeMapTournamentMatch,
-  safeMapTournamentMatches,
-} from './tournament-match';
 
 export {
   mapComment,

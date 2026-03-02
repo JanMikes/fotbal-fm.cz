@@ -6,10 +6,9 @@
 
 import { StrapiClient, getStrapiClient, getUserStrapiClient } from '@/lib/infrastructure/strapi';
 import {
-  MatchResultRepository,
+  MatchRepository,
   EventRepository,
   TournamentRepository,
-  TournamentMatchRepository,
   CommentRepository,
   UserRepository,
 } from '@/lib/repositories';
@@ -18,21 +17,20 @@ import {
 // Singleton Instances (Service-to-Service with API Token)
 // =============================================================================
 
-let matchResultRepository: MatchResultRepository | null = null;
+let matchRepository: MatchRepository | null = null;
 let eventRepository: EventRepository | null = null;
 let tournamentRepository: TournamentRepository | null = null;
-let tournamentMatchRepository: TournamentMatchRepository | null = null;
 let commentRepository: CommentRepository | null = null;
 let userRepository: UserRepository | null = null;
 
 /**
- * Get the match result repository (singleton)
+ * Get the match repository (singleton)
  */
-export function getMatchResultRepository(): MatchResultRepository {
-  if (!matchResultRepository) {
-    matchResultRepository = new MatchResultRepository(getStrapiClient());
+export function getMatchRepository(): MatchRepository {
+  if (!matchRepository) {
+    matchRepository = new MatchRepository(getStrapiClient());
   }
-  return matchResultRepository;
+  return matchRepository;
 }
 
 /**
@@ -53,16 +51,6 @@ export function getTournamentRepository(): TournamentRepository {
     tournamentRepository = new TournamentRepository(getStrapiClient());
   }
   return tournamentRepository;
-}
-
-/**
- * Get the tournament match repository (singleton)
- */
-export function getTournamentMatchRepository(): TournamentMatchRepository {
-  if (!tournamentMatchRepository) {
-    tournamentMatchRepository = new TournamentMatchRepository(getStrapiClient());
-  }
-  return tournamentMatchRepository;
 }
 
 /**
@@ -90,10 +78,10 @@ export function getUserRepository(): UserRepository {
 // =============================================================================
 
 /**
- * Create a match result repository authenticated with user's JWT
+ * Create a match repository authenticated with user's JWT
  */
-export function createUserMatchResultRepository(jwt: string): MatchResultRepository {
-  return new MatchResultRepository(getUserStrapiClient(jwt));
+export function createUserMatchRepository(jwt: string): MatchRepository {
+  return new MatchRepository(getUserStrapiClient(jwt));
 }
 
 /**
@@ -108,13 +96,6 @@ export function createUserEventRepository(jwt: string): EventRepository {
  */
 export function createUserTournamentRepository(jwt: string): TournamentRepository {
   return new TournamentRepository(getUserStrapiClient(jwt));
-}
-
-/**
- * Create a tournament match repository authenticated with user's JWT
- */
-export function createUserTournamentMatchRepository(jwt: string): TournamentMatchRepository {
-  return new TournamentMatchRepository(getUserStrapiClient(jwt));
 }
 
 /**
@@ -140,10 +121,9 @@ export function createUserUserRepository(jwt: string): UserRepository {
  */
 export interface Container {
   strapiClient: StrapiClient;
-  matchResultRepository: MatchResultRepository;
+  matchRepository: MatchRepository;
   eventRepository: EventRepository;
   tournamentRepository: TournamentRepository;
-  tournamentMatchRepository: TournamentMatchRepository;
   commentRepository: CommentRepository;
   userRepository: UserRepository;
 }
@@ -155,10 +135,9 @@ export function createServiceContainer(): Container {
   const client = getStrapiClient();
   return {
     strapiClient: client,
-    matchResultRepository: new MatchResultRepository(client),
+    matchRepository: new MatchRepository(client),
     eventRepository: new EventRepository(client),
     tournamentRepository: new TournamentRepository(client),
-    tournamentMatchRepository: new TournamentMatchRepository(client),
     commentRepository: new CommentRepository(client),
     userRepository: new UserRepository(client),
   };
@@ -171,10 +150,9 @@ export function createUserContainer(jwt: string): Container {
   const client = getUserStrapiClient(jwt);
   return {
     strapiClient: client,
-    matchResultRepository: new MatchResultRepository(client),
+    matchRepository: new MatchRepository(client),
     eventRepository: new EventRepository(client),
     tournamentRepository: new TournamentRepository(client),
-    tournamentMatchRepository: new TournamentMatchRepository(client),
     commentRepository: new CommentRepository(client),
     userRepository: new UserRepository(client),
   };
@@ -188,10 +166,9 @@ export function createUserContainer(jwt: string): Container {
  * Reset all singleton instances (for testing)
  */
 export function resetContainer(): void {
-  matchResultRepository = null;
+  matchRepository = null;
   eventRepository = null;
   tournamentRepository = null;
-  tournamentMatchRepository = null;
   commentRepository = null;
   userRepository = null;
 }

@@ -32,10 +32,10 @@
       "target": "api::tournament.tournament",
       "mappedBy": "categories"
     },
-    "matchResults": {
+    "matches": {
       "type": "relation",
       "relation": "manyToMany",
-      "target": "api::match-result.match-result",
+      "target": "api::match.match",
       "mappedBy": "categories"
     },
     "events": {
@@ -66,11 +66,8 @@
       "target": "api::category-code.category-code",
       "mappedBy": "category"
     },
-    "competitions": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::competition.competition",
-      "mappedBy": "category"
+    "sportbmCategoryId": {
+      "type": "string"
     }
   }
 }

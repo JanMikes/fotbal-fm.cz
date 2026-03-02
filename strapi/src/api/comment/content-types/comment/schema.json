@@ -33,10 +33,10 @@
       "target": "api::comment.comment",
       "mappedBy": "parentComment"
     },
-    "matchResult": {
+    "match": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::match-result.match-result"
+      "target": "api::match.match"
     },
     "tournament": {
       "type": "relation",

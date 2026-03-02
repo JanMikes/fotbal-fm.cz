@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
@@ -22,24 +22,24 @@ export default function MatchResultDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
-  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchMatchResult = async () => {
+    const fetchMatch = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/match-results/${id}`);
+        const response = await fetch(`/api/matches/${id}`);
         const data = await response.json();
 
         if (!data.success) {
           throw new Error(data.error || 'Nepodařilo se načíst výsledek');
         }
 
-        setMatchResult(data.data.matchResult);
+        setMatch(data.data.match);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -51,7 +51,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
       }
     };
 
-    fetchMatchResult();
+    fetchMatch();
   }, [user, id]);
 
   if (userLoading || loading) {
@@ -78,11 +78,11 @@ export default function MatchResultDetailPage({ params }: PageProps) {
     );
   }
 
-  if (!matchResult) {
+  if (!match) {
     return null;
   }
 
-  const matchDate = new Date(matchResult.createdAt);
+  const matchDate = new Date(match.createdAt);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'numeric',
@@ -91,7 +91,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
     minute: '2-digit',
   });
 
-  const isOwner = user.id === matchResult.authorId;
+  const isOwner = user.id === match.authorId;
 
   return (
     <div className="bg-background py-8">
@@ -104,7 +104,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             </Button>
           </Link>
           {isOwner && (
-            <Link href={`/upravit-vysledek/${matchResult.id}`}>
+            <Link href={`/upravit-vysledek/${match.id}`}>
               <Button variant="secondary" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Upravit
@@ -118,13 +118,13 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             {/* Author & Timestamp Info */}
             <div className="flex items-center justify-between text-sm text-text-muted">
               <div className="flex items-center gap-4">
-                {matchResult.author && (
-                  <span className="font-medium text-text-secondary">{matchResult.author.firstName} {matchResult.author.lastName}</span>
+                {match.author && (
+                  <span className="font-medium text-text-secondary">{match.author.firstName} {match.author.lastName}</span>
                 )}
                 <LastUpdatedInfo
-                  updatedBy={matchResult.modifiedBy}
-                  author={matchResult.author}
-                  updatedAt={matchResult.updatedAt}
+                  updatedBy={match.modifiedBy}
+                  author={match.author}
+                  updatedAt={match.updatedAt}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -136,8 +136,8 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             {/* Category Badges */}
             <div className="text-center">
               <div className="flex flex-wrap justify-center gap-2">
-                {matchResult.categories?.length > 0 ? (
-                  matchResult.categories.map((cat) => (
+                {match.categories?.length > 0 ? (
+                  match.categories.map((cat) => (
                     <span key={cat.id} className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-accent/20 text-accent">
                       {cat.name}
                     </span>
@@ -154,48 +154,48 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             <div className="flex items-center justify-between">
               <div className="flex-1 text-right">
                 <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
-                  {matchResult.homeTeam}
+                  {match.homeTeam}
                 </h3>
               </div>
 
               <div className="mx-2 md:mx-6">
                 <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-2xl px-3 py-1 md:px-8 md:py-4 shadow-lg shadow-primary/10">
                   <div className="text-xl md:text-5xl font-bold text-text-primary text-center tracking-wider">
-                    {matchResult.homeScore} : {matchResult.awayScore}
+                    {match.homeScore} : {match.awayScore}
                   </div>
                 </div>
               </div>
 
               <div className="flex-1">
                 <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
-                  {matchResult.awayTeam}
+                  {match.awayTeam}
                 </h3>
               </div>
             </div>
 
             {/* Goalscorers */}
-            {(matchResult.homeGoalscorers || matchResult.awayGoalscorers) && (
+            {(match.homeGoalscorers || match.awayGoalscorers) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border">
                 <div className="text-right md:pr-6">
-                  {matchResult.homeGoalscorers && (
+                  {match.homeGoalscorers && (
                     <div>
                       <p className="text-sm font-medium text-text-label mb-2">
                         Střelci domácích:
                       </p>
                       <p className="text-text-secondary whitespace-pre-line">
-                        {matchResult.homeGoalscorers}
+                        {match.homeGoalscorers}
                       </p>
                     </div>
                   )}
                 </div>
                 <div className="md:pl-6">
-                  {matchResult.awayGoalscorers && (
+                  {match.awayGoalscorers && (
                     <div>
                       <p className="text-sm font-medium text-text-label mb-2">
                         Střelci hostů:
                       </p>
                       <p className="text-text-secondary whitespace-pre-line">
-                        {matchResult.awayGoalscorers}
+                        {match.awayGoalscorers}
                       </p>
                     </div>
                   )}
@@ -204,24 +204,24 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             )}
 
             {/* Match Report */}
-            {matchResult.matchReport && (
+            {match.matchReport && (
               <div className="pt-6 border-t border-border">
                 <p className="text-sm font-medium text-text-label mb-3">
                   Zpráva ze zápasu:
                 </p>
                 <p className="text-text-secondary whitespace-pre-line leading-relaxed">
-                  {matchResult.matchReport}
+                  {match.matchReport}
                 </p>
               </div>
             )}
 
             {/* Images */}
-            {matchResult.images.length > 0 && (
+            {match.images.length > 0 && (
               <div className="pt-6 border-t border-border">
                 <p className="text-sm font-medium text-text-label mb-4">
-                  Fotografie ({matchResult.images.length}):
+                  Fotografie ({match.images.length}):
                 </p>
-                <ImageGallery images={matchResult.images} />
+                <ImageGallery images={match.images} />
               </div>
             )}
 
@@ -232,8 +232,8 @@ export default function MatchResultDetailPage({ params }: PageProps) {
         <div id="komentare" className="mt-8 scroll-mt-4">
           <Card variant="elevated">
             <CommentSection
-              entityType="matchResult"
-              entityId={matchResult.id}
+              entityType="match"
+              entityId={match.id}
               currentUserId={user.id}
             />
           </Card>

@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_components_videos",
+  "info": {
+    "displayName": "Video",
+    "description": "YouTube video embed"
+  },
+  "attributes": {
+    "youtube_id": {
+      "type": "string"
+    },
+    "aspect_ratio": {
+      "type": "enumeration",
+      "enum": ["16:9", "4:3", "1:1"],
+      "default": "16:9"
+    }
+  }
+}

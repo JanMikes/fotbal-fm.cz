@@ -173,11 +173,23 @@ export default function TournamentForm({
           />
         </FormField>
 
+        {/* Competition info (read-only for scraped tournaments) */}
+        {initialData?.facrId && (
+          <div className="bg-surface-elevated border border-border rounded-lg p-4">
+            <p className="text-sm font-medium text-text-label mb-2">Soutěž (FAČR)</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-text-secondary">
+              {initialData.code && <div><span className="text-text-muted">Kód:</span> {initialData.code}</div>}
+              {initialData.competitionType && <div><span className="text-text-muted">Typ:</span> {initialData.competitionType}</div>}
+              {initialData.season && <div><span className="text-text-muted">Sezóna:</span> {initialData.season}</div>}
+              {initialData.organizingBody && <div><span className="text-text-muted">Org.:</span> {initialData.organizingBody}</div>}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             label="Datum od"
             error={errors.dateFrom?.message}
-            required
           >
             <Controller
               name="dateFrom"

@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_elements_document_items",
+  "info": {
+    "displayName": "Dokument",
+    "description": "Document with name and file"
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images", "files", "videos", "audios"]
+    }
+  }
+}

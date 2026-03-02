@@ -1,0 +1,115 @@
+{
+  "kind": "collectionType",
+  "collectionName": "matches",
+  "info": {
+    "singularName": "match",
+    "pluralName": "matches",
+    "displayName": "Match",
+    "description": "Football matches (both standalone and tournament)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "homeTeam": {
+      "type": "string",
+      "required": true
+    },
+    "awayTeam": {
+      "type": "string",
+      "required": true
+    },
+    "homeScore": {
+      "type": "integer",
+      "min": 0
+    },
+    "awayScore": {
+      "type": "integer",
+      "min": 0
+    },
+    "homeGoalscorers": {
+      "type": "text"
+    },
+    "awayGoalscorers": {
+      "type": "text"
+    },
+    "matchDate": {
+      "type": "date",
+      "required": true
+    },
+    "matchTime": {
+      "type": "string"
+    },
+    "venue": {
+      "type": "string"
+    },
+    "round": {
+      "type": "integer"
+    },
+    "season": {
+      "type": "integer"
+    },
+    "matchReport": {
+      "type": "text"
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "files",
+        "images",
+        "videos",
+        "audios"
+      ]
+    },
+    "imagesUrl": {
+      "type": "string"
+    },
+    "facrId": {
+      "type": "string",
+      "unique": true
+    },
+    "competitionName": {
+      "type": "string"
+    },
+    "competitionCode": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "organizingBody": {
+      "type": "string"
+    },
+    "tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament",
+      "inversedBy": "matches"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "inversedBy": "matches"
+    },
+    "author": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "lastModifiedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

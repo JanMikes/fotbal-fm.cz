@@ -83,9 +83,9 @@ export interface StrapiMedia {
 }
 
 /**
- * Match result attributes from Strapi
+ * Match attributes from Strapi
  */
-export interface StrapiMatchResultAttributes {
+export interface StrapiMatchAttributes {
   homeTeam: string;
   awayTeam: string;
   homeScore: number;
@@ -93,6 +93,7 @@ export interface StrapiMatchResultAttributes {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  matchDate: string;
   images?: StrapiMedia;
   userId: number;
   createdAt: string;
@@ -101,16 +102,16 @@ export interface StrapiMatchResultAttributes {
 }
 
 /**
- * Full Strapi match result response
+ * Full Strapi match response
  */
-export type StrapiMatchResultData = StrapiDataWrapper<StrapiMatchResultAttributes>;
+export type StrapiMatchData = StrapiDataWrapper<StrapiMatchAttributes>;
 
 /**
- * Strapi match result collection response
+ * Strapi match collection response
  */
-export type StrapiMatchResultsCollectionResponse = StrapiCollectionResponse<StrapiMatchResultAttributes>;
+export type StrapiMatchesCollectionResponse = StrapiCollectionResponse<StrapiMatchAttributes>;
 
 /**
- * Strapi match result single response
+ * Strapi match single response
  */
-export type StrapiMatchResultSingleResponse = StrapiSingleResponse<StrapiMatchResultAttributes>;
+export type StrapiMatchSingleResponse = StrapiSingleResponse<StrapiMatchAttributes>;

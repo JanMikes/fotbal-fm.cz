@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import { useCreateComment } from '@/hooks/api';
 
 interface CommentFormProps {
-  entityType: 'matchResult' | 'tournament' | 'event';
+  entityType: 'match' | 'tournament' | 'event';
   entityId: string;
   parentCommentId?: string;
   onSuccess: () => void;

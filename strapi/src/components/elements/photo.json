@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_elements_photos",
+  "info": {
+    "displayName": "Fotka",
+    "description": "Single photo"
+  },
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

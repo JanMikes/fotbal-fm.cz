@@ -16,7 +16,7 @@ const CONTENT_TYPE = 'comments';
 /**
  * Entity types that can have comments
  */
-export type CommentableEntity = 'matchResult' | 'tournament' | 'event';
+export type CommentableEntity = 'match' | 'tournament' | 'event';
 
 /**
  * Build Strapi query options for comments

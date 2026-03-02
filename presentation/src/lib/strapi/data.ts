@@ -1,21 +1,28 @@
 import type {
   Category,
   Match,
+  NavigationItem,
   NewsArticle,
   NewsArticleSummary,
+  Page,
   Player,
 } from '@/lib/types';
 import type {
   StrapiRawCategory,
-  StrapiRawMatchResult,
+  StrapiRawMatch,
+  StrapiRawNavigation,
   StrapiRawNewsArticle,
+  StrapiRawPage,
   StrapiRawPlayer,
 } from './types';
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
-import { mapMatchResult } from './mappers/match-result';
+import { mapMatch } from './mappers/match';
+import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
+import { mapPage } from './mappers/page';
 import { mapPlayer } from './mappers/player';
+import { buildNavigationPopulate, buildPagePopulate } from './populates';
 
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
@@ -84,14 +91,17 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
 
 export async function getMatchesByCategory(categorySlug: string): Promise<Match[]> {
   const client = getStrapiClient();
-  const { data } = await client.findMany<StrapiRawMatchResult>('match-results', {
+  const { data } = await client.findMany<StrapiRawMatch>('matches', {
     filters: {
       categories: { slug: { $eq: categorySlug } },
+    },
+    populate: {
+      tournament: { fields: ['name'] },
     },
     sort: 'matchDate:desc',
     pagination: { pageSize: 20 },
   });
-  return data.map(mapMatchResult);
+  return data.map(mapMatch);
 }
 
 export async function getPlayersByCategory(categorySlug: string): Promise<Player[]> {
@@ -121,4 +131,24 @@ export async function getPlayerBySlug(slug: string): Promise<Player | null> {
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapPlayer(data[0]) : null;
+}
+
+export async function getNavigation(): Promise<NavigationItem[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawNavigation>('navigations', {
+    sort: 'sortOrder:asc',
+    populate: buildNavigationPopulate(),
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapNavigation).filter((item): item is NavigationItem => item !== null);
+}
+
+export async function getPageBySlug(slug: string): Promise<Page | null> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawPage>('pages', {
+    filters: { slug: { $eq: slug } },
+    populate: buildPagePopulate(),
+    pagination: { pageSize: 1 },
+  });
+  return data.length > 0 ? mapPage(data[0]) : null;
 }

@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_components_news_articles",
+  "info": {
+    "displayName": "Aktuality",
+    "description": "News articles block with category filter"
+  },
+  "attributes": {
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category"
+    },
+    "limit": {
+      "type": "integer",
+      "default": 6,
+      "min": 1,
+      "max": 20
+    },
+    "show_all_link": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": false
+    }
+  }
+}

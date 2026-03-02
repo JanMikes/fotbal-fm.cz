@@ -5,7 +5,7 @@ export default async function Home() {
   const categories = await getCategories();
 
   if (categories.length > 0) {
-    redirect(`/${categories[0].slug}`);
+    redirect(`/kategorie/${categories[0].slug}`);
   }
 
   return (

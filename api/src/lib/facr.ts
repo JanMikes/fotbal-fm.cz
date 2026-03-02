@@ -23,6 +23,7 @@ const CLUB_INTERNAL_ID = '2521';
 
 export interface FacrCompetition {
   facrId: string;
+  facrUuid: string;
   name: string;
   code: string;
   categoryLetter: string;
@@ -31,6 +32,25 @@ export interface FacrCompetition {
   type: string;
   organizingBody: string;
   season: number;
+}
+
+export interface FacrStandingRow {
+  position: number;
+  teamName: string;
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+export interface FacrStanding {
+  competitionCode: string;
+  season: number;
+  facrUuid: string;
+  rows: FacrStandingRow[];
 }
 
 export interface FacrPlayer {
@@ -174,8 +194,13 @@ function parseCompetitionsTable(html: string): FacrCompetition[] {
     }
 
     if (cells.length >= 9) {
+      // Extract UUID from detail link in the name column
+      const linkMatch = rows[i].match(/detail-souteze\.aspx\?req=([a-f0-9-]+)/i);
+      const facrUuid = linkMatch ? linkMatch[1] : '';
+
       competitions.push({
         facrId: cells[0],
+        facrUuid,
         name: cells[1],
         code: cells[2],
         categoryLetter: cells[3],
@@ -265,6 +290,120 @@ export async function scrapeCompetitions(
   console.log(`[FAČR] Found ${competitions.length} competitions`);
 
   return competitions;
+}
+
+// ---- Standings ----
+
+/**
+ * Parse the "Tabulka celková" HTML table from a competition standings page.
+ */
+function parseStandingsTable(html: string): FacrStandingRow[] {
+  const rows: FacrStandingRow[] = [];
+
+  // Find the "Tabulka celková" heading, then the first table after it
+  const celkovaIdx = html.indexOf('Tabulka celkov');
+  if (celkovaIdx === -1) return rows;
+
+  // Find the first <table class='vysledky-tabulky'> after the heading (note: single quotes in HTML)
+  const afterHeading = html.substring(celkovaIdx);
+  const tableMatch = afterHeading.match(/<table[^>]*class=['"]vysledky-tabulky['"][^>]*>([\s\S]*?)<\/table>/i);
+  if (!tableMatch) return rows;
+
+  const tableHtml = tableMatch[1];
+
+  // The HTML has malformed <tr> tags (unclosed rows), so instead of matching
+  // <tr>...</tr>, we find all <td> groups between <tr markers.
+  // Split by <tr to get segments, then extract <td> cells from each.
+  const segments = tableHtml.split(/<tr[^>]*>/i);
+
+  for (const segment of segments) {
+    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    const cells: string[] = [];
+    let cellMatch;
+    while ((cellMatch = cellRegex.exec(segment)) !== null) {
+      cells.push(stripHtml(cellMatch[1]));
+    }
+
+    // 8 columns: Rk., Družstvo, Záp., +, 0, -, Skóre, Body
+    if (cells.length >= 8) {
+      // Parse score "45:17" into goalsFor and goalsAgainst
+      const scoreParts = cells[6].split(':');
+      const goalsFor = parseInt(scoreParts[0], 10) || 0;
+      const goalsAgainst = parseInt(scoreParts[1], 10) || 0;
+
+      rows.push({
+        position: parseInt(cells[0], 10) || rows.length + 1,
+        teamName: cells[1].trim(),
+        matchesPlayed: parseInt(cells[2], 10) || 0,
+        wins: parseInt(cells[3], 10) || 0,
+        draws: parseInt(cells[4], 10) || 0,
+        losses: parseInt(cells[5], 10) || 0,
+        goalsFor,
+        goalsAgainst,
+        points: parseInt(cells[7], 10) || 0,
+      });
+    }
+  }
+
+  return rows;
+}
+
+/**
+ * Login to FAČR IS and scrape standings for all competitions of FK Frýdek-Místek.
+ * Fetches the competition list, then for each competition fetches the standings page.
+ */
+export async function scrapeStandings(
+  email: string,
+  password: string,
+): Promise<FacrStanding[]> {
+  // 1. Scrape competitions to get UUIDs
+  const competitions = await scrapeCompetitions(email, password);
+  console.log(`[FAČR] Scraping standings for ${competitions.length} competitions...`);
+
+  // Re-login to get fresh session (scrapeCompetitions creates its own)
+  const { accessToken, jar } = await facrLogin(email, password);
+
+  const standings: FacrStanding[] = [];
+
+  for (let i = 0; i < competitions.length; i++) {
+    const comp = competitions[i];
+    if (!comp.facrUuid) {
+      console.warn(`[FAČR]   Skipping ${comp.name} (${comp.code}) - no UUID`);
+      continue;
+    }
+
+    console.log(`[FAČR]   [${i + 1}/${competitions.length}] ${comp.name} (${comp.code})`);
+
+    try {
+      const url = `${FACR_BASE}/public/souteze/tabulky-souteze.aspx?req=${comp.facrUuid}`;
+      const res = await fetch(url, {
+        headers: { Cookie: `access_token=${accessToken}; ${jar.toString()}` },
+        redirect: 'follow',
+      });
+      const html = await res.text();
+
+      const rows = parseStandingsTable(html);
+      if (rows.length > 0) {
+        standings.push({
+          competitionCode: comp.code,
+          season: comp.season,
+          facrUuid: comp.facrUuid,
+          rows,
+        });
+        console.log(`[FAČR]     Found ${rows.length} teams in standings`);
+      } else {
+        console.log(`[FAČR]     No standings table found`);
+      }
+    } catch (err) {
+      console.warn(`[FAČR]     Failed to scrape standings: ${err}`);
+    }
+
+    // Small delay to avoid overwhelming the server
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  console.log(`[FAČR] Scraped standings for ${standings.length} competitions`);
+  return standings;
 }
 
 // ---- Matches (Excel export) ----

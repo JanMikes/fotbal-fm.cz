@@ -6,15 +6,14 @@
 import { z } from 'zod/v4';
 import { Tournament, TournamentPlayer } from '@/types/tournament';
 import { Category } from '@/types/category';
-import { TournamentMatch } from '@/types/tournament-match';
-import { StrapiRawTournament, StrapiRawCategory, strapiRawUserInfoSchema, strapiRawMediaSchema, strapiRawCategorySchema } from '../types';
+import { strapiRawCategorySchema, strapiRawUserInfoSchema, strapiRawMediaSchema } from '../types';
 import {
   mapMediaToImages,
   mapUserInfo,
   extractUserId,
   nullToUndefined,
 } from './shared';
-import { mapTournamentMatch, safeMapTournamentMatches } from './tournament-match';
+import { safeMapMatches } from './match';
 import { ValidationError } from '@/lib/core/errors';
 
 /**
@@ -35,14 +34,13 @@ const strapiRawTournamentSchema = z.object({
   name: z.string(),
   description: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
-  dateFrom: z.string(),
+  dateFrom: z.string().nullable().optional(),
   dateTo: z.string().nullable().optional(),
   categories: z.array(strapiRawCategorySchema).nullable().optional(),
   imagesUrl: z.string().nullable().optional(),
   photos: z.array(strapiRawMediaSchema).nullable().optional(),
   players: z.array(tournamentPlayerSchema).nullable().optional(),
-  tournamentMatches: z.array(z.unknown()).nullable().optional(),
-  tournament_matches: z.array(z.unknown()).nullable().optional(),
+  matches: z.array(z.unknown()).nullable().optional(),
   author: z.union([
     strapiRawUserInfoSchema,
     z.object({ data: strapiRawUserInfoSchema.nullable().optional() }),
@@ -51,6 +49,14 @@ const strapiRawTournamentSchema = z.object({
     strapiRawUserInfoSchema,
     z.object({ data: strapiRawUserInfoSchema.nullable().optional() }),
   ]).nullable().optional(),
+  facrId: z.string().nullable().optional(),
+  code: z.string().nullable().optional(),
+  categoryLetter: z.string().nullable().optional(),
+  level: z.number().nullable().optional(),
+  group: z.string().nullable().optional(),
+  competitionType: z.string().nullable().optional(),
+  season: z.number().nullable().optional(),
+  organizingBody: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -113,16 +119,16 @@ export function mapTournament(raw: unknown): Tournament {
 
   const data = parseResult.data;
 
-  // Map tournament matches - can come from either field name
-  const matchesRaw = data.tournamentMatches || data.tournament_matches || [];
-  const matches = safeMapTournamentMatches(matchesRaw);
+  // Map matches
+  const matchesRaw = data.matches || [];
+  const matches = safeMapMatches(matchesRaw);
 
   return {
     id: data.documentId,
     name: data.name,
     description: nullToUndefined(data.description),
     location: nullToUndefined(data.location),
-    dateFrom: data.dateFrom,
+    dateFrom: nullToUndefined(data.dateFrom),
     dateTo: nullToUndefined(data.dateTo),
     categories: mapCategories(data.categories),
     photos: mapMediaToImages(data.photos),
@@ -132,6 +138,14 @@ export function mapTournament(raw: unknown): Tournament {
     authorId: extractUserId(data.author) ?? 0,
     author: mapUserInfo(data.author),
     modifiedBy: mapUserInfo(data.modifiedBy),
+    facrId: nullToUndefined(data.facrId),
+    code: nullToUndefined(data.code),
+    categoryLetter: nullToUndefined(data.categoryLetter),
+    level: data.level ?? undefined,
+    group: nullToUndefined(data.group),
+    competitionType: nullToUndefined(data.competitionType),
+    season: data.season ?? undefined,
+    organizingBody: nullToUndefined(data.organizingBody),
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
   };

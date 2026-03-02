@@ -25,7 +25,7 @@ const DEFAULT_POPULATE = {
   categories: true,
   photos: true,
   players: true,
-  tournamentMatches: true,
+  matches: true,
   author: { fields: ['id', 'documentId', 'firstname', 'lastname', 'email'] },
   modifiedBy: { fields: ['id', 'documentId', 'firstname', 'lastname'] },
 };

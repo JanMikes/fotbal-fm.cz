@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_timelines",
+  "info": {
+    "displayName": "\u010casov\u00e1 osa",
+    "description": "Numbered timeline steps"
+  },
+  "attributes": {
+    "items": {
+      "type": "component",
+      "component": "elements.timeline-item",
+      "repeatable": true
+    }
+  }
+}

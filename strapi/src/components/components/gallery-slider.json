@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_gallery_sliders",
+  "info": {
+    "displayName": "P\u00e1s galerie",
+    "description": "Horizontal photo strip slider"
+  },
+  "attributes": {
+    "photos": {
+      "type": "component",
+      "component": "elements.photo",
+      "repeatable": true
+    }
+  }
+}

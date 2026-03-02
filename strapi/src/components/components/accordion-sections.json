@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_accordion_sections",
+  "info": {
+    "displayName": "Rozj\u00ed\u017ed\u011bc\u00ed sekce",
+    "description": "Accordion with expandable sections"
+  },
+  "attributes": {
+    "sections": {
+      "type": "component",
+      "component": "elements.expandable-section",
+      "repeatable": true
+    }
+  }
+}

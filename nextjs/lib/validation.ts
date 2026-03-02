@@ -93,7 +93,7 @@ const eventTypeEnum = z.enum(['nadcházející', 'proběhlá'], {
 });
 
 // Schema for client-side form validation (using valueAsNumber)
-export const matchResultSchema = z.object({
+export const matchSchema = z.object({
   homeTeam: z.string().min(1, 'Domácí tým je povinný'),
   awayTeam: z.string().min(1, 'Hostující tým je povinný'),
   homeScore: z.number()
@@ -108,6 +108,7 @@ export const matchResultSchema = z.object({
   categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  tournament: z.string().optional(),
 });
 
 // Schema for API validation (receives FormData as strings, uses coerce)
@@ -117,7 +118,7 @@ const emptyToUndefined = z.preprocess(
   z.string().optional()
 );
 
-export const matchResultApiSchema = z.object({
+export const matchApiSchema = z.object({
   homeTeam: z.string().min(1, 'Domácí tým je povinný'),
   awayTeam: z.string().min(1, 'Hostující tým je povinný'),
   homeScore: z.coerce.number()
@@ -134,6 +135,10 @@ export const matchResultApiSchema = z.object({
   imagesUrl: z.preprocess(
     (val) => (val === '' ? undefined : val),
     z.string().url('Neplatná URL adresa').optional()
+  ),
+  tournament: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().optional()
   ),
 });
 
@@ -205,7 +210,7 @@ export const tournamentSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
   description: z.string().optional(),
   location: z.string().optional(),
-  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
@@ -217,7 +222,7 @@ export const tournamentApiSchema = z.object({
   name: z.string().min(1, 'Název je povinný'),
   description: emptyToUndefined,
   location: emptyToUndefined,
-  dateFrom: z.string().min(1, 'Datum začátku je povinné'),
+  dateFrom: emptyToUndefined,
   dateTo: emptyToUndefined,
   categories: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   imagesUrl: z.preprocess(
@@ -228,41 +233,6 @@ export const tournamentApiSchema = z.object({
   players: z.array(tournamentPlayerSchema).optional(),
 });
 
-// Tournament match schemas
-export const tournamentMatchSchema = z.object({
-  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
-  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
-  homeScore: z.number()
-    .int('Skóre musí být celé číslo')
-    .min(0, 'Skóre nemůže být záporné'),
-  awayScore: z.number()
-    .int('Skóre musí být celé číslo')
-    .min(0, 'Skóre nemůže být záporné'),
-  homeGoalscorers: z.string().optional(),
-  awayGoalscorers: z.string().optional(),
-  tournament: z.union([
-    z.string().min(1, 'Turnaj je povinný'),
-    z.number().int().positive('Vyberte turnaj'),
-  ], { message: 'Turnaj je povinný' }),
-});
-
-export const tournamentMatchApiSchema = z.object({
-  homeTeam: z.string().min(1, 'Domácí tým je povinný'),
-  awayTeam: z.string().min(1, 'Hostující tým je povinný'),
-  homeScore: z.coerce.number()
-    .int('Skóre musí být celé číslo')
-    .min(0, 'Skóre nemůže být záporné'),
-  awayScore: z.coerce.number()
-    .int('Skóre musí být celé číslo')
-    .min(0, 'Skóre nemůže být záporné'),
-  homeGoalscorers: z.string().optional(),
-  awayGoalscorers: z.string().optional(),
-  tournament: z.union([
-    z.string().min(1, 'Turnaj je povinný'),
-    z.number().int().positive('Vyberte turnaj'),
-  ], { message: 'Turnaj je povinný' }),
-});
-
 // Comment schemas
 export const commentSchema = z.object({
   content: z.string().min(1, 'Komentář je povinný').max(2000, 'Komentář může mít maximálně 2000 znaků'),
@@ -271,7 +241,7 @@ export const commentSchema = z.object({
 export const commentApiSchema = z.object({
   content: z.string().min(1, 'Komentář je povinný').max(2000, 'Komentář může mít maximálně 2000 znaků'),
   parentComment: z.string().optional(),
-  matchResult: z.string().optional(),
+  match: z.string().optional(),
   tournament: z.string().optional(),
   event: z.string().optional(),
 });
@@ -280,10 +250,9 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
-export type MatchResultFormData = z.infer<typeof matchResultSchema>;
+export type MatchFormData = z.infer<typeof matchSchema>;
 export type EventFormData = z.infer<typeof eventSchema>;
 export type TournamentFormData = z.infer<typeof tournamentSchema>;
-export type TournamentMatchFormData = z.infer<typeof tournamentMatchSchema>;
 export type InlineMatchFormData = z.infer<typeof inlineMatchSchema>;
 export type TournamentPlayerFormData = z.infer<typeof tournamentPlayerSchema>;
 export type CommentFormData = z.infer<typeof commentSchema>;

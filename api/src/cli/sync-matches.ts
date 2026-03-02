@@ -2,6 +2,8 @@
 /**
  * CLI: Sync matches from FAČR IS (Excel export) to Strapi.
  *
+ * Important: Run sync-tournaments.ts first so tournaments exist for linking.
+ *
  * Usage:
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts
  *
@@ -26,10 +28,17 @@ interface StrapiCategoryCode {
   } | null;
 }
 
-interface StrapiMatchResult {
+interface StrapiMatch {
   id: number;
   documentId: string;
   facrId: string | null;
+}
+
+interface StrapiTournament {
+  id: number;
+  documentId: string;
+  code: string;
+  season: number | null;
 }
 
 interface XlsxRow {
@@ -119,13 +128,36 @@ async function main() {
   }
   console.log(`Loaded ${categoryCodesRes.data.length} category codes (${codeToCategory.size} with category)`);
 
-  // 4. Load existing match-results with facrId from Strapi (paginated)
+  // 4. Load all tournaments to build lookup map: "code:season" -> documentId
+  const tournamentLookup = new Map<string, string>();
+  let tPage = 1;
+  let tTotalPages = 1;
+  while (tPage <= tTotalPages) {
+    const res = await strapiGet<StrapiTournament>(
+      '/tournaments',
+      {
+        fields: ['code', 'season'],
+        filters: { facrId: { $notNull: true } },
+        pagination: { pageSize: 100, page: tPage },
+      },
+    );
+    for (const t of res.data) {
+      if (t.code && t.season) {
+        tournamentLookup.set(`${t.code}:${t.season}`, t.documentId);
+      }
+    }
+    tTotalPages = res.meta?.pagination?.pageCount ?? 1;
+    tPage++;
+  }
+  console.log(`Loaded ${tournamentLookup.size} tournaments for match linking`);
+
+  // 5. Load existing matches with facrId from Strapi (paginated)
   const existingByFacrId = new Map<string, string>();
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
-    const res = await strapiGet<StrapiMatchResult>(
-      '/match-results',
+    const res = await strapiGet<StrapiMatch>(
+      '/matches',
       {
         fields: ['facrId'],
         filters: { facrId: { $notNull: true } },
@@ -140,13 +172,20 @@ async function main() {
     totalPages = res.meta?.pagination?.pageCount ?? 1;
     page++;
   }
-  console.log(`Loaded ${existingByFacrId.size} existing match results with facrId`);
+  console.log(`Loaded ${existingByFacrId.size} existing matches with facrId`);
 
-  // 5. Upsert matches
+  // 6. Upsert matches
   let created = 0;
   let updated = 0;
   let skipped = 0;
   const withoutCategory: string[] = [];
+  let linkedToTournament = 0;
+
+  /** Fields that should never be overwritten by the scraper on update */
+  const ADMIN_ONLY_FIELDS = [
+    'matchReport', 'images', 'files', 'homeGoalscorers',
+    'awayGoalscorers', 'imagesUrl', 'author', 'lastModifiedBy',
+  ];
 
   for (const row of rows) {
     const facrId = row.Cislo?.toString().trim();
@@ -170,32 +209,49 @@ async function main() {
       withoutCategory.push(competitionCode);
     }
 
-    const payload = {
-      data: {
-        facrId,
-        homeTeam: row.Domaci?.trim() ?? '',
-        awayTeam: row.Hoste?.trim() ?? '',
-        homeScore,
-        awayScore,
-        matchDate,
-        matchTime,
-        round: row.Kolo ? parseInt(row.Kolo.toString(), 10) || null : null,
-        venue: row['Hriste/Stadion']?.trim() ?? '',
-        competitionName: row.Soutez?.trim() ?? '',
-        competitionCode,
-        season: row.Rocnik ? parseInt(row.Rocnik.toString(), 10) || null : null,
-        period: row.Obdobi?.trim() ?? '',
-        organizingBody: row['Org. jednotka']?.trim() ?? '',
-        ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
-      },
+    const season = row.Rocnik ? parseInt(row.Rocnik.toString(), 10) || null : null;
+
+    // Look up tournament by code + season
+    const tournamentKey = competitionCode && season ? `${competitionCode}:${season}` : '';
+    const tournamentDocumentId = tournamentKey ? tournamentLookup.get(tournamentKey) : undefined;
+    if (tournamentDocumentId) {
+      linkedToTournament++;
+    }
+
+    const scrapedFields: Record<string, unknown> = {
+      facrId,
+      homeTeam: row.Domaci?.trim() ?? '',
+      awayTeam: row.Hoste?.trim() ?? '',
+      homeScore,
+      awayScore,
+      matchDate,
+      matchTime,
+      round: row.Kolo ? parseInt(row.Kolo.toString(), 10) || null : null,
+      venue: row['Hriste/Stadion']?.trim() ?? '',
+      competitionName: row.Soutez?.trim() ?? '',
+      competitionCode,
+      season,
+      period: row.Obdobi?.trim() ?? '',
+      organizingBody: row['Org. jednotka']?.trim() ?? '',
     };
+
+    if (tournamentDocumentId) {
+      scrapedFields.tournament = tournamentDocumentId;
+    }
 
     const existingDocId = existingByFacrId.get(facrId);
     if (existingDocId) {
-      await strapiPut(`/match-results/${existingDocId}`, payload);
+      // Update: only send scraped fields, never overwrite admin fields
+      await strapiPut(`/matches/${existingDocId}`, { data: scrapedFields });
       updated++;
     } else {
-      await strapiPost('/match-results', payload);
+      // Create: include category relation
+      await strapiPost('/matches', {
+        data: {
+          ...scrapedFields,
+          ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
+        },
+      });
       created++;
     }
   }
@@ -207,6 +263,7 @@ async function main() {
   console.log(`  Created:    ${created}`);
   console.log(`  Updated:    ${updated}`);
   console.log(`  Skipped:    ${skipped}`);
+  console.log(`  Linked to tournament: ${linkedToTournament}`);
   console.log(`  Matched:    ${rows.length - skipped - uniqueWithout.length} with category`);
   if (uniqueWithout.length > 0) {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);

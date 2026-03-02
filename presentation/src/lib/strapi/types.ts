@@ -54,7 +54,46 @@ export interface StrapiRawPlayer {
   updatedAt: string;
 }
 
-export interface StrapiRawMatchResult {
+// Navigation & Page types
+
+export interface StrapiRawLink {
+  id: number;
+  page: { slug: string } | null;
+  anchor: string | null;
+  url: string | null;
+  file: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
+}
+
+export interface StrapiRawTextLink extends StrapiRawLink {
+  text: string | null;
+  disabled: boolean;
+}
+
+export interface StrapiRawNavigation {
+  id: number;
+  documentId: string;
+  title: string;
+  link: StrapiRawLink | null;
+  sortOrder: number;
+}
+
+export interface StrapiRawPage {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  meta_description: string | null;
+  content: StrapiRawDynamicZoneComponent[];
+  sidebar: StrapiRawDynamicZoneComponent[] | null;
+}
+
+export interface StrapiRawDynamicZoneComponent {
+  id: number;
+  __component: string;
+  [key: string]: unknown;
+}
+
+export interface StrapiRawMatch {
   id: number;
   documentId: string;
   homeTeam: string;
@@ -71,6 +110,11 @@ export interface StrapiRawMatchResult {
   period: string | null;
   organizingBody: string | null;
   facrId: string | null;
+  tournament: {
+    id: number;
+    documentId: string;
+    name: string;
+  } | null;
   categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   createdAt: string;
   updatedAt: string;

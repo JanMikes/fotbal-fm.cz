@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_button_groups",
+  "info": {
+    "displayName": "Tla\u010d\u00edtka",
+    "description": "Group of buttons with alignment"
+  },
+  "attributes": {
+    "buttons": {
+      "type": "component",
+      "component": "elements.button",
+      "repeatable": true
+    },
+    "alignment": {
+      "type": "enumeration",
+      "enum": ["L", "C", "R"],
+      "default": "L"
+    }
+  }
+}

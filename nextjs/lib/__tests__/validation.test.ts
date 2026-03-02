@@ -7,7 +7,7 @@ const {
   normalizeTimeForStrapi,
   loginSchema,
   registerSchema,
-  matchResultSchema,
+  matchSchema,
   changePasswordSchema,
   commentSchema,
 } = await import('../validation');
@@ -118,7 +118,7 @@ describe('registerSchema', () => {
   });
 });
 
-describe('matchResultSchema', () => {
+describe('matchSchema', () => {
   const validMatch = {
     homeTeam: 'FK FM',
     awayTeam: 'Baník',
@@ -129,22 +129,22 @@ describe('matchResultSchema', () => {
   };
 
   it('validates correct match data', () => {
-    const result = matchResultSchema.safeParse(validMatch);
+    const result = matchSchema.safeParse(validMatch);
     expect(result.success).toBe(true);
   });
 
   it('rejects negative scores', () => {
-    const result = matchResultSchema.safeParse({ ...validMatch, homeScore: -1 });
+    const result = matchSchema.safeParse({ ...validMatch, homeScore: -1 });
     expect(result.success).toBe(false);
   });
 
   it('rejects empty categoryIds', () => {
-    const result = matchResultSchema.safeParse({ ...validMatch, categoryIds: [] });
+    const result = matchSchema.safeParse({ ...validMatch, categoryIds: [] });
     expect(result.success).toBe(false);
   });
 
   it('accepts optional fields', () => {
-    const result = matchResultSchema.safeParse({
+    const result = matchSchema.safeParse({
       ...validMatch,
       homeGoalscorers: 'Novák 15\', Dvořák 78\'',
       matchReport: 'Výborný zápas',
@@ -154,12 +154,12 @@ describe('matchResultSchema', () => {
   });
 
   it('accepts empty string for imagesUrl', () => {
-    const result = matchResultSchema.safeParse({ ...validMatch, imagesUrl: '' });
+    const result = matchSchema.safeParse({ ...validMatch, imagesUrl: '' });
     expect(result.success).toBe(true);
   });
 
   it('rejects invalid imagesUrl', () => {
-    const result = matchResultSchema.safeParse({ ...validMatch, imagesUrl: 'not-a-url' });
+    const result = matchSchema.safeParse({ ...validMatch, imagesUrl: 'not-a-url' });
     expect(result.success).toBe(false);
   });
 });

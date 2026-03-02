@@ -1,4 +1,4 @@
-import { UserInfo } from '@/types/match-result';
+import { UserInfo } from '@/types/match';
 
 interface LastUpdatedInfoProps {
   updatedBy?: UserInfo;

@@ -5,7 +5,7 @@
     "singularName": "tournament",
     "pluralName": "tournaments",
     "displayName": "Tournament",
-    "description": "Football tournaments"
+    "description": "Football tournaments and competitions"
   },
   "options": {
     "draftAndPublish": false
@@ -23,8 +23,7 @@
       "type": "string"
     },
     "dateFrom": {
-      "type": "date",
-      "required": true
+      "type": "date"
     },
     "dateTo": {
       "type": "date"
@@ -55,16 +54,44 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
-    "tournamentMatches": {
+    "matches": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::tournament-match.tournament-match",
+      "target": "api::match.match",
       "mappedBy": "tournament"
     },
     "modifiedBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
+    },
+    "facrId": {
+      "type": "string",
+      "unique": true
+    },
+    "code": {
+      "type": "string"
+    },
+    "categoryLetter": {
+      "type": "string"
+    },
+    "level": {
+      "type": "integer"
+    },
+    "group": {
+      "type": "string"
+    },
+    "competitionType": {
+      "type": "string"
+    },
+    "season": {
+      "type": "integer"
+    },
+    "organizingBody": {
+      "type": "string"
+    },
+    "facrUuid": {
+      "type": "string"
     }
   }
 }

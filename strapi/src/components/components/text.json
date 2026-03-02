@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_components_texts",
+  "info": {
+    "displayName": "Textov\u00e9 pole",
+    "description": "Rich text content block"
+  },
+  "attributes": {
+    "text": {
+      "type": "richtext"
+    }
+  }
+}

@@ -6,7 +6,7 @@ import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Edit, Users, Trophy } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Edit, Trophy } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -85,12 +85,13 @@ export default function TournamentDetailPage({ params }: PageProps) {
     return null;
   }
 
-  const dateFrom = new Date(tournament.dateFrom);
-  const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-  });
+  const formattedDateFrom = tournament.dateFrom
+    ? new Date(tournament.dateFrom).toLocaleDateString('cs-CZ', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+      })
+    : null;
 
   const formattedDateTo = tournament.dateTo
     ? new Date(tournament.dateTo).toLocaleDateString('cs-CZ', {
@@ -113,20 +114,12 @@ export default function TournamentDetailPage({ params }: PageProps) {
             </Button>
           </Link>
           {isOwner && (
-            <div className="flex gap-2">
-              <Link href={`/novy-turnajovy-zapas?tournamentId=${tournament.id}`}>
-                <Button variant="secondary" size="sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  Přidat zápas
-                </Button>
-              </Link>
-              <Link href={`/upravit-turnaj/${tournament.id}`}>
-                <Button variant="secondary" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Upravit
-                </Button>
-              </Link>
-            </div>
+            <Link href={`/upravit-turnaj/${tournament.id}`}>
+              <Button variant="secondary" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Upravit
+              </Button>
+            </Link>
           )}
         </div>
 
@@ -168,13 +161,16 @@ export default function TournamentDetailPage({ params }: PageProps) {
 
             {/* Date & Location */}
             <div className="flex flex-wrap gap-6 text-text-secondary">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-text-muted" />
-                <span>
-                  {formattedDateFrom}
-                  {formattedDateTo && ` - ${formattedDateTo}`}
-                </span>
-              </div>
+              {(formattedDateFrom || tournament.season) && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-text-muted" />
+                  <span>
+                    {formattedDateFrom
+                      ? `${formattedDateFrom}${formattedDateTo ? ` - ${formattedDateTo}` : ''}`
+                      : `Sezóna ${tournament.season}`}
+                  </span>
+                </div>
+              )}
               {tournament.location && (
                 <div className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-text-muted" />

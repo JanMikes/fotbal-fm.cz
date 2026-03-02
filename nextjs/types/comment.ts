@@ -1,4 +1,4 @@
-import { UserInfo } from './match-result';
+import { UserInfo } from './match';
 
 export interface Comment {
   id: number;
@@ -19,7 +19,7 @@ export interface CreateCommentRequest {
   content: string;
   author?: number;
   parentComment?: string;
-  matchResult?: string;
+  match?: string;
   tournament?: string;
   event?: string;
 }

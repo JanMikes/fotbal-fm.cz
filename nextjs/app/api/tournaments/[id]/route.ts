@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod/v4';
 import {
   withAuth,
@@ -10,7 +11,7 @@ import {
   getStringField,
   getFiles,
 } from '@/lib/api';
-import { TournamentService, TournamentMatchService } from '@/lib/services';
+import { TournamentService, MatchService } from '@/lib/services';
 import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 
 export const GET = withAuth(async (
@@ -160,19 +161,31 @@ export const PUT = withAuthFormData(async (
 
   // Create new tournament matches if present
   if (validatedMatches.length > 0) {
-    const matchService = TournamentMatchService.forUser(jwt);
-    const matchesWithAuthor = validatedMatches.map((match) => ({
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
-      homeGoalscorers: match.homeGoalscorers || undefined,
-      awayGoalscorers: match.awayGoalscorers || undefined,
-      tournament: id,
-      author: userId,
-    }));
-
-    await matchService.createMany(matchesWithAuthor);
+    const matchService = MatchService.forUser(jwt);
+    for (const match of validatedMatches) {
+      try {
+        await matchService.create(
+          {
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            homeGoalscorers: match.homeGoalscorers || undefined,
+            awayGoalscorers: match.awayGoalscorers || undefined,
+            tournament: id,
+            categories: [],
+            matchDate: tournament.dateFrom || new Date().toISOString().split('T')[0],
+            author: userId,
+          },
+          {}
+        );
+      } catch (matchError) {
+        Sentry.captureMessage('Failed to create tournament match', {
+          level: 'warning',
+          extra: { tournamentId: id, error: matchError },
+        });
+      }
+    }
   }
 
   return apiSuccess(

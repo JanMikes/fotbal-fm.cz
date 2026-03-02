@@ -3,11 +3,11 @@
  * Re-exports all service classes and related types.
  */
 
-// Match Result Service
+// Match Service
 export {
-  MatchResultService,
-  type MatchResultWithUploads,
-} from './match-result.service';
+  MatchService,
+  type MatchWithUploads,
+} from './match.service';
 
 // Event Service
 export {
@@ -20,9 +20,6 @@ export {
   TournamentService,
   type TournamentWithUploads,
 } from './tournament.service';
-
-// Tournament Match Service
-export { TournamentMatchService } from './tournament-match.service';
 
 // Auth Service
 export {

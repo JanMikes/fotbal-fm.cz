@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_elements_contact_card_people",
+  "info": {
+    "displayName": "Kontaktn\u00ed osoba",
+    "description": "Contact card for a person"
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "role": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

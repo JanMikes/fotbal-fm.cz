@@ -77,6 +77,9 @@
     "isActive": {
       "type": "boolean",
       "default": true
+    },
+    "sportbmId": {
+      "type": "string"
     }
   }
 }

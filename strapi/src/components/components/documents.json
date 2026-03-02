@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_documents",
+  "info": {
+    "displayName": "Dokumenty",
+    "description": "Document download grid"
+  },
+  "attributes": {
+    "documents": {
+      "type": "component",
+      "component": "elements.document-item",
+      "repeatable": true
+    },
+    "columns": {
+      "type": "enumeration",
+      "enum": ["1", "2", "3"],
+      "default": "3"
+    }
+  }
+}

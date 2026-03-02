@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_elements_badges",
+  "info": {
+    "displayName": "Badge",
+    "description": "Colored label badge"
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "variant": {
+      "type": "enumeration",
+      "enum": ["default", "primary", "accent", "success", "warning", "error"],
+      "default": "default"
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": ["S", "M", "L"],
+      "default": "M"
+    }
+  }
+}

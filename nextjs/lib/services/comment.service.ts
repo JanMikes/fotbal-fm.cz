@@ -13,14 +13,14 @@ import {
   CommentableEntity,
 } from '@/lib/repositories/comment.repository';
 import { NotificationService, getNotificationService } from './notification.service';
-import { MatchResultService } from './match-result.service';
+import { MatchService } from './match.service';
 import { TournamentService } from './tournament.service';
 import { EventService } from './event.service';
 import { getAuthService } from './auth.service';
 
 export interface CreateCommentData {
   content: string;
-  matchResult?: string;
+  match?: string;
   tournament?: string;
   event?: string;
   parentComment?: string;
@@ -125,8 +125,8 @@ export class CommentService {
   ): Promise<Result<Comment, AppError>> {
     try {
       // Validate that exactly one entity type is specified
-      const { matchResult, tournament, event } = data;
-      const entityCount = [matchResult, tournament, event].filter(Boolean).length;
+      const { match, tournament, event } = data;
+      const entityCount = [match, tournament, event].filter(Boolean).length;
 
       if (entityCount !== 1) {
         return err(new AppError(
@@ -141,8 +141,8 @@ export class CommentService {
         message: 'Creating comment',
         level: 'info',
         data: {
-          entityType: matchResult ? 'matchResult' : tournament ? 'tournament' : 'event',
-          entityId: matchResult || tournament || event,
+          entityType: match ? 'match' : tournament ? 'tournament' : 'event',
+          entityId: match || tournament || event,
         },
       });
 
@@ -150,7 +150,7 @@ export class CommentService {
       const commentData: CreateCommentRequest = {
         content: data.content,
         author: userId,
-        ...(matchResult && { matchResult }),
+        ...(match && { match }),
         ...(tournament && { tournament }),
         ...(event && { event }),
         ...(data.parentComment && { parentComment: data.parentComment }),
@@ -159,7 +159,7 @@ export class CommentService {
       const comment = await this.repository.create(commentData);
 
       // Send notification (non-blocking)
-      this.sendNotification(jwt, comment, matchResult, tournament, event);
+      this.sendNotification(jwt, comment, match, tournament, event);
 
       return ok(comment);
     } catch (error) {
@@ -214,7 +214,7 @@ export class CommentService {
   private async sendNotification(
     jwt: string,
     comment: Comment,
-    matchResult?: string,
+    match?: string,
     tournament?: string,
     event?: string
   ): Promise<void> {
@@ -237,15 +237,15 @@ export class CommentService {
         },
       };
 
-      let entityType: 'matchResult' | 'tournament' | 'event';
+      let entityType: 'match' | 'tournament' | 'event';
       let entityName = '';
       let entityAuthorEmail: string | undefined;
       let entityAuthorId: number | undefined;
 
-      if (matchResult) {
-        entityType = 'matchResult';
-        const service = MatchResultService.forUser(jwt);
-        const result = await service.getById(matchResult);
+      if (match) {
+        entityType = 'match';
+        const service = MatchService.forUser(jwt);
+        const result = await service.getById(match);
         if (result.success) {
           entityName = `${result.data.homeTeam} vs ${result.data.awayTeam} (${result.data.homeScore}:${result.data.awayScore})`;
           entityAuthorEmail = result.data.author?.email;
@@ -272,7 +272,7 @@ export class CommentService {
       }
 
       if (!entityName) {
-        entityName = `ID: ${matchResult || tournament || event}`;
+        entityName = `ID: ${match || tournament || event}`;
       }
 
       // Don't notify entity author if they are the comment author (avoid self-notification)

@@ -10,7 +10,7 @@ import {
   addApiBreadcrumb,
   setFormContext,
 } from '@/lib/api';
-import { TournamentService, TournamentMatchService } from '@/lib/services';
+import { TournamentService, MatchService } from '@/lib/services';
 import { tournamentApiSchema, inlineMatchApiSchema, tournamentPlayerSchema } from '@/lib/validation';
 
 export const POST = withAuthFormData(async (request, { userId, jwt, formData }) => {
@@ -138,25 +138,31 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
 
   // Create tournament matches if present
   if (validatedMatches.length > 0) {
-    const matchService = TournamentMatchService.forUser(jwt);
-    const matchesWithAuthor = validatedMatches.map((match) => ({
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
-      homeGoalscorers: match.homeGoalscorers || undefined,
-      awayGoalscorers: match.awayGoalscorers || undefined,
-      tournament: tournament.id,
-      author: userId,
-    }));
-
-    const matchesResult = await matchService.createMany(matchesWithAuthor);
-    if (!matchesResult.success) {
-      // Log but don't fail - tournament was created
-      Sentry.captureMessage('Failed to create tournament matches', {
-        level: 'warning',
-        extra: { tournamentId: tournament.id, error: matchesResult.error },
-      });
+    const matchService = MatchService.forUser(jwt);
+    for (const match of validatedMatches) {
+      try {
+        await matchService.create(
+          {
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            homeGoalscorers: match.homeGoalscorers || undefined,
+            awayGoalscorers: match.awayGoalscorers || undefined,
+            tournament: tournament.id,
+            categories: [],
+            matchDate: tournament.dateFrom || new Date().toISOString().split('T')[0],
+            author: userId,
+          },
+          {}
+        );
+      } catch (matchError) {
+        // Log but don't fail - tournament was created
+        Sentry.captureMessage('Failed to create tournament match', {
+          level: 'warning',
+          extra: { tournamentId: tournament.id, error: matchError },
+        });
+      }
     }
   }
 

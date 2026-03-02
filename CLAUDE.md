@@ -125,19 +125,48 @@ docker compose ps
 docker compose up --build
 ```
 
-### CLI Commands (Data Sync)
+### Data Sync - Full Setup Guide
+
+All sync scripts require `FACR_EMAIL` and `FACR_PASSWORD` env vars (set in `compose.override.yaml`).
+
+**Step 1: Sync tournaments (competitions) from FAČR**
 ```bash
-# Sync competitions from FAČR IS to Strapi
-# Requires FACR_EMAIL and FACR_PASSWORD env vars (set in compose.override.yaml)
-docker compose exec api npx tsx src/cli/sync-competitions.ts
+docker compose exec api npx tsx src/cli/sync-tournaments.ts
+```
 
-# Sync players from FAČR IS to Strapi (scrapes list + detail pages, uploads photos)
+**Step 2: Manual - pair category codes in Strapi admin**
+Go to Strapi admin → Category Codes. For each FAČR competition code (e.g. `A1A`, `E1A`), create an entry linking it to the appropriate category. This mapping determines which competitions/matches/standings appear under which category on the website. Only needs to be done once per new competition code.
+
+**Step 3: Sync matches from FAČR**
+```bash
+docker compose exec api npx tsx src/cli/sync-matches.ts
+```
+
+**Step 4: Sync standings from FAČR**
+```bash
+docker compose exec api npx tsx src/cli/sync-standings.ts
+```
+
+**Step 5: Sync players from FAČR**
+```bash
 docker compose exec api npx tsx src/cli/sync-players.ts
+```
 
-# For cron (non-interactive, no TTY)
-docker compose exec -T api npx tsx src/cli/sync-competitions.ts
+**Step 6 (optional): Sync players from SportBM**
+```bash
+docker compose exec api npx tsx src/cli/sync-sportbm-players.ts
+```
+Requires `sportbmCategoryId` to be set on categories in Strapi admin.
+
+**For cron (non-interactive, no TTY) - use `-T` flag:**
+```bash
+docker compose exec -T api npx tsx src/cli/sync-tournaments.ts
+docker compose exec -T api npx tsx src/cli/sync-matches.ts
+docker compose exec -T api npx tsx src/cli/sync-standings.ts
 docker compose exec -T api npx tsx src/cli/sync-players.ts
 ```
+
+**Regular sync order:** Steps 1, 3, 4, 5 can be re-run anytime. Step 2 only when new competition codes appear (logged as "missing category mapping").
 
 ## Configuration Notes
 

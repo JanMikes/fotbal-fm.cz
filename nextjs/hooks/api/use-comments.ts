@@ -11,7 +11,7 @@ import { Comment } from '@/types/comment';
 /**
  * Entity type for comments
  */
-type CommentEntityType = 'matchResult' | 'event' | 'tournament';
+type CommentEntityType = 'match' | 'event' | 'tournament';
 
 /**
  * Variables for creating a comment

@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_elements_stat_items",
+  "info": {
+    "displayName": "Statistick\u00e1 polo\u017eka",
+    "description": "Stat highlight item"
+  },
+  "attributes": {
+    "number": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

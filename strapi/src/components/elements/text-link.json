@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_elements_text_links",
+  "info": {
+    "displayName": "Textov\u00fd odkaz",
+    "description": "Text link with label"
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "page": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::page.page"
+    },
+    "anchor": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images", "files", "videos", "audios"]
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

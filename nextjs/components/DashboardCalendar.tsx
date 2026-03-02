@@ -7,13 +7,13 @@ import { cs } from 'date-fns/locale';
 import { Target, Trophy, CalendarDays } from 'lucide-react';
 import Calendar, { CalendarIndicators } from '@/components/ui/Calendar';
 import Card from '@/components/ui/Card';
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import { Tournament } from '@/types/tournament';
 import { Event } from '@/types/event';
 import { Category } from '@/types/category';
 
 interface DashboardCalendarProps {
-  matchResults: MatchResult[];
+  matches: Match[];
   tournaments: Tournament[];
   events: Event[];
 }
@@ -29,7 +29,7 @@ interface CalendarItem {
 }
 
 export default function DashboardCalendar({
-  matchResults,
+  matches,
   tournaments,
   events,
 }: DashboardCalendarProps) {
@@ -63,14 +63,15 @@ export default function DashboardCalendar({
       return eachDayOfInterval({ start, end });
     };
 
-    // Match results: single date
-    matchResults.forEach((mr) => {
-      const date = parseISO(mr.matchDate);
+    // Matches: single date
+    matches.forEach((m) => {
+      const date = parseISO(m.matchDate);
       addIndicator(getDateKey(date), 'matches');
     });
 
-    // Tournaments: date range
+    // Tournaments: date range (only if dateFrom exists)
     tournaments.forEach((t) => {
+      if (!t.dateFrom) return;
       const dates = getDateRange(t.dateFrom, t.dateTo);
       dates.forEach((date) => addIndicator(getDateKey(date), 'tournaments'));
     });
@@ -82,7 +83,7 @@ export default function DashboardCalendar({
     });
 
     return map;
-  }, [matchResults, tournaments, events]);
+  }, [matches, tournaments, events]);
 
   // Get items for selected date
   const selectedItems = useMemo((): CalendarItem[] => {
@@ -90,23 +91,24 @@ export default function DashboardCalendar({
 
     const items: CalendarItem[] = [];
 
-    // Check match results
-    matchResults.forEach((mr) => {
-      const matchDate = parseISO(mr.matchDate);
+    // Check matches
+    matches.forEach((m) => {
+      const matchDate = parseISO(m.matchDate);
       if (isSameDay(matchDate, selectedDate)) {
         items.push({
-          id: mr.id,
+          id: m.id,
           type: 'match',
-          title: `${mr.homeTeam} ${mr.homeScore}:${mr.awayScore} ${mr.awayTeam}`,
+          title: `${m.homeTeam} ${m.homeScore}:${m.awayScore} ${m.awayTeam}`,
           date: matchDate,
-          link: `/vysledek/${mr.id}`,
-          categories: mr.categories,
+          link: `/vysledek/${m.id}`,
+          categories: m.categories,
         });
       }
     });
 
-    // Check tournaments
+    // Check tournaments (only if dateFrom exists)
     tournaments.forEach((t) => {
+      if (!t.dateFrom) return;
       const start = parseISO(t.dateFrom);
       const end = t.dateTo ? parseISO(t.dateTo) : start;
 
@@ -142,7 +144,7 @@ export default function DashboardCalendar({
     });
 
     return items;
-  }, [selectedDate, matchResults, tournaments, events]);
+  }, [selectedDate, matches, tournaments, events]);
 
   const getTypeColor = (type: CalendarItem['type']): string => {
     switch (type) {

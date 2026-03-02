@@ -1,4 +1,4 @@
-import { StrapiImage, StrapiFile, UserInfo } from './match-result';
+import { StrapiImage, StrapiFile, UserInfo } from './match';
 import { Category } from './category';
 
 export type EventType = 'nadcházející' | 'proběhlá';

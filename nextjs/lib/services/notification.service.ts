@@ -10,8 +10,8 @@ import {
   notifyUserRegistered as baseNotifyUserRegistered,
   notifyTournamentCreated as baseNotifyTournamentCreated,
   notifyTournamentUpdated as baseNotifyTournamentUpdated,
-  notifyMatchResultCreated as baseNotifyMatchResultCreated,
-  notifyMatchResultUpdated as baseNotifyMatchResultUpdated,
+  notifyMatchCreated as baseNotifyMatchCreated,
+  notifyMatchUpdated as baseNotifyMatchUpdated,
   notifyEventCreated as baseNotifyEventCreated,
   notifyEventUpdated as baseNotifyEventUpdated,
   notifyCommentAdded as baseNotifyCommentAdded,
@@ -19,7 +19,7 @@ import {
 
 import type { Tournament } from '@/types/tournament';
 import type { Event } from '@/types/event';
-import type { MatchResult } from '@/types/match-result';
+import type { Match } from '@/types/match';
 import type { Comment } from '@/types/comment';
 import type { User } from '@/types/user';
 
@@ -94,47 +94,47 @@ export class NotificationService {
   /**
    * Notify about match result creation
    */
-  notifyMatchResultCreated(matchResult: MatchResult): void {
+  notifyMatchCreated(match: Match): void {
     try {
       Sentry.addBreadcrumb({
         category: 'notification',
-        message: 'Sending match result created notification',
+        message: 'Sending match created notification',
         level: 'info',
         data: {
-          matchResultId: matchResult.id,
-          match: `${matchResult.homeTeam} vs ${matchResult.awayTeam}`,
+          matchId: match.id,
+          match: `${match.homeTeam} vs ${match.awayTeam}`,
         },
       });
 
-      baseNotifyMatchResultCreated(matchResult);
+      baseNotifyMatchCreated(match);
     } catch (error) {
       Sentry.captureException(error, {
-        tags: { service: 'NotificationService', method: 'notifyMatchResultCreated' },
-        extra: { matchResultId: matchResult.id },
+        tags: { service: 'NotificationService', method: 'notifyMatchCreated' },
+        extra: { matchId: match.id },
       });
     }
   }
 
   /**
-   * Notify about match result update
+   * Notify about match update
    */
-  notifyMatchResultUpdated(matchResult: MatchResult): void {
+  notifyMatchUpdated(match: Match): void {
     try {
       Sentry.addBreadcrumb({
         category: 'notification',
-        message: 'Sending match result updated notification',
+        message: 'Sending match updated notification',
         level: 'info',
         data: {
-          matchResultId: matchResult.id,
-          match: `${matchResult.homeTeam} vs ${matchResult.awayTeam}`,
+          matchId: match.id,
+          match: `${match.homeTeam} vs ${match.awayTeam}`,
         },
       });
 
-      baseNotifyMatchResultUpdated(matchResult);
+      baseNotifyMatchUpdated(match);
     } catch (error) {
       Sentry.captureException(error, {
-        tags: { service: 'NotificationService', method: 'notifyMatchResultUpdated' },
-        extra: { matchResultId: matchResult.id },
+        tags: { service: 'NotificationService', method: 'notifyMatchUpdated' },
+        extra: { matchId: match.id },
       });
     }
   }
@@ -187,7 +187,7 @@ export class NotificationService {
    */
   notifyCommentAdded(
     comment: Comment,
-    entityType: 'matchResult' | 'tournament' | 'event',
+    entityType: 'match' | 'tournament' | 'event',
     entityName: string,
     entityAuthorEmail?: string
   ): void {

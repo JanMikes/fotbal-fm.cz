@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_elements_expandable_sections",
+  "info": {
+    "displayName": "Rozbalovac\u00ed sekce",
+    "description": "Expandable section with content and attachments"
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "default_open": {
+      "type": "boolean",
+      "default": false
+    },
+    "files": {
+      "type": "component",
+      "component": "elements.document-item",
+      "repeatable": true
+    },
+    "photos": {
+      "type": "component",
+      "component": "elements.photo",
+      "repeatable": true
+    }
+  }
+}

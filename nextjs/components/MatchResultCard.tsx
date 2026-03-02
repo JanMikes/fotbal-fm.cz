@@ -1,18 +1,18 @@
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import Card from '@/components/ui/Card';
 import { Calendar, Edit, Image, User, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 interface MatchResultCardProps {
-  matchResult: MatchResult;
+  match: Match;
   currentUserId?: number;
 }
 
-export default function MatchResultCard({ matchResult, currentUserId }: MatchResultCardProps) {
-  const isOwner = currentUserId && matchResult.authorId === currentUserId;
+export default function MatchResultCard({ match, currentUserId }: MatchResultCardProps) {
+  const isOwner = currentUserId && match.authorId === currentUserId;
 
-  const matchDate = new Date(matchResult.matchDate);
+  const matchDate = new Date(match.matchDate);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'numeric',
@@ -29,17 +29,17 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
             <span>{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Link href={`/vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
+            <Link href={`/vysledek/${match.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
             </Link>
-            <Link href={`/vysledek/${matchResult.id}#komentare`} className="flex-1 md:flex-none">
+            <Link href={`/vysledek/${match.id}#komentare`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">
                 <MessageCircle className="w-4 h-4 mr-1" />
                 Okomentovat
               </Button>
             </Link>
             {isOwner && (
-              <Link href={`/upravit-vysledek/${matchResult.id}`} className="flex-1 md:flex-none">
+              <Link href={`/upravit-vysledek/${match.id}`} className="flex-1 md:flex-none">
                 <Button variant="secondary" size="sm" className="w-full md:w-auto">
                   <Edit className="w-4 h-4 mr-1" />
                   Upravit
@@ -52,8 +52,8 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
         {/* Category Badges */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex flex-wrap gap-1.5">
-            {matchResult.categories?.length > 0 ? (
-              matchResult.categories.map((category) => (
+            {match.categories?.length > 0 ? (
+              match.categories.map((category) => (
                 <span
                   key={category.id}
                   className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent"
@@ -69,7 +69,7 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
           </div>
           <span className="flex items-center gap-1.5 text-text-muted">
             <Image className="w-4 h-4" />
-            Fotografie {matchResult.images.length}
+            Fotografie {match.images.length}
           </span>
         </div>
 
@@ -77,21 +77,21 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
         <div className="flex items-center justify-between">
           <div className="flex-1 text-right">
             <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
-              {matchResult.homeTeam}
+              {match.homeTeam}
             </h3>
           </div>
 
           <div className="mx-2 md:mx-4">
             <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-xl px-3 py-1 md:px-4 md:py-2">
               <div className="text-xl md:text-2xl font-bold text-text-primary text-center tracking-wider">
-                {matchResult.homeScore} : {matchResult.awayScore}
+                {match.homeScore} : {match.awayScore}
               </div>
             </div>
           </div>
 
           <div className="flex-1">
             <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
-              {matchResult.awayTeam}
+              {match.awayTeam}
             </h3>
           </div>
         </div>
@@ -100,15 +100,15 @@ export default function MatchResultCard({ matchResult, currentUserId }: MatchRes
         <div className="flex items-center gap-1.5 text-xs text-text-muted pt-2 border-t border-border">
           <User className="w-3 h-3" />
           <span>
-            {matchResult.modifiedBy
-              ? `${matchResult.modifiedBy.firstName} ${matchResult.modifiedBy.lastName}`
-              : matchResult.author
-                ? `${matchResult.author.firstName} ${matchResult.author.lastName}`
+            {match.modifiedBy
+              ? `${match.modifiedBy.firstName} ${match.modifiedBy.lastName}`
+              : match.author
+                ? `${match.author.firstName} ${match.author.lastName}`
                 : 'Neznámý'}
           </span>
           <span className="mx-1">•</span>
           <span>
-            {new Date(matchResult.updatedAt).toLocaleDateString('cs-CZ', {
+            {new Date(match.updatedAt).toLocaleDateString('cs-CZ', {
               day: 'numeric',
               month: 'numeric',
               year: 'numeric',

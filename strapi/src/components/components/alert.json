@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_components_alerts",
+  "info": {
+    "displayName": "Upozorn\u011bn\u00ed",
+    "description": "Alert message with type variants"
+  },
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": ["info", "success", "warning", "error"],
+      "default": "info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "text": {
+      "type": "richtext"
+    }
+  }
+}

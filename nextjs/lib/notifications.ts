@@ -1,7 +1,7 @@
 import { sendEmailAsync } from './email';
 import type { Tournament } from '@/types/tournament';
 import type { Event } from '@/types/event';
-import type { MatchResult, UserInfo } from '@/types/match-result';
+import type { Match, UserInfo } from '@/types/match';
 import type { Comment } from '@/types/comment';
 import type { User } from '@/types/user';
 
@@ -101,7 +101,7 @@ export function notifyTournamentCreated(
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
-      <div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>
+      ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
       <div class="detail-row"><span class="label">Vytvořil:</span> ${formatAuthor(tournament.author)}</div>
@@ -133,7 +133,7 @@ export function notifyTournamentUpdated(
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
-      <div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>
+      ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(tournament.modifiedBy || tournament.author)}</div>
@@ -149,25 +149,25 @@ export function notifyTournamentUpdated(
 /**
  * Notify about match result creation
  */
-export function notifyMatchResultCreated(matchResult: MatchResult): void {
-  const subject = `Nový výsledek: ${matchResult.homeTeam} ${matchResult.homeScore}:${matchResult.awayScore} ${matchResult.awayTeam}`;
+export function notifyMatchCreated(match: Match): void {
+  const subject = `Nový výsledek: ${match.homeTeam} ${match.homeScore}:${match.awayScore} ${match.awayTeam}`;
 
-  const categoriesText = matchResult.categories?.length > 0
-    ? matchResult.categories.map(c => c.name).join(', ')
+  const categoriesText = match.categories?.length > 0
+    ? match.categories.map(c => c.name).join(', ')
     : 'Bez kategorie';
 
   const content = `
     <h1>Přidán nový výsledek zápasu</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Zápas:</span> ${matchResult.homeTeam} vs ${matchResult.awayTeam}</div>
-      <div class="detail-row"><span class="label">Výsledek:</span> ${matchResult.homeScore} : ${matchResult.awayScore}</div>
+      <div class="detail-row"><span class="label">Zápas:</span> ${match.homeTeam} vs ${match.awayTeam}</div>
+      <div class="detail-row"><span class="label">Výsledek:</span> ${match.homeScore} : ${match.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
-      <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(matchResult.matchDate)}</div>
-      ${matchResult.homeGoalscorers ? `<div class="detail-row"><span class="label">Střelci (domácí):</span> ${matchResult.homeGoalscorers}</div>` : ''}
-      ${matchResult.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${matchResult.awayGoalscorers}</div>` : ''}
-      <div class="detail-row"><span class="label">Přidal:</span> ${formatAuthor(matchResult.author)}</div>
+      <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
+      ${match.homeGoalscorers ? `<div class="detail-row"><span class="label">Střelci (domácí):</span> ${match.homeGoalscorers}</div>` : ''}
+      ${match.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${match.awayGoalscorers}</div>` : ''}
+      <div class="detail-row"><span class="label">Přidal:</span> ${formatAuthor(match.author)}</div>
     </div>
-    ${matchResult.matchReport ? `<h2>Zápis ze zápasu</h2><p>${formatMultilineText(matchResult.matchReport)}</p>` : ''}
+    ${match.matchReport ? `<h2>Zápis ze zápasu</h2><p>${formatMultilineText(match.matchReport)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -179,21 +179,21 @@ export function notifyMatchResultCreated(matchResult: MatchResult): void {
 /**
  * Notify about match result update
  */
-export function notifyMatchResultUpdated(matchResult: MatchResult): void {
-  const subject = `Výsledek upraven: ${matchResult.homeTeam} ${matchResult.homeScore}:${matchResult.awayScore} ${matchResult.awayTeam}`;
+export function notifyMatchUpdated(match: Match): void {
+  const subject = `Výsledek upraven: ${match.homeTeam} ${match.homeScore}:${match.awayScore} ${match.awayTeam}`;
 
-  const categoriesText = matchResult.categories?.length > 0
-    ? matchResult.categories.map(c => c.name).join(', ')
+  const categoriesText = match.categories?.length > 0
+    ? match.categories.map(c => c.name).join(', ')
     : 'Bez kategorie';
 
   const content = `
     <h1>Výsledek zápasu byl upraven</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Zápas:</span> ${matchResult.homeTeam} vs ${matchResult.awayTeam}</div>
-      <div class="detail-row"><span class="label">Výsledek:</span> ${matchResult.homeScore} : ${matchResult.awayScore}</div>
+      <div class="detail-row"><span class="label">Zápas:</span> ${match.homeTeam} vs ${match.awayTeam}</div>
+      <div class="detail-row"><span class="label">Výsledek:</span> ${match.homeScore} : ${match.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
-      <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(matchResult.matchDate)}</div>
-      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(matchResult.modifiedBy || matchResult.author)}</div>
+      <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
+      <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(match.modifiedBy || match.author)}</div>
     </div>
   `;
 
@@ -261,12 +261,12 @@ export function notifyEventUpdated(event: Event): void {
  */
 export function notifyCommentAdded(
   comment: Comment,
-  entityType: 'matchResult' | 'tournament' | 'event',
+  entityType: 'match' | 'tournament' | 'event',
   entityName: string,
   entityAuthorEmail?: string
 ): void {
   const entityTypeLabels = {
-    matchResult: 'výsledek zápasu',
+    match: 'zápas',
     tournament: 'turnaj',
     event: 'událost',
   };

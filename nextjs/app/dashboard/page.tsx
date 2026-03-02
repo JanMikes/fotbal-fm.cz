@@ -7,12 +7,12 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import DashboardCalendar from '@/components/DashboardCalendar';
 import { Plus, Trophy, CalendarDays, Target, ArrowRight } from 'lucide-react';
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import { Tournament } from '@/types/tournament';
 import { Event } from '@/types/event';
 
 interface DashboardData {
-  matchResults: MatchResult[];
+  matches: Match[];
   tournaments: Tournament[];
   events: Event[];
 }
@@ -28,7 +28,7 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         const [mrRes, tRes, eRes] = await Promise.all([
-          fetch('/api/match-results/list'),
+          fetch('/api/matches/list'),
           fetch('/api/tournaments/list'),
           fetch('/api/events/list'),
         ]);
@@ -40,7 +40,7 @@ export default function DashboardPage() {
         ]);
 
         setData({
-          matchResults: mrData.data?.matchResults || [],
+          matches: mrData.data?.matches || [],
           tournaments: tData.data?.tournaments || [],
           events: eData.data?.events || [],
         });
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         {/* Calendar Section */}
         {!loading && data && (
           <DashboardCalendar
-            matchResults={data.matchResults}
+            matches={data.matches}
             tournaments={data.tournaments}
             events={data.events}
           />
@@ -132,11 +132,11 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               </div>
-              {data?.matchResults.length === 0 ? (
+              {data?.matches.length === 0 ? (
                 <p className="text-text-muted text-sm">Žádné výsledky</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.matchResults.slice(0, 3).map((mr) => (
+                  {data?.matches.slice(0, 3).map((mr) => (
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <div className="flex items-center justify-between mb-2">
@@ -202,7 +202,9 @@ export default function DashboardPage() {
                           {t.name}
                         </p>
                         <p className="text-xs text-text-muted mt-1">
-                          {new Date(t.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })}
+                          {t.dateFrom
+                            ? new Date(t.dateFrom).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })
+                            : t.season ? `Sezóna ${t.season}` : ''}
                         </p>
                       </div>
                     </Link>

@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_elements_links",
+  "info": {
+    "displayName": "Odkaz",
+    "description": "Link to a page, URL, or file"
+  },
+  "attributes": {
+    "page": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::page.page"
+    },
+    "anchor": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images", "files", "videos", "audios"]
+    }
+  }
+}

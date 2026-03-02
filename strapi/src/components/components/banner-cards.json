@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_banner_cards",
+  "info": {
+    "displayName": "Banner karty",
+    "description": "Full-width stacked banner cards"
+  },
+  "attributes": {
+    "cards": {
+      "type": "component",
+      "component": "elements.banner-card",
+      "repeatable": true
+    }
+  }
+}

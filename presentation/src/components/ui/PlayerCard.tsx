@@ -19,7 +19,7 @@ const positionLabels: Record<string, string> = {
 };
 
 export default function PlayerCard({ player, categorySlug, className }: PlayerCardProps) {
-  const href = `/${categorySlug}/hrac/${player.slug}`;
+  const href = `/kategorie/${categorySlug}/hrac/${player.slug}`;
   const imageUrl = player.photo?.url || '/players/player-1.jpg';
   const isPlayer = player.type === 'hráč';
   const displayPosition = player.position ? positionLabels[player.position] ?? player.position : player.positionText;

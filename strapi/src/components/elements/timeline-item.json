@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_elements_timeline_items",
+  "info": {
+    "displayName": "Polo\u017eka \u010dasov\u00e9 osy",
+    "description": "Timeline step or milestone"
+  },
+  "attributes": {
+    "number": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

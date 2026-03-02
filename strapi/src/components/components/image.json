@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_images",
+  "info": {
+    "displayName": "Obr\u00e1zek",
+    "description": "Single image display"
+  },
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

@@ -22,6 +22,8 @@ const {
   getMatchesByCategory,
   getPlayersByCategory,
   getPlayerBySlug,
+  getNavigation,
+  getPageBySlug,
 } = await import('../../../lib/strapi/data');
 
 describe('data layer', () => {
@@ -204,6 +206,153 @@ describe('data layer', () => {
 
       const result = await getPlayerBySlug('nonexistent');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('getNavigation', () => {
+    it('returns mapped navigation items', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1,
+            documentId: 'nav-1',
+            title: 'O klubu',
+            link: { id: 10, page: { slug: 'o-klubu' }, anchor: null, url: null, file: null },
+            sortOrder: 0,
+          },
+          {
+            id: 2,
+            documentId: 'nav-2',
+            title: 'Kontakt',
+            link: { id: 20, page: { slug: 'kontakt' }, anchor: null, url: null, file: null },
+            sortOrder: 1,
+          },
+        ],
+        total: 2,
+      });
+
+      const result = await getNavigation();
+      expect(result).toHaveLength(2);
+      expect(result[0].title).toBe('O klubu');
+      expect(result[0].href).toBe('/o-klubu');
+      expect(result[0].external).toBe(false);
+    });
+
+    it('filters out items with unresolvable links', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1,
+            documentId: 'nav-1',
+            title: 'Good',
+            link: { id: 10, page: { slug: 'good' }, anchor: null, url: null, file: null },
+            sortOrder: 0,
+          },
+          {
+            id: 2,
+            documentId: 'nav-2',
+            title: 'Broken',
+            link: { id: 20, page: null, anchor: null, url: null, file: null },
+            sortOrder: 1,
+          },
+        ],
+        total: 2,
+      });
+
+      const result = await getNavigation();
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('Good');
+    });
+
+    it('passes correct query options', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getNavigation();
+
+      expect(mockFindMany).toHaveBeenCalledWith('navigations', expect.objectContaining({
+        sort: 'sortOrder:asc',
+        pagination: { pageSize: 100 },
+      }));
+    });
+
+    it('returns empty array when no data', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      const result = await getNavigation();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getPageBySlug', () => {
+    it('returns mapped page when found', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1,
+            documentId: 'page-1',
+            title: 'O klubu',
+            slug: 'o-klubu',
+            meta_description: 'Popis',
+            content: [
+              { id: 10, __component: 'components.text', text: '<p>Hello</p>' },
+            ],
+            sidebar: [],
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getPageBySlug('o-klubu');
+      expect(result).not.toBeNull();
+      expect(result!.title).toBe('O klubu');
+      expect(result!.slug).toBe('o-klubu');
+      expect(result!.metaDescription).toBe('Popis');
+      expect(result!.content).toHaveLength(1);
+      expect(result!.content[0].__component).toBe('components.text');
+    });
+
+    it('returns null when not found', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      const result = await getPageBySlug('nonexistent');
+      expect(result).toBeNull();
+    });
+
+    it('passes slug filter and populate', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPageBySlug('test');
+
+      expect(mockFindMany).toHaveBeenCalledWith('pages', expect.objectContaining({
+        filters: { slug: { $eq: 'test' } },
+        pagination: { pageSize: 1 },
+      }));
+      // Should include populate with content and sidebar
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.populate).toHaveProperty('content');
+      expect(callArgs.populate).toHaveProperty('sidebar');
+    });
+
+    it('maps page with sidebar components', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          {
+            id: 1,
+            documentId: 'page-1',
+            title: 'Test',
+            slug: 'test',
+            meta_description: null,
+            content: [{ id: 10, __component: 'components.text', text: 'Main' }],
+            sidebar: [{ id: 20, __component: 'components.heading', text: 'Side', type: 'h3', anchor: null }],
+          },
+        ],
+        total: 1,
+      });
+
+      const result = await getPageBySlug('test');
+      expect(result!.content).toHaveLength(1);
+      expect(result!.sidebar).toHaveLength(1);
+      expect(result!.sidebar[0].__component).toBe('components.heading');
     });
   });
 });

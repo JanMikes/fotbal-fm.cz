@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_components_partner_logos",
+  "info": {
+    "displayName": "Loga partner\u016f",
+    "description": "Partner logo grid"
+  },
+  "attributes": {
+    "partners": {
+      "type": "component",
+      "component": "elements.partner-logo",
+      "repeatable": true
+    },
+    "grayscale": {
+      "type": "boolean",
+      "default": false
+    },
+    "columns": {
+      "type": "enumeration",
+      "enum": ["2", "3", "4", "5", "6"],
+      "default": "4"
+    }
+  }
+}

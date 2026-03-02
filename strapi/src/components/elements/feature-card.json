@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_elements_feature_cards",
+  "info": {
+    "displayName": "Karta",
+    "description": "Feature card with title, description and link"
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "link": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": false
+    }
+  }
+}

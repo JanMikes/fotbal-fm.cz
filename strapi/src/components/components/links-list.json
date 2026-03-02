@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_links_lists",
+  "info": {
+    "displayName": "Seznam odkaz\u016f",
+    "description": "List of text links in grid or rows layout"
+  },
+  "attributes": {
+    "links": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": true
+    },
+    "layout": {
+      "type": "enumeration",
+      "enum": ["Grid", "Rows"],
+      "default": "Rows"
+    }
+  }
+}

@@ -3,7 +3,7 @@
  * Handles common patterns like media mapping, user info extraction, and URL transformation.
  */
 
-import { StrapiImage, StrapiFile, UserInfo } from '@/types/match-result';
+import { StrapiImage, StrapiFile, UserInfo } from '@/types/match';
 import { StrapiRawUserInfo } from '../types';
 import { getPublicUploadsUrl } from '@/lib/config';
 

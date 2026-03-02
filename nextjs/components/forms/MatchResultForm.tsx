@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { matchResultSchema, MatchResultFormData } from '@/lib/validation';
+import { matchSchema, MatchFormData } from '@/lib/validation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
@@ -16,12 +16,12 @@ import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import CategorySelect from '@/components/ui/CategorySelect';
 import { useScrollToError } from '@/hooks/useScrollToError';
-import { useCreateMatchResult, useUpdateMatchResult } from '@/hooks/api';
-import { MatchResult } from '@/types/match-result';
+import { useCreateMatch, useUpdateMatch } from '@/hooks/api';
+import { Match } from '@/types/match';
 
 interface MatchResultFormProps {
   mode?: 'create' | 'edit';
-  initialData?: MatchResult;
+  initialData?: Match;
   recordId?: string;
 }
 
@@ -35,13 +35,13 @@ export default function MatchResultForm({
   const [files, setFiles] = useState<FileList | null>(null);
 
   // Use the appropriate mutation hook based on mode
-  const createMutation = useCreateMatchResult({
+  const createMutation = useCreateMatch({
     onSuccess: () => {
       router.push('/vysledky?success=true');
     },
   });
 
-  const updateMutation = useUpdateMatchResult(recordId || '', {
+  const updateMutation = useUpdateMatch(recordId || '', {
     onSuccess: () => {
       router.push(`/vysledek/${recordId}?success=true`);
     },
@@ -58,8 +58,8 @@ export default function MatchResultForm({
     setValue,
     watch,
     control,
-  } = useForm<MatchResultFormData>({
-    resolver: zodResolver(matchResultSchema),
+  } = useForm<MatchFormData>({
+    resolver: zodResolver(matchSchema),
     mode: 'onSubmit',
     defaultValues: initialData
       ? {
@@ -73,6 +73,7 @@ export default function MatchResultForm({
           categoryIds: initialData.categories?.map(c => c.id) || [],
           matchDate: initialData.matchDate,
           imagesUrl: initialData.imagesUrl || '',
+          tournament: initialData.tournamentId || '',
         }
       : {
           categoryIds: [],
@@ -85,7 +86,7 @@ export default function MatchResultForm({
   // Automatically scroll to the first error field
   useScrollToError(errors, { offset: 100 });
 
-  const onSubmit = async (data: MatchResultFormData) => {
+  const onSubmit = async (data: MatchFormData) => {
     if (mode === 'edit') {
       await updateMutation.mutate({ data, images, files });
     } else {

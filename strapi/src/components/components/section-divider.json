@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_section_dividers",
+  "info": {
+    "displayName": "Rozd\u011blovn\u00edk",
+    "description": "Horizontal divider with spacing and style"
+  },
+  "attributes": {
+    "spacing": {
+      "type": "enumeration",
+      "enum": ["S", "M", "L"],
+      "default": "M"
+    },
+    "style": {
+      "type": "enumeration",
+      "enum": ["solid", "dashed", "dotted"],
+      "default": "solid"
+    }
+  }
+}

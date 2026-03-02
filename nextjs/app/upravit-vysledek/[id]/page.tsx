@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { MatchResult } from '@/types/match-result';
+import { Match } from '@/types/match';
 import MatchResultForm from '@/components/forms/MatchResultForm';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -19,17 +19,17 @@ export default function EditMatchResultPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { user, loading: userLoading } = useRequireAuth();
-  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchMatchResult = async () => {
+    const fetchMatch = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/match-results/${id}`);
+        const response = await fetch(`/api/matches/${id}`);
         const data = await response.json();
 
         if (!data.success) {
@@ -37,12 +37,12 @@ export default function EditMatchResultPage({ params }: PageProps) {
         }
 
         // Check ownership
-        if (data.data.matchResult.authorId !== user.id) {
+        if (data.data.match.authorId !== user.id) {
           setError('Nemáte oprávnění upravit tento záznam');
           return;
         }
 
-        setMatchResult(data.data.matchResult);
+        setMatch(data.data.match);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -54,7 +54,7 @@ export default function EditMatchResultPage({ params }: PageProps) {
       }
     };
 
-    fetchMatchResult();
+    fetchMatch();
   }, [user, id]);
 
   if (userLoading || loading) {
@@ -81,7 +81,7 @@ export default function EditMatchResultPage({ params }: PageProps) {
     );
   }
 
-  if (!matchResult) {
+  if (!match) {
     return null;
   }
 
@@ -107,8 +107,8 @@ export default function EditMatchResultPage({ params }: PageProps) {
         <Card>
           <MatchResultForm
             mode="edit"
-            initialData={matchResult}
-            recordId={matchResult.id}
+            initialData={match}
+            recordId={match.id}
           />
         </Card>
       </div>

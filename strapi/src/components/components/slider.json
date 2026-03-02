@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_components_sliders",
+  "info": {
+    "displayName": "Slider",
+    "description": "Content slider with slides"
+  },
+  "attributes": {
+    "slides": {
+      "type": "component",
+      "component": "elements.slide",
+      "repeatable": true
+    },
+    "autoplay": {
+      "type": "boolean",
+      "default": false
+    },
+    "autoplay_interval": {
+      "type": "integer",
+      "default": 5000
+    }
+  }
+}

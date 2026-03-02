@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_components_badges",
+  "info": {
+    "displayName": "Badges",
+    "description": "Group of badge labels"
+  },
+  "attributes": {
+    "badges": {
+      "type": "component",
+      "component": "elements.badge",
+      "repeatable": true
+    },
+    "alignment": {
+      "type": "enumeration",
+      "enum": ["L", "C", "R"],
+      "default": "L"
+    }
+  }
+}

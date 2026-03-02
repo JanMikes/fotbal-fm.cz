@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_components_feature_cards",
+  "info": {
+    "displayName": "Karty",
+    "description": "Grid of feature cards"
+  },
+  "attributes": {
+    "cards": {
+      "type": "component",
+      "component": "elements.feature-card",
+      "repeatable": true
+    },
+    "columns": {
+      "type": "enumeration",
+      "enum": ["2", "3", "4"],
+      "default": "3"
+    },
+    "card_clickable": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

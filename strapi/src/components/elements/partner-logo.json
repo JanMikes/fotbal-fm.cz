@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_elements_partner_logos",
+  "info": {
+    "displayName": "Logo partnera",
+    "description": "Partner logo with name and URL"
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}

@@ -76,9 +76,9 @@ export interface StrapiRawUserInfo {
 }
 
 /**
- * Raw match result from Strapi (flattened Strapi 5 response)
+ * Raw match from Strapi (unified match type)
  */
-export interface StrapiRawMatchResult {
+export interface StrapiRawMatch {
   id: number;
   documentId: string;
   homeTeam: string;
@@ -104,6 +104,7 @@ export interface StrapiRawMatchResult {
   season?: number | null;
   period?: string | null;
   organizingBody?: string | null;
+  tournament?: { id: number; documentId?: string; name?: string } | { data?: { id: number; documentId?: string; name?: string } | null } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -142,25 +143,6 @@ export interface StrapiRawTournamentPlayer {
 }
 
 /**
- * Raw tournament match from Strapi
- */
-export interface StrapiRawTournamentMatch {
-  id: number;
-  documentId: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeScore: number;
-  awayScore: number;
-  homeGoalscorers?: string | null;
-  awayGoalscorers?: string | null;
-  tournament?: { id: number; documentId?: string } | { data?: { id: number; documentId?: string } | null } | null;
-  author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null } | null;
-  modifiedBy?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null } | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
  * Raw tournament from Strapi
  */
 export interface StrapiRawTournament {
@@ -169,16 +151,23 @@ export interface StrapiRawTournament {
   name: string;
   description?: string | null;
   location?: string | null;
-  dateFrom: string;
+  dateFrom?: string | null;
   dateTo?: string | null;
   categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   imagesUrl?: string | null;
   photos?: StrapiRawMedia[] | null;
   players?: StrapiRawTournamentPlayer[] | null;
-  tournamentMatches?: StrapiRawTournamentMatch[] | null;
-  tournament_matches?: StrapiRawTournamentMatch[] | null;
+  matches?: StrapiRawMatch[] | null;
   author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null } | null;
   modifiedBy?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null } | null;
+  facrId?: string | null;
+  code?: string | null;
+  categoryLetter?: string | null;
+  level?: number | null;
+  group?: string | null;
+  competitionType?: string | null;
+  season?: number | null;
+  organizingBody?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -272,9 +261,9 @@ export const strapiRawCategorySchema = z.object({
 });
 
 /**
- * Schema for validating raw match result
+ * Schema for validating raw match (unified)
  */
-export const strapiRawMatchResultSchema = z.object({
+export const strapiRawMatchSchema = z.object({
   id: z.number(),
   documentId: z.string(),
   homeTeam: z.string(),
@@ -306,6 +295,10 @@ export const strapiRawMatchResultSchema = z.object({
   season: z.number().nullable().optional(),
   period: z.string().nullable().optional(),
   organizingBody: z.string().nullable().optional(),
+  tournament: z.union([
+    z.object({ id: z.number(), documentId: z.string().optional(), name: z.string().optional() }),
+    z.object({ data: z.object({ id: z.number(), documentId: z.string().optional(), name: z.string().optional() }).nullable().optional() }),
+  ]).nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

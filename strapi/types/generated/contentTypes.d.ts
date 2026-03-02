@@ -479,10 +479,6 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::category-code.category-code'
     >;
-    competitions: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::competition.competition'
-    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -494,10 +490,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       'api::category.category'
     > &
       Schema.Attribute.Private;
-    matchResults: Schema.Attribute.Relation<
-      'manyToMany',
-      'api::match-result.match-result'
-    >;
+    matches: Schema.Attribute.Relation<'manyToMany', 'api::match.match'>;
     name: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
@@ -511,6 +504,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    sportbmCategoryId: Schema.Attribute.String;
     tournaments: Schema.Attribute.Relation<
       'manyToMany',
       'api::tournament.tournament'
@@ -548,10 +542,7 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
       'api::comment.comment'
     > &
       Schema.Attribute.Private;
-    matchResult: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::match-result.match-result'
-    >;
+    match: Schema.Attribute.Relation<'manyToOne', 'api::match.match'>;
     parentComment: Schema.Attribute.Relation<
       'manyToOne',
       'api::comment.comment'
@@ -562,46 +553,6 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::tournament.tournament'
     >;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiCompetitionCompetition extends Struct.CollectionTypeSchema {
-  collectionName: 'competitions';
-  info: {
-    description: 'Football competitions from FA\u010CR IS';
-    displayName: 'Competition';
-    pluralName: 'competitions';
-    singularName: 'competition';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
-    categoryLetter: Schema.Attribute.String & Schema.Attribute.Required;
-    code: Schema.Attribute.String & Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    facrId: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
-    group: Schema.Attribute.String;
-    level: Schema.Attribute.Integer;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::competition.competition'
-    > &
-      Schema.Attribute.Private;
-    name: Schema.Attribute.String & Schema.Attribute.Required;
-    organizingBody: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    season: Schema.Attribute.Integer & Schema.Attribute.Required;
-    type: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -663,13 +614,13 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
-  collectionName: 'match_results';
+export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
+  collectionName: 'matches';
   info: {
-    description: 'Football match results submitted by users';
-    displayName: 'Match results';
-    pluralName: 'match-results';
-    singularName: 'match-result';
+    description: 'Football matches (both standalone and tournament)';
+    displayName: 'Match';
+    pluralName: 'matches';
+    singularName: 'match';
   };
   options: {
     draftAndPublish: false;
@@ -718,10 +669,7 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::match-result.match-result'
-    > &
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;
     matchDate: Schema.Attribute.Date & Schema.Attribute.Required;
     matchReport: Schema.Attribute.Text;
@@ -731,10 +679,45 @@ export interface ApiMatchResultMatchResult extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     round: Schema.Attribute.Integer;
     season: Schema.Attribute.Integer;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     venue: Schema.Attribute.String;
+  };
+}
+
+export interface ApiNavigationNavigation extends Struct.CollectionTypeSchema {
+  collectionName: 'navigations';
+  info: {
+    displayName: 'Hlavn\u00ED menu';
+    pluralName: 'navigations';
+    singularName: 'navigation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    link: Schema.Attribute.Component<'elements.link', false> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::navigation.navigation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -833,6 +816,80 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPagePage extends Struct.CollectionTypeSchema {
+  collectionName: 'pages';
+  info: {
+    displayName: 'Str\u00E1nka';
+    pluralName: 'pages';
+    singularName: 'page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.DynamicZone<
+      [
+        'components.text',
+        'components.heading',
+        'components.alert',
+        'components.links-list',
+        'components.video',
+        'components.feature-cards',
+        'components.banner-cards',
+        'components.documents',
+        'components.partner-logos',
+        'components.stats-highlights',
+        'components.timeline',
+        'components.section-divider',
+        'components.slider',
+        'components.gallery-slider',
+        'components.photo-gallery',
+        'components.button-group',
+        'components.contact-cards',
+        'components.accordion-sections',
+        'components.popup',
+        'components.badges',
+        'components.image',
+        'components.news-articles',
+      ]
+    > &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &
+      Schema.Attribute.Private;
+    meta_description: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    sidebar: Schema.Attribute.DynamicZone<
+      [
+        'components.text',
+        'components.heading',
+        'components.alert',
+        'components.links-list',
+        'components.button-group',
+        'components.contact-cards',
+        'components.documents',
+        'components.section-divider',
+        'components.timeline',
+        'components.feature-cards',
+        'components.slider',
+        'components.gallery-slider',
+        'components.photo-gallery',
+        'components.news-articles',
+        'components.badges',
+        'components.image',
+      ]
+    >;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   collectionName: 'players';
   info: {
@@ -881,6 +938,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'>;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    sportbmId: Schema.Attribute.String;
     twitter: Schema.Attribute.String;
     type: Schema.Attribute.Enumeration<
       ['hr\u00E1\u010D', 'realiza\u010Dn\u00ED t\u00FDm']
@@ -889,6 +947,53 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
+  collectionName: 'standings';
+  info: {
+    description: 'Competition standings/table rows scraped from FA\u010CR IS';
+    displayName: 'Standing';
+    pluralName: 'standings';
+    singularName: 'standing';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
+    competitionCode: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    draws: Schema.Attribute.Integer & Schema.Attribute.Required;
+    goalsAgainst: Schema.Attribute.Integer & Schema.Attribute.Required;
+    goalsFor: Schema.Attribute.Integer & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::standing.standing'
+    > &
+      Schema.Attribute.Private;
+    losses: Schema.Attribute.Integer & Schema.Attribute.Required;
+    matchesPlayed: Schema.Attribute.Integer & Schema.Attribute.Required;
+    points: Schema.Attribute.Integer & Schema.Attribute.Required;
+    position: Schema.Attribute.Integer & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    season: Schema.Attribute.Integer & Schema.Attribute.Required;
+    teamName: Schema.Attribute.String & Schema.Attribute.Required;
+    tournament: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::tournament.tournament'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    wins: Schema.Attribute.Integer & Schema.Attribute.Required;
   };
 }
 
@@ -924,71 +1029,10 @@ export interface ApiTeamLogoTeamLogo extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiTournamentMatchTournamentMatch
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'tournament_matches';
-  info: {
-    description: 'Individual matches within tournaments';
-    displayName: 'Tournament Match';
-    pluralName: 'tournament-matches';
-    singularName: 'tournament-match';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    author: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-    awayGoalscorers: Schema.Attribute.Text;
-    awayScore: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    awayTeam: Schema.Attribute.String & Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    homeGoalscorers: Schema.Attribute.Text;
-    homeScore: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    homeTeam: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::tournament-match.tournament-match'
-    > &
-      Schema.Attribute.Private;
-    modifiedBy: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
-    publishedAt: Schema.Attribute.DateTime;
-    tournament: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::tournament.tournament'
-    >;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
   collectionName: 'tournaments';
   info: {
-    description: 'Football tournaments';
+    description: 'Football tournaments and competitions';
     displayName: 'Tournament';
     pluralName: 'tournaments';
     singularName: 'tournament';
@@ -1005,13 +1049,20 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::category.category'
     >;
+    categoryLetter: Schema.Attribute.String;
+    code: Schema.Attribute.String;
+    competitionType: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    dateFrom: Schema.Attribute.Date & Schema.Attribute.Required;
+    dateFrom: Schema.Attribute.Date;
     dateTo: Schema.Attribute.Date;
     description: Schema.Attribute.Text;
+    facrId: Schema.Attribute.String & Schema.Attribute.Unique;
+    facrUuid: Schema.Attribute.String;
+    group: Schema.Attribute.String;
     imagesUrl: Schema.Attribute.String;
+    level: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1019,18 +1070,17 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.String;
+    matches: Schema.Attribute.Relation<'oneToMany', 'api::match.match'>;
     modifiedBy: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
     >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    organizingBody: Schema.Attribute.String;
     photos: Schema.Attribute.Media<'images', true>;
     players: Schema.Attribute.Component<'tournament.player', true>;
     publishedAt: Schema.Attribute.DateTime;
-    tournamentMatches: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::tournament-match.tournament-match'
-    >;
+    season: Schema.Attribute.Integer;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1553,14 +1603,15 @@ declare module '@strapi/strapi' {
       'api::category-code.category-code': ApiCategoryCodeCategoryCode;
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
-      'api::competition.competition': ApiCompetitionCompetition;
       'api::event.event': ApiEventEvent;
-      'api::match-result.match-result': ApiMatchResultMatchResult;
+      'api::match.match': ApiMatchMatch;
+      'api::navigation.navigation': ApiNavigationNavigation;
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
+      'api::page.page': ApiPagePage;
       'api::player.player': ApiPlayerPlayer;
+      'api::standing.standing': ApiStandingStanding;
       'api::team-logo.team-logo': ApiTeamLogoTeamLogo;
-      'api::tournament-match.tournament-match': ApiTournamentMatchTournamentMatch;
       'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_components_contact_cards",
+  "info": {
+    "displayName": "Kontakty",
+    "description": "Grid of contact person cards"
+  },
+  "attributes": {
+    "cards": {
+      "type": "component",
+      "component": "elements.contact-card-person",
+      "repeatable": true
+    }
+  }
+}

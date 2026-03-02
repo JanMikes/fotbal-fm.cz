@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "standings",
+  "info": {
+    "singularName": "standing",
+    "pluralName": "standings",
+    "displayName": "Standing",
+    "description": "Competition standings/table rows scraped from FAČR IS"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "position": {
+      "type": "integer",
+      "required": true
+    },
+    "teamName": {
+      "type": "string",
+      "required": true
+    },
+    "matchesPlayed": {
+      "type": "integer",
+      "required": true
+    },
+    "wins": {
+      "type": "integer",
+      "required": true
+    },
+    "draws": {
+      "type": "integer",
+      "required": true
+    },
+    "losses": {
+      "type": "integer",
+      "required": true
+    },
+    "goalsFor": {
+      "type": "integer",
+      "required": true
+    },
+    "goalsAgainst": {
+      "type": "integer",
+      "required": true
+    },
+    "points": {
+      "type": "integer",
+      "required": true
+    },
+    "competitionCode": {
+      "type": "string",
+      "required": true
+    },
+    "season": {
+      "type": "integer",
+      "required": true
+    },
+    "tournament": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::tournament.tournament"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category"
+    }
+  }
+}

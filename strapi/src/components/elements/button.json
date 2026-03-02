@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_elements_buttons",
+  "info": {
+    "displayName": "Tla\u010d\u00edtko",
+    "description": "Button with link and style variants"
+  },
+  "attributes": {
+    "link": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": false
+    },
+    "variant": {
+      "type": "enumeration",
+      "enum": ["Primary", "Secondary", "Outline", "Ghost"],
+      "default": "Primary"
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": ["S", "M", "L"],
+      "default": "M"
+    }
+  }
+}
