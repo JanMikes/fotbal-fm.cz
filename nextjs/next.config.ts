@@ -2,6 +2,7 @@ import {withSentryConfig} from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   // Generate source maps for error tracking, but don't serve them publicly
   productionBrowserSourceMaps: false,
   transpilePackages: ['@fotbal-fm/strapi-client'],

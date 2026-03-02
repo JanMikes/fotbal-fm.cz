@@ -15,6 +15,10 @@ on:
             - 'package-lock.json'
             - '.github/workflows/api.yml'
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     docker-image:
         runs-on: ubuntu-latest
@@ -51,8 +55,10 @@ jobs:
                     push: ${{ github.event_name != 'pull_request' }}
                     tags: ${{ steps.meta.outputs.tags }}
                     labels: ${{ steps.meta.outputs.labels }}
-                    cache-from: type=gha,scope=${{ github.workflow }}
-                    cache-to: type=gha,scope=${{ github.workflow }},mode=max
+                    provenance: false
+                    sbom: false
+                    cache-from: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-api:cache
+                    cache-to: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-api:cache,mode=max,oci-mediatypes=true,compression=zstd,force-compression=true,ignore-error=true
 
     deploy:
         runs-on: ubuntu-latest
