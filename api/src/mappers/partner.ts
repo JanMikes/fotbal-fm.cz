@@ -1,3 +1,4 @@
+import { markdownToHtml } from '../lib/markdown.js';
 import { mapMedia, mapMediaArray } from '../lib/media.js';
 import type { StrapiRawDynamicZoneComponent, StrapiRawPartner } from '../types/strapi.js';
 
@@ -7,7 +8,7 @@ export function mapPartnerSummary(raw: StrapiRawPartner) {
     name: raw.name,
     slug: raw.slug,
     logo: mapMedia(raw.logo),
-    description: raw.description ?? null,
+    description: raw.description ? markdownToHtml(raw.description) : null,
     sortOrder: raw.sortOrder,
   };
 }
@@ -30,7 +31,7 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent) {
 
   switch (raw.__component) {
     case 'components.text':
-      return { ...base, __component: 'components.text', text: (raw.text as string) ?? null };
+      return { ...base, __component: 'components.text', text: raw.text ? markdownToHtml(raw.text as string) : null };
 
     case 'components.heading':
       return {
@@ -47,7 +48,7 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent) {
         __component: 'components.alert',
         type: (raw.type as string) ?? 'info',
         title: (raw.title as string) ?? null,
-        text: (raw.text as string) ?? null,
+        text: raw.text ? markdownToHtml(raw.text as string) : null,
       };
 
     case 'components.links-list':
@@ -248,7 +249,7 @@ function mapCards(raw: unknown) {
   if (!Array.isArray(raw)) return [];
   return raw.map((c) => ({
     title: c.title ?? null,
-    description: c.description ?? null,
+    description: c.description ? markdownToHtml(c.description) : null,
     link: mapTextLink(c.link),
   }));
 }
@@ -321,7 +322,7 @@ function mapExpandableSections(raw: unknown) {
   if (!Array.isArray(raw)) return [];
   return raw.map((s) => ({
     title: s.title ?? null,
-    description: s.description ?? null,
+    description: s.description ? markdownToHtml(s.description) : null,
     default_open: s.default_open ?? false,
     files: mapDocuments(s.files),
     photos: mapPhotos(s.photos),

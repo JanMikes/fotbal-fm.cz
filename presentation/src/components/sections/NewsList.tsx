@@ -1,9 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { NewsCard } from '../ui';
-import Button from '../ui/Button';
 import type { NewsArticleSummary } from '@/lib/types';
 
 interface NewsListProps {
@@ -50,12 +50,13 @@ export default function NewsList({ articles, categorySlug }: NewsListProps) {
             </p>
           </div>
 
-          <Button
-            variant="ghost"
-            icon={<ArrowRight className="w-5 h-5" />}
+          <Link
+            href={`/kategorie/${categorySlug}/novinky`}
+            className="inline-flex items-center gap-2 font-semibold uppercase tracking-wide text-sm px-6 py-3 rounded-full text-primary hover:bg-surface-light transition-all duration-300"
           >
-            Všechny novinky
-          </Button>
+            <span>Všechny novinky</span>
+            <ArrowRight className="w-5 h-5" />
+          </Link>
         </motion.div>
 
         {/* News Grid - Masonry Style */}

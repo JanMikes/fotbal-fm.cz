@@ -1,3 +1,4 @@
+import { markdownToHtml } from '../lib/markdown.js';
 import { mapMediaArray } from '../lib/media.js';
 import type { StrapiRawEvent } from '../types/strapi.js';
 import { mapCategories } from './shared.js';
@@ -11,7 +12,7 @@ export function mapEvent(raw: StrapiRawEvent) {
     dateTo: raw.dateTo ?? null,
     eventTime: raw.eventTime ?? null,
     eventTimeTo: raw.eventTimeTo ?? null,
-    description: raw.description ?? null,
+    description: raw.description ? markdownToHtml(raw.description) : null,
     photos: mapMediaArray(raw.photos),
     categories: mapCategories(raw.categories),
   };

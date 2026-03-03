@@ -1,3 +1,4 @@
+import { markdownToHtml } from '../lib/markdown.js';
 import { mapMedia, mapMediaArray } from '../lib/media.js';
 import type { StrapiRawNewsArticle } from '../types/strapi.js';
 import { mapCategories } from './shared.js';
@@ -16,7 +17,7 @@ export function mapNewsArticleSummary(raw: StrapiRawNewsArticle) {
     documentId: raw.documentId,
     title: raw.title,
     slug: raw.slug ?? null,
-    description: raw.description ?? null,
+    description: raw.description ? markdownToHtml(raw.description) : null,
     mainPhoto: mapMedia(raw.mainPhoto),
     categories: mapCategories(raw.categories),
     newsArticleType: mapNewsArticleType(raw.newsArticleType),

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -7,6 +8,7 @@ import { ArrowLeft, FileDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import { NewsCard } from '../ui';
 import { MarkdownContent } from '../ui/MarkdownContent';
+import ImageLightbox from '../ui/ImageLightbox';
 import type { NewsArticle } from '@/lib/types';
 
 interface ArticleDetailProps {
@@ -23,6 +25,8 @@ function formatDate(isoDate: string): string {
 }
 
 export default function ArticleDetail({ article, categorySlug }: ArticleDetailProps) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
   return (
     <article className="bg-white">
       {/* Hero Image */}
@@ -43,7 +47,7 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
       <div className="container mx-auto px-4 lg:px-8 py-12">
         {/* Back Link */}
         <Link
-          href={`/${categorySlug}`}
+          href={`/kategorie/${categorySlug}`}
           className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -135,7 +139,8 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="relative aspect-square overflow-hidden group"
+                  className="relative aspect-square overflow-hidden group cursor-pointer"
+                  onClick={() => setLightboxIndex(index)}
                 >
                   <Image
                     src={image.url}
@@ -147,6 +152,14 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
                 </motion.div>
               ))}
             </div>
+            {lightboxIndex !== null && (
+              <ImageLightbox
+                images={article.gallery}
+                currentIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+              />
+            )}
           </div>
         )}
 
