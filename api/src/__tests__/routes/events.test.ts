@@ -85,7 +85,7 @@ describe('GET /api/v1/events', () => {
       dateTo: '2025-12-21',
       eventTime: '09:00:00',
       eventTimeTo: '16:00:00',
-      description: 'Tradiční vánoční turnaj pro přípravky U8 a U9.',
+      description: '<p>Tradiční vánoční turnaj pro přípravky U8 a U9.</p>\n',
       photos: [
         {
           url: 'http://localhost:8080/uploads/turnaj_2024_abc123.jpg',

@@ -309,7 +309,7 @@ describe('GET /api/v1/partners', () => {
       name: 'Hlavní sponzor s.r.o.',
       slug: 'hlavni-sponzor',
       logo: { url: url('sponzor_logo'), alternativeText: 'sponzor_logo', width: 800, height: 600 },
-      description: 'Generální partner klubu od roku 2015.',
+      description: '<p>Generální partner klubu od roku 2015.</p>\n',
       sortOrder: 1,
     });
     expect(json.data[1].logo).toBeNull();
@@ -369,7 +369,7 @@ describe('GET /api/v1/partners/:slug', () => {
       __component: 'components.alert',
       type: 'warning',
       title: 'Upozornění',
-      text: 'Toto je důležité upozornění.',
+      text: '<p>Toto je důležité upozornění.</p>\n',
     });
 
     // 4. links-list (4 link types: page, external url, file, anchor)
@@ -396,6 +396,7 @@ describe('GET /api/v1/partners/:slug', () => {
     expect(featureCards.card_clickable).toBe(true);
     expect(featureCards.cards).toHaveLength(2);
     expect(featureCards.cards[0].title).toBe('Karta 1');
+    expect(featureCards.cards[0].description).toBe('<p>Popis karty</p>\n');
     expect(featureCards.cards[0].link).toEqual({ href: '/detail', external: false, text: 'Více', disabled: false });
     expect(featureCards.cards[1].link).toBeNull();
 
@@ -403,6 +404,7 @@ describe('GET /api/v1/partners/:slug', () => {
     const bannerCards = content.find((c: any) => c.__component === 'components.banner-cards');
     expect(bannerCards.cards).toHaveLength(1);
     expect(bannerCards.cards[0].title).toBe('Banner');
+    expect(bannerCards.cards[0].description).toBe('<p>Popis banneru</p>\n');
     expect(bannerCards.cards[0].link.href).toBe('https://example.com');
     expect(bannerCards.cards[0].link.external).toBe(true);
 

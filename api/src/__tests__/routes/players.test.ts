@@ -90,7 +90,7 @@ describe('GET /api/v1/players', () => {
       number: 9,
       position: 'útočník',
       positionText: 'Střední útočník',
-      bio: 'Odchovanec klubu, hráč A-týmu od roku 2020.',
+      bio: '<p>Odchovanec klubu, hráč A-týmu od roku 2020.</p>\n',
       photo: {
         url: 'http://localhost:8080/uploads/novak_jan_portrait.jpg',
         alternativeText: 'Jan Novák',
