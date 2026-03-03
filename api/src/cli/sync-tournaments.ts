@@ -125,20 +125,20 @@ async function main() {
       season: comp.season,
     };
 
+    const relationFields = {
+      ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
+    };
+
     const existingDocId = existingByFacrId.get(comp.facrId);
     if (existingDocId) {
-      // Update: only send scraped fields, never overwrite admin fields
+      // Update: scraped fields + re-link category (never overwrite admin fields)
       await strapiPut(`/tournaments/${existingDocId}`, {
-        data: scrapedFields,
+        data: { ...scrapedFields, ...relationFields },
       });
       updated++;
     } else {
-      // Create: include category relation
       await strapiPost('/tournaments', {
-        data: {
-          ...scrapedFields,
-          ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
-        },
+        data: { ...scrapedFields, ...relationFields },
       });
       created++;
     }

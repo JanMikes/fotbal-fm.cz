@@ -203,17 +203,20 @@ async function main() {
         season: standing.season,
       };
 
+      const relationFields = {
+        ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
+        ...(tournamentDocumentId ? { tournament: tournamentDocumentId } : {}),
+      };
+
       const existingDocId = existingStandings.get(key);
       if (existingDocId) {
-        await strapiPut(`/standings/${existingDocId}`, { data });
+        await strapiPut(`/standings/${existingDocId}`, {
+          data: { ...data, ...relationFields },
+        });
         updated++;
       } else {
         await strapiPost('/standings', {
-          data: {
-            ...data,
-            ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
-            ...(tournamentDocumentId ? { tournament: tournamentDocumentId } : {}),
-          },
+          data: { ...data, ...relationFields },
         });
         created++;
       }

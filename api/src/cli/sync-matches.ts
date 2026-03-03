@@ -227,16 +227,19 @@ async function main() {
       scrapedFields.tournament = tournamentDocumentId;
     }
 
+    const relationFields = {
+      ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
+    };
+
     const existingDocId = existingByFacrId.get(match.facrId);
     if (existingDocId) {
-      await strapiPut(`/matches/${existingDocId}`, { data: scrapedFields });
+      await strapiPut(`/matches/${existingDocId}`, {
+        data: { ...scrapedFields, ...relationFields },
+      });
       updated++;
     } else {
       await strapiPost('/matches', {
-        data: {
-          ...scrapedFields,
-          ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
-        },
+        data: { ...scrapedFields, ...relationFields },
       });
       created++;
     }
