@@ -94,9 +94,9 @@ describe('mapPlayer', () => {
     expect(result.isActive).toBe(true);
   });
 
-  it('falls back to documentId when slug is null', () => {
+  it('generates slug from name when slug is null', () => {
     const result = mapPlayer(makeRawPlayer({ slug: null }));
-    expect(result.slug).toBe('player-1');
+    expect(result.slug).toBe('jan-novak');
   });
 
   it('defaults sortOrder to 0 when missing', () => {
