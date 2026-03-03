@@ -164,8 +164,8 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 />
               )}
 
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-hero" />
+              {/* Overlay Gradient (only when no image) */}
+              {!slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
               <div className="absolute inset-0 flex items-center">

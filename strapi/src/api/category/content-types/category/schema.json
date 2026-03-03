@@ -18,9 +18,9 @@
       "unique": true
     },
     "slug": {
-      "type": "string",
-      "required": true,
-      "unique": true
+      "type": "uid",
+      "targetField": "name",
+      "required": true
     },
     "sortOrder": {
       "type": "integer",

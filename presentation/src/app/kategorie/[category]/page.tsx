@@ -45,9 +45,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   };
 
   const heroData = categoryWithHero?.hero ?? defaultHero;
-  const hasHeroSlides = heroData.heroSlide1Image || heroData.heroSlide2Image || heroData.heroSlide3Image || heroData.heroSlide3NewsArticle;
   const showSwitcher = categoryGroup && categoryGroup.categories.length > 1;
   const switcherElement = showSwitcher ? <CategorySwitcher categories={categoryGroup.categories} /> : null;
+  const heroHasSlides = !!(upcomingMatch || lastResult || heroData.heroSlide3NewsArticle || (heroData.heroSlide3Title && heroData.heroSlide3Text));
 
   return (
     <>
@@ -56,9 +56,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         lastResult={lastResult}
         heroData={heroData}
         categorySlug={categorySlug}
-        categorySwitcher={hasHeroSlides ? switcherElement : undefined}
+        categorySwitcher={heroHasSlides ? switcherElement : undefined}
       />
-      {!hasHeroSlides && switcherElement && (
+      {!heroHasSlides && switcherElement && (
         <div className="flex justify-center py-4 mt-28 lg:mt-32">
           {switcherElement}
         </div>

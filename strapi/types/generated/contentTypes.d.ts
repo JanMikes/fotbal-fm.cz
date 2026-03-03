@@ -555,9 +555,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     >;
     players: Schema.Attribute.Relation<'manyToMany', 'api::player.player'>;
     publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sortOrderInGroup: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sportbmCategoryId: Schema.Attribute.String;
