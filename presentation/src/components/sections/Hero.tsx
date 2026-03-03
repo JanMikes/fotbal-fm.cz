@@ -101,16 +101,22 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   );
 
   const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (!emblaApi) return;
+    emblaApi.scrollPrev();
+    emblaApi.plugins().autoplay?.reset();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+    emblaApi.plugins().autoplay?.reset();
   }, [emblaApi]);
 
   const scrollTo = useCallback(
     (index: number) => {
-      if (emblaApi) emblaApi.scrollTo(index);
+      if (!emblaApi) return;
+      emblaApi.scrollTo(index);
+      emblaApi.plugins().autoplay?.reset();
     },
     [emblaApi]
   );
