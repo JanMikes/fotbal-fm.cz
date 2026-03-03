@@ -2,7 +2,6 @@ import { Hero, Matches, Statistics } from '@/components/sections';
 import { NewsList, TeamSection } from '@/components/sections';
 import {
   getAllMatchesByCategory,
-  getCategories,
   getCategoryWithHeroBySlug,
   getFinishedMatches,
   getLastResult,
@@ -15,11 +14,6 @@ import {
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
-}
-
-export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((cat) => ({ category: cat.slug }));
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { SidePanel } from '@/components/layout';
-import { getPartnerBySlug, getPartners } from '@/lib/strapi/data';
+import { getPartnerBySlug } from '@/lib/strapi/data';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
 
 interface PageProps {
@@ -21,11 +21,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${partner.name} | Partneři | FK Frýdek-Místek`,
     description: partner.description || undefined,
   };
-}
-
-export async function generateStaticParams() {
-  const partners = await getPartners();
-  return partners.map((p) => ({ slug: p.slug }));
 }
 
 export default async function PartnerDetailPage({ params }: PageProps) {

@@ -1,15 +1,10 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getAllMatchesByCategory, getCategories } from '@/lib/strapi/data';
+import { getAllMatchesByCategory } from '@/lib/strapi/data';
 import MatchesPageContent from '@/components/sections/MatchesPageContent';
 
 interface ZapasyPageProps {
   params: Promise<{ category: string }>;
-}
-
-export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((cat) => ({ category: cat.slug }));
 }
 
 export default async function ZapasyPage({ params }: ZapasyPageProps) {
