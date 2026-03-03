@@ -1,25 +1,21 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getCategories, getNewsArticlesByCategory } from '@/lib/strapi/data';
+import { getNewsArticlesByCategory } from '@/lib/strapi/data';
 import { NewsCard } from '@/components/ui';
 import Pagination from '@/components/ui/Pagination';
+import { parsePageNumber } from '@/lib/pagination';
 
 interface NovinkyPageProps {
   params: Promise<{ category: string }>;
   searchParams: Promise<{ stranka?: string }>;
 }
 
-export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((cat) => ({ category: cat.slug }));
-}
-
 const PAGE_SIZE = 12;
 
 export default async function NovinkyPage({ params, searchParams }: NovinkyPageProps) {
   const { category: categorySlug } = await params;
-  const { stranka } = await searchParams;
-  const currentPage = Math.max(1, parseInt(stranka || '1', 10) || 1);
+  const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
+  const currentPage = parsePageNumber(resolvedSearchParams.stranka);
 
   const { articles, total } = await getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE);
   const totalPages = Math.ceil(total / PAGE_SIZE);

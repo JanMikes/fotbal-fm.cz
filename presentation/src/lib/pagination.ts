@@ -23,3 +23,13 @@ export function generatePageNumbers(currentPage: number, totalPages: number): (n
 export function buildPageHref(baseHref: string, page: number, paramName = 'stranka'): string {
   return page === 1 ? baseHref : `${baseHref}?${paramName}=${page}`;
 }
+
+/**
+ * Parse page number from search param value.
+ * Returns 1 for undefined, empty, non-numeric, zero, or negative values.
+ */
+export function parsePageNumber(value: string | string[] | undefined): number {
+  if (value === undefined || Array.isArray(value)) return 1;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+}
