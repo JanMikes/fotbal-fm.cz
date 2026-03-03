@@ -103,6 +103,8 @@ jobs:
                     labels: ${{ steps.meta.outputs.labels }}
                     provenance: false
                     sbom: false
+                    build-args: |
+                        PUBLIC_UPLOADS_URL=https://cdn.fotbal-fm.thedevs.cz
                     cache-from: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-presentation:cache
                     cache-to: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-presentation:cache,mode=max,oci-mediatypes=true,compression=zstd,force-compression=true,ignore-error=true
 

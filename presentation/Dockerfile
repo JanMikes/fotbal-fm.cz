@@ -30,6 +30,9 @@ WORKDIR /app/presentation
 
 ENV NODE_ENV=production
 
+ARG PUBLIC_UPLOADS_URL=http://localhost:8080
+ENV PUBLIC_UPLOADS_URL=${PUBLIC_UPLOADS_URL}
+
 RUN --mount=type=cache,target=/app/presentation/.next/cache \
     npx next build
 
