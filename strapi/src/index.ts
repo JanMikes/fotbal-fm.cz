@@ -22,21 +22,6 @@ const CATEGORIES = [
   { name: 'Žákyně Přípravka', slug: 'zakyne-pripravka', sortOrder: 19 },
 ];
 
-// Fix navigation list layout: component fields crash the Strapi admin list view
-async function fixNavigationListLayout(strapi: Core.Strapi) {
-  const key = 'plugin_content_manager_configuration_content_types::api::navigation.navigation';
-  const store = strapi.store({ type: 'core', key });
-  const config = await store.get({ key }) as Record<string, unknown> | null;
-  if (!config) return;
-
-  const layouts = config.layouts as { list?: string[] } | undefined;
-  if (layouts?.list?.includes('link')) {
-    layouts.list = layouts.list.filter((field: string) => field !== 'link');
-    await store.set({ key, value: config });
-    strapi.log.info('Fixed navigation list layout: removed component field "link"');
-  }
-}
-
 async function seedCategories(strapi: Core.Strapi) {
   const existingCategories = await strapi.documents('api::category.category').findMany({
     limit: 1,
@@ -76,6 +61,5 @@ export default {
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await seedCategories(strapi);
-    await fixNavigationListLayout(strapi);
   },
 };
