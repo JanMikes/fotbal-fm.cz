@@ -162,10 +162,18 @@ function buildDynamicZonePopulate() {
   };
 }
 
+function buildParentPopulate(depth: number): Record<string, unknown> {
+  if (depth <= 1) {
+    return { parent: { fields: ['title', 'slug'] } };
+  }
+  return { parent: { fields: ['title', 'slug'], populate: buildParentPopulate(depth - 1) } };
+}
+
 export function buildPagePopulate() {
   return {
     content: buildDynamicZonePopulate(),
     sidebar: buildDynamicZonePopulate(),
+    ...buildParentPopulate(5),
   };
 }
 

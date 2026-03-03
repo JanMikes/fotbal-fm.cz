@@ -50,6 +50,11 @@
         "components.news-articles"
       ]
     },
+    "parent": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::page.page"
+    },
     "sidebar": {
       "type": "dynamiczone",
       "components": [

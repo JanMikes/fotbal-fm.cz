@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, FileDown } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import { NewsCard } from '../ui';
 import { MarkdownContent } from '../ui/MarkdownContent';
@@ -13,7 +12,7 @@ import type { NewsArticle } from '@/lib/types';
 
 interface ArticleDetailProps {
   article: NewsArticle;
-  categorySlug: string;
+  categorySlug?: string;
 }
 
 function formatDate(isoDate: string): string {
@@ -45,15 +44,6 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
       )}
 
       <div className="container mx-auto px-4 lg:px-8 py-12">
-        {/* Back Link */}
-        <Link
-          href={`/kategorie/${categorySlug}`}
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Zpět na novinky
-        </Link>
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

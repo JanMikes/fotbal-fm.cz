@@ -18,6 +18,7 @@ describe('mapPage', () => {
       title: 'O klubu',
       slug: 'o-klubu',
       meta_description: 'Popis stránky',
+      parent: null,
       content: [],
       sidebar: null,
     };
@@ -27,8 +28,41 @@ describe('mapPage', () => {
     expect(result.title).toBe('O klubu');
     expect(result.slug).toBe('o-klubu');
     expect(result.metaDescription).toBe('Popis stránky');
+    expect(result.breadcrumbs).toEqual([{ label: 'O klubu', href: '/o-klubu' }]);
     expect(result.content).toEqual([]);
     expect(result.sidebar).toEqual([]);
+  });
+
+  it('builds breadcrumbs from parent chain', () => {
+    const raw: StrapiRawPage = {
+      id: 3,
+      documentId: 'page-3',
+      title: 'Kontakty',
+      slug: 'kontakty',
+      meta_description: null,
+      parent: {
+        id: 2,
+        documentId: 'page-2',
+        title: 'O klubu',
+        slug: 'o-klubu',
+        parent: {
+          id: 1,
+          documentId: 'page-1',
+          title: 'Klub',
+          slug: 'klub',
+          parent: null,
+        },
+      },
+      content: [],
+      sidebar: null,
+    };
+
+    const result = mapPage(raw);
+    expect(result.breadcrumbs).toEqual([
+      { label: 'Klub', href: '/klub' },
+      { label: 'O klubu', href: '/o-klubu' },
+      { label: 'Kontakty', href: '/kontakty' },
+    ]);
   });
 
   it('maps null meta_description to null', () => {
@@ -38,6 +72,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [],
       sidebar: null,
     };
@@ -52,6 +87,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 10,
@@ -75,6 +111,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 20,
@@ -103,6 +140,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 30,
@@ -130,6 +168,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 40,
@@ -171,6 +210,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 50,
@@ -206,6 +246,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         { id: 10, __component: 'components.text', text: 'Main' },
       ],
@@ -229,6 +270,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         { id: 10, __component: 'components.text', text: 'Known' },
         { id: 11, __component: 'components.unknown-widget', data: 'foo' },
@@ -248,6 +290,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         { id: 60, __component: 'components.section-divider', spacing: 'L', style: 'dashed' },
       ],
@@ -267,6 +310,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 70,
@@ -292,6 +336,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 80,
@@ -316,6 +361,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         { id: 90, __component: 'components.video', youtube_id: 'abc123', aspect_ratio: '4:3' },
       ],
@@ -335,6 +381,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 100,
@@ -357,6 +404,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 110,
@@ -382,6 +430,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         {
           id: 120,
@@ -413,6 +462,7 @@ describe('mapPage', () => {
       title: 'Test',
       slug: 'test',
       meta_description: null,
+      parent: null,
       content: [
         { id: 10, __component: 'components.heading', text: null, type: undefined, anchor: undefined },
         { id: 20, __component: 'components.alert', type: undefined, title: undefined, text: undefined },

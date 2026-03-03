@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { SidePanel } from '@/components/layout';
+import { Breadcrumb } from '@/components/ui';
 import { getPageBySlug } from '@/lib/strapi/data';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
 
@@ -36,6 +37,7 @@ export default async function CmsPage({ params }: PageProps) {
   return (
     <main className="bg-surface-light mt-28 lg:mt-32">
       <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
+        <Breadcrumb items={page.breadcrumbs} />
         <h1 className="text-3xl lg:text-4xl font-bold text-primary mb-8">{page.title}</h1>
         {hasSidebar ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

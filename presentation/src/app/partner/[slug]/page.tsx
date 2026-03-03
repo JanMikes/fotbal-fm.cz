@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { SidePanel } from '@/components/layout';
+import { Breadcrumb } from '@/components/ui';
 import { getPartnerBySlug } from '@/lib/strapi/data';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
 
@@ -37,6 +38,10 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   return (
     <main className="bg-surface-light mt-28 lg:mt-32">
       <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
+        <Breadcrumb items={[
+          { label: 'Partneři', href: '/partneri' },
+          { label: partner.name, href: `/partner/${slug}` },
+        ]} />
         <div className="flex items-center gap-6 mb-8">
           {partner.logo && (
             <div className="relative w-20 h-20 lg:w-24 lg:h-24 shrink-0">

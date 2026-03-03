@@ -79,12 +79,21 @@ export interface StrapiRawNavigation {
   sortOrder: number;
 }
 
+export interface StrapiRawPageParent {
+  id: number;
+  documentId: string;
+  title: string;
+  slug: string;
+  parent: StrapiRawPageParent | null;
+}
+
 export interface StrapiRawPage {
   id: number;
   documentId: string;
   title: string;
   slug: string;
   meta_description: string | null;
+  parent: StrapiRawPageParent | null;
   content: StrapiRawDynamicZoneComponent[];
   sidebar: StrapiRawDynamicZoneComponent[] | null;
 }

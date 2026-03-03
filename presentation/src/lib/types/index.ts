@@ -155,6 +155,13 @@ export interface NavigationItem {
   external: boolean;
 }
 
+// Breadcrumbs
+
+export interface BreadcrumbItem {
+  label: string;
+  href: string;
+}
+
 // Pages & Dynamic Zones
 
 export interface Page {
@@ -162,6 +169,7 @@ export interface Page {
   title: string;
   slug: string;
   metaDescription: string | null;
+  breadcrumbs: BreadcrumbItem[];
   content: DynamicZoneComponent[];
   sidebar: DynamicZoneComponent[];
 }

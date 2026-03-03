@@ -494,9 +494,7 @@ export interface ApiCategoryGroupCategoryGroup
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     publishedAt: Schema.Attribute.DateTime;
-    slug: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -948,6 +946,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &
       Schema.Attribute.Private;
     meta_description: Schema.Attribute.String;
+    parent: Schema.Attribute.Relation<'manyToOne', 'api::page.page'>;
     publishedAt: Schema.Attribute.DateTime;
     sidebar: Schema.Attribute.DynamicZone<
       [

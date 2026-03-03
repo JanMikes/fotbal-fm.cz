@@ -1,14 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Instagram, Twitter, Facebook } from 'lucide-react';
+import { Instagram, Twitter, Facebook } from 'lucide-react';
 import type { Player } from '@/lib/types';
 
 interface PlayerDetailProps {
   player: Player;
-  categorySlug: string;
 }
 
 const positionLabels: Record<string, string> = {
@@ -18,7 +16,7 @@ const positionLabels: Record<string, string> = {
   'útočník': 'Útočník',
 };
 
-export default function PlayerDetail({ player, categorySlug }: PlayerDetailProps) {
+export default function PlayerDetail({ player }: PlayerDetailProps) {
   const isPlayer = player.type === 'hráč';
   const displayPosition = player.position ? positionLabels[player.position] ?? player.position : player.positionText;
   const imageUrl = player.photo?.url || '/players/player-1.jpg';
@@ -26,15 +24,6 @@ export default function PlayerDetail({ player, categorySlug }: PlayerDetailProps
   return (
     <div className="bg-white">
       <div className="container mx-auto px-4 lg:px-8 py-12">
-        {/* Back Link */}
-        <Link
-          href={`/kategorie/${categorySlug}`}
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Zpět na tým
-        </Link>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Photo */}
           <motion.div

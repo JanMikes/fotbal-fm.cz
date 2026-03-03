@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { PlayerDetail } from '@/components/sections';
-import { getPlayerByCategoryAndSlug } from '@/lib/strapi/data';
+import { Breadcrumb } from '@/components/ui';
+import { getPlayerByCategoryAndSlug, getCategoryBySlug } from '@/lib/strapi/data';
 
 interface PlayerPageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -27,11 +28,24 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { category: categorySlug, slug } = await params;
-  const player = await getPlayerByCategoryAndSlug(categorySlug, slug);
+  const [player, category] = await Promise.all([
+    getPlayerByCategoryAndSlug(categorySlug, slug),
+    getCategoryBySlug(categorySlug),
+  ]);
 
   if (!player) {
     notFound();
   }
 
-  return <PlayerDetail player={player} categorySlug={categorySlug} />;
+  return (
+    <>
+      <div className="container mx-auto px-4 lg:px-8 pt-6">
+        <Breadcrumb items={[
+          { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },
+          { label: player.name, href: `/kategorie/${categorySlug}/hrac/${slug}` },
+        ]} />
+      </div>
+      <PlayerDetail player={player} />
+    </>
+  );
 }

@@ -1,7 +1,5 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { getNewsArticlesByCategory } from '@/lib/strapi/data';
-import { NewsCard } from '@/components/ui';
+import { getNewsArticlesByCategory, getCategoryBySlug } from '@/lib/strapi/data';
+import { Breadcrumb, NewsCard } from '@/components/ui';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
 
@@ -17,22 +15,20 @@ export default async function NovinkyPage({ params, searchParams }: NovinkyPageP
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
 
-  const { articles, total } = await getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE);
+  const [{ articles, total }, category] = await Promise.all([
+    getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE),
+    getCategoryBySlug(categorySlug),
+  ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <section className="py-section">
       <div className="container mx-auto px-4 lg:px-8">
-        {/* Back link */}
-        <Link
-          href={`/kategorie/${categorySlug}`}
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Zpět na kategorii
-        </Link>
+        <Breadcrumb items={[
+          { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },
+          { label: 'Novinky', href: `/kategorie/${categorySlug}/novinky` },
+        ]} />
 
-        {/* Header */}
         <h1 className="text-section text-primary uppercase accent-underline mb-12">
           Novinky
         </h1>

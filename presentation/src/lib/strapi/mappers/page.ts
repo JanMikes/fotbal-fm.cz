@@ -1,8 +1,20 @@
-import type { DynamicZoneComponent, Page } from '@/lib/types';
-import type { StrapiRawDynamicZoneComponent, StrapiRawPage } from '../types';
+import type { BreadcrumbItem, DynamicZoneComponent, Page } from '@/lib/types';
+import type { StrapiRawDynamicZoneComponent, StrapiRawPage, StrapiRawPageParent } from '../types';
 import { resolveTextLink } from '../link-resolver';
 import { mapMedia } from './shared';
 import { mapCategory } from './category';
+
+function buildBreadcrumbs(parent: StrapiRawPageParent | null | undefined, currentTitle: string, currentSlug: string): BreadcrumbItem[] {
+  const chain: BreadcrumbItem[] = [];
+  let node = parent;
+  while (node) {
+    chain.push({ label: node.title, href: `/${node.slug}` });
+    node = node.parent;
+  }
+  chain.reverse();
+  chain.push({ label: currentTitle, href: `/${currentSlug}` });
+  return chain;
+}
 
 export function mapPage(raw: StrapiRawPage): Page {
   return {
@@ -10,6 +22,7 @@ export function mapPage(raw: StrapiRawPage): Page {
     title: raw.title,
     slug: raw.slug,
     metaDescription: raw.meta_description ?? null,
+    breadcrumbs: buildBreadcrumbs(raw.parent, raw.title, raw.slug),
     content: mapDynamicZone(raw.content),
     sidebar: mapDynamicZone(raw.sidebar ?? []),
   };
