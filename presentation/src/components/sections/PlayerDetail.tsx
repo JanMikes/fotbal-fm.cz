@@ -28,7 +28,7 @@ export default function PlayerDetail({ player, categorySlug }: PlayerDetailProps
       <div className="container mx-auto px-4 lg:px-8 py-12">
         {/* Back Link */}
         <Link
-          href={`/${categorySlug}`}
+          href={`/kategorie/${categorySlug}`}
           className="inline-flex items-center gap-2 text-sm font-medium text-primary/60 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
