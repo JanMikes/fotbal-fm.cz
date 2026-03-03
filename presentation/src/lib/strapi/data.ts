@@ -1,7 +1,8 @@
 import type {
   Category,
+  CategoryGroup,
   CategoryHeroData,
-  FooterLinkSection,
+  Footer,
   Match,
   NavigationItem,
   NewsArticle,
@@ -14,8 +15,9 @@ import type {
 } from '@/lib/types';
 import type {
   StrapiRawCategory,
+  StrapiRawCategoryGroup,
   StrapiRawCategoryWithHero,
-  StrapiRawFooterLinkSection,
+  StrapiRawFooter,
   StrapiRawMatch,
   StrapiRawNavigation,
   StrapiRawNewsArticle,
@@ -26,7 +28,8 @@ import type {
 } from './types';
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
-import { mapFooterLinkSection } from './mappers/footer-link-section';
+import { mapCategoryGroup } from './mappers/category-group';
+import { mapFooter } from './mappers/footer';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
@@ -35,7 +38,7 @@ import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
-import { buildNavigationPopulate, buildFooterLinkSectionPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
+import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
 
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
@@ -54,6 +57,28 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapCategory(data[0]) : null;
+}
+
+export async function getCategoryGroups(): Promise<CategoryGroup[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawCategoryGroup>('category-groups', {
+    filters: { hidden: { $ne: true } },
+    sort: 'sortOrder:asc',
+    populate: {
+      categories: {
+        fields: ['documentId', 'name', 'slug', 'sortOrder', 'hidden', 'sortOrderInGroup'],
+      },
+    },
+    pagination: { pageSize: 100 },
+  });
+  return data
+    .map(mapCategoryGroup)
+    .filter((g) => g.categories.length > 0);
+}
+
+export async function getCategoryGroupByCategorySlug(slug: string): Promise<CategoryGroup | null> {
+  const groups = await getCategoryGroups();
+  return groups.find((g) => g.categories.some((c) => c.slug === slug)) ?? null;
 }
 
 export async function getNewsArticlesByCategory(
@@ -198,14 +223,12 @@ export async function getNavigation(): Promise<NavigationItem[]> {
   return data.map(mapNavigation).filter((item): item is NavigationItem => item !== null);
 }
 
-export async function getFooterLinkSections(): Promise<FooterLinkSection[]> {
+export async function getFooter(): Promise<Footer | null> {
   const client = getStrapiClient();
-  const { data } = await client.findMany<StrapiRawFooterLinkSection>('footer-link-sections', {
-    sort: 'sortOrder:asc',
-    populate: buildFooterLinkSectionPopulate(),
-    pagination: { pageSize: 100 },
+  const raw = await client.findSingle<StrapiRawFooter>('footer', {
+    populate: buildFooterPopulate(),
   });
-  return data.map(mapFooterLinkSection);
+  return raw ? mapFooter(raw) : null;
 }
 
 export async function getPageBySlug(slug: string): Promise<Page | null> {

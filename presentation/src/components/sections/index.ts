@@ -5,3 +5,4 @@ export { default as NewsList } from './NewsList';
 export { default as TeamSection } from './TeamSection';
 export { default as ArticleDetail } from './ArticleDetail';
 export { default as PlayerDetail } from './PlayerDetail';
+export { default as CategorySwitcher } from './CategorySwitcher';

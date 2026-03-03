@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
-import type { Category, NavigationItem } from '@/lib/types';
+import type { CategoryGroup, NavigationItem } from '@/lib/types';
 
 const socialLinks = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
@@ -17,16 +17,21 @@ const socialLinks = [
 ];
 
 interface HeaderProps {
-  categories: Category[];
+  categoryGroups: CategoryGroup[];
   navigation?: NavigationItem[];
 }
 
-export default function Header({ categories, navigation = [] }: HeaderProps) {
+export default function Header({ categoryGroups, navigation = [] }: HeaderProps) {
   const pathname = usePathname();
   const activeCategorySlug = useMemo(() => {
     const match = pathname.match(/^\/kategorie\/([^/]+)/);
     return match ? match[1] : '';
   }, [pathname]);
+  const activeGroupSlug = useMemo(() => {
+    return categoryGroups.find((g) =>
+      g.categories.some((c) => c.slug === activeCategorySlug)
+    )?.slug ?? '';
+  }, [categoryGroups, activeCategorySlug]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -67,7 +72,7 @@ export default function Header({ categories, navigation = [] }: HeaderProps) {
     const resizeObserver = new ResizeObserver(updateScrollIndicators);
     resizeObserver.observe(el);
 
-    // Scroll active category into view
+    // Scroll active group into view
     const activeLink = el.querySelector('[data-active="true"]') as HTMLElement | null;
     if (activeLink) {
       const elRect = el.getBoundingClientRect();
@@ -81,7 +86,7 @@ export default function Header({ categories, navigation = [] }: HeaderProps) {
       el.removeEventListener('scroll', updateScrollIndicators);
       resizeObserver.disconnect();
     };
-  }, [categories, activeCategorySlug, updateScrollIndicators]);
+  }, [categoryGroups, activeGroupSlug, updateScrollIndicators]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -202,24 +207,24 @@ export default function Header({ categories, navigation = [] }: HeaderProps) {
               </button>
             </div>
 
-            {/* Scrollable categories */}
+            {/* Scrollable category groups */}
             <div
               ref={scrollRef}
               className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2"
             >
-              {categories.map((cat) => (
+              {categoryGroups.map((group) => (
                 <Link
-                  key={cat.slug}
-                  href={`/kategorie/${cat.slug}`}
-                  data-active={activeCategorySlug === cat.slug}
+                  key={group.slug}
+                  href={`/kategorie/${group.firstCategorySlug}`}
+                  data-active={activeGroupSlug === group.slug}
                   className={clsx(
                     'px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300',
-                    activeCategorySlug === cat.slug
+                    activeGroupSlug === group.slug
                       ? 'bg-accent text-white'
                       : 'text-primary/70 hover:text-primary hover:bg-surface-light'
                   )}
                 >
-                  {cat.name}
+                  {group.name}
                 </Link>
               ))}
             </div>
@@ -302,25 +307,25 @@ export default function Header({ categories, navigation = [] }: HeaderProps) {
                 ))}
               </nav>
 
-              {/* Mobile Category Tabs */}
+              {/* Mobile Category Groups */}
               <div className="mb-8">
                 <p className="text-small text-white/50 uppercase tracking-wider mb-3">
                   Týmy
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
+                  {categoryGroups.map((group) => (
                     <Link
-                      key={cat.slug}
-                      href={`/kategorie/${cat.slug}`}
+                      key={group.slug}
+                      href={`/kategorie/${group.firstCategorySlug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={clsx(
                         'px-4 py-2 text-sm font-medium transition-colors',
-                        activeCategorySlug === cat.slug
+                        activeGroupSlug === group.slug
                           ? 'bg-accent text-white'
                           : 'bg-white/10 text-white/70 hover:text-white'
                       )}
                     >
-                      {cat.name}
+                      {group.name}
                     </Link>
                   ))}
                 </div>

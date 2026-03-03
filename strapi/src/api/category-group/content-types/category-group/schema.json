@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "category_groups",
+  "info": {
+    "singularName": "category-group",
+    "pluralName": "category-groups",
+    "displayName": "Category Group",
+    "description": "Groups of football team categories"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "hidden": {
+      "type": "boolean",
+      "default": false
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category",
+      "mappedBy": "categoryGroup"
+    }
+  }
+}

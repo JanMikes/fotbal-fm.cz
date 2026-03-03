@@ -17,6 +17,15 @@ export interface Category {
   sortOrder: number;
 }
 
+export interface CategoryGroup {
+  documentId: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+  categories: Category[];
+  firstCategorySlug: string;
+}
+
 export interface NewsArticleType {
   documentId: string;
   name: string;
@@ -125,9 +134,17 @@ export interface PartnerDetail extends Partner {
 // Footer
 
 export interface FooterLinkSection {
-  documentId: string;
   title: string;
   links: ResolvedTextLink[];
+}
+
+export interface Footer {
+  text: string | null;
+  address: string | null;
+  mail: string | null;
+  phone: string | null;
+  linkSections: FooterLinkSection[];
+  bottomLinks: ResolvedTextLink[];
 }
 
 // Navigation

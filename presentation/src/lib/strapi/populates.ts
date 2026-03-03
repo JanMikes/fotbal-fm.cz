@@ -178,9 +178,14 @@ export function buildPartnerPopulate() {
   };
 }
 
-export function buildFooterLinkSectionPopulate() {
+export function buildFooterPopulate() {
   return {
-    links: textLinkPopulate,
+    linkSections: {
+      populate: {
+        links: textLinkPopulate,
+      },
+    },
+    bottomLinks: textLinkPopulate,
   };
 }
 

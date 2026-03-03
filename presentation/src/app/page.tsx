@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
-import { getCategories } from '@/lib/strapi/data';
+import { getCategoryGroups } from '@/lib/strapi/data';
 
 export default async function Home() {
-  const categories = await getCategories();
+  const categoryGroups = await getCategoryGroups();
 
-  if (categories.length > 0) {
-    redirect(`/kategorie/${categories[0].slug}`);
+  if (categoryGroups.length > 0) {
+    redirect(`/kategorie/${categoryGroups[0].firstCategorySlug}`);
   }
 
   return (

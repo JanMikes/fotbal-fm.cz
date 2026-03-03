@@ -50,8 +50,20 @@ export interface StrapiRawCategory {
   slug: string;
   sortOrder: number;
   hidden?: boolean;
+  sortOrderInGroup?: number;
+  categoryGroup?: StrapiRawCategoryGroup | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface StrapiRawCategoryGroup {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  sortOrder: number;
+  hidden?: boolean;
+  categories?: StrapiRawCategory[];
 }
 
 export interface StrapiQueryOptions {

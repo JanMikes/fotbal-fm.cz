@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import { Header, Footer } from '@/components/layout';
-import { getCategories, getFooterLinkSections, getNavigation } from '@/lib/strapi/data';
+import { getCategoryGroups, getFooter, getNavigation } from '@/lib/strapi/data';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -50,18 +50,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [categories, navigation, footerLinkSections] = await Promise.all([
-    getCategories(),
+  const [categoryGroups, navigation, footer] = await Promise.all([
+    getCategoryGroups(),
     getNavigation(),
-    getFooterLinkSections(),
+    getFooter(),
   ]);
 
   return (
     <html lang="cs" className={montserrat.variable}>
       <body className="font-sans">
-        <Header categories={categories} navigation={navigation} />
+        <Header categoryGroups={categoryGroups} navigation={navigation} />
         {children}
-        <Footer linkSections={footerLinkSections} />
+        <Footer footer={footer} />
       </body>
     </html>
   );

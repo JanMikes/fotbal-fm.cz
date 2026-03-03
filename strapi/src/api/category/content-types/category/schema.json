@@ -97,6 +97,16 @@
     },
     "heroSlide3Link": {
       "type": "string"
+    },
+    "categoryGroup": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category-group.category-group",
+      "inversedBy": "categories"
+    },
+    "sortOrderInGroup": {
+      "type": "integer",
+      "default": 0
     }
   }
 }

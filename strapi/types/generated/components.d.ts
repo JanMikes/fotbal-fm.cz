@@ -491,6 +491,20 @@ export interface ElementsTimelineItem extends Struct.ComponentSchema {
   };
 }
 
+export interface FooterLinkSection extends Struct.ComponentSchema {
+  collectionName: 'components_footer_link_sections';
+  info: {
+    description: 'Footer link section with title and links';
+    displayName: 'Sekce odkaz\u016F';
+  };
+  attributes: {
+    links: Schema.Attribute.Component<'elements.text-link', true> &
+      Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface TournamentPlayer extends Struct.ComponentSchema {
   collectionName: 'components_tournament_players';
   info: {
@@ -542,6 +556,7 @@ declare module '@strapi/strapi' {
       'elements.stat-item': ElementsStatItem;
       'elements.text-link': ElementsTextLink;
       'elements.timeline-item': ElementsTimelineItem;
+      'footer.link-section': FooterLinkSection;
       'tournament.player': TournamentPlayer;
     }
   }

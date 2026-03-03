@@ -28,6 +28,7 @@ interface HeroProps {
   lastResult: Match | null;
   heroData: CategoryHeroData;
   categorySlug: string;
+  categorySwitcher?: React.ReactNode;
 }
 
 function buildSlides(
@@ -91,7 +92,7 @@ function buildSlides(
   return slides;
 }
 
-export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug }: HeroProps) {
+export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug, categorySwitcher }: HeroProps) {
   const slides = buildSlides(upcomingMatch, lastResult, heroData, categorySlug);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -139,6 +140,13 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
   return (
     <section className="relative h-[calc(100vh-7rem)] lg:h-[calc(100vh-8rem)] min-h-[500px] mt-28 lg:mt-32 clip-diagonal-bottom">
+      {/* Category Switcher */}
+      {categorySwitcher && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+          {categorySwitcher}
+        </div>
+      )}
+
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">

@@ -1,7 +1,8 @@
-import { Hero, Matches, Statistics } from '@/components/sections';
+import { Hero, Matches, Statistics, CategorySwitcher } from '@/components/sections';
 import { NewsList, TeamSection } from '@/components/sections';
 import {
   getAllMatchesByCategory,
+  getCategoryGroupByCategorySlug,
   getCategoryWithHeroBySlug,
   getFinishedMatches,
   getLastResult,
@@ -19,7 +20,7 @@ interface CategoryPageProps {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
 
-  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches] =
+  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches, categoryGroup] =
     await Promise.all([
       getNewsArticlesByCategory(categorySlug, 1, 6),
       getPlayersByCategory(categorySlug),
@@ -30,6 +31,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       getUpcomingMatch(categorySlug),
       getLastResult(categorySlug),
       getAllMatchesByCategory(categorySlug),
+      getCategoryGroupByCategorySlug(categorySlug),
     ]);
 
   const defaultHero = {
@@ -42,14 +44,25 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     heroSlide3Link: null,
   };
 
+  const heroData = categoryWithHero?.hero ?? defaultHero;
+  const hasHeroSlides = heroData.heroSlide1Image || heroData.heroSlide2Image || heroData.heroSlide3Image || heroData.heroSlide3NewsArticle;
+  const showSwitcher = categoryGroup && categoryGroup.categories.length > 1;
+  const switcherElement = showSwitcher ? <CategorySwitcher categories={categoryGroup.categories} /> : null;
+
   return (
     <>
       <Hero
         upcomingMatch={upcomingMatch}
         lastResult={lastResult}
-        heroData={categoryWithHero?.hero ?? defaultHero}
+        heroData={heroData}
         categorySlug={categorySlug}
+        categorySwitcher={hasHeroSlides ? switcherElement : undefined}
       />
+      {!hasHeroSlides && switcherElement && (
+        <div className="flex justify-center py-4 mt-28 lg:mt-32">
+          {switcherElement}
+        </div>
+      )}
       <Matches upcomingMatches={upcoming} finishedMatches={finished} allMatches={allMatches} categorySlug={categorySlug} />
       <Statistics standings={standings} />
       <NewsList articles={newsResult.articles} categorySlug={categorySlug} />

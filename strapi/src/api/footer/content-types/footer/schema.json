@@ -1,0 +1,36 @@
+{
+  "kind": "singleType",
+  "collectionName": "footers",
+  "info": {
+    "singularName": "footer",
+    "pluralName": "footers",
+    "displayName": "Patička"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "text": {
+      "type": "text"
+    },
+    "address": {
+      "type": "string"
+    },
+    "mail": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "linkSections": {
+      "type": "component",
+      "component": "footer.link-section",
+      "repeatable": true
+    },
+    "bottomLinks": {
+      "type": "component",
+      "component": "elements.text-link",
+      "repeatable": true
+    }
+  }
+}

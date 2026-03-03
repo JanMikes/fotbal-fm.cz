@@ -5,6 +5,7 @@ export type {
   StrapiErrorResponse,
   StrapiRawMedia,
   StrapiRawCategory,
+  StrapiRawCategoryGroup,
   StrapiQueryOptions,
 } from './types';
 

@@ -4,13 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
-import type { FooterLinkSection } from '@/lib/types';
-
-const contactItems = [
-  { icon: MapPin, text: 'Sportovní 1234, 738 01 Frýdek-Místek' },
-  { icon: Mail, text: 'info@fkfm.cz', href: 'mailto:info@fkfm.cz' },
-  { icon: Phone, text: '+420 558 123 456', href: 'tel:+420558123456' },
-];
+import type { Footer as FooterType } from '@/lib/types';
 
 const socialLinks = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
@@ -20,10 +14,10 @@ const socialLinks = [
 ];
 
 interface FooterProps {
-  linkSections: FooterLinkSection[];
+  footer: FooterType | null;
 }
 
-export default function Footer({ linkSections }: FooterProps) {
+export default function Footer({ footer }: FooterProps) {
   const [email, setEmail] = useState('');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -32,6 +26,15 @@ export default function Footer({ linkSections }: FooterProps) {
     console.log('Newsletter subscription:', email);
     setEmail('');
   };
+
+  const contactItems = [
+    footer?.address ? { icon: MapPin, text: footer.address } : null,
+    footer?.mail ? { icon: Mail, text: footer.mail, href: `mailto:${footer.mail}` } : null,
+    footer?.phone ? { icon: Phone, text: footer.phone, href: `tel:${footer.phone.replace(/\s/g, '')}` } : null,
+  ].filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const linkSections = footer?.linkSections ?? [];
+  const bottomLinks = footer?.bottomLinks ?? [];
 
   return (
     <footer className="bg-primary-500 text-white">
@@ -50,9 +53,11 @@ export default function Footer({ linkSections }: FooterProps) {
                 />
               </div>
             </Link>
-            <p className="text-white/60 text-body mb-6 leading-relaxed">
-              FK Frýdek-Místek - tradiční fotbalový klub s bohatou historií a vášní pro hru.
-            </p>
+            {footer?.text && (
+              <p className="text-white/60 text-body mb-6 leading-relaxed">
+                {footer.text}
+              </p>
+            )}
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
                 <a
@@ -70,18 +75,18 @@ export default function Footer({ linkSections }: FooterProps) {
           </div>
 
           {/* Dynamic Link Sections from Strapi */}
-          {linkSections.map((section) => (
-            <div key={section.documentId}>
+          {linkSections.map((section, index) => (
+            <div key={index}>
               <h4 className="font-bold uppercase tracking-wider text-small mb-6">
                 {section.title}
               </h4>
               <ul className="space-y-3">
-                {section.links.map((link, index) => {
+                {section.links.map((link, linkIndex) => {
                   const props = link.external
                     ? { target: '_blank' as const, rel: 'noopener noreferrer' }
                     : {};
                   return (
-                    <li key={index}>
+                    <li key={linkIndex}>
                       <Link
                         href={link.href}
                         className="text-white/60 hover:text-white transition-colors inline-flex items-center gap-2 group"
@@ -98,28 +103,30 @@ export default function Footer({ linkSections }: FooterProps) {
           ))}
 
           {/* Contact */}
-          <div>
-            <h4 className="font-bold uppercase tracking-wider text-small mb-6">
-              Kontakt
-            </h4>
-            <ul className="space-y-4">
-              {contactItems.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <item.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-                  {item.href ? (
-                    <a
-                      href={item.href}
-                      className="text-white/60 hover:text-white transition-colors"
-                    >
-                      {item.text}
-                    </a>
-                  ) : (
-                    <span className="text-white/60">{item.text}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {contactItems.length > 0 && (
+            <div>
+              <h4 className="font-bold uppercase tracking-wider text-small mb-6">
+                Kontakt
+              </h4>
+              <ul className="space-y-4">
+                {contactItems.map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <item.icon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        className="text-white/60 hover:text-white transition-colors"
+                      >
+                        {item.text}
+                      </a>
+                    ) : (
+                      <span className="text-white/60">{item.text}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Newsletter */}
@@ -156,14 +163,25 @@ export default function Footer({ linkSections }: FooterProps) {
         <div className="container mx-auto px-4 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-small text-white/50">
             <p>&copy; 2026 FK Frýdek-Místek. Všechna práva vyhrazena.</p>
-            <div className="flex items-center gap-6">
-              <Link href="/ochrana-osobnich-udaju" className="hover:text-white transition-colors">
-                Ochrana osobních údajů
-              </Link>
-              <Link href="/cookies" className="hover:text-white transition-colors">
-                Cookies
-              </Link>
-            </div>
+            {bottomLinks.length > 0 && (
+              <div className="flex items-center gap-6">
+                {bottomLinks.map((link, index) => {
+                  const props = link.external
+                    ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+                    : {};
+                  return (
+                    <Link
+                      key={index}
+                      href={link.href}
+                      className="hover:text-white transition-colors"
+                      {...props}
+                    >
+                      {link.text}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

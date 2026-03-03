@@ -1,6 +1,7 @@
 export type {
   StrapiRawMedia,
   StrapiRawCategory,
+  StrapiRawCategoryGroup,
   StrapiCollectionResponse,
   StrapiSingleResponse,
   StrapiQueryOptions,
@@ -124,10 +125,20 @@ export type StrapiRawCategoryWithHero = import('@fotbal-fm/strapi-client').Strap
 
 export interface StrapiRawFooterLinkSection {
   id: number;
-  documentId: string;
   title: string;
   links: StrapiRawTextLink[];
   sortOrder: number;
+}
+
+export interface StrapiRawFooter {
+  id: number;
+  documentId: string;
+  text: string | null;
+  address: string | null;
+  mail: string | null;
+  phone: string | null;
+  linkSections: StrapiRawFooterLinkSection[] | null;
+  bottomLinks: StrapiRawTextLink[] | null;
 }
 
 export interface StrapiRawPartner {

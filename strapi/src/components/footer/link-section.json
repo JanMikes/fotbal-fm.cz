@@ -1,13 +1,8 @@
 {
-  "kind": "collectionType",
-  "collectionName": "footer_link_sections",
+  "collectionName": "components_footer_link_sections",
   "info": {
-    "singularName": "footer-link-section",
-    "pluralName": "footer-link-sections",
-    "displayName": "Patička - sekce odkazů"
-  },
-  "options": {
-    "draftAndPublish": false
+    "displayName": "Sekce odkazů",
+    "description": "Footer link section with title and links"
   },
   "attributes": {
     "title": {

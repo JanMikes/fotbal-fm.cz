@@ -8,9 +8,11 @@ vi.mock('@/lib/config', () => ({
 }));
 
 const mockFindMany = vi.fn();
+const mockFindSingle = vi.fn();
 vi.mock('../../../lib/strapi/client', () => ({
   getStrapiClient: () => ({
     findMany: mockFindMany,
+    findSingle: mockFindSingle,
   }),
 }));
 
@@ -24,6 +26,7 @@ const {
   getPlayersByCategory,
   getPlayerByCategoryAndSlug,
   getNavigation,
+  getFooter,
   getPageBySlug,
   getPartners,
   getPartnerBySlug,
@@ -311,6 +314,63 @@ describe('data layer', () => {
 
       const result = await getNavigation();
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getFooter', () => {
+    it('returns mapped footer when data exists', async () => {
+      mockFindSingle.mockResolvedValueOnce({
+        id: 1,
+        documentId: 'footer-1',
+        text: 'Popis klubu',
+        address: 'Sportovní 1234',
+        mail: 'info@fkfm.cz',
+        phone: '+420 558 123 456',
+        linkSections: [
+          {
+            id: 10,
+            title: 'Klub',
+            links: [
+              { id: 100, text: 'O nás', page: { slug: 'o-nas' }, anchor: null, url: null, file: null, disabled: false },
+            ],
+            sortOrder: 0,
+          },
+        ],
+        bottomLinks: [
+          { id: 200, text: 'Ochrana údajů', page: { slug: 'ochrana-udaju' }, anchor: null, url: null, file: null, disabled: false },
+        ],
+      });
+
+      const result = await getFooter();
+      expect(result).not.toBeNull();
+      expect(result!.text).toBe('Popis klubu');
+      expect(result!.address).toBe('Sportovní 1234');
+      expect(result!.mail).toBe('info@fkfm.cz');
+      expect(result!.phone).toBe('+420 558 123 456');
+      expect(result!.linkSections).toHaveLength(1);
+      expect(result!.linkSections[0].title).toBe('Klub');
+      expect(result!.linkSections[0].links).toHaveLength(1);
+      expect(result!.bottomLinks).toHaveLength(1);
+    });
+
+    it('returns null when no footer data', async () => {
+      mockFindSingle.mockResolvedValueOnce(null);
+
+      const result = await getFooter();
+      expect(result).toBeNull();
+    });
+
+    it('calls findSingle with correct params', async () => {
+      mockFindSingle.mockResolvedValueOnce(null);
+
+      await getFooter();
+
+      expect(mockFindSingle).toHaveBeenCalledWith('footer', expect.objectContaining({
+        populate: expect.objectContaining({
+          linkSections: expect.any(Object),
+          bottomLinks: expect.any(Object),
+        }),
+      }));
     });
   });
 

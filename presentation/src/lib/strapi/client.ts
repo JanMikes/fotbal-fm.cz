@@ -1,6 +1,6 @@
 import { config } from '@/lib/config';
 import { buildStrapiQueryString } from './queries';
-import type { StrapiCollectionResponse, StrapiQueryOptions } from './types';
+import type { StrapiCollectionResponse, StrapiSingleResponse, StrapiQueryOptions } from './types';
 
 class StrapiClient {
   private baseUrl: string;
@@ -71,6 +71,33 @@ class StrapiClient {
     }
 
     return results;
+  }
+
+  async findSingle<T>(
+    contentType: string,
+    options: StrapiQueryOptions = {},
+  ): Promise<T | null> {
+    const qs = buildStrapiQueryString(options);
+    const url = `${this.baseUrl}/api/${contentType}${qs}`;
+
+    try {
+      const res = await fetch(url, {
+        headers: this.headers,
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      if (!res.ok) {
+        console.error(`Strapi findSingle ${contentType} failed: ${res.status}`);
+        return null;
+      }
+
+      const json: StrapiSingleResponse<T> = await res.json();
+      return json.data ?? null;
+    } catch (error) {
+      console.error(`Strapi findSingle ${contentType} error:`, error);
+      return null;
+    }
   }
 
   async findOne<T>(

@@ -463,6 +463,47 @@ export interface ApiCategoryCodeCategoryCode
   };
 }
 
+export interface ApiCategoryGroupCategoryGroup
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'category_groups';
+  info: {
+    description: 'Groups of football team categories';
+    displayName: 'Category Group';
+    pluralName: 'category-groups';
+    singularName: 'category-group';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    categories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category.category'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    hidden: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category-group.category-group'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
@@ -478,6 +519,10 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     categoryCodes: Schema.Attribute.Relation<
       'oneToMany',
       'api::category-code.category-code'
+    >;
+    categoryGroup: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::category-group.category-group'
     >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -514,6 +559,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    sortOrderInGroup: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sportbmCategoryId: Schema.Attribute.String;
     tournaments: Schema.Attribute.Relation<
       'manyToMany',
@@ -624,32 +670,33 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiFooterLinkSectionFooterLinkSection
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'footer_link_sections';
+export interface ApiFooterFooter extends Struct.SingleTypeSchema {
+  collectionName: 'footers';
   info: {
-    displayName: 'Pati\u010Dka - sekce odkaz\u016F';
-    pluralName: 'footer-link-sections';
-    singularName: 'footer-link-section';
+    displayName: 'Pati\u010Dka';
+    pluralName: 'footers';
+    singularName: 'footer';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
+    address: Schema.Attribute.String;
+    bottomLinks: Schema.Attribute.Component<'elements.text-link', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    links: Schema.Attribute.Component<'elements.text-link', true> &
-      Schema.Attribute.Required;
+    linkSections: Schema.Attribute.Component<'footer.link-section', true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::footer-link-section.footer-link-section'
+      'api::footer.footer'
     > &
       Schema.Attribute.Private;
+    mail: Schema.Attribute.Email;
+    phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
+    text: Schema.Attribute.Text;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1720,10 +1767,11 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::category-code.category-code': ApiCategoryCodeCategoryCode;
+      'api::category-group.category-group': ApiCategoryGroupCategoryGroup;
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
-      'api::footer-link-section.footer-link-section': ApiFooterLinkSectionFooterLinkSection;
+      'api::footer.footer': ApiFooterFooter;
       'api::match.match': ApiMatchMatch;
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;
