@@ -154,7 +154,7 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
         )}
 
         {/* Related News */}
-        {article.relatedNews.length > 0 && (
+        {article.relatedNews.length > 0 && categorySlug && (
           <div className="mt-16 pt-12 border-t border-primary/10">
             <h2 className="text-xl font-bold text-primary uppercase mb-8">
               Související články

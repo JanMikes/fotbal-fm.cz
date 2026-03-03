@@ -7,10 +7,10 @@ import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight 
 import type { Footer as FooterType } from '@/lib/types';
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
-  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
-  { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
-  { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
+  { icon: Facebook, href: 'https://www.facebook.com/fotbalfm', label: 'Facebook' },
+  { icon: Instagram, href: 'https://www.instagram.com/fotbal_fm/', label: 'Instagram' },
+  // { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
+  // { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
 ];
 
 interface FooterProps {
