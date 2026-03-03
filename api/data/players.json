@@ -160,6 +160,16 @@
     "photoFilename": null
   },
   {
+    "facrId": "06081892",
+    "name": "Faruk Bezdrob",
+    "facrUuid": "fe9cb80f-e647-4620-b0ae-0bcbda732b98",
+    "dateOfBirth": "2006-08-17",
+    "nationality": "Bosna a Hercegovina",
+    "isActive": true,
+    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=c2290992-6236-4f53-86f4-18bc3f6f642e",
+    "photoFilename": null
+  },
+  {
     "facrId": "97051571",
     "name": "Daniel Bialek",
     "facrUuid": "095deeb7-4a5b-4686-bade-ecc8ddceaa36",
