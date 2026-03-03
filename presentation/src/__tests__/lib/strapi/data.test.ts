@@ -22,7 +22,7 @@ const {
   getUpcomingMatches,
   getFinishedMatches,
   getPlayersByCategory,
-  getPlayerBySlug,
+  getPlayerByCategoryAndSlug,
   getNavigation,
   getPageBySlug,
   getPartners,
@@ -211,7 +211,7 @@ describe('data layer', () => {
     });
   });
 
-  describe('getPlayerBySlug', () => {
+  describe('getPlayerByCategoryAndSlug', () => {
     it('returns player when found', async () => {
       mockFindMany.mockResolvedValueOnce({
         data: [
@@ -228,14 +228,14 @@ describe('data layer', () => {
         total: 1,
       });
 
-      const result = await getPlayerBySlug('jan');
+      const result = await getPlayerByCategoryAndSlug('dorost', 'jan');
       expect(result?.name).toBe('Jan');
     });
 
     it('returns null when not found', async () => {
       mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
 
-      const result = await getPlayerBySlug('nonexistent');
+      const result = await getPlayerByCategoryAndSlug('dorost', 'nonexistent');
       expect(result).toBeNull();
     });
   });

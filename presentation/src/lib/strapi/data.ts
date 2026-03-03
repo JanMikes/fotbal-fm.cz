@@ -173,17 +173,9 @@ export async function getPlayersByCategory(categorySlug: string): Promise<Player
   return data.map(mapPlayer);
 }
 
-export async function getPlayerBySlug(slug: string): Promise<Player | null> {
-  const client = getStrapiClient();
-  const { data } = await client.findMany<StrapiRawPlayer>('players', {
-    filters: { slug: { $eq: slug } },
-    populate: {
-      photo: { fields: ['url', 'alternativeText', 'width', 'height'] },
-      categories: { fields: ['name', 'slug'] },
-    },
-    pagination: { pageSize: 1 },
-  });
-  return data.length > 0 ? mapPlayer(data[0]) : null;
+export async function getPlayerByCategoryAndSlug(categorySlug: string, playerSlug: string): Promise<Player | null> {
+  const players = await getPlayersByCategory(categorySlug);
+  return players.find((p) => p.slug === playerSlug) ?? null;
 }
 
 export async function getNavigation(): Promise<NavigationItem[]> {
