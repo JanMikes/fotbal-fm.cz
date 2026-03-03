@@ -5,6 +5,11 @@ export interface MediaImage {
   height: number;
 }
 
+export interface MediaFile {
+  url: string;
+  name: string;
+}
+
 export interface Category {
   documentId: string;
   name: string;
@@ -32,6 +37,7 @@ export interface NewsArticleSummary {
 export interface NewsArticle extends NewsArticleSummary {
   video: string | null;
   gallery: MediaImage[];
+  files: MediaFile[];
   relatedNews: NewsArticleSummary[];
 }
 

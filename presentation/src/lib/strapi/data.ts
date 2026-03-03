@@ -87,6 +87,7 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
     populate: {
       mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
       gallery: { fields: ['url', 'alternativeText', 'width', 'height'] },
+      files: { fields: ['url', 'name'] },
       categories: { fields: ['name', 'slug'] },
       newsArticleType: { fields: ['name', 'slug'] },
       relatedNews: {

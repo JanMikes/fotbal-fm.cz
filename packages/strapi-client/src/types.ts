@@ -35,6 +35,7 @@ export interface StrapiErrorResponse {
 export interface StrapiRawMedia {
   id: number;
   documentId?: string;
+  name?: string;
   url: string;
   alternativeText?: string | null;
   width?: number;

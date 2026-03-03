@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import { NewsCard } from '../ui';
 import type { NewsArticle } from '@/lib/types';
@@ -81,6 +81,29 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
                 prose-img:rounded-none"
               dangerouslySetInnerHTML={{ __html: article.description }}
             />
+          )}
+
+          {/* Files */}
+          {article.files.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-xl font-bold text-primary uppercase mb-4">Dokumenty</h2>
+              <div className="space-y-2">
+                {article.files.map((file, index) => (
+                  <a
+                    key={index}
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 border border-primary/10 hover:border-accent/30 hover:bg-accent/5 transition-colors"
+                  >
+                    <FileDown className="w-5 h-5 text-accent shrink-0" />
+                    <span className="text-primary/80 hover:text-accent transition-colors">
+                      {file.name}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Video */}

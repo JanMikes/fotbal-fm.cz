@@ -1,6 +1,6 @@
 import type { NewsArticle, NewsArticleSummary } from '@/lib/types';
 import type { StrapiRawNewsArticle } from '../types';
-import { mapMedia, mapMediaArray } from './shared';
+import { mapMedia, mapMediaArray, mapFileArray, transformContentUrls } from './shared';
 import { mapCategories } from './category';
 import { mapNewsArticleType } from './news-article-type';
 
@@ -20,8 +20,10 @@ export function mapNewsArticleSummary(raw: StrapiRawNewsArticle): NewsArticleSum
 export function mapNewsArticle(raw: StrapiRawNewsArticle): NewsArticle {
   return {
     ...mapNewsArticleSummary(raw),
+    description: raw.description ? transformContentUrls(raw.description) : null,
     video: raw.video,
     gallery: mapMediaArray(raw.gallery),
+    files: mapFileArray(raw.files),
     relatedNews: (raw.relatedNews ?? []).map(mapNewsArticleSummary),
   };
 }
