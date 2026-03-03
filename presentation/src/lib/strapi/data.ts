@@ -170,7 +170,17 @@ export async function getPlayersByCategory(categorySlug: string): Promise<Player
     sort: 'sortOrder:asc',
     pagination: { pageSize: 100 },
   });
-  return data.map(mapPlayer);
+  const players = data.map(mapPlayer);
+  const slugCounts = new Map<string, number>();
+  for (const player of players) {
+    const baseSlug = player.slug;
+    const count = (slugCounts.get(baseSlug) ?? 0) + 1;
+    slugCounts.set(baseSlug, count);
+    if (count > 1) {
+      player.slug = `${baseSlug}-${count}`;
+    }
+  }
+  return players;
 }
 
 export async function getPlayerByCategoryAndSlug(categorySlug: string, playerSlug: string): Promise<Player | null> {
