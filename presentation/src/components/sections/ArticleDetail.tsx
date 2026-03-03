@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, FileDown } from 'lucide-react';
 import Badge from '../ui/Badge';
 import { NewsCard } from '../ui';
+import { MarkdownContent } from '../ui/MarkdownContent';
 import type { NewsArticle } from '@/lib/types';
 
 interface ArticleDetailProps {
@@ -74,12 +75,12 @@ export default function ArticleDetail({ article, categorySlug }: ArticleDetailPr
 
           {/* Content */}
           {article.description && (
-            <div
-              className="prose prose-lg max-w-none text-primary/80 mb-12
+            <MarkdownContent
+              content={article.description}
+              className="prose-lg text-primary/80 mb-12
                 prose-headings:text-primary prose-headings:uppercase prose-headings:font-bold
                 prose-a:text-accent prose-a:no-underline hover:prose-a:underline
                 prose-img:rounded-none"
-              dangerouslySetInnerHTML={{ __html: article.description }}
             />
           )}
 

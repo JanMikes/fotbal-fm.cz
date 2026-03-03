@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { clsx } from 'clsx';
 import { ChevronDown, FileText, Download } from 'lucide-react';
 import type { ComponentAccordionSections } from '@/lib/types';
+import { MarkdownContent } from '../ui/MarkdownContent';
 
 interface AccordionSectionsProps {
   data: ComponentAccordionSections;
@@ -42,10 +43,7 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
       {isOpen && (
         <div className="p-4 pt-0 bg-white space-y-4">
           {section.description && (
-            <div
-              className="prose prose-sm max-w-none text-primary/70"
-              dangerouslySetInnerHTML={{ __html: section.description }}
-            />
+            <MarkdownContent content={section.description} className="prose-sm text-primary/70" />
           )}
           {section.files && section.files.length > 0 && (
             <div className="space-y-2">

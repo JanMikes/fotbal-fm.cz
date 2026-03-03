@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 import { Info, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import type { ComponentAlert } from '@/lib/types';
+import { MarkdownContent } from '../ui/MarkdownContent';
 
 interface AlertProps {
   data: ComponentAlert;
@@ -25,10 +26,7 @@ export function Alert({ data }: AlertProps) {
       <div className={variant.text}>
         {data.title && <p className="font-semibold mb-1">{data.title}</p>}
         {data.text && (
-          <div
-            className="prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: data.text }}
-          />
+          <MarkdownContent content={data.text} className="prose-sm" />
         )}
       </div>
     </div>

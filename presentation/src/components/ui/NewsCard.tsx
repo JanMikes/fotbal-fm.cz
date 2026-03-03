@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { clsx } from 'clsx';
 import Badge from './Badge';
 import type { NewsArticleSummary } from '@/lib/types';
+import { stripMarkdown } from '@/lib/markdown';
 
 interface NewsCardProps {
   article: NewsArticleSummary;
@@ -55,7 +56,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
             </h3>
             {article.description && (
               <p className="text-white/80 text-body mb-4 line-clamp-2 max-w-2xl">
-                {article.description.replace(/<[^>]*>/g, '').slice(0, 200)}
+                {stripMarkdown(article.description).slice(0, 200)}
               </p>
             )}
             <div className="flex items-center gap-4 text-small text-white/60">
@@ -96,7 +97,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
           </h3>
           {article.description && (
             <p className="text-small text-primary/60 line-clamp-2 mb-4">
-              {article.description.replace(/<[^>]*>/g, '').slice(0, 150)}
+              {stripMarkdown(article.description).slice(0, 150)}
             </p>
           )}
           <div className="flex items-center gap-3 text-small text-primary/50">

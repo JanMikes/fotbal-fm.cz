@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import type { ComponentPopup } from '@/lib/types';
+import { MarkdownContent } from '../ui/MarkdownContent';
 
 interface PopupProps {
   data: ComponentPopup;
@@ -45,10 +46,7 @@ export function Popup({ data }: PopupProps) {
           <h3 className="text-xl font-bold text-primary mb-3 pr-8">{data.title}</h3>
         )}
         {data.description && (
-          <div
-            className="prose prose-sm max-w-none mb-4"
-            dangerouslySetInnerHTML={{ __html: data.description }}
-          />
+          <MarkdownContent content={data.description} className="prose-sm mb-4" />
         )}
         {data.link && (
           <Link

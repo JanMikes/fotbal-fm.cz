@@ -7,6 +7,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ComponentSlider } from '@/lib/types';
+import { MarkdownContent } from '../ui/MarkdownContent';
 
 interface SliderProps {
   data: ComponentSlider;
@@ -52,9 +53,9 @@ export function Slider({ data }: SliderProps) {
                   <h3 className="text-xl lg:text-3xl font-bold text-white mb-2">{slide.title}</h3>
                 )}
                 {slide.description && (
-                  <div
-                    className="text-white/80 text-sm lg:text-base mb-4 max-w-2xl prose prose-invert prose-sm"
-                    dangerouslySetInnerHTML={{ __html: slide.description }}
+                  <MarkdownContent
+                    content={slide.description}
+                    className="text-white/80 text-sm lg:text-base mb-4 max-w-2xl prose-invert prose-sm"
                   />
                 )}
                 {slide.link && (
