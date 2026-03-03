@@ -783,6 +783,26 @@
     ]
   },
   {
+    "sportbmId": "477770",
+    "name": "Alex Rožnovský",
+    "dateOfBirth": "2011-07-11",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "477815",
+    "name": "Jakub Štefela",
+    "dateOfBirth": "2011-07-16",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
     "sportbmId": "267775",
     "name": "Matyáš Bartoň",
     "dateOfBirth": "2012-06-23",
