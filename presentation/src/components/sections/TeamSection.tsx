@@ -23,6 +23,7 @@ export default function TeamSection({ players, categorySlug }: TeamSectionProps)
   const defenders = hráči.filter((p) => p.position === 'obránce');
   const midfielders = hráči.filter((p) => p.position === 'záložník');
   const forwards = hráči.filter((p) => p.position === 'útočník');
+  const noPosition = hráči.filter((p) => !p.position);
 
   if (hráči.length === 0 && staff.length === 0) {
     return null;
@@ -33,6 +34,7 @@ export default function TeamSection({ players, categorySlug }: TeamSectionProps)
     { label: 'Obránci', players: defenders },
     { label: 'Záložníci', players: midfielders },
     { label: 'Útočníci', players: forwards },
+    { label: 'Hráči', players: noPosition },
   ].filter((g) => g.players.length > 0);
 
   return (
