@@ -5,6 +5,11 @@
     "description": "Feature card with title, description and link"
   },
   "attributes": {
+    "icon": {
+      "type": "media",
+      "allowedTypes": ["images"],
+      "multiple": false
+    },
     "title": {
       "type": "string"
     },

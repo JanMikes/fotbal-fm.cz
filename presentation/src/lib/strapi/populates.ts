@@ -42,6 +42,7 @@ const expandableSectionPopulate = {
 
 const featureCardPopulate = {
   populate: {
+    icon: mediaFields,
     link: textLinkPopulate,
   },
 };

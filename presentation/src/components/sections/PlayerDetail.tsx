@@ -19,7 +19,7 @@ const positionLabels: Record<string, string> = {
 export default function PlayerDetail({ player }: PlayerDetailProps) {
   const isPlayer = player.type === 'hráč';
   const displayPosition = player.position ? positionLabels[player.position] ?? player.position : player.positionText;
-  const imageUrl = player.photo?.url || '/players/player-1.jpg';
+  const imageUrl = player.photo?.url || '/player-placeholder.png';
 
   return (
     <div className="bg-white">

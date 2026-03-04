@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { clsx } from 'clsx';
 import type { ComponentFeatureCards } from '@/lib/types';
 
@@ -12,6 +13,15 @@ const colClasses: Record<string, string> = {
   '4': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
 };
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export function FeatureCards({ data }: FeatureCardsProps) {
   if (!data.cards || data.cards.length === 0) return null;
 
@@ -20,28 +30,41 @@ export function FeatureCards({ data }: FeatureCardsProps) {
       {data.cards.map((card, i) => {
         const content = (
           <div className={clsx(
-            'bg-white p-6 shadow-card rounded-lg h-full',
-            data.card_clickable && card.link && 'card-lift cursor-pointer'
+            'bg-white p-6 shadow-card rounded-lg h-full flex gap-4',
+            card.link && 'card-lift cursor-pointer'
           )}>
-            {card.title && (
-              <h3 className="font-bold text-primary text-lg mb-2">{card.title}</h3>
-            )}
-            {card.description && (
-              <p className="text-primary/70 text-sm">{card.description}</p>
-            )}
-            {card.link && !data.card_clickable && (
-              <Link
-                href={card.link.href}
-                className="inline-block mt-4 text-accent text-sm font-medium hover:underline"
-                {...(card.link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {card.link.text || 'Více'}
-              </Link>
-            )}
+            {card.icon ? (
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                <Image
+                  src={card.icon.url}
+                  alt={card.title ?? ''}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 object-cover"
+                />
+              </div>
+            ) : card.title ? (
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                {getInitials(card.title)}
+              </div>
+            ) : null}
+            <div className="min-w-0">
+              {card.title && (
+                <h3 className="font-bold text-primary text-lg mb-1">{card.title}</h3>
+              )}
+              {card.description && (
+                <p className="text-primary/70 text-sm">{card.description}</p>
+              )}
+              {card.link && !data.card_clickable && (
+                <span className="inline-block mt-3 text-accent text-sm font-medium hover:underline">
+                  {card.link.text || 'Více'} &rarr;
+                </span>
+              )}
+            </div>
           </div>
         );
 
-        if (data.card_clickable && card.link) {
+        if (card.link) {
           return (
             <Link
               key={i}

@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['@fotbal-fm/strapi-client'],
   images: {
+    dangerouslyAllowSVG: true,
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: parsedUrl.protocol.replace(':', '') as 'http' | 'https',

@@ -246,14 +246,14 @@ export interface ComponentVideo extends DynamicZoneBase {
 
 export interface ComponentFeatureCards extends DynamicZoneBase {
   __component: 'components.feature-cards';
-  cards: { title: string | null; description: string | null; link: ResolvedTextLink | null }[];
+  cards: { icon: MediaImage | null; title: string | null; description: string | null; link: ResolvedTextLink | null }[];
   columns: '2' | '3' | '4';
   card_clickable: boolean;
 }
 
 export interface ComponentBannerCards extends DynamicZoneBase {
   __component: 'components.banner-cards';
-  cards: { title: string | null; description: string | null; link: ResolvedTextLink | null }[];
+  cards: { icon: MediaImage | null; title: string | null; description: string | null; link: ResolvedTextLink | null }[];
 }
 
 export interface ComponentDocuments extends DynamicZoneBase {

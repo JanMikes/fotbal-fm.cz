@@ -96,9 +96,10 @@ services:
             NODE_ENV: development
             PORT: 3000
             STRAPI_URL: http://strapi:1337
-            PUBLIC_UPLOADS_URL: http://localhost:8080
+            PUBLIC_UPLOADS_URL: http://nginx:80
         depends_on:
             - strapi
+            - nginx
         command: bash -c "cd /app && npm install && cd /app/presentation && npm run dev"
 
     api:

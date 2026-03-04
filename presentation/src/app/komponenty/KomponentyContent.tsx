@@ -142,9 +142,9 @@ const featureCardsData: ComponentFeatureCards = {
   id: 10,
   __component: 'components.feature-cards',
   cards: [
-    { title: 'Mládežnická akademie', description: 'Rozvíjíme talenty od přípravky po dorost. Kvalifikovaní trenéři a moderní tréningové metody.', link: { text: 'Více o akademii', href: '/akademie', external: false, disabled: false } },
-    { title: 'Fanouškovský klub', description: 'Staň se členem fanouškovského klubu a získej slevy na vstupenky a merchandise.', link: { text: 'Přidej se', href: '/fanousci', external: false, disabled: false } },
-    { title: 'Pronájem hřiště', description: 'Nabízíme pronájem tréninkového hřiště s umělým povrchem pro týmy i jednotlivce.', link: { text: 'Rezervace', href: '/pronajem', external: false, disabled: false } },
+    { icon: null, title: 'Mládežnická akademie', description: 'Rozvíjíme talenty od přípravky po dorost. Kvalifikovaní trenéři a moderní tréningové metody.', link: { text: 'Více o akademii', href: '/akademie', external: false, disabled: false } },
+    { icon: null, title: 'Fanouškovský klub', description: 'Staň se členem fanouškovského klubu a získej slevy na vstupenky a merchandise.', link: { text: 'Přidej se', href: '/fanousci', external: false, disabled: false } },
+    { icon: null, title: 'Pronájem hřiště', description: 'Nabízíme pronájem tréninkového hřiště s umělým povrchem pro týmy i jednotlivce.', link: { text: 'Rezervace', href: '/pronajem', external: false, disabled: false } },
   ],
   columns: '3',
   card_clickable: false,
@@ -154,8 +154,8 @@ const bannerCardsData: ComponentBannerCards = {
   id: 11,
   __component: 'components.banner-cards',
   cards: [
-    { title: 'Sezóna 2025/26 začíná!', description: 'Permanentky v předprodeji se slevou 20%. Nepromeškejte ani jeden domácí zápas.', link: { text: 'Koupit permanentku', href: '/permanentky', external: false, disabled: false } },
-    { title: 'Letní kemp pro děti', description: 'Fotbalový kemp pro děti 6-14 let. Profesionální trenéři, moderní zázemí, spousta zábavy.', link: { text: 'Přihlásit dítě', href: '/kemp', external: false, disabled: false } },
+    { icon: null, title: 'Sezóna 2025/26 začíná!', description: 'Permanentky v předprodeji se slevou 20%. Nepromeškejte ani jeden domácí zápas.', link: { text: 'Koupit permanentku', href: '/permanentky', external: false, disabled: false } },
+    { icon: null, title: 'Letní kemp pro děti', description: 'Fotbalový kemp pro děti 6-14 let. Profesionální trenéři, moderní zázemí, spousta zábavy.', link: { text: 'Přihlásit dítě', href: '/kemp', external: false, disabled: false } },
   ],
 };
 
