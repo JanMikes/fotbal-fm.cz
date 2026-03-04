@@ -230,7 +230,7 @@ When creating new content types:
 - Node.js: 24.x (via Docker)
 - Next.js: 16.0.3
 - React: 19.2.0
-- Strapi: 5.31.0
+- Strapi: 5.38.0
 - PostgreSQL: 17.0
 - TypeScript: 5.x
 - Tailwind CSS: 4.x
