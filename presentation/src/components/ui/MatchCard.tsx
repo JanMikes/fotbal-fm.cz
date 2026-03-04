@@ -45,7 +45,8 @@ export default function MatchCard({ match, className }: MatchCardProps) {
               name={match.homeTeam}
               logo={match.homeTeamLogo}
               size={40}
-              className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden"
+              className="w-10 h-10 flex items-center justify-center overflow-hidden"
+              bgClassName="bg-surface-light"
               fallbackClassName="text-xs font-bold text-primary/40"
             />
             <span className={clsx(
@@ -79,7 +80,8 @@ export default function MatchCard({ match, className }: MatchCardProps) {
               name={match.awayTeam}
               logo={match.awayTeamLogo}
               size={40}
-              className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden"
+              className="w-10 h-10 flex items-center justify-center overflow-hidden"
+              bgClassName="bg-surface-light"
               fallbackClassName="text-xs font-bold text-primary/40"
             />
             <span className={clsx(

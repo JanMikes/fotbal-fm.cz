@@ -276,7 +276,8 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             name={match.homeTeam}
             logo={match.homeTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
           <span className="text-white font-bold text-sm uppercase tracking-wide">
@@ -295,7 +296,8 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             name={match.awayTeam}
             logo={match.awayTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
           <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
@@ -346,7 +348,8 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             name={match.homeTeam}
             logo={match.homeTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
           <span className="text-white font-bold text-sm uppercase tracking-wide">
@@ -367,7 +370,8 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             name={match.awayTeam}
             logo={match.awayTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
           <span className="text-white/70 font-bold text-sm uppercase tracking-wide">

@@ -7,9 +7,10 @@ interface TeamLogoProps {
   size: number;
   className?: string;
   fallbackClassName?: string;
+  bgClassName?: string;
 }
 
-export default function TeamLogo({ name, logo, size, className = '', fallbackClassName = '' }: TeamLogoProps) {
+export default function TeamLogo({ name, logo, size, className = '', fallbackClassName = '', bgClassName = '' }: TeamLogoProps) {
   if (logo) {
     return (
       <div className={`${className} relative`}>
@@ -25,7 +26,7 @@ export default function TeamLogo({ name, logo, size, className = '', fallbackCla
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} ${bgClassName}`}>
       <span className={fallbackClassName}>
         {name.substring(0, 2).toUpperCase()}
       </span>

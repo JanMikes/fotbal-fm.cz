@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { BarChart3, ChevronLeft, ChevronRight, Trophy, Target, Users, TrendingUp, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trophy, Target, Users, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import type { PlayerHighlight, Standing } from '@/lib/types';
 import TeamLogo from '../ui/TeamLogo';
@@ -170,15 +170,15 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="flex items-center gap-4 mb-12">
-                <div className="inline-flex items-center bg-primary px-8 py-5 gap-8">
-                  <h2 className="text-section text-white uppercase font-black leading-tight">
+              <div className="flex items-end gap-8 mb-12">
+                <div>
+                  <h2 className="text-section text-primary uppercase font-black leading-tight">
                     {currentHighlight.title}
                   </h2>
-                  <BarChart3 className="w-8 h-8 text-accent shrink-0" />
+                  <div className="w-24 h-1 bg-accent mt-3" />
                 </div>
                 {hasMultipleHighlights && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 ml-auto mb-1">
                     <button
                       onClick={prevHighlight}
                       className="p-1.5 text-primary/40 hover:text-primary transition-colors"
@@ -200,18 +200,12 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
               <div className="flex items-end gap-6">
                 {/* Player Image */}
                 <div className="relative w-48 h-64 shrink-0 bg-gradient-to-t from-primary/10 to-transparent">
-                  {currentHighlight.playerPhoto ? (
-                    <Image
-                      src={currentHighlight.playerPhoto.url}
-                      alt={currentHighlight.playerName}
-                      fill
-                      className="object-cover object-top"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <User className="w-20 h-20 text-primary/20" />
-                    </div>
-                  )}
+                  <Image
+                    src={currentHighlight.playerPhoto?.url ?? '/player-placeholder.png'}
+                    alt={currentHighlight.playerName}
+                    fill
+                    className="object-cover object-top"
+                  />
                 </div>
 
                 {/* Player Info + Stats */}
