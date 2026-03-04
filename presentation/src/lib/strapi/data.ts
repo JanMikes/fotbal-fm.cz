@@ -108,6 +108,26 @@ export async function getNewsArticlesByCategory(
   };
 }
 
+export async function getAllNewsArticles(
+  page = 1,
+  pageSize = 12,
+): Promise<{ articles: NewsArticleSummary[]; total: number }> {
+  const client = getStrapiClient();
+  const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
+    populate: {
+      mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
+      categories: { fields: ['name', 'slug'] },
+      newsArticleType: { fields: ['name', 'slug'] },
+    },
+    sort: 'createdAt:desc',
+    pagination: { page, pageSize },
+  });
+  return {
+    articles: data.map(mapNewsArticleSummary),
+    total,
+  };
+}
+
 export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
   const client = getStrapiClient();
   const { data } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
