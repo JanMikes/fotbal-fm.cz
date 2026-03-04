@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -45,11 +45,14 @@ function formatDateKey(year: number, month: number, day: number): string {
 }
 
 export default function MiniCalendar({ matches, selectedDate, onDaySelect, className }: MiniCalendarProps) {
-  const today = new Date();
-  const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(() => new Date().getMonth());
 
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  useEffect(() => {
+    const now = new Date();
+    setTodayKey(formatDateKey(now.getFullYear(), now.getMonth(), now.getDate()));
+  }, []);
   const [direction, setDirection] = useState(0);
 
   const matchesByDate = useMemo(() => {

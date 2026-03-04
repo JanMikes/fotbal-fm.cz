@@ -68,7 +68,7 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
             />
             {isFinished && (
               <span className={clsx(
-                'text-2xl md:text-3xl font-bold number-display shrink-0',
+                'text-xl md:text-2xl font-bold number-display shrink-0 w-8 md:w-10 text-center',
                 homeWon ? 'text-primary' : 'text-primary/50'
               )}>
                 {match.homeScore}
@@ -94,7 +94,7 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
             />
             {isFinished && (
               <span className={clsx(
-                'text-2xl md:text-3xl font-bold number-display shrink-0',
+                'text-xl md:text-2xl font-bold number-display shrink-0 w-8 md:w-10 text-center',
                 awayWon ? 'text-primary' : 'text-primary/50'
               )}>
                 {match.awayScore}
