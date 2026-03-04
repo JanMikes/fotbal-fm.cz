@@ -38,10 +38,10 @@ export default async function CmsPage({ params }: PageProps) {
     <main className="bg-surface-light pt-[72px] lg:pt-[112px]">
       <div className="container mx-auto px-4 lg:px-8 pb-8 lg:pb-12">
         <Breadcrumb items={page.breadcrumbs} />
-        <h1 className="text-3xl lg:text-4xl font-bold text-primary mb-8">{page.title}</h1>
         {hasSidebar ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
+              <h1 className="text-3xl lg:text-4xl font-bold text-primary">{page.title}</h1>
               <DynamicZone components={page.content} />
             </div>
             <SidePanel>
@@ -50,6 +50,7 @@ export default async function CmsPage({ params }: PageProps) {
           </div>
         ) : (
           <div className="max-w-4xl space-y-6">
+            <h1 className="text-3xl lg:text-4xl font-bold text-primary">{page.title}</h1>
             <DynamicZone components={page.content} />
           </div>
         )}

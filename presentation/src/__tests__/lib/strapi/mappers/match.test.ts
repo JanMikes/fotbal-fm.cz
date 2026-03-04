@@ -55,13 +55,13 @@ describe('mapMatch', () => {
   it('formats Czech date correctly for Saturday', () => {
     // 2025-03-15 is a Saturday
     const result = mapMatch(makeRawMatch({ matchDate: '2025-03-15' }));
-    expect(result.matchDate).toBe('So 15. 3.');
+    expect(result.matchDate).toBe('Sobota 15. 3.');
   });
 
   it('formats Czech date correctly for Monday', () => {
     // 2025-03-17 is a Monday
     const result = mapMatch(makeRawMatch({ matchDate: '2025-03-17' }));
-    expect(result.matchDate).toBe('Po 17. 3.');
+    expect(result.matchDate).toBe('Pondělí 17. 3.');
   });
 
   it('defaults matchTime to empty string', () => {
