@@ -1,5 +1,6 @@
 import type { Match } from '@/lib/types';
 import type { StrapiRawMatch } from '../types';
+import { mapMedia } from './shared';
 
 const CZECH_DAYS = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
 
@@ -18,6 +19,8 @@ export function mapMatch(raw: StrapiRawMatch): Match {
     id: raw.id,
     homeTeam: raw.homeTeam?.name ?? '',
     awayTeam: raw.awayTeam?.name ?? '',
+    homeTeamLogo: mapMedia(raw.homeTeam?.logo),
+    awayTeamLogo: mapMedia(raw.awayTeam?.logo),
     homeScore: raw.homeScore,
     awayScore: raw.awayScore,
     matchDate: formatCzechDate(raw.matchDate),

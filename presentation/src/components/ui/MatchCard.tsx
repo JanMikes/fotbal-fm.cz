@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import type { Match } from '@/lib/types';
+import TeamLogo from './TeamLogo';
 
 interface MatchCardProps {
   match: Match;
@@ -38,11 +39,13 @@ export default function MatchCard({ match, className }: MatchCardProps) {
         {/* Home Team */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden">
-              <span className="text-xs font-bold text-primary/40">
-                {match.homeTeam.substring(0, 2).toUpperCase()}
-              </span>
-            </div>
+            <TeamLogo
+              name={match.homeTeam}
+              logo={match.homeTeamLogo}
+              size={40}
+              className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden"
+              fallbackClassName="text-xs font-bold text-primary/40"
+            />
             <span className={clsx(
               'font-semibold transition-colors',
               homeWon ? 'text-primary' : 'text-primary/80'
@@ -77,11 +80,13 @@ export default function MatchCard({ match, className }: MatchCardProps) {
         {/* Away Team */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden">
-              <span className="text-xs font-bold text-primary/40">
-                {match.awayTeam.substring(0, 2).toUpperCase()}
-              </span>
-            </div>
+            <TeamLogo
+              name={match.awayTeam}
+              logo={match.awayTeamLogo}
+              size={40}
+              className="w-10 h-10 bg-surface-light flex items-center justify-center overflow-hidden"
+              fallbackClassName="text-xs font-bold text-primary/40"
+            />
             <span className={clsx(
               'font-semibold transition-colors',
               awayWon ? 'text-primary' : 'text-primary/80'

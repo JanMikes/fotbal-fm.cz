@@ -53,6 +53,7 @@ export interface NewsArticle extends NewsArticleSummary {
 export interface Standing {
   position: number;
   teamName: string;
+  teamLogo: MediaImage | null;
   matchesPlayed: number;
   wins: number;
   draws: number;
@@ -82,6 +83,8 @@ export interface Match {
   id: number;
   homeTeam: string;
   awayTeam: string;
+  homeTeamLogo: MediaImage | null;
+  awayTeamLogo: MediaImage | null;
   homeScore: number | null;
   awayScore: number | null;
   matchDate: string;

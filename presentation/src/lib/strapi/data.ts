@@ -139,8 +139,8 @@ export async function getUpcomingMatches(categorySlug: string, limit = 3): Promi
     },
     populate: {
       tournament: { fields: ['name'] },
-      homeTeam: { fields: ['name'] },
-      awayTeam: { fields: ['name'] },
+      homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'matchDate:asc',
     pagination: { pageSize: limit },
@@ -157,8 +157,8 @@ export async function getFinishedMatches(categorySlug: string, limit = 3): Promi
     },
     populate: {
       tournament: { fields: ['name'] },
-      homeTeam: { fields: ['name'] },
-      awayTeam: { fields: ['name'] },
+      homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'matchDate:desc',
     pagination: { pageSize: limit },
@@ -174,8 +174,8 @@ export async function getAllMatchesByCategory(categorySlug: string): Promise<Mat
     },
     populate: {
       tournament: { fields: ['name'] },
-      homeTeam: { fields: ['name'] },
-      awayTeam: { fields: ['name'] },
+      homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'matchDate:desc',
   });
@@ -249,7 +249,7 @@ export async function getStandingsByCategory(categorySlug: string): Promise<Stan
     },
     populate: {
       tournament: { fields: ['name'] },
-      team: { fields: ['name'] },
+      team: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'position:asc',
     pagination: { pageSize: 100 },
@@ -310,8 +310,8 @@ export async function getUpcomingMatch(categorySlug: string): Promise<Match | nu
     },
     populate: {
       tournament: { fields: ['name'] },
-      homeTeam: { fields: ['name'] },
-      awayTeam: { fields: ['name'] },
+      homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'matchDate:asc',
     pagination: { pageSize: 1 },
@@ -328,8 +328,8 @@ export async function getLastResult(categorySlug: string): Promise<Match | null>
     },
     populate: {
       tournament: { fields: ['name'] },
-      homeTeam: { fields: ['name'] },
-      awayTeam: { fields: ['name'] },
+      homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
     },
     sort: 'matchDate:desc',
     pagination: { pageSize: 1 },

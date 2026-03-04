@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '../ui/Button';
+import TeamLogo from '../ui/TeamLogo';
 import type { CategoryHeroData, Match, MediaImage } from '@/lib/types';
 
 interface HeroSlide {
@@ -284,11 +285,13 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <span className="text-lg lg:text-xl font-black text-white">
-              {match.homeTeam.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <TeamLogo
+            name={match.homeTeam}
+            logo={match.homeTeamLogo}
+            size={80}
+            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            fallbackClassName="text-lg lg:text-xl font-black text-white"
+          />
           <span className="text-white font-bold text-sm uppercase tracking-wide">
             {match.homeTeam}
           </span>
@@ -301,11 +304,13 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
 
         {/* Away Team */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <span className="text-lg lg:text-xl font-black text-white/60">
-              {match.awayTeam.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <TeamLogo
+            name={match.awayTeam}
+            logo={match.awayTeamLogo}
+            size={80}
+            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            fallbackClassName="text-lg lg:text-xl font-black text-white/60"
+          />
           <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
             {match.awayTeam}
           </span>
@@ -350,11 +355,13 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <span className="text-lg lg:text-xl font-black text-white">
-              {match.homeTeam.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <TeamLogo
+            name={match.homeTeam}
+            logo={match.homeTeamLogo}
+            size={80}
+            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            fallbackClassName="text-lg lg:text-xl font-black text-white"
+          />
           <span className="text-white font-bold text-sm uppercase tracking-wide">
             {match.homeTeam}
           </span>
@@ -369,11 +376,13 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
 
         {/* Away Team */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
-            <span className="text-lg lg:text-xl font-black text-white/60">
-              {match.awayTeam.substring(0, 2).toUpperCase()}
-            </span>
-          </div>
+          <TeamLogo
+            name={match.awayTeam}
+            logo={match.awayTeamLogo}
+            size={80}
+            className="w-16 h-16 lg:w-20 lg:h-20 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10"
+            fallbackClassName="text-lg lg:text-xl font-black text-white/60"
+          />
           <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
             {match.awayTeam}
           </span>

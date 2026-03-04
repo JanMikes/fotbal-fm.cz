@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Trophy, Target, TrendingUp, Award } from 'lucide-react';
 import type { Standing } from '@/lib/types';
+import TeamLogo from '../ui/TeamLogo';
 
 interface StatItem {
   label: string;
@@ -198,7 +199,17 @@ export default function Statistics({ standings }: StatisticsProps) {
                           {row.position}.
                         </td>
                         <td className={`px-3 py-3 ${isOurTeam ? 'font-bold text-accent' : 'font-medium'}`}>
-                          {row.teamName}
+                          <div className="flex items-center gap-2">
+                            {row.teamLogo && (
+                              <TeamLogo
+                                name={row.teamName}
+                                logo={row.teamLogo}
+                                size={20}
+                                className="shrink-0"
+                              />
+                            )}
+                            {row.teamName}
+                          </div>
                         </td>
                         <td className="px-3 py-3 text-center">{row.matchesPlayed}</td>
                         <td className="px-3 py-3 text-center hidden sm:table-cell">{row.wins}</td>
