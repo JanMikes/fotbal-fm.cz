@@ -11,6 +11,13 @@
   --color-surface-dark: #1A1A1A;
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --spacing-section: 5rem;
+    --spacing-section-sm: 3rem;
+  }
+}
+
 @theme inline {
   /* Primary colors */
   --color-primary-50: #0E3A7D;
@@ -44,8 +51,8 @@
   --text-small: 0.875rem;
 
   /* Custom spacing */
-  --spacing-section: 7.5rem;
-  --spacing-section-sm: 5rem;
+  --spacing-section: 3rem;
+  --spacing-section-sm: 2rem;
   --spacing-component: 3rem;
   --spacing-card: 2rem;
 

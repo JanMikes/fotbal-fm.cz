@@ -36,8 +36,8 @@ export default async function PartnerDetailPage({ params }: PageProps) {
   const hasPanel = partner.panel && partner.panel.length > 0;
 
   return (
-    <main className="bg-surface-light mt-22 lg:mt-24">
-      <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
+    <main className="bg-surface-light pt-[72px] lg:pt-[112px]">
+      <div className="container mx-auto px-4 lg:px-8 pb-8 lg:pb-12">
         <Breadcrumb items={[
           { label: 'Partneři', href: '/partneri' },
           { label: partner.name, href: `/partner/${slug}` },

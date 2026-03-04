@@ -22,7 +22,7 @@ export default async function NovinkyPage({ params, searchParams }: NovinkyPageP
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <section className="py-section">
+    <section className="pb-section">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
           { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },

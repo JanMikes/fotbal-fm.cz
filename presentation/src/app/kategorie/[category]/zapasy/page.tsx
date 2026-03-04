@@ -14,7 +14,7 @@ export default async function ZapasyPage({ params }: ZapasyPageProps) {
   ]);
 
   return (
-    <section className="py-section">
+    <section className="pb-section">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
           { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },

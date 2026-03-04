@@ -39,7 +39,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   return (
     <>
-      <div className="container mx-auto px-4 lg:px-8 pt-6">
+      <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
           { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },
           { label: player.name, href: `/kategorie/${categorySlug}/hrac/${slug}` },

@@ -16,7 +16,7 @@ export default async function CategoryLayout({ children, params }: CategoryLayou
   }
 
   return (
-    <main className="bg-surface-light">
+    <main className="bg-surface-light pt-[72px] lg:pt-[112px]">
       {children}
     </main>
   );

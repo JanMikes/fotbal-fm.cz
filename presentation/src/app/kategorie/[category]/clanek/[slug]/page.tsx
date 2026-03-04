@@ -44,7 +44,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <>
-      <div className="container mx-auto px-4 lg:px-8 pt-6">
+      <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
           { label: category?.name ?? categorySlug, href: `/kategorie/${categorySlug}` },
           { label: 'Novinky', href: `/kategorie/${categorySlug}/novinky` },

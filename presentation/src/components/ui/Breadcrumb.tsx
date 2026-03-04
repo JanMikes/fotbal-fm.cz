@@ -10,7 +10,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
   if (items.length === 0) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label="Breadcrumb" className="mt-[20px] mb-6">
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-primary/50">
         <li className="flex items-center">
           <Link
