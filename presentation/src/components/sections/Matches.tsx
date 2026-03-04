@@ -46,7 +46,7 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
               className={clsx(
                 'px-6 py-2.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all',
                 filter === 'upcoming'
-                  ? 'bg-primary text-white'
+                  ? 'bg-accent text-white'
                   : 'text-primary/60 hover:text-primary'
               )}
             >
@@ -57,7 +57,7 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
               className={clsx(
                 'px-6 py-2.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all',
                 filter === 'finished'
-                  ? 'bg-primary text-white'
+                  ? 'bg-accent text-white'
                   : 'text-primary/60 hover:text-primary'
               )}
             >
