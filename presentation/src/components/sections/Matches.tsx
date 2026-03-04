@@ -34,7 +34,7 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <SectionHeader
-            title="Zápasy"
+            title="Kdy hrajeme"
             icon={Calendar}
             moreLink={`/kategorie/${categorySlug}/zapasy`}
           />

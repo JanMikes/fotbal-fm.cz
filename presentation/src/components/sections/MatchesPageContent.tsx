@@ -36,7 +36,7 @@ export default function MatchesPageContent({ matches }: MatchesPageContentProps)
   return (
     <div>
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-surface-light rounded-full shadow-sm mb-8 w-fit">
+      <div className="flex items-center gap-2 p-1.5 bg-surface-light rounded-full shadow-sm mb-8 w-fit ml-auto">
         {([
           { key: 'all', label: 'Všechny' },
           { key: 'upcoming', label: 'Nadcházející' },

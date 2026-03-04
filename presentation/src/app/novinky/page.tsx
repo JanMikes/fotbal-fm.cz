@@ -17,6 +17,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
+    <main className="bg-surface-light pt-[72px] lg:pt-[112px]">
     <section className="pb-section">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
@@ -39,6 +40,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
                   key={article.documentId}
                   article={article}
                   categorySlug={article.categories[0]?.slug ?? ''}
+                  hrefPrefix="/novinky"
                 />
               ))}
             </div>
@@ -55,5 +57,6 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
         )}
       </div>
     </section>
+    </main>
   );
 }

@@ -104,7 +104,7 @@ export default function Footer({ footer }: FooterProps) {
 
           {/* Contact */}
           {contactItems.length > 0 && (
-            <div>
+            <div className="col-span-2">
               <h4 className="font-bold uppercase tracking-wider text-small mb-6">
                 Kontakt
               </h4>

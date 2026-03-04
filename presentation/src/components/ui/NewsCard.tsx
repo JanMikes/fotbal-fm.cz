@@ -12,6 +12,7 @@ interface NewsCardProps {
   categorySlug: string;
   featured?: boolean;
   className?: string;
+  hrefPrefix?: string;
 }
 
 function formatDate(isoDate: string): string {
@@ -22,8 +23,10 @@ function formatDate(isoDate: string): string {
   });
 }
 
-export default function NewsCard({ article, categorySlug, featured = false, className }: NewsCardProps) {
-  const href = `/kategorie/${categorySlug}/clanek/${article.slug}`;
+export default function NewsCard({ article, categorySlug, featured = false, className, hrefPrefix }: NewsCardProps) {
+  const href = hrefPrefix
+    ? `${hrefPrefix}/clanek/${article.slug}`
+    : `/kategorie/${categorySlug}/clanek/${article.slug}`;
   const imageUrl = article.mainPhoto?.url || '/news/news-1.jpg';
   const badgeLabel = article.newsArticleType?.name;
 
