@@ -118,6 +118,25 @@ export interface Player {
   isActive: boolean;
 }
 
+// Player Highlights
+
+export interface StatValue {
+  value: number;
+  label: string;
+}
+
+export interface PlayerHighlight {
+  documentId: string;
+  title: string;
+  playerName: string;
+  playerFirstName: string;
+  playerLastName: string;
+  playerPhoto: MediaImage | null;
+  highlightStat: StatValue;
+  stats: StatValue[];
+  sortOrder: number;
+}
+
 // Partners
 
 export interface Partner {

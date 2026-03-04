@@ -197,3 +197,20 @@ export interface StrapiRawMatch {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface StrapiRawStatValue {
+  id: number;
+  value: number;
+  label: string;
+}
+
+export interface StrapiRawPlayerHighlight {
+  id: number;
+  documentId: string;
+  title: string;
+  player: StrapiRawPlayer | null;
+  highlightStat: StrapiRawStatValue;
+  stats: StrapiRawStatValue[] | null;
+  categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
+  sortOrder: number;
+}

@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_elements_stat_values",
+  "info": {
+    "displayName": "Stat Value",
+    "description": "Numeric stat with label"
+  },
+  "attributes": {
+    "value": {
+      "type": "integer",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

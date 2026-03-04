@@ -11,6 +11,7 @@ import type {
   Partner,
   PartnerDetail,
   Player,
+  PlayerHighlight,
   Standing,
 } from '@/lib/types';
 import type {
@@ -24,6 +25,7 @@ import type {
   StrapiRawPage,
   StrapiRawPartner,
   StrapiRawPlayer,
+  StrapiRawPlayerHighlight,
   StrapiRawStanding,
 } from './types';
 import { getStrapiClient } from './client';
@@ -36,6 +38,7 @@ import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
 import { mapPage } from './mappers/page';
 import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
+import { mapPlayerHighlight } from './mappers/player-highlight';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
@@ -357,4 +360,24 @@ export async function getPartnerBySlug(slug: string): Promise<PartnerDetail | nu
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapPartnerDetail(data[0]) : null;
+}
+
+export async function getPlayerHighlightsByCategory(categorySlug: string): Promise<PlayerHighlight[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawPlayerHighlight>('player-highlights', {
+    filters: {
+      categories: { slug: { $eq: categorySlug } },
+    },
+    populate: {
+      player: {
+        fields: ['name'],
+        populate: { photo: { fields: ['url', 'alternativeText', 'width', 'height'] } },
+      },
+      highlightStat: true,
+      stats: true,
+    },
+    sort: 'sortOrder:asc',
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapPlayerHighlight);
 }

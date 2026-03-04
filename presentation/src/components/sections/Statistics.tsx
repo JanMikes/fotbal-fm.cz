@@ -2,18 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Trophy, Target, TrendingUp, Award, BarChart3 } from 'lucide-react';
-import type { Standing } from '@/lib/types';
+import { BarChart3, ChevronLeft, ChevronRight, Trophy, Target, Users, TrendingUp, User } from 'lucide-react';
+import Image from 'next/image';
+import type { PlayerHighlight, Standing } from '@/lib/types';
 import TeamLogo from '../ui/TeamLogo';
 import SectionHeader from '../ui/SectionHeader';
 
-interface StatItem {
-  label: string;
-  value: number;
-  suffix?: string;
-  icon: React.ElementType;
-  description: string;
-}
+const MAX_VISIBLE_ROWS = 8;
 
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -50,9 +45,14 @@ function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: strin
 
 interface StatisticsProps {
   standings: Standing[];
+  playerHighlights: PlayerHighlight[];
+  playerCount: number;
 }
 
-export default function Statistics({ standings }: StatisticsProps) {
+export default function Statistics({ standings, playerHighlights, playerCount }: StatisticsProps) {
+  const [showAll, setShowAll] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+
   if (standings.length === 0) return null;
 
   const ourTeam = standings.find((s) =>
@@ -63,13 +63,25 @@ export default function Statistics({ standings }: StatisticsProps) {
 
   const tournamentName = ourTeam.tournamentName;
 
-  const stats: StatItem[] = [
+  const ourTeamIndex = standings.indexOf(ourTeam);
+  const needsTruncation = standings.length > MAX_VISIBLE_ROWS;
+
+  let visibleStandings: Standing[];
+  if (showAll || !needsTruncation) {
+    visibleStandings = standings;
+  } else if (ourTeamIndex < MAX_VISIBLE_ROWS) {
+    visibleStandings = standings.slice(0, MAX_VISIBLE_ROWS);
+  } else {
+    visibleStandings = [...standings.slice(0, MAX_VISIBLE_ROWS - 1), ourTeam];
+  }
+
+  const seasonStats = [
     {
       label: 'Pozice v tabulce',
       value: ourTeam.position,
       suffix: '.',
       icon: Trophy,
-      description: tournamentName ?? 'v aktuální sezóně',
+      description: tournamentName ?? 'Tabulka',
     },
     {
       label: 'Odehraných zápasů',
@@ -84,29 +96,44 @@ export default function Statistics({ standings }: StatisticsProps) {
       description: 'v aktuální sezóně',
     },
     {
-      label: 'Body',
-      value: ourTeam.points,
-      icon: Award,
-      description: 'v aktuální sezóně',
+      label: 'Hráčů v kádru',
+      value: playerCount,
+      icon: Users,
+      description: 'aktivních hráčů',
     },
   ];
 
+  const currentHighlight = playerHighlights.length > 0 ? playerHighlights[highlightIndex] : null;
+  const hasMultipleHighlights = playerHighlights.length > 1;
+
+  const prevHighlight = () => {
+    setHighlightIndex((i) => (i - 1 + playerHighlights.length) % playerHighlights.length);
+  };
+  const nextHighlight = () => {
+    setHighlightIndex((i) => (i + 1) % playerHighlights.length);
+  };
+
   return (
-    <section className="relative py-section-sm bg-white overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.02]">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23081E44' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
-      </div>
+    <section className="py-section bg-surface-light">
+      <div className="container mx-auto px-4 lg:px-8">
+        {/* Season Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-section text-primary uppercase mb-4">
+            Sezóna v číslech
+          </h2>
+          <p className="text-body-lg text-primary/60 max-w-xl mx-auto">
+            Aktuální statistiky v {tournamentName ?? 'soutěži'}
+          </p>
+        </motion.div>
 
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        {/* Header */}
-        <SectionHeader title="Sezóna v číslech" icon={BarChart3} />
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {stats.map((stat, index) => (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
+          {seasonStats.map((stat, index) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 30 }}
@@ -115,23 +142,16 @@ export default function Statistics({ standings }: StatisticsProps) {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="relative group"
             >
-              <div className="bg-surface-light p-6 lg:p-8 text-center h-full transition-all duration-300 hover:bg-primary hover:shadow-card-hover group-hover:-translate-y-2">
-                {/* Icon */}
+              <div className="bg-white p-6 lg:p-8 text-center h-full transition-all duration-300 hover:bg-primary hover:shadow-card-hover group-hover:-translate-y-2">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent/10 text-accent mb-4 transition-colors group-hover:bg-white/10 group-hover:text-white">
                   <stat.icon className="w-7 h-7" />
                 </div>
-
-                {/* Value */}
                 <div className="text-4xl lg:text-5xl font-black text-primary mb-2 transition-colors group-hover:text-white">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                 </div>
-
-                {/* Label */}
                 <h3 className="text-sm lg:text-base font-semibold text-primary uppercase tracking-wide mb-1 transition-colors group-hover:text-white">
                   {stat.label}
                 </h3>
-
-                {/* Description */}
                 <p className="text-small text-primary/50 transition-colors group-hover:text-white/60">
                   {stat.description}
                 </p>
@@ -140,26 +160,102 @@ export default function Statistics({ standings }: StatisticsProps) {
           ))}
         </div>
 
-        {/* League Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 bg-primary p-6 lg:p-8 overflow-hidden"
-        >
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                {tournamentName ?? 'Tabulka'}
-              </h3>
-              <p className="text-white/60">
-                Aktuální pozice v tabulce po {ourTeam.matchesPlayed}. kole
-              </p>
-            </div>
+        {/* Player Highlight + Standings Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left: Player Highlight */}
+          {currentHighlight && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="flex items-center gap-4 mb-12">
+                <div className="inline-flex items-center bg-primary px-8 py-5 gap-8">
+                  <h2 className="text-section text-white uppercase font-black leading-tight">
+                    {currentHighlight.title}
+                  </h2>
+                  <BarChart3 className="w-8 h-8 text-accent shrink-0" />
+                </div>
+                {hasMultipleHighlights && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={prevHighlight}
+                      className="p-1.5 text-primary/40 hover:text-primary transition-colors"
+                      aria-label="Předchozí"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={nextHighlight}
+                      className="p-1.5 text-primary/40 hover:text-primary transition-colors"
+                      aria-label="Další"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
-            {/* Full Table */}
-            <div className="bg-white/5 overflow-hidden flex-1 lg:max-w-2xl">
+              <div className="flex items-end gap-6">
+                {/* Player Image */}
+                <div className="relative w-48 h-64 shrink-0 bg-gradient-to-t from-primary/10 to-transparent">
+                  {currentHighlight.playerPhoto ? (
+                    <Image
+                      src={currentHighlight.playerPhoto.url}
+                      alt={currentHighlight.playerName}
+                      fill
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <User className="w-20 h-20 text-primary/20" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Player Info + Stats */}
+                <div className="flex-1">
+                  <p className="text-primary/60 text-lg">{currentHighlight.playerFirstName}</p>
+                  <p className="text-primary text-3xl font-black uppercase leading-tight mb-4">
+                    {currentHighlight.playerLastName}
+                  </p>
+
+                  <div className="inline-flex items-center gap-2 bg-accent px-4 py-2 mb-6">
+                    <span className="text-2xl font-black text-white">{currentHighlight.highlightStat.value}</span>
+                    <span className="text-sm text-white/80 font-medium">{currentHighlight.highlightStat.label}</span>
+                  </div>
+
+                  {/* Stats column */}
+                  <div className="space-y-1">
+                    {currentHighlight.stats.map((stat) => (
+                      <div key={stat.label} className="flex items-center gap-3">
+                        <div className="bg-primary px-3 py-1.5 min-w-[3rem] text-center">
+                          <span className="text-lg font-black text-white">{stat.value}</span>
+                        </div>
+                        <span className="text-sm text-primary/70 font-medium">{stat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Right: Standings Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className={!currentHighlight ? 'lg:col-span-2' : ''}
+          >
+            <SectionHeader
+              title={tournamentName ?? 'Tabulka'}
+              icon={Trophy}
+            />
+
+            <div className="bg-primary overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-white/40 text-xs uppercase tracking-wider">
@@ -174,12 +270,13 @@ export default function Statistics({ standings }: StatisticsProps) {
                   </tr>
                 </thead>
                 <tbody className="text-white">
-                  {standings.map((row) => {
+                  {visibleStandings.map((row, index) => {
                     const isOurTeam = row.teamName.toLowerCase().includes('frýdek');
+                    const isGapRow = !showAll && needsTruncation && ourTeamIndex >= MAX_VISIBLE_ROWS && index === MAX_VISIBLE_ROWS - 1;
                     return (
                       <tr
                         key={`${row.position}-${row.teamName}`}
-                        className={`border-t border-white/10 ${isOurTeam ? 'bg-accent/20' : ''}`}
+                        className={`border-t border-white/10 ${isOurTeam ? 'bg-accent/20' : ''} ${isGapRow ? 'border-t-2 border-t-white/20 border-dashed' : ''}`}
                       >
                         <td className={`px-3 py-3 ${isOurTeam ? 'text-accent font-bold' : 'text-white/60'}`}>
                           {row.position}.
@@ -211,8 +308,16 @@ export default function Statistics({ standings }: StatisticsProps) {
                 </tbody>
               </table>
             </div>
-          </div>
-        </motion.div>
+            {needsTruncation && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full py-3 text-sm text-primary/60 hover:text-primary transition-colors font-medium"
+              >
+                {showAll ? 'Skrýt tabulku' : 'Zobrazit celou tabulku'}
+              </button>
+            )}
+          </motion.div>
+        </div>
       </div>
     </section>
   );

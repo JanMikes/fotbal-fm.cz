@@ -1054,6 +1054,45 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPlayerHighlightPlayerHighlight
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'player_highlights';
+  info: {
+    description: 'Highlighted player stats per category';
+    displayName: 'Player Highlight';
+    pluralName: 'player-highlights';
+    singularName: 'player-highlight';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    categories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::category.category'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    highlightStat: Schema.Attribute.Component<'elements.stat-value', false> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player-highlight.player-highlight'
+    > &
+      Schema.Attribute.Private;
+    player: Schema.Attribute.Relation<'manyToOne', 'api::player.player'>;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    stats: Schema.Attribute.Component<'elements.stat-value', true>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   collectionName: 'players';
   info: {
@@ -1775,6 +1814,7 @@ declare module '@strapi/strapi' {
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
       'api::page.page': ApiPagePage;
       'api::partner.partner': ApiPartnerPartner;
+      'api::player-highlight.player-highlight': ApiPlayerHighlightPlayerHighlight;
       'api::player.player': ApiPlayerPlayer;
       'api::standing.standing': ApiStandingStanding;
       'api::team.team': ApiTeamTeam;

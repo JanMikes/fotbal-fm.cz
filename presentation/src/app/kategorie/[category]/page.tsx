@@ -7,6 +7,7 @@ import {
   getFinishedMatches,
   getLastResult,
   getNewsArticlesByCategory,
+  getPlayerHighlightsByCategory,
   getPlayersByCategory,
   getStandingsByCategory,
   getUpcomingMatch,
@@ -20,7 +21,7 @@ interface CategoryPageProps {
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
 
-  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches, categoryGroup] =
+  const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches, categoryGroup, playerHighlights] =
     await Promise.all([
       getNewsArticlesByCategory(categorySlug, 1, 6),
       getPlayersByCategory(categorySlug),
@@ -32,6 +33,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       getLastResult(categorySlug),
       getAllMatchesByCategory(categorySlug),
       getCategoryGroupByCategorySlug(categorySlug),
+      getPlayerHighlightsByCategory(categorySlug),
     ]);
 
   const defaultHero = {
@@ -64,7 +66,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </div>
       )}
       <Matches upcomingMatches={upcoming} finishedMatches={finished} allMatches={allMatches} categorySlug={categorySlug} />
-      <Statistics standings={standings} />
+      <Statistics standings={standings} playerHighlights={playerHighlights} playerCount={players.filter(p => p.type === 'hráč' && p.isActive).length} />
       <NewsList articles={newsResult.articles} categorySlug={categorySlug} />
       <TeamSection players={players} categorySlug={categorySlug} />
     </>

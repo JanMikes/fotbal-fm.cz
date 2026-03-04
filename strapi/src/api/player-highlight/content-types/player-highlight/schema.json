@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "player_highlights",
+  "info": {
+    "singularName": "player-highlight",
+    "pluralName": "player-highlights",
+    "displayName": "Player Highlight",
+    "description": "Highlighted player stats per category"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "player": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::player.player"
+    },
+    "highlightStat": {
+      "type": "component",
+      "component": "elements.stat-value",
+      "required": true
+    },
+    "stats": {
+      "type": "component",
+      "component": "elements.stat-value",
+      "repeatable": true
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

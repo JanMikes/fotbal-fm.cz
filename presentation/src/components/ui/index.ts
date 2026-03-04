@@ -7,3 +7,4 @@ export { default as NewsCard } from './NewsCard';
 export { default as PartnerCard } from './PartnerCard';
 export { default as PlayerCard } from './PlayerCard';
 export { default as MiniCalendar } from './MiniCalendar';
+export { default as SectionHeader } from './SectionHeader';

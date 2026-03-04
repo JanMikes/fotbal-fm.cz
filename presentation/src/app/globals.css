@@ -37,7 +37,7 @@
 
   /* Font sizes */
   --text-hero: clamp(3rem, 8vw, 7.5rem);
-  --text-section: clamp(2.5rem, 5vw, 4rem);
+  --text-section: clamp(1.5rem, 3vw, 2rem);
   --text-subheading: clamp(1.5rem, 3vw, 2rem);
   --text-body-lg: 1.125rem;
   --text-body: 1rem;
@@ -90,6 +90,10 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+a, button {
+  cursor: pointer;
 }
 
 body {

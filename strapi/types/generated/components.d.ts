@@ -462,6 +462,18 @@ export interface ElementsStatItem extends Struct.ComponentSchema {
   };
 }
 
+export interface ElementsStatValue extends Struct.ComponentSchema {
+  collectionName: 'components_elements_stat_values';
+  info: {
+    description: 'Numeric stat with label';
+    displayName: 'Stat Value';
+  };
+  attributes: {
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+    value: Schema.Attribute.Integer & Schema.Attribute.Required;
+  };
+}
+
 export interface ElementsTextLink extends Struct.ComponentSchema {
   collectionName: 'components_elements_text_links';
   info: {
@@ -554,6 +566,7 @@ declare module '@strapi/strapi' {
       'elements.photo': ElementsPhoto;
       'elements.slide': ElementsSlide;
       'elements.stat-item': ElementsStatItem;
+      'elements.stat-value': ElementsStatValue;
       'elements.text-link': ElementsTextLink;
       'elements.timeline-item': ElementsTimelineItem;
       'footer.link-section': FooterLinkSection;

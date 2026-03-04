@@ -37,7 +37,7 @@ export default function MatchCard({ match, className }: MatchCardProps) {
       <div className="bg-white p-6">
 
       {/* Teams & Score */}
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {/* Home Team */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -66,8 +66,10 @@ export default function MatchCard({ match, className }: MatchCardProps) {
         </div>
 
         {/* VS separator */}
-        <div className="flex items-center pl-13">
-          <span className="text-xs font-bold text-primary/20 uppercase">vs</span>
+        <div className="flex items-center">
+          <div className="w-10 flex justify-center">
+            <span className="text-xs font-bold text-primary/20 uppercase">vs</span>
+          </div>
         </div>
 
         {/* Away Team */}
