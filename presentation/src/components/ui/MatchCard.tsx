@@ -29,7 +29,7 @@ export default function MatchCard({ match, className }: MatchCardProps) {
             {match.round}. kolo
           </span>
         )}
-        <span className="text-small text-white/80">
+        <span className="text-small text-accent-light font-medium border border-accent-light/60 rounded-full px-4 py-1">
           {match.matchDate}
         </span>
       </div>
@@ -103,9 +103,11 @@ export default function MatchCard({ match, className }: MatchCardProps) {
       </div>
 
       {/* Footer */}
-      <div className="mt-4 pt-4 border-t border-surface-light flex items-center justify-between text-small text-primary/60">
-        <span>{match.matchTime}</span>
-        <span>{match.venue}</span>
+      <div className="mt-4 pt-4 border-t border-surface-light flex items-center justify-between text-small">
+        <span className="bg-accent text-white font-medium rounded-full px-4 py-1">
+          {match.matchTime}
+        </span>
+        <span className="text-primary/60">{match.venue}</span>
       </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import type { Match } from '@/lib/types';
 import type { StrapiRawMatch } from '../types';
 import { mapMedia } from './shared';
 
-const CZECH_DAYS = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
+const CZECH_DAYS = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
 
 function formatCzechDate(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00');
