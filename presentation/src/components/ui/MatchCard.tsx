@@ -17,25 +17,27 @@ export default function MatchCard({ match, className }: MatchCardProps) {
   return (
     <div
       className={clsx(
-        'bg-white p-6 shadow-card card-lift',
-        'border border-surface-light',
+        'shadow-card card-lift',
+        'border border-surface-light overflow-hidden',
         className
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-4 border-b border-surface-light">
+      <div className="flex items-center justify-between px-6 py-4 bg-primary">
         {match.round && (
-          <span className="text-small text-primary/60 font-medium">
+          <span className="text-small text-white font-medium">
             {match.round}. kolo
           </span>
         )}
-        <span className="text-small text-primary/60">
+        <span className="text-small text-white/80">
           {match.matchDate}
         </span>
       </div>
 
+      <div className="bg-white p-6">
+
       {/* Teams & Score */}
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         {/* Home Team */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -63,19 +65,10 @@ export default function MatchCard({ match, className }: MatchCardProps) {
           )}
         </div>
 
-        {/* Score separator for upcoming matches */}
-        {!isFinished && (
-          <div className="flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary/20">vs</span>
-          </div>
-        )}
-
-        {/* Score display for finished */}
-        {isFinished && (
-          <div className="flex items-center justify-center">
-            <span className="text-primary/30 text-lg">:</span>
-          </div>
-        )}
+        {/* VS separator */}
+        <div className="flex items-center pl-13">
+          <span className="text-xs font-bold text-primary/20 uppercase">vs</span>
+        </div>
 
         {/* Away Team */}
         <div className="flex items-center justify-between">
@@ -109,6 +102,7 @@ export default function MatchCard({ match, className }: MatchCardProps) {
       <div className="mt-4 pt-4 border-t border-surface-light flex items-center justify-between text-small text-primary/60">
         <span>{match.matchTime}</span>
         <span>{match.venue}</span>
+      </div>
       </div>
     </div>
   );

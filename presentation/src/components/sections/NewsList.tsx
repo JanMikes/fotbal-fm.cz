@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { Newspaper } from 'lucide-react';
 import { NewsCard } from '../ui';
+import SectionHeader from '../ui/SectionHeader';
 import type { NewsArticleSummary } from '@/lib/types';
 
 interface NewsListProps {
@@ -16,9 +16,7 @@ export default function NewsList({ articles, categorySlug }: NewsListProps) {
     return (
       <section className="py-section bg-white">
         <div className="container mx-auto px-4 lg:px-8">
-          <h2 className="text-section text-primary uppercase accent-underline mb-4">
-            Novinky
-          </h2>
+          <SectionHeader title="Novinky" icon={Newspaper} />
           <p className="text-body-lg text-primary/60">
             Zatím zde nejsou žádné novinky.
           </p>
@@ -34,30 +32,11 @@ export default function NewsList({ articles, categorySlug }: NewsListProps) {
     <section className="py-section bg-white">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12"
-        >
-          <div>
-            <h2 className="text-section text-primary uppercase accent-underline mb-4">
-              Novinky
-            </h2>
-            <p className="text-body-lg text-primary/60 max-w-xl">
-              Nejnovější zprávy, rozhovory a události z klubu.
-            </p>
-          </div>
-
-          <Link
-            href={`/kategorie/${categorySlug}/novinky`}
-            className="inline-flex items-center gap-2 font-semibold uppercase tracking-wide text-sm px-6 py-3 rounded-full text-primary hover:bg-surface-light transition-all duration-300"
-          >
-            <span>Všechny novinky</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-        </motion.div>
+        <SectionHeader
+          title="Novinky"
+          icon={Newspaper}
+          moreLink={`/kategorie/${categorySlug}/novinky`}
+        />
 
         {/* News Grid - Masonry Style */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Trophy, Target, TrendingUp, Award } from 'lucide-react';
+import { Trophy, Target, TrendingUp, Award, BarChart3 } from 'lucide-react';
 import type { Standing } from '@/lib/types';
 import TeamLogo from '../ui/TeamLogo';
+import SectionHeader from '../ui/SectionHeader';
 
 interface StatItem {
   label: string;
@@ -101,22 +102,7 @@ export default function Statistics({ standings }: StatisticsProps) {
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-section text-primary uppercase mb-4">
-            Sezóna v číslech
-          </h2>
-          {tournamentName && (
-            <p className="text-body-lg text-primary/60 max-w-xl mx-auto">
-              Aktuální statistiky v soutěži {tournamentName}
-            </p>
-          )}
-        </motion.div>
+        <SectionHeader title="Sezóna v číslech" icon={BarChart3} />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">

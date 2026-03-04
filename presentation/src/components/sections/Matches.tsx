@@ -3,10 +3,9 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { ArrowRight, Calendar } from 'lucide-react';
-import Link from 'next/link';
+import { Calendar } from 'lucide-react';
 import { MatchCard, MiniCalendar } from '../ui';
-import Button from '../ui/Button';
+import SectionHeader from '../ui/SectionHeader';
 import type { Match } from '@/lib/types';
 
 type MatchFilter = 'upcoming' | 'finished';
@@ -33,24 +32,15 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
     <section className="py-section bg-surface-light">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12"
-        >
-          <div>
-            <h2 className="text-section text-primary uppercase accent-underline mb-4">
-              Zápasy
-            </h2>
-            <p className="text-body-lg text-primary/60 max-w-xl">
-              Sledujte nadcházející utkání a výsledky našeho týmu v aktuální sezóně.
-            </p>
-          </div>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <SectionHeader
+            title="Zápasy"
+            icon={Calendar}
+            moreLink={`/kategorie/${categorySlug}/zapasy`}
+          />
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-2 p-1.5 bg-white rounded-full shadow-sm">
+          <div className="flex items-center gap-2 p-1.5 bg-white rounded-full shadow-sm mb-12">
             <button
               onClick={() => setFilter('upcoming')}
               className={clsx(
@@ -74,7 +64,7 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
               Odehrané
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Desktop: 2 columns (calendar + cards), Mobile: stacked */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
@@ -163,23 +153,6 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
           </div>
         </div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
-          <Link href={`/kategorie/${categorySlug}/zapasy`}>
-            <Button
-              variant="ghost"
-              icon={<ArrowRight className="w-5 h-5" />}
-            >
-              Všechny zápasy
-            </Button>
-          </Link>
-        </motion.div>
       </div>
     </section>
   );
