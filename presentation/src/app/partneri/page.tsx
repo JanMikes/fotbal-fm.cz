@@ -10,7 +10,7 @@ export default async function PartneriPage() {
   const partners = await getPartners();
 
   return (
-    <main className="bg-surface-light mt-28 lg:mt-32">
+    <main className="bg-surface-light mt-22 lg:mt-24">
       <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
         <Breadcrumb items={[
           { label: 'Partneři', href: '/partneri' },

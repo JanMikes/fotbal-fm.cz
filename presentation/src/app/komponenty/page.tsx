@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function KomponentyPage() {
   return (
-    <main className="bg-surface-light mt-28 lg:mt-32">
+    <main className="bg-surface-light mt-22 lg:mt-24">
       <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
         <h1 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Komponenty</h1>
         <p className="text-primary/60 mb-12">Showcase all dynamic zone components with football mock data.</p>

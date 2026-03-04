@@ -140,11 +140,15 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[calc(100vh-7rem)] lg:h-[calc(100vh-8rem)] min-h-[500px] mt-28 lg:mt-32 clip-diagonal-bottom">
+    <section className="relative h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-6rem)] min-h-[500px] mt-22 lg:mt-24 clip-diagonal-bottom">
       {/* Category Switcher */}
       {categorySwitcher && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-          {categorySwitcher}
+        <div className="absolute top-8 inset-x-0 z-20">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="w-fit">
+              {categorySwitcher}
+            </div>
+          </div>
         </div>
       )}
 
@@ -205,60 +209,43 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
         </div>
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows & Dot Indicators */}
       {slides.length > 1 && (
-        <div className="absolute bottom-32 lg:bottom-40 left-4 lg:left-8 flex items-center gap-3 z-10">
-          <button
-            onClick={scrollPrev}
-            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            aria-label="Předchozí"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={scrollNext}
-            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-            aria-label="Další"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-      )}
-
-      {/* Dot Indicators */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-32 lg:bottom-40 right-4 lg:right-8 flex items-center gap-2 z-10">
-          {slides.map((_, index) => (
+        <div className="absolute bottom-32 lg:bottom-40 inset-x-0 z-10">
+          <div className="container mx-auto px-4 lg:px-8 flex items-center gap-3">
             <button
-              key={index}
-              onClick={() => scrollTo(index)}
-              className={clsx(
-                'h-2 rounded-full transition-all duration-300',
-                selectedIndex === index
-                  ? 'w-8 bg-accent'
-                  : 'w-2 bg-white/30 hover:bg-white/50'
-              )}
-              aria-label={`Přejít na slide ${index + 1}`}
-            />
-          ))}
+              onClick={scrollPrev}
+              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              aria-label="Předchozí"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={scrollNext}
+              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              aria-label="Další"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-2 ml-2">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollTo(index)}
+                  className={clsx(
+                    'h-2 rounded-full transition-all duration-300',
+                    selectedIndex === index
+                      ? 'w-8 bg-accent'
+                      : 'w-2 bg-white/30 hover:bg-white/50'
+                  )}
+                  aria-label={`Přejít na slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
-        >
-          <motion.div className="w-1.5 h-1.5 rounded-full bg-white/50" />
-        </motion.div>
-      </motion.div>
     </section>
   );
 }

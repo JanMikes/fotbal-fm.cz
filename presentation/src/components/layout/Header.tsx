@@ -32,7 +32,6 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
       g.categories.some((c) => c.slug === activeCategorySlug)
     )?.slug ?? '';
   }, [categoryGroups, activeCategorySlug]);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -52,14 +51,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
     el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' });
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Track category scroll state & auto-scroll active item into view
   useEffect(() => {
@@ -100,150 +92,138 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
     <>
       <header
         className={clsx(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white shadow-lg'
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-primary shadow-lg'
         )}
       >
-        {/* Level 1 - Main Navigation */}
-        <div className={clsx(
-          'transition-all duration-300',
-          isScrolled ? 'py-2' : 'py-4'
-        )}>
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <Link href="/" className="flex items-center gap-3 group">
-                <div className={clsx(
-                  'relative transition-all duration-300',
-                  isScrolled ? 'w-10 h-10' : 'w-14 h-14'
-                )}>
-                  <Image
-                    src="/logo.svg"
-                    alt="FK Frýdek-Místek"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                <span className={clsx(
-                  'font-bold uppercase tracking-tight transition-all duration-300 text-primary',
-                  isScrolled ? 'text-sm' : 'text-base',
-                  'hidden sm:block'
-                )}>
-                  FK Frýdek-Místek
-                </span>
-              </Link>
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="flex items-stretch gap-4">
+            {/* Logo - spans both nav levels via row-span */}
+            <Link href="/" className="flex items-center shrink-0 z-20 group py-2">
+              <div className="relative w-14 h-14 lg:w-24 lg:h-24">
+                <Image
+                  src="/logo.svg"
+                  alt="FK Frýdek-Místek"
+                  fill
+                  className="object-contain drop-shadow-lg"
+                  priority
+                />
+              </div>
+            </Link>
 
-              {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center gap-1">
-                {navigation.map((item) => {
-                  const linkProps = item.external
-                    ? { target: '_blank' as const, rel: 'noopener noreferrer' }
-                    : {};
-                  return (
+            {/* Right side: two rows */}
+            <div className="flex flex-col flex-1 min-w-0">
+              {/* Level 1 - Main Navigation */}
+              <div className="flex items-center py-2.5">
+                {/* Desktop Navigation (left-aligned) */}
+                <nav className="hidden lg:flex items-center gap-2">
+                  {navigation.map((item) => {
+                    const linkProps = item.external
+                      ? { target: '_blank' as const, rel: 'noopener noreferrer' }
+                      : {};
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        {...linkProps}
+                        className={clsx(
+                          'flex items-center gap-1 px-4 py-2 font-medium text-base tracking-wide transition-colors',
+                          'text-white/80 hover:text-white',
+                          'link-hover'
+                        )}
+                      >
+                        {item.title}
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                {/* Social Icons & Mobile Menu Button */}
+                <div className="flex items-center gap-4 ml-auto">
+                  {/* Desktop Social Links */}
+                  <div className="hidden lg:flex items-center gap-2">
+                    {socialLinks.map((social) => (
+                      <a
+                        key={social.label}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-white/60 hover:text-white hover:bg-white/10"
+                        aria-label={social.label}
+                      >
+                        <social.icon className="w-4 h-4" />
+                      </a>
+                    ))}
+                  </div>
+
+                  {/* Mobile Menu Button */}
+                  <button
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors text-white hover:bg-white/10"
+                    aria-label="Otevřít menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Level 2 - Category Tabs (hidden on mobile, shown in hamburger menu) */}
+              <div className="relative hidden lg:block">
+                {/* Left scroll indicator */}
+                <div
+                  className={clsx(
+                    'absolute left-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200',
+                    canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  )}
+                >
+                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-primary to-transparent pointer-events-none" />
+                  <button
+                    onClick={() => scrollCategories('left')}
+                    className="relative w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all"
+                    aria-label="Posunout kategorie doleva"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Scrollable category groups */}
+                <div
+                  ref={scrollRef}
+                  className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2"
+                >
+                  {categoryGroups.map((group) => (
                     <Link
-                      key={item.href}
-                      href={item.href}
-                      {...linkProps}
+                      key={group.slug}
+                      href={`/kategorie/${group.firstCategorySlug}`}
+                      data-active={activeGroupSlug === group.slug}
                       className={clsx(
-                        'flex items-center gap-1 px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors',
-                        'text-primary hover:text-accent',
-                        'link-hover'
+                        'px-4 py-1.5 text-sm font-medium whitespace-nowrap rounded-full border transition-all duration-300',
+                        activeGroupSlug === group.slug
+                          ? 'bg-accent text-white border-accent'
+                          : 'text-white/80 border-white/30 hover:text-white hover:border-white/60'
                       )}
                     >
-                      {item.title}
+                      {group.name}
                     </Link>
-                  );
-                })}
-              </nav>
-
-              {/* Social Icons & Mobile Menu Button */}
-              <div className="flex items-center gap-4">
-                {/* Desktop Social Links */}
-                <div className="hidden lg:flex items-center gap-2">
-                  {socialLinks.map((social) => (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-primary/60 hover:text-accent hover:bg-surface-light"
-                      aria-label={social.label}
-                    >
-                      <social.icon className="w-4 h-4" />
-                    </a>
                   ))}
                 </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                  onClick={() => setIsMobileMenuOpen(true)}
-                  className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors text-primary hover:bg-surface-light"
-                  aria-label="Otevřít menu"
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Level 2 - Category Tabs */}
-        <div className="border-t transition-all duration-300 border-primary/10">
-          <div className="container mx-auto px-4 lg:px-8 relative">
-            {/* Left scroll indicator */}
-            <div
-              className={clsx(
-                'absolute left-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200 lg:left-8',
-                canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              )}
-            >
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-              <button
-                onClick={() => scrollCategories('left')}
-                className="relative w-7 h-7 rounded-full bg-white shadow-md border border-primary/10 flex items-center justify-center text-primary/60 hover:text-primary hover:shadow-lg transition-all"
-                aria-label="Posunout kategorie doleva"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Scrollable category groups */}
-            <div
-              ref={scrollRef}
-              className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2"
-            >
-              {categoryGroups.map((group) => (
-                <Link
-                  key={group.slug}
-                  href={`/kategorie/${group.firstCategorySlug}`}
-                  data-active={activeGroupSlug === group.slug}
+                {/* Right scroll indicator */}
+                <div
                   className={clsx(
-                    'px-4 py-2 text-sm font-medium whitespace-nowrap transition-all duration-300',
-                    activeGroupSlug === group.slug
-                      ? 'bg-accent text-white'
-                      : 'text-primary/70 hover:text-primary hover:bg-surface-light'
+                    'absolute right-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200',
+                    canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   )}
                 >
-                  {group.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* Right scroll indicator */}
-            <div
-              className={clsx(
-                'absolute right-0 top-0 bottom-0 z-10 flex items-center transition-opacity duration-200 lg:right-8',
-                canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-              )}
-            >
-              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-              <button
-                onClick={() => scrollCategories('right')}
-                className="relative w-7 h-7 rounded-full bg-white shadow-md border border-primary/10 flex items-center justify-center text-primary/60 hover:text-primary hover:shadow-lg transition-all"
-                aria-label="Posunout kategorie doprava"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-primary to-transparent pointer-events-none" />
+                  <button
+                    onClick={() => scrollCategories('right')}
+                    className="relative w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all"
+                    aria-label="Posunout kategorie doprava"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
