@@ -61,7 +61,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         categorySwitcher={heroHasSlides ? switcherElement : undefined}
       />
       {!heroHasSlides && switcherElement && (
-        <div className="flex justify-center py-4 mt-22 lg:mt-24">
+        <div className="flex justify-center py-4 mt-18 lg:mt-24">
           {switcherElement}
         </div>
       )}

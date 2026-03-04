@@ -21,8 +21,12 @@ const positionLabels: Record<string, string> = {
 export default function PlayerCard({ player, categorySlug, className }: PlayerCardProps) {
   const href = `/kategorie/${categorySlug}/hrac/${player.slug}`;
   const imageUrl = player.photo?.url || '/player-placeholder.png';
+  const hasPhoto = !!player.photo?.url;
   const isPlayer = player.type === 'hráč';
   const displayPosition = player.position ? positionLabels[player.position] ?? player.position : player.positionText;
+  const nameParts = player.name.split(' ');
+  const firstName = nameParts.slice(0, -1).join(' ');
+  const lastName = nameParts[nameParts.length - 1];
 
   return (
     <Link href={href} className="block">
@@ -33,22 +37,32 @@ export default function PlayerCard({ player, categorySlug, className }: PlayerCa
           className
         )}
       >
-        <Image
-          src={imageUrl}
-          alt={player.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-        <div className="absolute inset-0 bg-gradient-card" />
+        {hasPhoto ? (
+          <Image
+            src={imageUrl}
+            alt={player.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src="/player-placeholder.png"
+            alt={player.name}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
+        {hasPhoto && <div className="absolute inset-0 bg-gradient-card" />}
         <div className="absolute inset-0 p-5 flex flex-col justify-end">
           {isPlayer && player.number != null && (
             <span className="text-5xl font-black text-accent number-display mb-1 leading-none">
               #{player.number}
             </span>
           )}
-          <h3 className="text-xl font-bold text-white leading-tight">
-            {player.name}
+          <h3 className="text-white leading-tight">
+            {firstName && <span className="text-sm font-bold block text-accent">{firstName}</span>}
+            <span className="text-xl font-bold block">{lastName}</span>
           </h3>
           {displayPosition && (
             <p className="text-small text-white/70 mt-1">

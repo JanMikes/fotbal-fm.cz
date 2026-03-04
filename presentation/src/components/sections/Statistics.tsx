@@ -199,7 +199,7 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
 
               <div className="flex items-end gap-6">
                 {/* Player Image */}
-                <div className="relative w-48 h-64 shrink-0 bg-gradient-to-t from-primary/10 to-transparent">
+                <div className="relative w-48 h-64 shrink-0">
                   <Image
                     src={currentHighlight.playerPhoto?.url ?? '/player-placeholder.png'}
                     alt={currentHighlight.playerName}

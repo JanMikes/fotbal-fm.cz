@@ -140,18 +140,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[calc(100vh-5.5rem)] lg:h-[calc(100vh-6rem)] min-h-[500px] mt-22 lg:mt-24 clip-diagonal-bottom">
-      {/* Category Switcher */}
-      {categorySwitcher && (
-        <div className="absolute top-8 inset-x-0 z-20">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="w-fit">
-              {categorySwitcher}
-            </div>
-          </div>
-        </div>
-      )}
-
+    <section className="relative h-[calc(100vh-4.5rem)] lg:h-[calc(100vh-6rem)] min-h-[500px] mt-18 lg:mt-24 clip-diagonal-bottom">
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">
@@ -175,6 +164,12 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {/* Content */}
               <div className="absolute inset-0 flex items-center">
                 <div className="container mx-auto px-4 lg:px-8">
+                  {/* Category Switcher - above match content */}
+                  {categorySwitcher && (
+                    <div className="w-fit mb-6 lg:mb-10">
+                      {categorySwitcher}
+                    </div>
+                  )}
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
                       <motion.div
