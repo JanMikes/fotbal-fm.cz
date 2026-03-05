@@ -9,6 +9,7 @@ import Badge from '../ui/Badge';
 import { MarkdownContent } from '../ui/MarkdownContent';
 import ImageLightbox from '../ui/ImageLightbox';
 import type { NewsArticle, NewsArticleSummary } from '@/lib/types';
+import { getYouTubeEmbedUrl } from '@/lib/youtube';
 
 interface ArticleDetailProps {
   article: NewsArticle;
@@ -178,7 +179,7 @@ export default function ArticleDetail({
             <h2 className="text-xl font-bold text-primary uppercase mb-4">Video</h2>
             <div className="aspect-video">
               <iframe
-                src={article.video}
+                src={getYouTubeEmbedUrl(article.video)}
                 className="w-full h-full"
                 allowFullScreen
                 title="Video"

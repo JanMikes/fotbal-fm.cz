@@ -30,6 +30,17 @@ export default function NewsArticleTypeFilter({ types }: NewsArticleTypeFilterPr
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-8">
+      <button
+        onClick={() => navigate(null)}
+        className={clsx(
+          'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
+          !activeType
+            ? 'bg-accent text-white'
+            : 'text-accent hover:bg-accent/5'
+        )}
+      >
+        Vše
+      </button>
       {types.map((type) => (
         <button
           key={type.slug}
@@ -44,14 +55,6 @@ export default function NewsArticleTypeFilter({ types }: NewsArticleTypeFilterPr
           {type.name}
         </button>
       ))}
-      {activeType && (
-        <button
-          onClick={() => navigate(null)}
-          className="ml-2 text-sm text-accent hover:text-accent/80 transition-colors"
-        >
-          Zrušit filtrování
-        </button>
-      )}
     </div>
   );
 }

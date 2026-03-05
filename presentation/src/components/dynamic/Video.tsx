@@ -1,4 +1,5 @@
 import type { ComponentVideo } from '@/lib/types';
+import { getYouTubeEmbedUrl } from '@/lib/youtube';
 
 interface VideoProps {
   data: ComponentVideo;
@@ -16,7 +17,7 @@ export function Video({ data }: VideoProps) {
   return (
     <div className={aspectClasses[data.aspect_ratio] || 'aspect-video'}>
       <iframe
-        src={`https://www.youtube.com/embed/${data.youtube_id}`}
+        src={getYouTubeEmbedUrl(data.youtube_id)}
         title="YouTube video"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
