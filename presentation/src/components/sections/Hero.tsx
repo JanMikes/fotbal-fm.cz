@@ -170,7 +170,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {!slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
-              <div className="absolute top-[72px] lg:top-[130px] bottom-0 left-0 right-0 flex items-center">
+              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-12 lg:-mt-16">
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher */}
                   <div className="w-fit mb-6 lg:mb-10">

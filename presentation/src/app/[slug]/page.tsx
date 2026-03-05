@@ -35,7 +35,7 @@ export default async function CmsPage({ params }: PageProps) {
   const hasSidebar = page.sidebar && page.sidebar.length > 0;
 
   return (
-    <main className="bg-surface-light pt-[72px] lg:pt-[130px]">
+    <main className="bg-surface-light pt-[72px] lg:pt-[126px]">
       <div className="container mx-auto px-4 lg:px-8 pb-8 lg:pb-12">
         <Breadcrumb items={page.breadcrumbs} />
         {hasSidebar ? (
