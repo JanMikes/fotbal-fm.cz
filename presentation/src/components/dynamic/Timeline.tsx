@@ -132,11 +132,14 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
 
   if (collapsible) {
     return (
-      <div>
+      <div className="py-3">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full grid grid-cols-[1fr_auto_1fr] gap-4 items-center py-3 text-left"
+          className="w-full flex flex-col gap-1 md:grid md:grid-cols-[auto_1fr_1fr] md:gap-4 md:items-center text-left"
         >
+          <span className="text-accent font-semibold min-w-[4rem] md:text-center">
+            {item.number}
+          </span>
           <span className="font-bold text-primary flex items-center gap-2">
             {item.title}
             <ChevronDown
@@ -145,9 +148,6 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
                 isOpen && 'rotate-180'
               )}
             />
-          </span>
-          <span className="text-accent font-semibold text-center min-w-[4rem]">
-            {item.number}
           </span>
           <span className="text-sm text-primary/70">
             {item.description && (
@@ -172,11 +172,11 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
   }
 
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center py-3">
-      <span className="font-bold text-primary">{item.title}</span>
-      <span className="text-accent font-semibold text-center min-w-[4rem]">
+    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_1fr_1fr] md:gap-4 md:items-center">
+      <span className="text-accent font-semibold min-w-[4rem] md:text-center">
         {item.number}
       </span>
+      <span className="font-bold text-primary">{item.title}</span>
       <span className="text-sm text-primary/70">
         {item.description && (
           <MarkdownContent
