@@ -832,7 +832,7 @@ export interface ApiNewsArticleTypeNewsArticleType
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     newsArticles: Schema.Attribute.Relation<
-      'oneToMany',
+      'manyToMany',
       'api::news-article.news-article'
     >;
     publishedAt: Schema.Attribute.DateTime;
@@ -1114,6 +1114,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     dateOfBirth: Schema.Attribute.Date;
+    email: Schema.Attribute.Email;
     facebook: Schema.Attribute.String;
     facrId: Schema.Attribute.String;
     facrUuid: Schema.Attribute.String;
@@ -1128,6 +1129,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     name: Schema.Attribute.String & Schema.Attribute.Required;
     nationality: Schema.Attribute.String;
     number: Schema.Attribute.Integer;
+    phone: Schema.Attribute.String;
     photo: Schema.Attribute.Media<'images'>;
     position: Schema.Attribute.Enumeration<
       [

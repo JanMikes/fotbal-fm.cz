@@ -80,6 +80,12 @@
     },
     "sportbmId": {
       "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
     }
   }
 }
