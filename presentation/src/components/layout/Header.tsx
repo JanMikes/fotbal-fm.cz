@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
 import type { CategoryGroup, NavigationItem } from '@/lib/types';
 
 const socialLinks = [
@@ -33,9 +33,15 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
     )?.slug ?? '';
   }, [categoryGroups, activeCategorySlug]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeGroup = useMemo(() => {
+    return categoryGroups.find((g) => g.slug === activeGroupSlug);
+  }, [categoryGroups, activeGroupSlug]);
 
   const updateScrollIndicators = useCallback(() => {
     const el = scrollRef.current;
@@ -88,6 +94,18 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
     }
   }, [isMobileMenuOpen]);
 
+  // Close category dropdown on outside click
+  useEffect(() => {
+    if (!isCategoryDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isCategoryDropdownOpen]);
+
   return (
     <>
       <header
@@ -98,7 +116,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
         <div className="w-full px-4 lg:px-8">
           <div className="flex items-stretch">
             {/* Logo - spans both nav levels via row-span */}
-            <Link href="/" className="flex items-center shrink-0 z-20 group py-2 pr-6 border-r border-primary-border">
+            <Link href="/" className="flex items-center shrink-0 z-20 group py-2 pr-6 lg:border-r lg:border-primary-border">
               <div className="relative w-14 h-14 lg:w-24 lg:h-24">
                 <Image
                   src="/logo.svg"
@@ -141,7 +159,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                 </nav>
 
                 {/* Social Icons & Mobile Menu Button */}
-                <div className="flex items-center gap-4 ml-auto">
+                <div className="flex items-center gap-3 ml-auto">
                   {/* Desktop Social Links */}
                   <div className="hidden lg:flex items-center gap-2">
                     {socialLinks.map((social) => (
@@ -156,6 +174,45 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                         <social.icon className="w-4 h-4" />
                       </a>
                     ))}
+                  </div>
+
+                  {/* Mobile Category Dropdown */}
+                  <div ref={categoryDropdownRef} className="relative lg:hidden">
+                    <button
+                      onClick={() => setIsCategoryDropdownOpen((v) => !v)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white border border-white/30 rounded-full uppercase transition-colors hover:bg-white/10"
+                    >
+                      {activeGroup?.name ?? 'Týmy'}
+                      <ChevronDown className={clsx('w-3.5 h-3.5 transition-transform', isCategoryDropdownOpen && 'rotate-180')} />
+                    </button>
+
+                    <AnimatePresence>
+                      {isCategoryDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-full mt-2 min-w-[10rem] bg-[#0d1727] border border-white/20 rounded-xl p-2 shadow-xl z-50"
+                        >
+                          {categoryGroups.map((group) => (
+                            <Link
+                              key={group.slug}
+                              href={`/kategorie/${group.firstCategorySlug}`}
+                              onClick={() => setIsCategoryDropdownOpen(false)}
+                              className={clsx(
+                                'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
+                                activeGroupSlug === group.slug
+                                  ? 'bg-accent text-white'
+                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                              )}
+                            >
+                              {group.name}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Mobile Menu Button */}
@@ -289,30 +346,6 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                   </motion.div>
                 ))}
               </nav>
-
-              {/* Mobile Category Groups */}
-              <div className="mb-8">
-                <p className="text-small text-white/50 uppercase tracking-wider mb-3">
-                  Týmy
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {categoryGroups.map((group) => (
-                    <Link
-                      key={group.slug}
-                      href={`/kategorie/${group.firstCategorySlug}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={clsx(
-                        'px-4 py-2 text-sm font-medium transition-colors',
-                        activeGroupSlug === group.slug
-                          ? 'bg-accent text-white'
-                          : 'bg-white/10 text-white/70 hover:text-white'
-                      )}
-                    >
-                      {group.name}
-                    </Link>
-                  ))}
-                </div>
-              </div>
 
               {/* Mobile Social Links */}
               <div>
