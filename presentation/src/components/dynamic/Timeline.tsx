@@ -175,7 +175,7 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
             <MarkdownContent content={item.description} className="prose-sm" />
           </div>
         )}
-        <div className="flex flex-col gap-1 md:grid md:grid-cols-[auto_auto_1fr_auto] md:gap-x-4 md:items-start text-left">
+        <div className="flex flex-col gap-1 md:grid md:grid-cols-[auto_250px_1fr_auto] md:gap-x-4 md:items-start text-left">
           <span className="text-accent font-semibold min-w-[4rem] md:text-center">
             {item.number}
           </span>
@@ -219,7 +219,7 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
   }
 
   return (
-    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_auto_1fr] md:gap-x-4 md:items-start">
+    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_250px_1fr] md:gap-x-4 md:items-start">
       <span className="text-accent font-semibold min-w-[4rem] md:text-center">
         {item.number}
       </span>
