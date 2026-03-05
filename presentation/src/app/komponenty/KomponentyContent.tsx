@@ -199,6 +199,7 @@ const timelineData: ComponentTimeline = {
   id: 15,
   __component: 'components.timeline',
   collapsible: false,
+  showPreview: true,
   style: 'style1',
   items: [
     { number: '1920', title: 'Založení klubu', description: 'FK Frýdek-Místek byl založen jako jeden z prvních fotbalových klubů v regionu.' },
