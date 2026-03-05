@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArticleDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
-import { getNewsArticleBySlug } from '@/lib/strapi/data';
+import { getNewsArticleBySlug, getSidebarArticles } from '@/lib/strapi/data';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -40,6 +40,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const categorySlug = article.categories[0]?.slug ?? '';
+  const sidebarArticles = await getSidebarArticles(article, categorySlug || undefined);
 
   return (
     <main className="bg-surface-light pt-[72px] lg:pt-[127px]">
@@ -49,7 +50,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           { label: article.title, href: `/novinky/clanek/${slug}` },
         ]} />
       </div>
-      <ArticleDetail article={article} categorySlug={categorySlug} />
+      <ArticleDetail article={article} categorySlug={categorySlug} sidebarArticles={sidebarArticles} />
     </main>
   );
 }

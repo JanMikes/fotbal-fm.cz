@@ -21,7 +21,9 @@ export function generatePageNumbers(currentPage: number, totalPages: number): (n
  * Page 1 returns clean baseHref without query params.
  */
 export function buildPageHref(baseHref: string, page: number, paramName = 'stranka'): string {
-  return page === 1 ? baseHref : `${baseHref}?${paramName}=${page}`;
+  if (page === 1) return baseHref;
+  const separator = baseHref.includes('?') ? '&' : '?';
+  return `${baseHref}${separator}${paramName}=${page}`;
 }
 
 /**

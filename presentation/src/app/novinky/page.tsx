@@ -1,10 +1,11 @@
-import { getAllNewsArticles } from '@/lib/strapi/data';
+import { getAllNewsArticles, getNewsArticleTypes } from '@/lib/strapi/data';
 import { Breadcrumb, NewsCard } from '@/components/ui';
+import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
 
 interface NovinkyPageProps {
-  searchParams: Promise<{ stranka?: string }>;
+  searchParams: Promise<{ stranka?: string; typ?: string }>;
 }
 
 const PAGE_SIZE = 12;
@@ -12,8 +13,12 @@ const PAGE_SIZE = 12;
 export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
+  const typeSlug = resolvedSearchParams.typ;
 
-  const { articles, total } = await getAllNewsArticles(currentPage, PAGE_SIZE);
+  const [{ articles, total }, articleTypes] = await Promise.all([
+    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlug),
+    getNewsArticleTypes(),
+  ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -27,6 +32,8 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
         <h1 className="text-section text-primary uppercase accent-underline mb-12">
           Novinky
         </h1>
+
+        <NewsArticleTypeFilter types={articleTypes} />
 
         {articles.length === 0 ? (
           <p className="text-body-lg text-primary/60">
@@ -49,7 +56,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                baseHref="/novinky"
+                baseHref={typeSlug ? `/novinky?typ=${typeSlug}` : '/novinky'}
                 paramName="stranka"
               />
             )}

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ArticleDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
-import { getNewsArticleBySlug, getCategoryBySlug } from '@/lib/strapi/data';
+import { getNewsArticleBySlug, getCategoryBySlug, getSidebarArticles } from '@/lib/strapi/data';
 
 interface ArticlePageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -42,6 +42,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
+  const sidebarArticles = await getSidebarArticles(article, categorySlug);
+
   return (
     <>
       <div className="container mx-auto px-4 lg:px-8">
@@ -51,7 +53,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           { label: article.title, href: `/kategorie/${categorySlug}/clanek/${slug}` },
         ]} />
       </div>
-      <ArticleDetail article={article} categorySlug={categorySlug} />
+      <ArticleDetail article={article} categorySlug={categorySlug} sidebarArticles={sidebarArticles} />
     </>
   );
 }

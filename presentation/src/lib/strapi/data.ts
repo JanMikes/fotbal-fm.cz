@@ -7,6 +7,7 @@ import type {
   NavigationItem,
   NewsArticle,
   NewsArticleSummary,
+  NewsArticleType,
   Page,
   Partner,
   PartnerDetail,
@@ -22,6 +23,7 @@ import type {
   StrapiRawMatch,
   StrapiRawNavigation,
   StrapiRawNewsArticle,
+  StrapiRawNewsArticleType,
   StrapiRawPage,
   StrapiRawPartner,
   StrapiRawPlayer,
@@ -35,6 +37,7 @@ import { mapFooter } from './mappers/footer';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
+import { mapNewsArticleType } from './mappers/news-article-type';
 import { mapPage } from './mappers/page';
 import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
@@ -117,9 +120,15 @@ export async function getNewsArticlesByCategory(
 export async function getAllNewsArticles(
   page = 1,
   pageSize = 12,
+  newsArticleTypeSlug?: string,
 ): Promise<{ articles: NewsArticleSummary[]; total: number }> {
   const client = getStrapiClient();
+  const filters: Record<string, unknown> = {};
+  if (newsArticleTypeSlug) {
+    filters.newsArticleType = { slug: { $eq: newsArticleTypeSlug } };
+  }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
+    filters,
     populate: {
       mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
       categories: { fields: ['name', 'slug'] },
@@ -132,6 +141,15 @@ export async function getAllNewsArticles(
     articles: data.map(mapNewsArticleSummary),
     total,
   };
+}
+
+export async function getNewsArticleTypes(): Promise<NewsArticleType[]> {
+  const client = getStrapiClient();
+  const { data } = await client.findMany<StrapiRawNewsArticleType>('news-article-types', {
+    sort: 'name:asc',
+    pagination: { pageSize: 100 },
+  });
+  return data.map(mapNewsArticleType).filter((t): t is NewsArticleType => t !== null);
 }
 
 export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
@@ -155,6 +173,29 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
     pagination: { pageSize: 1 },
   });
   return data.length > 0 ? mapNewsArticle(data[0]) : null;
+}
+
+export async function getSidebarArticles(
+  article: NewsArticle,
+  categorySlug?: string,
+): Promise<NewsArticleSummary[]> {
+  const isNew = (a: NewsArticleSummary, existing: NewsArticleSummary[]) =>
+    a.slug !== article.slug && !existing.some((s) => s.slug === a.slug);
+
+  // 1. Try related news
+  let sidebar = article.relatedNews.slice(0, 2);
+  if (sidebar.length >= 2) return sidebar;
+
+  // 2. Try same category
+  if (categorySlug) {
+    const { articles } = await getNewsArticlesByCategory(categorySlug, 1, 4);
+    sidebar = [...sidebar, ...articles.filter((a) => isNew(a, sidebar))].slice(0, 2);
+    if (sidebar.length >= 2) return sidebar;
+  }
+
+  // 3. Fallback to any recent articles
+  const { articles } = await getAllNewsArticles(1, 4);
+  return [...sidebar, ...articles.filter((a) => isNew(a, sidebar))].slice(0, 2);
 }
 
 export async function getUpcomingMatches(categorySlug: string, limit = 3): Promise<Match[]> {
