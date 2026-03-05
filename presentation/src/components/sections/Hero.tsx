@@ -7,7 +7,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mouse, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
 import TeamLogo from '../ui/TeamLogo';
 import type { CategoryHeroData, Match, MediaImage } from '@/lib/types';
@@ -148,7 +148,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[800px] lg:h-[900px] -mt-[72px] lg:-mt-[112px] clip-diagonal-bottom">
+    <section className="relative h-[820px] lg:h-[1000px] -mt-[72px] lg:-mt-[127px] clip-diagonal-bottom">
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">
@@ -249,6 +249,12 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
           </div>
         </div>
       )}
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-20 lg:bottom-24 right-6 lg:right-10 z-10 flex flex-col items-center gap-1 text-white/40 animate-bounce">
+        <Mouse className="w-8 h-8" />
+        <ChevronDown className="w-6 h-6 -mt-1" />
+      </div>
 
     </section>
   );

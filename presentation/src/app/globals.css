@@ -20,6 +20,7 @@
 
 @theme inline {
   /* Primary colors */
+  --color-primary-border: #0C3468;
   --color-primary-50: #0E3A7D;
   --color-primary-100: #0C326B;
   --color-primary-200: #0A2A59;

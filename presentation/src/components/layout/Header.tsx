@@ -113,7 +113,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
             {/* Right side: two rows */}
             <div className="flex flex-col flex-1 min-w-0">
               {/* Level 1 - Main Navigation */}
-              <div className="flex items-center py-2.5">
+              <div className="flex items-center py-2.5 lg:py-3.5 lg:border-b lg:border-primary-border">
                 {/* Desktop Navigation (left-aligned) */}
                 <nav className="hidden lg:flex items-center gap-2">
                   {navigation.map((item) => {
@@ -126,7 +126,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                         href={item.href}
                         {...linkProps}
                         className={clsx(
-                          'flex items-center gap-1 px-4 py-2 font-medium text-base tracking-wide transition-colors',
+                          'flex items-center gap-1 py-2 font-medium text-base tracking-wide transition-colors',
                           'text-white/80 hover:text-white',
                           'link-hover'
                         )}
@@ -188,7 +188,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                 {/* Scrollable category groups */}
                 <div
                   ref={scrollRef}
-                  className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2"
+                  className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-3"
                 >
                   {categoryGroups.map((group) => (
                     <Link
