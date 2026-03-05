@@ -174,7 +174,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher */}
                   <div className="w-fit mb-6 lg:mb-10">
-                    <p className="text-white/80 text-lg lg:text-2xl font-bold tracking-[0.15em] mb-3">
+                    <p className="text-white/80 text-lg lg:text-2xl font-bold mb-3">
                       {getSlideLabel(slide.type)}
                     </p>
                     {categorySwitcher}
