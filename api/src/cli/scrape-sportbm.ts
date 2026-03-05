@@ -47,6 +47,11 @@ async function downloadPhoto(photoUrl: string, playerName: string): Promise<stri
   const filename = `${sanitizeFilename(playerName)}.jpg`;
   const filepath = path.join(PHOTOS_DIR, filename);
 
+  // Skip if photo already exists on disk
+  if (fs.existsSync(filepath)) {
+    return filename;
+  }
+
   try {
     const res = await fetch(photoUrl);
     if (!res.ok) {

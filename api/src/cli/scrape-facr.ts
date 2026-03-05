@@ -55,6 +55,11 @@ async function downloadPhoto(player: FacrPlayer): Promise<string | null> {
   const filename = `${sanitizeFilename(player.name)}.jpg`;
   const filepath = path.join(PHOTOS_DIR, filename);
 
+  // Skip if photo already exists on disk
+  if (fs.existsSync(filepath)) {
+    return filename;
+  }
+
   try {
     const res = await fetch(player.photoUrl);
     if (!res.ok) {
