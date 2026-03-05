@@ -49,7 +49,7 @@ import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildP
 export async function getCategories(): Promise<Category[]> {
   const client = getStrapiClient();
   const { data } = await client.findMany<StrapiRawCategory>('categories', {
-    filters: { hidden: { $ne: true } },
+    filters: { $or: [{ hidden: { $eq: false } }, { hidden: { $null: true } }] },
     sort: 'sortOrder:asc',
     pagination: { pageSize: 100 },
   });
@@ -68,7 +68,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 export async function getCategoryGroups(): Promise<CategoryGroup[]> {
   const client = getStrapiClient();
   const { data } = await client.findMany<StrapiRawCategoryGroup>('category-groups', {
-    filters: { hidden: { $ne: true } },
+    filters: { $or: [{ hidden: { $eq: false } }, { hidden: { $null: true } }] },
     sort: 'sortOrder:asc',
     populate: {
       categories: {

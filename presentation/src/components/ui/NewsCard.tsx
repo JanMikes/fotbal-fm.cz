@@ -49,7 +49,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
             {(article.newsArticleTypes.length > 0 || article.categories.length > 0) && (
               <div className="flex flex-wrap gap-2 self-start mb-4">
                 {article.categories.map((cat) => (
-                  <Badge key={cat.slug} variant="dark">
+                  <Badge key={cat.slug} variant="accent">
                     {cat.name}
                   </Badge>
                 ))}
@@ -96,7 +96,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
           {(article.newsArticleTypes.length > 0 || article.categories.length > 0) && (
             <div className="absolute top-4 left-4 flex flex-wrap gap-1">
               {article.categories.map((cat) => (
-                <Badge key={cat.slug} variant="dark">
+                <Badge key={cat.slug} variant="accent">
                   {cat.name}
                 </Badge>
               ))}
