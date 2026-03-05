@@ -148,7 +148,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[820px] lg:h-[1000px] -mt-[72px] lg:-mt-[127px] clip-diagonal-bottom">
+    <section className="relative h-[820px] lg:h-[1000px] -mt-[72px] lg:-mt-[130px] clip-diagonal-bottom">
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">

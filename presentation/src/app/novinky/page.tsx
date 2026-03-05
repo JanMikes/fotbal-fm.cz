@@ -22,7 +22,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <main className="bg-surface-light pt-[72px] lg:pt-[127px]">
+    <main className="bg-surface-light pt-[72px] lg:pt-[130px]">
     <section className="pb-section">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[

@@ -95,7 +95,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1727] shadow-lg'
         )}
       >
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="w-full px-4 lg:px-8">
           <div className="flex items-stretch">
             {/* Logo - spans both nav levels via row-span */}
             <Link href="/" className="flex items-center shrink-0 z-20 group py-2 pr-6 border-r border-primary-border">
@@ -113,9 +113,9 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
             {/* Right side: two rows */}
             <div className="flex flex-col flex-1 min-w-0">
               {/* Level 1 - Main Navigation */}
-              <div className="flex items-center py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
+              <div className="flex items-center flex-1 lg:flex-none py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
                 {/* Desktop Navigation (left-aligned) */}
-                <nav className="hidden lg:flex items-center gap-4">
+                <nav className="hidden lg:flex items-center gap-6">
                   {navigation.map((item) => {
                     const linkProps = item.external
                       ? { target: '_blank' as const, rel: 'noopener noreferrer' }
@@ -161,7 +161,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                   {/* Mobile Menu Button */}
                   <button
                     onClick={() => setIsMobileMenuOpen(true)}
-                    className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors text-white hover:bg-white/10"
+                    className="lg:hidden w-10 h-10 rounded-full border border-white/30 flex items-center justify-center transition-colors text-white hover:bg-white/10"
                     aria-label="Otevřít menu"
                   >
                     <Menu className="w-6 h-6" />
@@ -191,7 +191,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                 {/* Scrollable category groups */}
                 <div
                   ref={scrollRef}
-                  className="flex items-center gap-3 overflow-x-auto scrollbar-hide py-3"
+                  className="flex items-center gap-3 overflow-x-auto scrollbar-hide py-4"
                 >
                   {categoryGroups.map((group) => (
                     <Link
@@ -199,7 +199,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                       href={`/kategorie/${group.firstCategorySlug}`}
                       data-active={activeGroupSlug === group.slug}
                       className={clsx(
-                        'px-3.5 py-1 text-xs whitespace-nowrap rounded-full border uppercase transition-all duration-300',
+                        'px-3.5 py-1.5 text-xs whitespace-nowrap rounded-full border uppercase transition-all duration-300',
                         activeGroupSlug === group.slug
                           ? 'font-bold bg-accent text-white border-accent'
                           : 'font-medium text-white/80 border-white/30 hover:text-white hover:border-white/60'
