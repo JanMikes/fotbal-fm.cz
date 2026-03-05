@@ -15,10 +15,10 @@ export default async function NovinkyPage({ params, searchParams }: NovinkyPageP
   const { category: categorySlug } = await params;
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
-  const typeSlug = resolvedSearchParams.typ;
+  const typeSlugs = resolvedSearchParams.typ?.split(',').filter(Boolean) ?? [];
 
   const [{ articles, total }, category, articleTypes] = await Promise.all([
-    getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE, typeSlug),
+    getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE, typeSlugs.length > 0 ? typeSlugs : undefined),
     getCategoryBySlug(categorySlug),
     getNewsArticleTypes(),
   ]);
@@ -58,7 +58,7 @@ export default async function NovinkyPage({ params, searchParams }: NovinkyPageP
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                baseHref={typeSlug ? `/kategorie/${categorySlug}/novinky?typ=${typeSlug}` : `/kategorie/${categorySlug}/novinky`}
+                baseHref={typeSlugs.length > 0 ? `/kategorie/${categorySlug}/novinky?typ=${typeSlugs.join(',')}` : `/kategorie/${categorySlug}/novinky`}
                 paramName="stranka"
               />
             )}

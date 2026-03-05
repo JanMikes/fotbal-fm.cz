@@ -9,19 +9,32 @@ interface NewsArticleTypeFilterProps {
   categories?: Category[];
 }
 
+function parseMulti(value: string | null): string[] {
+  if (!value) return [];
+  return value.split(',').filter(Boolean);
+}
+
+function toggleValue(current: string[], value: string): string[] {
+  return current.includes(value)
+    ? current.filter((v) => v !== value)
+    : [...current, value];
+}
+
 export default function NewsArticleTypeFilter({ types, categories }: NewsArticleTypeFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeType = searchParams.get('typ');
-  const activeCategory = searchParams.get('kategorie');
+  const activeTypes = parseMulti(searchParams.get('typ'));
+  const activeCategories = parseMulti(searchParams.get('kategorie'));
+
+  const hasAnyFilter = activeTypes.length > 0 || activeCategories.length > 0;
 
   if (types.length === 0 && (!categories || categories.length === 0)) return null;
 
-  function navigate(key: string, value: string | null) {
+  function navigate(key: string, values: string[]) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
+    if (values.length > 0) {
+      params.set(key, values.join(','));
     } else {
       params.delete(key);
     }
@@ -30,70 +43,53 @@ export default function NewsArticleTypeFilter({ types, categories }: NewsArticle
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
+  function resetAll() {
+    router.push(pathname);
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2 mb-8">
-      {types.length > 0 && (
-        <>
-          <button
-            onClick={() => navigate('typ', null)}
-            className={clsx(
-              'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
-              !activeType
-                ? 'bg-accent text-white'
-                : 'text-accent hover:bg-accent/5'
-            )}
-          >
-            Vše
-          </button>
-          {types.map((type) => (
-            <button
-              key={type.slug}
-              onClick={() => navigate('typ', type.slug)}
-              className={clsx(
-                'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
-                activeType === type.slug
-                  ? 'bg-accent text-white'
-                  : 'text-accent hover:bg-accent/5'
-              )}
-            >
-              {type.name}
-            </button>
-          ))}
-        </>
-      )}
+      <button
+        onClick={resetAll}
+        className={clsx(
+          'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
+          !hasAnyFilter
+            ? 'bg-accent text-white'
+            : 'text-accent hover:bg-accent/5'
+        )}
+      >
+        Vše
+      </button>
 
-      {categories && categories.length > 0 && (
-        <>
-          {types.length > 0 && (
-            <span className="w-px h-6 bg-primary/20 mx-1" />
+      {types.map((type) => (
+        <button
+          key={type.slug}
+          onClick={() => navigate('typ', toggleValue(activeTypes, type.slug))}
+          className={clsx(
+            'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
+            activeTypes.includes(type.slug)
+              ? 'bg-accent text-white'
+              : 'text-accent hover:bg-accent/5'
           )}
-          <button
-            onClick={() => navigate('kategorie', null)}
-            className={clsx(
-              'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-primary/30',
-              !activeCategory
-                ? 'bg-primary text-white'
-                : 'text-primary hover:bg-primary/5'
-            )}
-          >
-            Vše
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.slug}
-              onClick={() => navigate('kategorie', cat.slug)}
-              className={clsx(
-                'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-primary/30',
-                activeCategory === cat.slug
-                  ? 'bg-primary text-white'
-                  : 'text-primary hover:bg-primary/5'
-              )}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </>
-      )}
+        >
+          {type.name}
+        </button>
+      ))}
+
+      {categories && categories.map((cat) => (
+        <button
+          key={cat.slug}
+          onClick={() => navigate('kategorie', toggleValue(activeCategories, cat.slug))}
+          className={clsx(
+            'px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all border border-accent',
+            activeCategories.includes(cat.slug)
+              ? 'bg-accent text-white'
+              : 'text-accent hover:bg-accent/5'
+          )}
+        >
+          {cat.name}
+        </button>
+      ))}
     </div>
   );
 }

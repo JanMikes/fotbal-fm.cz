@@ -13,19 +13,19 @@ const PAGE_SIZE = 12;
 export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
-  const typeSlug = resolvedSearchParams.typ;
-  const categorySlug = resolvedSearchParams.kategorie;
+  const typeSlugs = resolvedSearchParams.typ?.split(',').filter(Boolean) ?? [];
+  const categorySlugs = resolvedSearchParams.kategorie?.split(',').filter(Boolean) ?? [];
 
   const [{ articles, total }, articleTypes, categories] = await Promise.all([
-    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlug, categorySlug),
+    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlugs.length > 0 ? typeSlugs : undefined, categorySlugs.length > 0 ? categorySlugs : undefined),
     getNewsArticleTypes(),
     getCategories(),
   ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const paginationParams = new URLSearchParams();
-  if (typeSlug) paginationParams.set('typ', typeSlug);
-  if (categorySlug) paginationParams.set('kategorie', categorySlug);
+  if (typeSlugs.length > 0) paginationParams.set('typ', typeSlugs.join(','));
+  if (categorySlugs.length > 0) paginationParams.set('kategorie', categorySlugs.join(','));
   const paginationQs = paginationParams.toString();
   const baseHref = paginationQs ? `/novinky?${paginationQs}` : '/novinky';
 

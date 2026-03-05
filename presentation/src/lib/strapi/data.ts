@@ -91,15 +91,18 @@ export async function getNewsArticlesByCategory(
   categorySlug?: string,
   page = 1,
   pageSize = 6,
-  newsArticleTypeSlug?: string,
+  newsArticleTypeSlugs?: string | string[],
 ): Promise<{ articles: NewsArticleSummary[]; total: number }> {
   const client = getStrapiClient();
   const filters: Record<string, unknown> = {};
   if (categorySlug) {
     filters.categories = { slug: { $eq: categorySlug } };
   }
-  if (newsArticleTypeSlug) {
-    filters.newsArticleTypes = { slug: { $eq: newsArticleTypeSlug } };
+  const typesArr = Array.isArray(newsArticleTypeSlugs) ? newsArticleTypeSlugs : newsArticleTypeSlugs ? [newsArticleTypeSlugs] : [];
+  if (typesArr.length === 1) {
+    filters.newsArticleTypes = { slug: { $eq: typesArr[0] } };
+  } else if (typesArr.length > 1) {
+    filters.newsArticleTypes = { slug: { $in: typesArr } };
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
@@ -120,16 +123,22 @@ export async function getNewsArticlesByCategory(
 export async function getAllNewsArticles(
   page = 1,
   pageSize = 12,
-  newsArticleTypeSlug?: string,
-  categorySlug?: string,
+  newsArticleTypeSlugs?: string | string[],
+  categorySlugs?: string | string[],
 ): Promise<{ articles: NewsArticleSummary[]; total: number }> {
   const client = getStrapiClient();
   const filters: Record<string, unknown> = {};
-  if (newsArticleTypeSlug) {
-    filters.newsArticleTypes = { slug: { $eq: newsArticleTypeSlug } };
+  const typesArr = Array.isArray(newsArticleTypeSlugs) ? newsArticleTypeSlugs : newsArticleTypeSlugs ? [newsArticleTypeSlugs] : [];
+  const catsArr = Array.isArray(categorySlugs) ? categorySlugs : categorySlugs ? [categorySlugs] : [];
+  if (typesArr.length === 1) {
+    filters.newsArticleTypes = { slug: { $eq: typesArr[0] } };
+  } else if (typesArr.length > 1) {
+    filters.newsArticleTypes = { slug: { $in: typesArr } };
   }
-  if (categorySlug) {
-    filters.categories = { slug: { $eq: categorySlug } };
+  if (catsArr.length === 1) {
+    filters.categories = { slug: { $eq: catsArr[0] } };
+  } else if (catsArr.length > 1) {
+    filters.categories = { slug: { $in: catsArr } };
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
