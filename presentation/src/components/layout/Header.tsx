@@ -127,7 +127,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                         href={item.href}
                         {...linkProps}
                         className={clsx(
-                          'flex items-center gap-1 py-2 text-base tracking-wide uppercase transition-colors',
+                          'flex items-center gap-1 py-2 text-sm tracking-wide uppercase transition-colors',
                           isActive
                             ? 'font-bold text-accent'
                             : 'font-medium text-white/80 hover:text-white',
