@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat } from 'next/font/google';
 import { Header, Footer } from '@/components/layout';
+import { ScrollToTop } from '@/components/ScrollToTop';
 import { getCategoryGroups, getFooter, getNavigation } from '@/lib/strapi/data';
 import './globals.css';
 
@@ -59,6 +60,7 @@ export default async function RootLayout({
   return (
     <html lang="cs" className={montserrat.variable}>
       <body className="font-sans">
+        <ScrollToTop />
         <Header categoryGroups={categoryGroups} navigation={navigation} />
         {children}
         <Footer footer={footer} />
