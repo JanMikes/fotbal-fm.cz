@@ -207,7 +207,7 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent): DynamicZon
         __component: 'components.news-articles',
         categories: Array.isArray(raw.categories) ? raw.categories.map(mapCategory) : [],
         newsArticleType: raw.news_article_type
-          ? { documentId: raw.news_article_type.documentId, name: raw.news_article_type.name, slug: raw.news_article_type.slug }
+          ? { documentId: (raw.news_article_type as Record<string, string>).documentId, name: (raw.news_article_type as Record<string, string>).name, slug: (raw.news_article_type as Record<string, string>).slug }
           : null,
         limit: (raw.limit as number) ?? 6,
         show_all_link: resolveTextLink(raw.show_all_link as Parameters<typeof resolveTextLink>[0]),
