@@ -86,11 +86,6 @@ export default function ArticleDetail({
         <div>
           {/* Meta info */}
           <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-primary/50">
-            {article.newsArticleTypes.map((type) => (
-              <Badge key={type.slug} variant="accent" className="mr-1">
-                {type.name}
-              </Badge>
-            ))}
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               <time dateTime={article.date}>{formatDate(article.date)}</time>
@@ -106,6 +101,18 @@ export default function ArticleDetail({
           <h1 className="px-6 pt-4 pb-4 text-2xl md:text-3xl font-black text-primary uppercase leading-tight">
             {article.title}
           </h1>
+
+          {/* Article type labels */}
+          {article.newsArticleTypes.length > 0 && (
+            <div className="px-6 pb-4 flex flex-wrap gap-2">
+              {article.newsArticleTypes.map((type) => (
+                <Badge key={type.slug} variant="accent">
+                  {type.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+
           {/* Photo */}
           {article.mainPhoto && (
             <div className="relative aspect-[4/5] overflow-hidden mx-6 mb-4">
