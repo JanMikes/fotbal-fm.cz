@@ -47,8 +47,13 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
           />
           <div className="absolute inset-0 bg-gradient-news" />
           <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-            {article.newsArticleTypes.length > 0 && (
-              <div className="flex gap-2 self-start mb-4">
+            {(article.newsArticleTypes.length > 0 || article.categories.length > 0) && (
+              <div className="flex flex-wrap gap-2 self-start mb-4">
+                {article.categories.map((cat) => (
+                  <Badge key={cat.slug} variant="dark">
+                    {cat.name}
+                  </Badge>
+                ))}
                 {article.newsArticleTypes.map((type) => (
                   <Badge key={type.slug} variant="accent">
                     {type.name}
@@ -90,8 +95,13 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-news" />
-          {article.newsArticleTypes.length > 0 && (
-            <div className="absolute top-4 left-4 flex gap-1">
+          {(article.newsArticleTypes.length > 0 || article.categories.length > 0) && (
+            <div className="absolute top-4 left-4 flex flex-wrap gap-1">
+              {article.categories.map((cat) => (
+                <Badge key={cat.slug} variant="dark">
+                  {cat.name}
+                </Badge>
+              ))}
               {article.newsArticleTypes.map((type) => (
                 <Badge key={type.slug} variant="accent">
                   {type.name}

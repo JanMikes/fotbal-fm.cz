@@ -880,10 +880,6 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     mainPhoto: Schema.Attribute.Media<'images'>;
-    modifiedBy: Schema.Attribute.Relation<
-      'manyToOne',
-      'plugin::users-permissions.user'
-    >;
     newsArticleTypes: Schema.Attribute.Relation<
       'manyToMany',
       'api::news-article-type.news-article-type'

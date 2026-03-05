@@ -1,11 +1,11 @@
-import { getAllNewsArticles, getNewsArticleTypes } from '@/lib/strapi/data';
+import { getAllNewsArticles, getNewsArticleTypes, getCategories } from '@/lib/strapi/data';
 import { Breadcrumb, NewsCard } from '@/components/ui';
 import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
 
 interface NovinkyPageProps {
-  searchParams: Promise<{ stranka?: string; typ?: string }>;
+  searchParams: Promise<{ stranka?: string; typ?: string; kategorie?: string }>;
 }
 
 const PAGE_SIZE = 12;
@@ -14,12 +14,20 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
   const typeSlug = resolvedSearchParams.typ;
+  const categorySlug = resolvedSearchParams.kategorie;
 
-  const [{ articles, total }, articleTypes] = await Promise.all([
-    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlug),
+  const [{ articles, total }, articleTypes, categories] = await Promise.all([
+    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlug, categorySlug),
     getNewsArticleTypes(),
+    getCategories(),
   ]);
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  const paginationParams = new URLSearchParams();
+  if (typeSlug) paginationParams.set('typ', typeSlug);
+  if (categorySlug) paginationParams.set('kategorie', categorySlug);
+  const paginationQs = paginationParams.toString();
+  const baseHref = paginationQs ? `/novinky?${paginationQs}` : '/novinky';
 
   return (
     <main className="bg-surface-light pt-[72px] lg:pt-[130px]">
@@ -33,7 +41,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
           Novinky
         </h1>
 
-        <NewsArticleTypeFilter types={articleTypes} />
+        <NewsArticleTypeFilter types={articleTypes} categories={categories} />
 
         {articles.length === 0 ? (
           <p className="text-body-lg text-primary/60">
@@ -56,7 +64,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                baseHref={typeSlug ? `/novinky?typ=${typeSlug}` : '/novinky'}
+                baseHref={baseHref}
                 paramName="stranka"
               />
             )}

@@ -121,11 +121,15 @@ export async function getAllNewsArticles(
   page = 1,
   pageSize = 12,
   newsArticleTypeSlug?: string,
+  categorySlug?: string,
 ): Promise<{ articles: NewsArticleSummary[]; total: number }> {
   const client = getStrapiClient();
   const filters: Record<string, unknown> = {};
   if (newsArticleTypeSlug) {
     filters.newsArticleTypes = { slug: { $eq: newsArticleTypeSlug } };
+  }
+  if (categorySlug) {
+    filters.categories = { slug: { $eq: categorySlug } };
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
