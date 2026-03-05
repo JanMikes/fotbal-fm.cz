@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { clsx } from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { MarkdownContent } from '../ui/MarkdownContent';
@@ -53,13 +53,12 @@ function TimelineVerticalItem({
   isLast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
-  const measureRef = useRef<HTMLDivElement>(null);
   const [needsCollapsing, setNeedsCollapsing] = useState(collapsible);
   const label = item.number || String(index + 1);
 
-  useEffect(() => {
-    if (!collapsible || !item.description || !measureRef.current) return;
-    if (measureRef.current.scrollHeight <= measureRef.current.clientHeight) {
+  const measureRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node || !collapsible || !item.description) return;
+    if (node.scrollHeight <= node.clientHeight) {
       setNeedsCollapsing(false);
       setIsOpen(true);
     }
@@ -153,12 +152,11 @@ function TimelineTable({ items, collapsible, showPreview }: { items: TimelineIte
 
 function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineItem; collapsible: boolean; showPreview: boolean }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
-  const measureRef = useRef<HTMLDivElement>(null);
   const [needsCollapsing, setNeedsCollapsing] = useState(collapsible);
 
-  useEffect(() => {
-    if (!collapsible || !item.description || !measureRef.current) return;
-    if (measureRef.current.scrollHeight <= measureRef.current.clientHeight) {
+  const measureRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node || !collapsible || !item.description) return;
+    if (node.scrollHeight <= node.clientHeight) {
       setNeedsCollapsing(false);
       setIsOpen(true);
     }
