@@ -65,6 +65,7 @@ export interface Standing {
 }
 
 export interface CategoryHeroData {
+  staticHeroSlideImage: MediaImage | null;
   heroSlide1Image: MediaImage | null;
   heroSlide2Image: MediaImage | null;
   heroSlide3Image: MediaImage | null;

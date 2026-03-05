@@ -37,6 +37,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     ]);
 
   const defaultHero = {
+    staticHeroSlideImage: null,
     heroSlide1Image: null,
     heroSlide2Image: null,
     heroSlide3Image: null,

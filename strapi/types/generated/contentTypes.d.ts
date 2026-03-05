@@ -557,6 +557,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sortOrderInGroup: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sportbmCategoryId: Schema.Attribute.String;
+    staticHeroSlideImage: Schema.Attribute.Media<'images'>;
     tournaments: Schema.Attribute.Relation<
       'manyToMany',
       'api::tournament.tournament'

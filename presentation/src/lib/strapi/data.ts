@@ -355,6 +355,7 @@ export async function getCategoryWithHeroBySlug(
   const { data } = await client.findMany<StrapiRawCategoryWithHero>('categories', {
     filters: { slug: { $eq: slug } },
     populate: {
+      staticHeroSlideImage: mediaFields,
       heroSlide1Image: mediaFields,
       heroSlide2Image: mediaFields,
       heroSlide3Image: mediaFields,
@@ -371,6 +372,7 @@ export async function getCategoryWithHeroBySlug(
   return {
     category: mapCategory(raw),
     hero: {
+      staticHeroSlideImage: mapMedia(raw.staticHeroSlideImage),
       heroSlide1Image: mapMedia(raw.heroSlide1Image),
       heroSlide2Image: mapMedia(raw.heroSlide2Image),
       heroSlide3Image: mapMedia(raw.heroSlide3Image),

@@ -69,6 +69,11 @@
     "sportbmCategoryId": {
       "type": "string"
     },
+    "staticHeroSlideImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
     "heroSlide1Image": {
       "type": "media",
       "multiple": false,

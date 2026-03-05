@@ -103,6 +103,7 @@ function getSlideLabel(type: HeroSlide['type']): string {
 
 export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug, categorySwitcher }: HeroProps) {
   const slides = buildSlides(upcomingMatch, lastResult, heroData, categorySlug);
+  const staticBg = heroData.staticHeroSlideImage;
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -149,13 +150,25 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
   return (
     <section className="relative h-[820px] lg:h-[1000px] mt-0 clip-diagonal-bottom">
+      {/* Static Background Image (replaces per-slide images when set) */}
+      {staticBg && (
+        <Image
+          src={staticBg.url}
+          alt={staticBg.alternativeText ?? ''}
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      )}
+
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">
           {slides.map((slide, index) => (
-            <div key={slide.id} className="embla__slide relative h-full bg-primary">
-              {/* Background Image */}
-              {slide.image && (
+            <div key={slide.id} className={clsx('embla__slide relative h-full', !staticBg && 'bg-primary')}>
+              {/* Background Image (per-slide, only when no static background) */}
+              {!staticBg && slide.image && (
                 <Image
                   src={slide.image.url}
                   alt={slide.image.alternativeText ?? slide.title}
@@ -166,8 +179,8 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 />
               )}
 
-              {/* Overlay Gradient (only when no image) */}
-              {!slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
+              {/* Overlay Gradient (only when no image at all) */}
+              {!staticBg && !slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
               <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-12 lg:-mt-16">

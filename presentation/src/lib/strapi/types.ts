@@ -124,6 +124,7 @@ export interface StrapiRawStanding {
 }
 
 export type StrapiRawCategoryWithHero = import('@fotbal-fm/strapi-client').StrapiRawCategory & {
+  staticHeroSlideImage: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   heroSlide1Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   heroSlide2Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   heroSlide3Image: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
