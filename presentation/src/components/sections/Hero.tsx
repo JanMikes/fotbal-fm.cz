@@ -174,7 +174,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher */}
                   <div className="w-fit mb-6 lg:mb-10">
-                    <p className="text-white/80 text-sm lg:text-base font-bold uppercase tracking-[0.15em] mb-3">
+                    <p className="text-white/80 text-base lg:text-lg font-bold tracking-[0.15em] mb-3">
                       {getSlideLabel(slide.type)}
                     </p>
                     {categorySwitcher}
@@ -268,7 +268,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-6"
+        className="text-accent text-xs uppercase tracking-[0.2em] mb-6"
       >
         {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
@@ -323,10 +323,10 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.3 }}
         className="inline-flex flex-col items-center lg:items-start mb-6"
       >
-        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
+        <span className="inline-block -ml-4 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate} &bull; {match.matchTime}
         </span>
-        {match.venue && <p className="text-white/60 text-xs mt-2">{match.venue}</p>}
+        {match.venue && <p className="text-white/60 text-xs mt-4">{match.venue}</p>}
       </motion.div>
     </div>
   );
@@ -340,7 +340,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-6"
+        className="text-accent text-xs uppercase tracking-[0.2em] mb-6"
       >
         {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
@@ -397,10 +397,10 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.3 }}
         className="inline-flex flex-col items-center lg:items-start mb-6"
       >
-        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
+        <span className="inline-block -ml-4 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate}
         </span>
-        {match.venue && <p className="text-white/60 text-xs mt-2">{match.venue}</p>}
+        {match.venue && <p className="text-white/60 text-xs mt-4">{match.venue}</p>}
       </motion.div>
     </div>
   );
