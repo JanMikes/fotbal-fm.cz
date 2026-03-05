@@ -163,7 +163,6 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
   }, [collapsible, item.description]);
 
   if (collapsible) {
-    const Row = needsCollapsing ? 'button' : 'div';
     return (
       <div className="py-3 relative">
         {/* Hidden measurement div */}
@@ -176,23 +175,12 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
             <MarkdownContent content={item.description} className="prose-sm" />
           </div>
         )}
-        <Row
-          {...(needsCollapsing ? { onClick: () => setIsOpen(!isOpen) } : {})}
-          className="w-full flex flex-col gap-1 md:grid md:grid-cols-[auto_1fr_1fr] md:gap-4 md:items-center text-left"
-        >
+        <div className="flex flex-col gap-1 md:grid md:grid-cols-[auto_auto_1fr_auto] md:gap-x-4 md:items-start text-left">
           <span className="text-accent font-semibold min-w-[4rem] md:text-center">
             {item.number}
           </span>
-          <span className="font-bold text-primary flex items-center gap-2">
+          <span className="font-bold text-primary">
             {item.title}
-            {needsCollapsing && (
-              <ChevronDown
-                className={clsx(
-                  'w-4 h-4 text-primary/40 transition-transform shrink-0',
-                  isOpen && 'rotate-180'
-                )}
-              />
-            )}
           </span>
           <span className="text-sm text-primary/70">
             {item.description && (
@@ -211,13 +199,27 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
               ) : null
             )}
           </span>
-        </Row>
+          {needsCollapsing && (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-7 h-7 rounded-full border-2 border-accent flex items-center justify-center shrink-0 hover:bg-accent/10 transition-colors"
+              aria-label={isOpen ? 'Collapse' : 'Expand'}
+            >
+              <ChevronDown
+                className={clsx(
+                  'w-4 h-4 text-accent transition-transform',
+                  isOpen && 'rotate-180'
+                )}
+              />
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_1fr_1fr] md:gap-4 md:items-center">
+    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_auto_1fr] md:gap-x-4 md:items-start">
       <span className="text-accent font-semibold min-w-[4rem] md:text-center">
         {item.number}
       </span>
