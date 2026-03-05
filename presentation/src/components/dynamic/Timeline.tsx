@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
 import { ChevronDown } from 'lucide-react';
+import { MarkdownContent } from '../ui/MarkdownContent';
 import type { ComponentTimeline } from '@/lib/types';
 
 interface TimelineProps {
@@ -13,15 +14,15 @@ export function Timeline({ data }: TimelineProps) {
   if (!data.items || data.items.length === 0) return null;
 
   if (data.style === 'style2') {
-    return <TimelineTable items={data.items} collapsible={data.collapsible} />;
+    return <TimelineTable items={data.items} collapsible={data.collapsible} showPreview={data.showPreview} />;
   }
 
-  return <TimelineVertical items={data.items} collapsible={data.collapsible} />;
+  return <TimelineVertical items={data.items} collapsible={data.collapsible} showPreview={data.showPreview} />;
 }
 
 type TimelineItem = ComponentTimeline['items'][0];
 
-function TimelineVertical({ items, collapsible }: { items: TimelineItem[]; collapsible: boolean }) {
+function TimelineVertical({ items, collapsible, showPreview }: { items: TimelineItem[]; collapsible: boolean; showPreview: boolean }) {
   return (
     <div className="space-y-0">
       {items.map((item, i) => (
@@ -30,6 +31,7 @@ function TimelineVertical({ items, collapsible }: { items: TimelineItem[]; colla
           item={item}
           index={i}
           collapsible={collapsible}
+          showPreview={showPreview}
           isLast={i === items.length - 1}
         />
       ))}
@@ -41,11 +43,13 @@ function TimelineVerticalItem({
   item,
   index,
   collapsible,
+  showPreview,
   isLast,
 }: {
   item: TimelineItem;
   index: number;
   collapsible: boolean;
+  showPreview: boolean;
   isLast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
@@ -79,8 +83,20 @@ function TimelineVerticalItem({
                 )}
               />
             </button>
-            {isOpen && item.description && (
-              <p className="text-sm text-primary/70 mt-1">{item.description}</p>
+            {item.description && (
+              isOpen ? (
+                <MarkdownContent
+                  content={item.description}
+                  className="text-sm text-primary/70 mt-1 prose-sm"
+                />
+              ) : showPreview ? (
+                <div className="text-sm text-primary/70 mt-1 line-clamp-3">
+                  <MarkdownContent
+                    content={item.description}
+                    className="prose-sm"
+                  />
+                </div>
+              ) : null
             )}
           </>
         ) : (
@@ -89,7 +105,10 @@ function TimelineVerticalItem({
               <h4 className="font-bold text-primary mb-1">{item.title}</h4>
             )}
             {item.description && (
-              <p className="text-sm text-primary/70">{item.description}</p>
+              <MarkdownContent
+                content={item.description}
+                className="text-sm text-primary/70 prose-sm"
+              />
             )}
           </>
         )}
@@ -98,17 +117,17 @@ function TimelineVerticalItem({
   );
 }
 
-function TimelineTable({ items, collapsible }: { items: TimelineItem[]; collapsible: boolean }) {
+function TimelineTable({ items, collapsible, showPreview }: { items: TimelineItem[]; collapsible: boolean; showPreview: boolean }) {
   return (
     <div className="divide-y divide-primary/10">
       {items.map((item, i) => (
-        <TimelineTableRow key={i} item={item} collapsible={collapsible} />
+        <TimelineTableRow key={i} item={item} collapsible={collapsible} showPreview={showPreview} />
       ))}
     </div>
   );
 }
 
-function TimelineTableRow({ item, collapsible }: { item: TimelineItem; collapsible: boolean }) {
+function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineItem; collapsible: boolean; showPreview: boolean }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
 
   if (collapsible) {
@@ -131,7 +150,21 @@ function TimelineTableRow({ item, collapsible }: { item: TimelineItem; collapsib
             {item.number}
           </span>
           <span className="text-sm text-primary/70">
-            {isOpen ? item.description : ''}
+            {item.description && (
+              isOpen ? (
+                <MarkdownContent
+                  content={item.description}
+                  className="prose-sm"
+                />
+              ) : showPreview ? (
+                <div className="line-clamp-3">
+                  <MarkdownContent
+                    content={item.description}
+                    className="prose-sm"
+                  />
+                </div>
+              ) : null
+            )}
           </span>
         </button>
       </div>
@@ -144,7 +177,14 @@ function TimelineTableRow({ item, collapsible }: { item: TimelineItem; collapsib
       <span className="text-accent font-semibold text-center min-w-[4rem]">
         {item.number}
       </span>
-      <span className="text-sm text-primary/70">{item.description}</span>
+      <span className="text-sm text-primary/70">
+        {item.description && (
+          <MarkdownContent
+            content={item.description}
+            className="prose-sm"
+          />
+        )}
+      </span>
     </div>
   );
 }

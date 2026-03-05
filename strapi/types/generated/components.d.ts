@@ -510,7 +510,7 @@ export interface ElementsTimelineItem extends Struct.ComponentSchema {
     displayName: 'Polo\u017Eka \u010Dasov\u00E9 osy';
   };
   attributes: {
-    description: Schema.Attribute.Text;
+    description: Schema.Attribute.RichText;
     number: Schema.Attribute.String;
     title: Schema.Attribute.String;
   };

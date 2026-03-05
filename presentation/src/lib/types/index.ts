@@ -280,6 +280,7 @@ export interface ComponentTimeline extends DynamicZoneBase {
   items: { number: string | null; title: string | null; description: string | null }[];
   collapsible: boolean;
   style: 'style1' | 'style2';
+  showPreview: boolean;
 }
 
 export interface ComponentSectionDivider extends DynamicZoneBase {
