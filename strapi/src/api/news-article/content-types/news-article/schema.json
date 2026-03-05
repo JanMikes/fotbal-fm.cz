@@ -16,6 +16,10 @@
       "type": "string",
       "required": true
     },
+    "date": {
+      "type": "datetime",
+      "required": true
+    },
     "slug": {
       "type": "uid",
       "targetField": "title"

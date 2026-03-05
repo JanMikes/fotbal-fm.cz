@@ -21,7 +21,7 @@ export function mapNewsArticleSummary(raw: StrapiRawNewsArticle) {
     mainPhoto: mapMedia(raw.mainPhoto),
     categories: mapCategories(raw.categories),
     newsArticleTypes: mapNewsArticleTypes(raw.newsArticleTypes),
-    createdAt: raw.createdAt,
+    date: raw.date,
   };
 }
 

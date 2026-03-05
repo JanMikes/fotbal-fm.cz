@@ -108,7 +108,7 @@ export async function getNewsArticlesByCategory(
       categories: { fields: ['name', 'slug'] },
       newsArticleTypes: { fields: ['name', 'slug'] },
     },
-    sort: 'createdAt:desc',
+    sort: 'date:desc',
     pagination: { page, pageSize },
   });
   return {
@@ -134,7 +134,7 @@ export async function getAllNewsArticles(
       categories: { fields: ['name', 'slug'] },
       newsArticleTypes: { fields: ['name', 'slug'] },
     },
-    sort: 'createdAt:desc',
+    sort: 'date:desc',
     pagination: { page, pageSize },
   });
   return {

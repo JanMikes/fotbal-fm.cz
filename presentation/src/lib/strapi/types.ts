@@ -19,6 +19,7 @@ export interface StrapiRawNewsArticle {
   documentId: string;
   title: string;
   slug: string | null;
+  date: string;
   description: string | null;
   video: string | null;
   mainPhoto: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;

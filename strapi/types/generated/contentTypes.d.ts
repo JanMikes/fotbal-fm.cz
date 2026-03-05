@@ -866,6 +866,7 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    date: Schema.Attribute.DateTime & Schema.Attribute.Required;
     description: Schema.Attribute.RichText;
     files: Schema.Attribute.Media<
       'files' | 'images' | 'videos' | 'audios',

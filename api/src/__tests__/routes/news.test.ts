@@ -18,6 +18,7 @@ const mockArticle = {
   documentId: 'news-1',
   title: 'A-tým zvítězil v derby!',
   slug: 'a-tym-zvitezil-v-derby',
+  date: '2025-03-15T20:30:00.000Z',
   description: 'Frýdek-Místek porazil rivala 3:1 v 20. kole MSFL.',
   video: 'dQw4w9WgXcQ',
   mainPhoto: {
@@ -60,6 +61,7 @@ const mockArticle = {
       documentId: 'news-2',
       title: 'Sestava na derby',
       slug: 'sestava-na-derby',
+      date: '2025-03-14T08:00:00.000Z',
       description: 'Trenér nominoval 18 hráčů.',
       video: null,
       mainPhoto: {
@@ -126,7 +128,7 @@ describe('GET /api/v1/news', () => {
     await app.request('/api/v1/news?category=a-tym&page=2&pageSize=10');
 
     expect(strapiGetWithPagination).toHaveBeenCalledWith('/news-articles', expect.objectContaining({
-      sort: 'createdAt:desc',
+      sort: 'date:desc',
       pagination: { page: 2, pageSize: 10 },
       filters: { categories: { slug: { $eq: 'a-tym' } } },
     }));

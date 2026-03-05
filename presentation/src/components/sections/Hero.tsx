@@ -148,7 +148,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[820px] lg:h-[1000px] -mt-[72px] lg:-mt-[130px] clip-diagonal-bottom">
+    <section className="relative h-[820px] lg:h-[1000px] mt-0 clip-diagonal-bottom">
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">
@@ -170,7 +170,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {!slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
-              <div className="absolute inset-0 flex items-center">
+              <div className="absolute top-[72px] lg:top-[130px] bottom-0 left-0 right-0 flex items-center">
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher */}
                   <div className="w-fit mb-6 lg:mb-10">

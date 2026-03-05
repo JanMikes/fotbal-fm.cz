@@ -283,6 +283,7 @@ export interface ComponentsTimeline extends Struct.ComponentSchema {
   attributes: {
     collapsible: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     items: Schema.Attribute.Component<'elements.timeline-item', true>;
+    showPreview: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     style: Schema.Attribute.Enumeration<['style1', 'style2']> &
       Schema.Attribute.DefaultTo<'style1'>;
   };

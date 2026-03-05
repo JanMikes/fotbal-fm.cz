@@ -79,7 +79,7 @@ newsRoute.openapi(listRoute, async (c) => {
   }
 
   const result = await strapiGetWithPagination<StrapiRawNewsArticle>('/news-articles', {
-    sort: 'createdAt:desc',
+    sort: 'date:desc',
     pagination: { page, pageSize },
     filters,
     populate: listPopulate,

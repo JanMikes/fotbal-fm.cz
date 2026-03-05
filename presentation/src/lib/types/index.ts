@@ -36,11 +36,11 @@ export interface NewsArticleSummary {
   documentId: string;
   title: string;
   slug: string;
+  date: string;
   description: string | null;
   mainPhoto: MediaImage | null;
   categories: Category[];
   newsArticleTypes: NewsArticleType[];
-  createdAt: string;
 }
 
 export interface NewsArticle extends NewsArticleSummary {

@@ -65,7 +65,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
               </p>
             )}
             <div className="flex items-center gap-4 text-small text-white/60">
-              <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>
+              <time dateTime={article.date}>{formatDate(article.date)}</time>
             </div>
           </div>
         </article>
@@ -81,7 +81,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
           className
         )}
       >
-        <div className="relative aspect-news-card overflow-hidden">
+        <div className="relative aspect-[4/5] overflow-hidden">
           <Image
             src={imageUrl}
             alt={article.title}
@@ -110,7 +110,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
             </p>
           )}
           <div className="flex items-center gap-3 text-small text-primary/50">
-            <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>
+            <time dateTime={article.date}>{formatDate(article.date)}</time>
           </div>
         </div>
       </article>

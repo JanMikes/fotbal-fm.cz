@@ -38,6 +38,7 @@ function makeRawArticle(overrides: Record<string, unknown> = {}): StrapiRawNewsA
       },
     ],
     relatedNews: null,
+    date: '2025-01-15T10:00:00Z',
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T12:00:00Z',
     ...overrides,
@@ -52,7 +53,7 @@ describe('mapNewsArticleSummary', () => {
     expect(result.title).toBe('Výhra nad soupeřem');
     expect(result.slug).toBe('vyhra-nad-souperem');
     expect(result.description).toBe('Krátký popis článku');
-    expect(result.createdAt).toBe('2025-01-15T10:00:00Z');
+    expect(result.date).toBe('2025-01-15T10:00:00Z');
   });
 
   it('maps mainPhoto with transformed URL', () => {

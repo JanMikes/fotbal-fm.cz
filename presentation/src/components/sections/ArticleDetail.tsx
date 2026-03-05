@@ -60,7 +60,7 @@ function SidebarCard({
         <p className="text-xs font-semibold text-primary line-clamp-2 group-hover:text-accent transition-colors leading-snug">
           {article.title}
         </p>
-        <p className="text-[11px] text-primary/40 mt-1">{formatDate(article.createdAt)}</p>
+        <p className="text-[11px] text-primary/40 mt-1">{formatDate(article.date)}</p>
       </div>
     </Link>
   );
@@ -91,7 +91,7 @@ export default function ArticleDetail({
         ))}
         <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5" />
-          <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>
+          <time dateTime={article.date}>{formatDate(article.date)}</time>
         </div>
         <span>·</span>
         <div className="flex items-center gap-1.5">
@@ -105,23 +105,111 @@ export default function ArticleDetail({
         {article.title}
       </h1>
 
-      {/* Photo + Sidebar row */}
+      {/* Main grid: left column (photo + content) | right column (sticky sidebar) */}
       <div className={`grid grid-cols-1 ${hasSidebar ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
-        {/* Photo */}
-        {article.mainPhoto && (
-          <div className="relative aspect-[4/5] overflow-hidden mx-6 mb-4">
-            <Image
-              src={article.mainPhoto.url}
-              alt={article.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1100px) 100vw, 750px"
-              priority
-            />
-          </div>
-        )}
+        {/* Left column */}
+        <div>
+          {/* Photo */}
+          {article.mainPhoto && (
+            <div className="relative aspect-[4/5] overflow-hidden mx-6 mb-4">
+              <Image
+                src={article.mainPhoto.url}
+                alt={article.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1100px) 100vw, 750px"
+                priority
+              />
+            </div>
+          )}
 
-        {/* Sidebar next to photo */}
+          {/* Content */}
+          <div className="px-6 py-6">
+            {article.description && (
+              <MarkdownContent
+                content={article.description}
+                className="prose-lg text-primary/80 mb-12
+                  prose-headings:text-primary prose-headings:uppercase prose-headings:font-bold
+                  prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+                  prose-img:rounded-none"
+              />
+            )}
+
+            {article.files.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-xl font-bold text-primary uppercase mb-4">Dokumenty</h2>
+                <div className="space-y-2">
+                  {article.files.map((file, index) => (
+                    <a
+                      key={index}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 border border-primary/10 hover:border-accent/30 hover:bg-accent/5 transition-colors"
+                    >
+                      <FileDown className="w-5 h-5 text-accent shrink-0" />
+                      <span className="text-primary/80 hover:text-accent transition-colors">
+                        {file.name}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {article.video && (
+              <div className="mb-12">
+                <h2 className="text-xl font-bold text-primary uppercase mb-4">Video</h2>
+                <div className="aspect-video">
+                  <iframe
+                    src={getYouTubeEmbedUrl(article.video)}
+                    className="w-full h-full"
+                    allowFullScreen
+                    title="Video"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Gallery */}
+          {article.gallery.length > 0 && (
+            <div className="px-6 pb-8">
+              <h2 className="text-xl font-bold text-primary uppercase mb-6">Galerie</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {article.gallery.map((image, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                    className="relative aspect-square overflow-hidden group cursor-pointer"
+                    onClick={() => setLightboxIndex(index)}
+                  >
+                    <Image
+                      src={image.url}
+                      alt={image.alternativeText || article.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+              {lightboxIndex !== null && (
+                <ImageLightbox
+                  images={article.gallery}
+                  currentIndex={lightboxIndex}
+                  onClose={() => setLightboxIndex(null)}
+                  onNavigate={setLightboxIndex}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right column: sticky sidebar spanning full height */}
         {hasSidebar && (
           <div className="border-t lg:border-t-0 lg:border-l border-primary/10">
             <div className="lg:sticky lg:top-[146px] p-4">
@@ -141,91 +229,6 @@ export default function ArticleDetail({
           </div>
         )}
       </div>
-
-      {/* Content (full width below) */}
-      <div className="px-6 py-6">
-        {article.description && (
-          <MarkdownContent
-            content={article.description}
-            className="prose-lg text-primary/80 mb-12
-              prose-headings:text-primary prose-headings:uppercase prose-headings:font-bold
-              prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-none"
-          />
-        )}
-
-        {article.files.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-bold text-primary uppercase mb-4">Dokumenty</h2>
-            <div className="space-y-2">
-              {article.files.map((file, index) => (
-                <a
-                  key={index}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 border border-primary/10 hover:border-accent/30 hover:bg-accent/5 transition-colors"
-                >
-                  <FileDown className="w-5 h-5 text-accent shrink-0" />
-                  <span className="text-primary/80 hover:text-accent transition-colors">
-                    {file.name}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {article.video && (
-          <div className="mb-12">
-            <h2 className="text-xl font-bold text-primary uppercase mb-4">Video</h2>
-            <div className="aspect-video">
-              <iframe
-                src={getYouTubeEmbedUrl(article.video)}
-                className="w-full h-full"
-                allowFullScreen
-                title="Video"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Gallery */}
-      {article.gallery.length > 0 && (
-        <div className="px-6 pb-8">
-          <h2 className="text-xl font-bold text-primary uppercase mb-6">Galerie</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {article.gallery.map((image, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="relative aspect-square overflow-hidden group cursor-pointer"
-                onClick={() => setLightboxIndex(index)}
-              >
-                <Image
-                  src={image.url}
-                  alt={image.alternativeText || article.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 50vw, 33vw"
-                />
-              </motion.div>
-            ))}
-          </div>
-          {lightboxIndex !== null && (
-            <ImageLightbox
-              images={article.gallery}
-              currentIndex={lightboxIndex}
-              onClose={() => setLightboxIndex(null)}
-              onNavigate={setLightboxIndex}
-            />
-          )}
-        </div>
-      )}
     </motion.article>
   );
 }
