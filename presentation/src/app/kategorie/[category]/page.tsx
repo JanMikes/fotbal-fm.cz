@@ -23,7 +23,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches, categoryGroup, playerHighlights] =
     await Promise.all([
-      getNewsArticlesByCategory(categorySlug, 1, 6),
+      getNewsArticlesByCategory(categorySlug, 1, 5),
       getPlayersByCategory(categorySlug),
       getUpcomingMatches(categorySlug),
       getFinishedMatches(categorySlug),

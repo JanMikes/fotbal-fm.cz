@@ -25,9 +25,6 @@ export default function NewsList({ articles, categorySlug }: NewsListProps) {
     );
   }
 
-  const featuredNews = articles[0];
-  const otherNews = articles.slice(1, 6);
-
   return (
     <section className="py-section bg-white">
       <div className="container mx-auto px-4 lg:px-8">
@@ -38,42 +35,15 @@ export default function NewsList({ articles, categorySlug }: NewsListProps) {
           moreLink={`/kategorie/${categorySlug}/novinky`}
         />
 
-        {/* News Grid - Masonry Style */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Featured Article */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="lg:col-span-7 lg:row-span-2"
-          >
-            <NewsCard article={featuredNews} categorySlug={categorySlug} featured />
-          </motion.div>
-
-          {/* Secondary Articles */}
-          {otherNews.slice(0, 2).map((article, index) => (
+        {/* News Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {articles.slice(0, 5).map((article, index) => (
             <motion.div
               key={article.documentId}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
-              className="lg:col-span-5"
-            >
-              <NewsCard article={article} categorySlug={categorySlug} />
-            </motion.div>
-          ))}
-
-          {/* Bottom Row */}
-          {otherNews.slice(2, 5).map((article, index) => (
-            <motion.div
-              key={article.documentId}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-              className="lg:col-span-4"
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <NewsCard article={article} categorySlug={categorySlug} />
             </motion.div>
