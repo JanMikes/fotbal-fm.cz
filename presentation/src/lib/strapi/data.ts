@@ -130,15 +130,22 @@ export async function getAllNewsArticles(
   const filters: Record<string, unknown> = {};
   const typesArr = Array.isArray(newsArticleTypeSlugs) ? newsArticleTypeSlugs : newsArticleTypeSlugs ? [newsArticleTypeSlugs] : [];
   const catsArr = Array.isArray(categorySlugs) ? categorySlugs : categorySlugs ? [categorySlugs] : [];
-  if (typesArr.length === 1) {
-    filters.newsArticleTypes = { slug: { $eq: typesArr[0] } };
-  } else if (typesArr.length > 1) {
-    filters.newsArticleTypes = { slug: { $in: typesArr } };
-  }
-  if (catsArr.length === 1) {
-    filters.categories = { slug: { $eq: catsArr[0] } };
-  } else if (catsArr.length > 1) {
-    filters.categories = { slug: { $in: catsArr } };
+  const typeFilter = typesArr.length === 1
+    ? { newsArticleTypes: { slug: { $eq: typesArr[0] } } }
+    : typesArr.length > 1
+      ? { newsArticleTypes: { slug: { $in: typesArr } } }
+      : null;
+  const catFilter = catsArr.length === 1
+    ? { categories: { slug: { $eq: catsArr[0] } } }
+    : catsArr.length > 1
+      ? { categories: { slug: { $in: catsArr } } }
+      : null;
+  if (typeFilter && catFilter) {
+    filters.$and = [typeFilter, catFilter];
+  } else if (typeFilter) {
+    Object.assign(filters, typeFilter);
+  } else if (catFilter) {
+    Object.assign(filters, catFilter);
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
