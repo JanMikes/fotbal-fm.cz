@@ -44,24 +44,22 @@ function SidebarCard({
     : `/novinky/clanek/${article.slug}`;
 
   return (
-    <Link href={href} className="group flex gap-3">
+    <Link href={href} className="group block">
+      <p className="text-xs font-semibold text-primary line-clamp-2 group-hover:text-accent transition-colors leading-snug">
+        {article.title}
+      </p>
+      <p className="text-[11px] text-primary/40 mt-1">{formatDate(article.date)}</p>
       {article.mainPhoto && (
-        <div className="relative w-20 h-16 shrink-0 overflow-hidden">
+        <div className="relative aspect-[4/5] overflow-hidden mt-2">
           <Image
             src={article.mainPhoto.url}
             alt={article.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="80px"
+            sizes="250px"
           />
         </div>
       )}
-      <div className="min-w-0">
-        <p className="text-xs font-semibold text-primary line-clamp-2 group-hover:text-accent transition-colors leading-snug">
-          {article.title}
-        </p>
-        <p className="text-[11px] text-primary/40 mt-1">{formatDate(article.date)}</p>
-      </div>
     </Link>
   );
 }

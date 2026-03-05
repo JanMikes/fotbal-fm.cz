@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { MarkdownContent } from '../ui/MarkdownContent';
@@ -53,7 +53,17 @@ function TimelineVerticalItem({
   isLast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [needsCollapsing, setNeedsCollapsing] = useState(collapsible);
   const label = item.number || String(index + 1);
+
+  useEffect(() => {
+    if (!collapsible || !item.description || !measureRef.current) return;
+    if (measureRef.current.scrollHeight <= measureRef.current.clientHeight) {
+      setNeedsCollapsing(false);
+      setIsOpen(true);
+    }
+  }, [collapsible, item.description]);
 
   return (
     <div className="flex gap-4">
@@ -68,21 +78,35 @@ function TimelineVerticalItem({
       </div>
 
       {/* Content column */}
-      <div className={clsx('pb-6 flex-1 min-w-0', isLast && 'pb-0')}>
+      <div className={clsx('pb-6 flex-1 min-w-0 relative', isLast && 'pb-0')}>
+        {/* Hidden measurement div to check if content overflows line-clamp-3 */}
+        {collapsible && needsCollapsing && item.description && (
+          <div
+            ref={measureRef}
+            className="line-clamp-3 text-sm absolute left-0 right-0 opacity-0 pointer-events-none -z-10"
+            aria-hidden="true"
+          >
+            <MarkdownContent content={item.description} className="prose-sm" />
+          </div>
+        )}
         {collapsible ? (
           <>
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="flex items-center gap-2 text-left w-full"
-            >
+            {needsCollapsing ? (
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 text-left w-full"
+              >
+                <h4 className="font-bold text-primary">{item.title}</h4>
+                <ChevronDown
+                  className={clsx(
+                    'w-4 h-4 text-primary/40 transition-transform shrink-0',
+                    isOpen && 'rotate-180'
+                  )}
+                />
+              </button>
+            ) : (
               <h4 className="font-bold text-primary">{item.title}</h4>
-              <ChevronDown
-                className={clsx(
-                  'w-4 h-4 text-primary/40 transition-transform shrink-0',
-                  isOpen && 'rotate-180'
-                )}
-              />
-            </button>
+            )}
             {item.description && (
               isOpen ? (
                 <MarkdownContent
@@ -129,12 +153,33 @@ function TimelineTable({ items, collapsible, showPreview }: { items: TimelineIte
 
 function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineItem; collapsible: boolean; showPreview: boolean }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [needsCollapsing, setNeedsCollapsing] = useState(collapsible);
+
+  useEffect(() => {
+    if (!collapsible || !item.description || !measureRef.current) return;
+    if (measureRef.current.scrollHeight <= measureRef.current.clientHeight) {
+      setNeedsCollapsing(false);
+      setIsOpen(true);
+    }
+  }, [collapsible, item.description]);
 
   if (collapsible) {
+    const Row = needsCollapsing ? 'button' : 'div';
     return (
-      <div className="py-3">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
+      <div className="py-3 relative">
+        {/* Hidden measurement div */}
+        {needsCollapsing && item.description && (
+          <div
+            ref={measureRef}
+            className="line-clamp-3 text-sm absolute left-0 right-0 opacity-0 pointer-events-none -z-10"
+            aria-hidden="true"
+          >
+            <MarkdownContent content={item.description} className="prose-sm" />
+          </div>
+        )}
+        <Row
+          {...(needsCollapsing ? { onClick: () => setIsOpen(!isOpen) } : {})}
           className="w-full flex flex-col gap-1 md:grid md:grid-cols-[auto_1fr_1fr] md:gap-4 md:items-center text-left"
         >
           <span className="text-accent font-semibold min-w-[4rem] md:text-center">
@@ -142,12 +187,14 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
           </span>
           <span className="font-bold text-primary flex items-center gap-2">
             {item.title}
-            <ChevronDown
-              className={clsx(
-                'w-4 h-4 text-primary/40 transition-transform shrink-0',
-                isOpen && 'rotate-180'
-              )}
-            />
+            {needsCollapsing && (
+              <ChevronDown
+                className={clsx(
+                  'w-4 h-4 text-primary/40 transition-transform shrink-0',
+                  isOpen && 'rotate-180'
+                )}
+              />
+            )}
           </span>
           <span className="text-sm text-primary/70">
             {item.description && (
@@ -166,7 +213,7 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
               ) : null
             )}
           </span>
-        </button>
+        </Row>
       </div>
     );
   }
