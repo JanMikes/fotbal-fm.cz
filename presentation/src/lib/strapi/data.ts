@@ -85,15 +85,21 @@ export async function getCategoryGroupByCategorySlug(slug: string): Promise<Cate
 }
 
 export async function getNewsArticlesByCategory(
-  categorySlug: string,
+  categorySlug?: string,
   page = 1,
   pageSize = 6,
+  newsArticleTypeSlug?: string,
 ): Promise<{ articles: NewsArticleSummary[]; total: number }> {
   const client = getStrapiClient();
+  const filters: Record<string, unknown> = {};
+  if (categorySlug) {
+    filters.categories = { slug: { $eq: categorySlug } };
+  }
+  if (newsArticleTypeSlug) {
+    filters.newsArticleType = { slug: { $eq: newsArticleTypeSlug } };
+  }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
-    filters: {
-      categories: { slug: { $eq: categorySlug } },
-    },
+    filters,
     populate: {
       mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
       categories: { fields: ['name', 'slug'] },

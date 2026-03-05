@@ -172,6 +172,10 @@ export interface ComponentsNewsArticles extends Struct.ComponentSchema {
         number
       > &
       Schema.Attribute.DefaultTo<6>;
+    news_article_type: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::news-article-type.news-article-type'
+    >;
     show_all_link: Schema.Attribute.Component<'elements.text-link', false>;
   };
 }

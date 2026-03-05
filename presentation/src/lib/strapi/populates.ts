@@ -156,6 +156,7 @@ function buildDynamicZonePopulate() {
       'components.news-articles': {
         populate: {
           categories: { fields: ['name', 'slug'] },
+          news_article_type: { fields: ['name', 'slug'] },
           show_all_link: textLinkPopulate,
         },
       },

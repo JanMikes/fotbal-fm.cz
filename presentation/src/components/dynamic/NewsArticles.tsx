@@ -8,10 +8,13 @@ interface NewsArticlesProps {
 }
 
 export async function NewsArticles({ data }: NewsArticlesProps) {
-  if (!data.categories || data.categories.length === 0) return null;
-
-  const categorySlug = data.categories[0].slug;
-  const { articles } = await getNewsArticlesByCategory(categorySlug, 1, data.limit || 6);
+  const categorySlug = data.categories?.[0]?.slug;
+  const { articles } = await getNewsArticlesByCategory(
+    categorySlug,
+    1,
+    data.limit || 6,
+    data.newsArticleType?.slug,
+  );
 
   if (articles.length === 0) return null;
 
@@ -22,7 +25,7 @@ export async function NewsArticles({ data }: NewsArticlesProps) {
           <NewsCard
             key={article.documentId}
             article={article}
-            categorySlug={categorySlug}
+            categorySlug={categorySlug || article.categories?.[0]?.slug || ''}
           />
         ))}
       </div>

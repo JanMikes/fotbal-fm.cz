@@ -16,6 +16,11 @@
       "min": 1,
       "max": 20
     },
+    "news_article_type": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::news-article-type.news-article-type"
+    },
     "show_all_link": {
       "type": "component",
       "component": "elements.text-link",
