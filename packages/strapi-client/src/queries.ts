@@ -27,7 +27,15 @@ export function buildStrapiQueryString(options: StrapiQueryOptions): string {
   if (options.filters) {
     const flattenFilters = (obj: Record<string, unknown>, prefix = 'filters'): void => {
       for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        if (Array.isArray(value)) {
+          value.forEach((item, i) => {
+            if (typeof item === 'object' && item !== null) {
+              flattenFilters(item as Record<string, unknown>, `${prefix}[${key}][${i}]`);
+            } else {
+              params.append(`${prefix}[${key}][${i}]`, String(item));
+            }
+          });
+        } else if (typeof value === 'object' && value !== null) {
           flattenFilters(value as Record<string, unknown>, `${prefix}[${key}]`);
         } else {
           params.append(`${prefix}[${key}]`, String(value));
