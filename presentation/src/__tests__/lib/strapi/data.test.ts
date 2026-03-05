@@ -59,7 +59,7 @@ describe('data layer', () => {
       await getCategories();
 
       expect(mockFindMany).toHaveBeenCalledWith('categories', {
-        filters: { hidden: { $ne: true } },
+        filters: { $or: [{ hidden: { $eq: false } }, { hidden: { $null: true } }] },
         sort: 'sortOrder:asc',
         pagination: { pageSize: 100 },
       });
