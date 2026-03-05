@@ -80,33 +80,32 @@ export default function ArticleDetail({
       transition={{ duration: 0.5 }}
       className="max-w-[1100px] mx-auto my-8 bg-white border border-primary/15 shadow-sm"
     >
-      {/* Meta info */}
-      <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-primary/50">
-        {article.newsArticleTypes.map((type) => (
-          <Badge key={type.slug} variant="accent" className="mr-1">
-            {type.name}
-          </Badge>
-        ))}
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-3.5 h-3.5" />
-          <time dateTime={article.date}>{formatDate(article.date)}</time>
-        </div>
-        <span>·</span>
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{readingTime} min čtení</span>
-        </div>
-      </div>
-
-      {/* Title */}
-      <h1 className="px-6 pt-4 pb-4 text-2xl md:text-3xl font-black text-primary uppercase leading-tight">
-        {article.title}
-      </h1>
-
-      {/* Main grid: left column (photo + content) | right column (sticky sidebar) */}
+      {/* Main grid: left column (meta + title + photo + content) | right column (sticky sidebar) */}
       <div className={`grid grid-cols-1 ${hasSidebar ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
         {/* Left column */}
         <div>
+          {/* Meta info */}
+          <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-primary/50">
+            {article.newsArticleTypes.map((type) => (
+              <Badge key={type.slug} variant="accent" className="mr-1">
+                {type.name}
+              </Badge>
+            ))}
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              <time dateTime={article.date}>{formatDate(article.date)}</time>
+            </div>
+            <span>·</span>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{readingTime} min čtení</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h1 className="px-6 pt-4 pb-4 text-2xl md:text-3xl font-black text-primary uppercase leading-tight">
+            {article.title}
+          </h1>
           {/* Photo */}
           {article.mainPhoto && (
             <div className="relative aspect-[4/5] overflow-hidden mx-6 mb-4">
