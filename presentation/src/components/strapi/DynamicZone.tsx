@@ -25,21 +25,22 @@ import { NewsArticles } from '../dynamic/NewsArticles';
 
 interface DynamicZoneProps {
   components: DynamicZoneComponent[];
+  sidebar?: boolean;
 }
 
-export function DynamicZone({ components }: DynamicZoneProps) {
+export function DynamicZone({ components, sidebar }: DynamicZoneProps) {
   if (!components || components.length === 0) return null;
 
   return (
     <>
       {components.map((component, index) => (
-        <DynamicZoneItem key={`${component.__component}-${component.id}-${index}`} component={component} />
+        <DynamicZoneItem key={`${component.__component}-${component.id}-${index}`} component={component} sidebar={sidebar} />
       ))}
     </>
   );
 }
 
-function DynamicZoneItem({ component }: { component: DynamicZoneComponent }) {
+function DynamicZoneItem({ component, sidebar }: { component: DynamicZoneComponent; sidebar?: boolean }) {
   switch (component.__component) {
     case 'components.text':
       return <RichText data={component} />;
@@ -84,7 +85,7 @@ function DynamicZoneItem({ component }: { component: DynamicZoneComponent }) {
     case 'components.image':
       return <ImageBlock data={component} />;
     case 'components.news-articles':
-      return <NewsArticles data={component} />;
+      return <NewsArticles data={component} sidebar={sidebar} />;
     default:
       return <ComponentError componentType={(component as DynamicZoneComponent).__component} />;
   }

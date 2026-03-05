@@ -92,7 +92,7 @@ describe('data layer', () => {
           {
             id: 1, documentId: 'art-1', title: 'Test', slug: 'test',
             description: null, video: null, mainPhoto: null, gallery: null,
-            categories: [], newsArticleType: null, relatedNews: null,
+            categories: [], newsArticleTypes: null, relatedNews: null,
             createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z',
           },
         ],
@@ -122,7 +122,7 @@ describe('data layer', () => {
           {
             id: 1, documentId: 'art-1', title: 'Test', slug: 'test',
             description: null, video: null, mainPhoto: null, gallery: null,
-            categories: [], newsArticleType: null, relatedNews: [],
+            categories: [], newsArticleTypes: null, relatedNews: [],
             createdAt: '2025-01-01T00:00:00Z', updatedAt: '2025-01-01T00:00:00Z',
           },
         ],

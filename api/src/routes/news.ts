@@ -67,7 +67,7 @@ export const newsRoute = new OpenAPIHono();
 const listPopulate = {
   mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
   categories: { fields: ['name', 'slug'] },
-  newsArticleType: { fields: ['name', 'slug'] },
+  newsArticleTypes: { fields: ['name', 'slug'] },
 };
 
 newsRoute.openapi(listRoute, async (c) => {

@@ -37,7 +37,7 @@ import { mapFooter } from './mappers/footer';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
-import { mapNewsArticleType } from './mappers/news-article-type';
+
 import { mapPage } from './mappers/page';
 import { mapPartner, mapPartnerDetail } from './mappers/partner';
 import { mapPlayer } from './mappers/player';
@@ -99,14 +99,14 @@ export async function getNewsArticlesByCategory(
     filters.categories = { slug: { $eq: categorySlug } };
   }
   if (newsArticleTypeSlug) {
-    filters.newsArticleType = { slug: { $eq: newsArticleTypeSlug } };
+    filters.newsArticleTypes = { slug: { $eq: newsArticleTypeSlug } };
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
     populate: {
       mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
       categories: { fields: ['name', 'slug'] },
-      newsArticleType: { fields: ['name', 'slug'] },
+      newsArticleTypes: { fields: ['name', 'slug'] },
     },
     sort: 'createdAt:desc',
     pagination: { page, pageSize },
@@ -125,14 +125,14 @@ export async function getAllNewsArticles(
   const client = getStrapiClient();
   const filters: Record<string, unknown> = {};
   if (newsArticleTypeSlug) {
-    filters.newsArticleType = { slug: { $eq: newsArticleTypeSlug } };
+    filters.newsArticleTypes = { slug: { $eq: newsArticleTypeSlug } };
   }
   const { data, total } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
     filters,
     populate: {
       mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
       categories: { fields: ['name', 'slug'] },
-      newsArticleType: { fields: ['name', 'slug'] },
+      newsArticleTypes: { fields: ['name', 'slug'] },
     },
     sort: 'createdAt:desc',
     pagination: { page, pageSize },
@@ -149,7 +149,7 @@ export async function getNewsArticleTypes(): Promise<NewsArticleType[]> {
     sort: 'name:asc',
     pagination: { pageSize: 100 },
   });
-  return data.map(mapNewsArticleType).filter((t): t is NewsArticleType => t !== null);
+  return data.map((t) => ({ documentId: t.documentId, name: t.name, slug: t.slug }));
 }
 
 export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
@@ -161,12 +161,12 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
       gallery: { fields: ['url', 'alternativeText', 'width', 'height'] },
       files: { fields: ['url', 'name'] },
       categories: { fields: ['name', 'slug'] },
-      newsArticleType: { fields: ['name', 'slug'] },
+      newsArticleTypes: { fields: ['name', 'slug'] },
       relatedNews: {
         populate: {
           mainPhoto: { fields: ['url', 'alternativeText', 'width', 'height'] },
           categories: { fields: ['name', 'slug'] },
-          newsArticleType: { fields: ['name', 'slug'] },
+          newsArticleTypes: { fields: ['name', 'slug'] },
         },
       },
     },

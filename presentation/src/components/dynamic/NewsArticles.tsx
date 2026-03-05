@@ -5,9 +5,10 @@ import type { ComponentNewsArticles } from '@/lib/types';
 
 interface NewsArticlesProps {
   data: ComponentNewsArticles;
+  sidebar?: boolean;
 }
 
-export async function NewsArticles({ data }: NewsArticlesProps) {
+export async function NewsArticles({ data, sidebar }: NewsArticlesProps) {
   const categorySlug = data.categories?.[0]?.slug;
   const { articles } = await getNewsArticlesByCategory(
     categorySlug,
@@ -20,7 +21,7 @@ export async function NewsArticles({ data }: NewsArticlesProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={sidebar ? 'space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'}>
         {articles.map((article) => (
           <NewsCard
             key={article.documentId}

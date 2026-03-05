@@ -883,8 +883,8 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    newsArticleType: Schema.Attribute.Relation<
-      'manyToOne',
+    newsArticleTypes: Schema.Attribute.Relation<
+      'manyToMany',
       'api::news-article-type.news-article-type'
     >;
     publishedAt: Schema.Attribute.DateTime;

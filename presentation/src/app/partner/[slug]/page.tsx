@@ -67,7 +67,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
               <DynamicZone components={partner.content} />
             </div>
             <SidePanel>
-              <DynamicZone components={partner.panel} />
+              <DynamicZone components={partner.panel} sidebar />
             </SidePanel>
           </div>
         ) : (

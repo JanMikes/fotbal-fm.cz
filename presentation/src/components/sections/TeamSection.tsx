@@ -39,7 +39,6 @@ export default function TeamSection({ players, categorySlug }: TeamSectionProps)
 
   return (
     <section className="relative py-section bg-primary overflow-hidden">
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 transform skew-x-12 translate-x-1/4" />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Header */}

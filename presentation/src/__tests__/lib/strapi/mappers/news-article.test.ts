@@ -29,12 +29,14 @@ function makeRawArticle(overrides: Record<string, unknown> = {}): StrapiRawNewsA
     categories: [
       { id: 1, documentId: 'cat-1', name: 'Muži', slug: 'muzi', sortOrder: 1 },
     ],
-    newsArticleType: {
-      id: 1,
-      documentId: 'type-1',
-      name: 'Zápasy',
-      slug: 'zapasy',
-    },
+    newsArticleTypes: [
+      {
+        id: 1,
+        documentId: 'type-1',
+        name: 'Zápasy',
+        slug: 'zapasy',
+      },
+    ],
     relatedNews: null,
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '2025-01-15T12:00:00Z',
@@ -64,9 +66,9 @@ describe('mapNewsArticleSummary', () => {
     expect(result.categories[0].name).toBe('Muži');
   });
 
-  it('maps newsArticleType', () => {
+  it('maps newsArticleTypes', () => {
     const result = mapNewsArticleSummary(makeRawArticle());
-    expect(result.newsArticleType?.name).toBe('Zápasy');
+    expect(result.newsArticleTypes[0]?.name).toBe('Zápasy');
   });
 
   it('handles null mainPhoto', () => {
@@ -79,9 +81,9 @@ describe('mapNewsArticleSummary', () => {
     expect(result.categories).toEqual([]);
   });
 
-  it('handles null newsArticleType', () => {
-    const result = mapNewsArticleSummary(makeRawArticle({ newsArticleType: null }));
-    expect(result.newsArticleType).toBeNull();
+  it('handles null newsArticleTypes', () => {
+    const result = mapNewsArticleSummary(makeRawArticle({ newsArticleTypes: null }));
+    expect(result.newsArticleTypes).toEqual([]);
   });
 
   it('falls back to documentId when slug is null', () => {

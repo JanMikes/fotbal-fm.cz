@@ -76,7 +76,7 @@ export interface StrapiRawNewsArticle {
   mainPhoto: StrapiRawMedia | null;
   gallery: StrapiRawMedia[] | null;
   categories: StrapiRawCategory[] | null;
-  newsArticleType: StrapiRawNewsArticleType | null;
+  newsArticleTypes: StrapiRawNewsArticleType[] | null;
   relatedNews: StrapiRawNewsArticle[] | null;
   createdAt: string;
 }

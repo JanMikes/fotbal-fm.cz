@@ -25,7 +25,7 @@ export interface StrapiRawNewsArticle {
   gallery: import('@fotbal-fm/strapi-client').StrapiRawMedia[] | null;
   files: import('@fotbal-fm/strapi-client').StrapiRawMedia[] | null;
   categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
-  newsArticleType: StrapiRawNewsArticleType | null;
+  newsArticleTypes: StrapiRawNewsArticleType[] | null;
   relatedNews: StrapiRawNewsArticle[] | null;
   createdAt: string;
   updatedAt: string;

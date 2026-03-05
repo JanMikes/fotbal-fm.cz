@@ -3,13 +3,13 @@ import { mapMedia, mapMediaArray } from '../lib/media.js';
 import type { StrapiRawNewsArticle } from '../types/strapi.js';
 import { mapCategories } from './shared.js';
 
-function mapNewsArticleType(raw: StrapiRawNewsArticle['newsArticleType']) {
-  if (!raw) return null;
-  return {
-    documentId: raw.documentId,
-    name: raw.name,
-    slug: raw.slug,
-  };
+function mapNewsArticleTypes(raw: StrapiRawNewsArticle['newsArticleTypes']) {
+  if (!raw) return [];
+  return raw.map((item) => ({
+    documentId: item.documentId,
+    name: item.name,
+    slug: item.slug,
+  }));
 }
 
 export function mapNewsArticleSummary(raw: StrapiRawNewsArticle) {
@@ -20,7 +20,7 @@ export function mapNewsArticleSummary(raw: StrapiRawNewsArticle) {
     description: raw.description ? markdownToHtml(raw.description) : null,
     mainPhoto: mapMedia(raw.mainPhoto),
     categories: mapCategories(raw.categories),
-    newsArticleType: mapNewsArticleType(raw.newsArticleType),
+    newsArticleTypes: mapNewsArticleTypes(raw.newsArticleTypes),
     createdAt: raw.createdAt,
   };
 }

@@ -61,9 +61,9 @@
       "relation": "manyToMany",
       "target": "api::news-article.news-article"
     },
-    "newsArticleType": {
+    "newsArticleTypes": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "manyToMany",
       "target": "api::news-article-type.news-article-type",
       "inversedBy": "newsArticles"
     },

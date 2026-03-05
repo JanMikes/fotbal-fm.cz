@@ -28,8 +28,6 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
     ? `${hrefPrefix}/clanek/${article.slug}`
     : `/kategorie/${categorySlug}/clanek/${article.slug}`;
   const imageUrl = article.mainPhoto?.url || '/news/news-1.jpg';
-  const badgeLabel = article.newsArticleType?.name;
-
   if (featured) {
     return (
       <Link href={href} className="block">
@@ -49,10 +47,14 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
           />
           <div className="absolute inset-0 bg-gradient-news" />
           <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
-            {badgeLabel && (
-              <Badge variant="accent" className="self-start mb-4">
-                {badgeLabel}
-              </Badge>
+            {article.newsArticleTypes.length > 0 && (
+              <div className="flex gap-2 self-start mb-4">
+                {article.newsArticleTypes.map((type) => (
+                  <Badge key={type.slug} variant="accent">
+                    {type.name}
+                  </Badge>
+                ))}
+              </div>
             )}
             <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-3 text-balance leading-tight">
               {article.title}
@@ -88,10 +90,14 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-gradient-news" />
-          {badgeLabel && (
-            <Badge variant="accent" className="absolute top-4 left-4">
-              {badgeLabel}
-            </Badge>
+          {article.newsArticleTypes.length > 0 && (
+            <div className="absolute top-4 left-4 flex gap-1">
+              {article.newsArticleTypes.map((type) => (
+                <Badge key={type.slug} variant="accent">
+                  {type.name}
+                </Badge>
+              ))}
+            </div>
           )}
         </div>
         <div className="p-5">

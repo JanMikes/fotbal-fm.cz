@@ -39,7 +39,7 @@ export interface NewsArticleSummary {
   description: string | null;
   mainPhoto: MediaImage | null;
   categories: Category[];
-  newsArticleType: NewsArticleType | null;
+  newsArticleTypes: NewsArticleType[];
   createdAt: string;
 }
 

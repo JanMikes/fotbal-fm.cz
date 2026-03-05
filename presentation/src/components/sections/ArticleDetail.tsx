@@ -84,11 +84,11 @@ export default function ArticleDetail({
         <div className={sidebarArticles.length > 0 ? 'lg:col-span-3' : ''}>
           {/* Row 1: Article info */}
           <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-primary/50">
-            {article.newsArticleType && (
-              <Badge variant="accent" className="mr-1">
-                {article.newsArticleType.name}
+            {article.newsArticleTypes.map((type) => (
+              <Badge key={type.slug} variant="accent" className="mr-1">
+                {type.name}
               </Badge>
-            )}
+            ))}
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>

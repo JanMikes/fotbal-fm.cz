@@ -45,7 +45,7 @@ export default async function CmsPage({ params }: PageProps) {
               <DynamicZone components={page.content} />
             </div>
             <SidePanel>
-              <DynamicZone components={page.sidebar} />
+              <DynamicZone components={page.sidebar} sidebar />
             </SidePanel>
           </div>
         ) : (

@@ -23,9 +23,9 @@
     },
     "newsArticles": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToMany",
       "target": "api::news-article.news-article",
-      "mappedBy": "newsArticleType"
+      "mappedBy": "newsArticleTypes"
     }
   }
 }

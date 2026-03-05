@@ -46,12 +46,14 @@ const mockArticle = {
   categories: [
     { id: 1, documentId: 'cat-1', name: 'A-tým', slug: 'a-tym', sortOrder: 1 },
   ],
-  newsArticleType: {
-    id: 1,
-    documentId: 'nat-1',
-    name: 'Zápas',
-    slug: 'zapas',
-  },
+  newsArticleTypes: [
+    {
+      id: 1,
+      documentId: 'nat-1',
+      name: 'Zápas',
+      slug: 'zapas',
+    },
+  ],
   relatedNews: [
     {
       id: 2,
@@ -71,12 +73,14 @@ const mockArticle = {
       categories: [
         { id: 1, documentId: 'cat-1', name: 'A-tým', slug: 'a-tym', sortOrder: 1 },
       ],
-      newsArticleType: {
-        id: 2,
-        documentId: 'nat-2',
-        name: 'Oznámení',
-        slug: 'oznameni',
-      },
+      newsArticleTypes: [
+        {
+          id: 2,
+          documentId: 'nat-2',
+          name: 'Oznámení',
+          slug: 'oznameni',
+        },
+      ],
       relatedNews: null,
       createdAt: '2025-03-14T08:00:00.000Z',
     },
@@ -107,7 +111,7 @@ describe('GET /api/v1/news', () => {
     expect(article.documentId).toBe('news-1');
     expect(article.title).toBe('A-tým zvítězil v derby!');
     expect(article.mainPhoto.url).toBe('http://localhost:8080/uploads/derby_win_main.jpg');
-    expect(article.newsArticleType).toEqual({ documentId: 'nat-1', name: 'Zápas', slug: 'zapas' });
+    expect(article.newsArticleTypes).toEqual([{ documentId: 'nat-1', name: 'Zápas', slug: 'zapas' }]);
     expect(article).not.toHaveProperty('gallery');
     expect(article).not.toHaveProperty('video');
     expect(article).not.toHaveProperty('relatedNews');

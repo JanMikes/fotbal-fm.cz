@@ -14,7 +14,7 @@ export const NewsArticleSummarySchema = z.object({
   description: z.string().nullable(),
   mainPhoto: MediaImageSchema.nullable(),
   categories: z.array(CategorySchema),
-  newsArticleType: NewsArticleTypeSchema.nullable(),
+  newsArticleTypes: z.array(NewsArticleTypeSchema),
   createdAt: z.string(),
 });
 
