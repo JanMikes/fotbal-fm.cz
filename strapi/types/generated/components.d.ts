@@ -399,6 +399,11 @@ export interface ElementsFeatureCard extends Struct.ComponentSchema {
   attributes: {
     description: Schema.Attribute.Text;
     icon: Schema.Attribute.Media<'images'>;
+    icon_text: Schema.Attribute.String;
+    icon_type: Schema.Attribute.Enumeration<
+      ['hidden', 'image', 'text', 'initials']
+    > &
+      Schema.Attribute.DefaultTo<'initials'>;
     link: Schema.Attribute.Component<'elements.text-link', false>;
     title: Schema.Attribute.String;
   };

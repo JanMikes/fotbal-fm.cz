@@ -65,7 +65,7 @@ export default function PlayerCard({ player, categorySlug, className }: PlayerCa
             <span className="text-xl font-bold block">{lastName}</span>
           </h3>
           {displayPosition && (
-            <p className="text-small text-white/70 mt-1">
+            <p className="text-accent text-xs font-bold uppercase mt-1">
               {displayPosition}
             </p>
           )}

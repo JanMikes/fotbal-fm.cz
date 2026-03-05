@@ -5,10 +5,18 @@
     "description": "Feature card with title, description and link"
   },
   "attributes": {
+    "icon_type": {
+      "type": "enumeration",
+      "enum": ["hidden", "image", "text", "initials"],
+      "default": "initials"
+    },
     "icon": {
       "type": "media",
       "allowedTypes": ["images"],
       "multiple": false
+    },
+    "icon_text": {
+      "type": "string"
     },
     "title": {
       "type": "string"

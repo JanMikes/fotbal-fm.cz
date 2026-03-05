@@ -230,7 +230,9 @@ function mapTextLinks(raw: unknown) {
 function mapCards(raw: unknown) {
   if (!Array.isArray(raw)) return [];
   return raw.map((c) => ({
+    icon_type: (c.icon_type as 'hidden' | 'image' | 'text' | 'initials') ?? 'initials',
     icon: mapMedia(c.icon),
+    icon_text: (c.icon_text as string) ?? null,
     title: c.title ?? null,
     description: c.description ?? null,
     link: resolveTextLink(c.link),

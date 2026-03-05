@@ -33,7 +33,7 @@ export function FeatureCards({ data }: FeatureCardsProps) {
             'bg-white p-6 shadow-card rounded-lg h-full flex gap-4',
             card.link && 'card-lift cursor-pointer'
           )}>
-            {card.icon ? (
+            {card.icon_type === 'image' && card.icon ? (
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                 <Image
                   src={card.icon.url}
@@ -43,7 +43,11 @@ export function FeatureCards({ data }: FeatureCardsProps) {
                   className="w-10 h-10 object-cover"
                 />
               </div>
-            ) : card.title ? (
+            ) : card.icon_type === 'text' && card.icon_text ? (
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                {card.icon_text}
+              </div>
+            ) : card.icon_type === 'initials' && card.title ? (
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                 {getInitials(card.title)}
               </div>
