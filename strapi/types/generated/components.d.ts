@@ -281,7 +281,10 @@ export interface ComponentsTimeline extends Struct.ComponentSchema {
     displayName: '\u010Casov\u00E1 osa';
   };
   attributes: {
+    collapsible: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     items: Schema.Attribute.Component<'elements.timeline-item', true>;
+    style: Schema.Attribute.Enumeration<['style1', 'style2']> &
+      Schema.Attribute.DefaultTo<'style1'>;
   };
 }
 

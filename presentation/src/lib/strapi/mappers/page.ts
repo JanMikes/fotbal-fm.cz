@@ -120,6 +120,8 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent): DynamicZon
         ...base,
         __component: 'components.timeline',
         items: mapSimpleItems(raw.items),
+        collapsible: (raw.collapsible as boolean) ?? false,
+        style: (raw.style as 'style1' | 'style2') ?? 'style1',
       };
 
     case 'components.section-divider':

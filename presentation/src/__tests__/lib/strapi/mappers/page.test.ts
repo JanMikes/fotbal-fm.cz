@@ -412,15 +412,45 @@ describe('mapPage', () => {
           items: [
             { number: '1920', title: 'Founded', description: 'Club was founded' },
           ],
+          collapsible: true,
+          style: 'style2',
         },
       ],
       sidebar: null,
     };
 
     const result = mapPage(raw);
-    const timeline = result.content[0] as { items: Array<{ number: string; title: string }> };
+    const timeline = result.content[0] as { items: Array<{ number: string; title: string }>; collapsible: boolean; style: string };
     expect(timeline.items[0].number).toBe('1920');
     expect(timeline.items[0].title).toBe('Founded');
+    expect(timeline.collapsible).toBe(true);
+    expect(timeline.style).toBe('style2');
+  });
+
+  it('maps timeline component with defaults', () => {
+    const raw: StrapiRawPage = {
+      id: 1,
+      documentId: 'page-1',
+      title: 'Test',
+      slug: 'test',
+      meta_description: null,
+      parent: null,
+      content: [
+        {
+          id: 111,
+          __component: 'components.timeline',
+          items: [
+            { number: '2000', title: 'Milestone', description: 'Something happened' },
+          ],
+        },
+      ],
+      sidebar: null,
+    };
+
+    const result = mapPage(raw);
+    const timeline = result.content[0] as { collapsible: boolean; style: string };
+    expect(timeline.collapsible).toBe(false);
+    expect(timeline.style).toBe('style1');
   });
 
   it('maps accordion-sections component', () => {

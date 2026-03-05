@@ -198,6 +198,8 @@ const statsData: ComponentStatsHighlights = {
 const timelineData: ComponentTimeline = {
   id: 15,
   __component: 'components.timeline',
+  collapsible: false,
+  style: 'style1',
   items: [
     { number: '1920', title: 'Založení klubu', description: 'FK Frýdek-Místek byl založen jako jeden z prvních fotbalových klubů v regionu.' },
     { number: '1965', title: 'Postup do 1. ligy', description: 'Historický úspěch - postup do nejvyšší soutěže.' },
@@ -389,8 +391,20 @@ export default function KomponentyContent() {
         <StatsHighlights data={statsData} />
       </Section>
 
-      <Section title="components.timeline">
+      <Section title="components.timeline (style1)">
         <Timeline data={timelineData} />
+      </Section>
+
+      <Section title="components.timeline (style1, collapsible)">
+        <Timeline data={{ ...timelineData, id: 151, collapsible: true }} />
+      </Section>
+
+      <Section title="components.timeline (style2)">
+        <Timeline data={{ ...timelineData, id: 152, style: 'style2' }} />
+      </Section>
+
+      <Section title="components.timeline (style2, collapsible)">
+        <Timeline data={{ ...timelineData, id: 153, style: 'style2', collapsible: true }} />
       </Section>
 
       <Section title="components.section-divider">
