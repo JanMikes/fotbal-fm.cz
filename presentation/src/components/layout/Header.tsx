@@ -92,13 +92,13 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
     <>
       <header
         className={clsx(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-primary shadow-lg'
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1727] shadow-lg'
         )}
       >
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-stretch gap-4">
+          <div className="flex items-stretch">
             {/* Logo - spans both nav levels via row-span */}
-            <Link href="/" className="flex items-center shrink-0 z-20 group py-2">
+            <Link href="/" className="flex items-center shrink-0 z-20 group py-2 pr-6 border-r border-primary-border">
               <div className="relative w-14 h-14 lg:w-24 lg:h-24">
                 <Image
                   src="/logo.svg"
@@ -113,21 +113,24 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
             {/* Right side: two rows */}
             <div className="flex flex-col flex-1 min-w-0">
               {/* Level 1 - Main Navigation */}
-              <div className="flex items-center py-2.5 lg:py-3.5 lg:border-b lg:border-primary-border">
+              <div className="flex items-center py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
                 {/* Desktop Navigation (left-aligned) */}
-                <nav className="hidden lg:flex items-center gap-2">
+                <nav className="hidden lg:flex items-center gap-4">
                   {navigation.map((item) => {
                     const linkProps = item.external
                       ? { target: '_blank' as const, rel: 'noopener noreferrer' }
                       : {};
+                    const isActive = !item.external && pathname.startsWith(item.href);
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         {...linkProps}
                         className={clsx(
-                          'flex items-center gap-1 py-2 font-medium text-base tracking-wide transition-colors',
-                          'text-white/80 hover:text-white',
+                          'flex items-center gap-1 py-2 text-base tracking-wide uppercase transition-colors',
+                          isActive
+                            ? 'font-bold text-accent'
+                            : 'font-medium text-white/80 hover:text-white',
                           'link-hover'
                         )}
                       >
@@ -167,7 +170,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
               </div>
 
               {/* Level 2 - Category Tabs (hidden on mobile, shown in hamburger menu) */}
-              <div className="relative hidden lg:block">
+              <div className="relative hidden lg:block pl-6">
                 {/* Left scroll indicator */}
                 <div
                   className={clsx(
@@ -175,7 +178,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                     canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   )}
                 >
-                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-primary to-transparent pointer-events-none" />
+                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#0d1727] to-transparent pointer-events-none" />
                   <button
                     onClick={() => scrollCategories('left')}
                     className="relative w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all"
@@ -188,7 +191,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                 {/* Scrollable category groups */}
                 <div
                   ref={scrollRef}
-                  className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-3"
+                  className="flex items-center gap-3 overflow-x-auto scrollbar-hide py-3"
                 >
                   {categoryGroups.map((group) => (
                     <Link
@@ -196,10 +199,10 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                       href={`/kategorie/${group.firstCategorySlug}`}
                       data-active={activeGroupSlug === group.slug}
                       className={clsx(
-                        'px-4 py-1.5 text-sm font-medium whitespace-nowrap rounded-full border transition-all duration-300',
+                        'px-3.5 py-1 text-xs whitespace-nowrap rounded-full border uppercase transition-all duration-300',
                         activeGroupSlug === group.slug
-                          ? 'bg-accent text-white border-accent'
-                          : 'text-white/80 border-white/30 hover:text-white hover:border-white/60'
+                          ? 'font-bold bg-accent text-white border-accent'
+                          : 'font-medium text-white/80 border-white/30 hover:text-white hover:border-white/60'
                       )}
                     >
                       {group.name}
@@ -214,7 +217,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                     canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
                   )}
                 >
-                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-primary to-transparent pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#0d1727] to-transparent pointer-events-none" />
                   <button
                     onClick={() => scrollCategories('right')}
                     className="relative w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all"
