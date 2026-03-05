@@ -18,6 +18,7 @@ interface HeroSlide {
   image: MediaImage | null;
   title: string;
   subtitle?: string;
+  round?: string;
   description?: string;
   match?: Match;
   link?: string;
@@ -46,9 +47,8 @@ function buildSlides(
       type: 'match-upcoming',
       image: heroData.heroSlide1Image,
       title: 'Nadcházející zápas',
-      subtitle: upcomingMatch.competitionName
-        ? `${upcomingMatch.competitionName}${upcomingMatch.round ? ` • ${upcomingMatch.round}. kolo` : ''}`
-        : undefined,
+      subtitle: upcomingMatch.competitionName || undefined,
+      round: upcomingMatch.round ? `${upcomingMatch.round}. kolo` : undefined,
       match: upcomingMatch,
     });
   }
@@ -59,9 +59,8 @@ function buildSlides(
       type: 'match-result',
       image: heroData.heroSlide2Image,
       title: 'Poslední výsledek',
-      subtitle: lastResult.competitionName
-        ? `${lastResult.competitionName}${lastResult.round ? ` • ${lastResult.round}. kolo` : ''}`
-        : undefined,
+      subtitle: lastResult.competitionName || undefined,
+      round: lastResult.round ? `${lastResult.round}. kolo` : undefined,
       match: lastResult,
     });
   }
@@ -91,6 +90,15 @@ function buildSlides(
   }
 
   return slides;
+}
+
+function getSlideLabel(type: HeroSlide['type']): string {
+  switch (type) {
+    case 'match-upcoming': return 'Další zápas';
+    case 'match-result': return 'Poslední zápas';
+    case 'news': return 'Nejnovější aktualita';
+    case 'promo': return '';
+  }
 }
 
 export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug, categorySwitcher }: HeroProps) {
@@ -140,12 +148,12 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[calc(100vh-72px)] lg:h-[calc(100vh-112px)] min-h-[500px] -mt-[72px] lg:-mt-[112px] clip-diagonal-bottom">
+    <section className="relative h-[800px] lg:h-[900px] -mt-[72px] lg:-mt-[112px] clip-diagonal-bottom">
       {/* Carousel Container */}
       <div className="embla h-full" ref={emblaRef}>
         <div className="embla__container h-full">
           {slides.map((slide, index) => (
-            <div key={slide.id} className="embla__slide relative h-full min-h-[500px] bg-primary">
+            <div key={slide.id} className="embla__slide relative h-full bg-primary">
               {/* Background Image */}
               {slide.image && (
                 <Image
@@ -164,12 +172,13 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {/* Content */}
               <div className="absolute inset-0 flex items-center">
                 <div className="container mx-auto px-4 lg:px-8">
-                  {/* Category Switcher - above match content */}
-                  {categorySwitcher && (
-                    <div className="w-fit mb-6 lg:mb-10">
-                      {categorySwitcher}
-                    </div>
-                  )}
+                  {/* Slide Label & Category Switcher */}
+                  <div className="w-fit mb-6 lg:mb-10">
+                    <p className="text-white/80 text-sm lg:text-base font-bold uppercase tracking-[0.15em] mb-3">
+                      {getSlideLabel(slide.type)}
+                    </p>
+                    {categorySwitcher}
+                  </div>
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
                       <motion.div
@@ -255,7 +264,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.1 }}
         className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-6"
       >
-        {slide.subtitle}
+        {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Match Display */}
@@ -282,7 +291,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
 
         {/* VS */}
         <div className="flex flex-col items-center px-4">
-          <span className="text-3xl lg:text-4xl font-black text-white/20">VS</span>
+          <span className="text-3xl lg:text-4xl font-black text-white">VS</span>
         </div>
 
         {/* Away Team */}
@@ -306,12 +315,12 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-white/60 mb-6"
+        className="inline-flex flex-col items-center lg:items-start mb-6"
       >
-        <p className="text-sm font-semibold">
+        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate} &bull; {match.matchTime}
-        </p>
-        {match.venue && <p className="text-xs mt-1">{match.venue}</p>}
+        </span>
+        {match.venue && <p className="text-white/60 text-xs mt-2">{match.venue}</p>}
       </motion.div>
     </div>
   );
@@ -327,7 +336,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.1 }}
         className="text-accent text-xs font-bold uppercase tracking-[0.2em] mb-6"
       >
-        {slide.subtitle}
+        {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Result Display */}
@@ -380,10 +389,12 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-white/60 mb-6"
+        className="inline-flex flex-col items-center lg:items-start mb-6"
       >
-        <p className="text-sm font-semibold">{match.matchDate}</p>
-        {match.venue && <p className="text-xs mt-1">{match.venue}</p>}
+        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
+          {match.matchDate}
+        </span>
+        {match.venue && <p className="text-white/60 text-xs mt-2">{match.venue}</p>}
       </motion.div>
     </div>
   );

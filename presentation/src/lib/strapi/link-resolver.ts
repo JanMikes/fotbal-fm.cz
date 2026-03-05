@@ -1,6 +1,27 @@
 import type { ResolvedLink, ResolvedTextLink } from '@/lib/types';
 import type { StrapiRawLink, StrapiRawTextLink } from './types';
 import { transformImageUrl } from './mappers/shared';
+import { config } from '@/lib/config';
+
+function resolveUrl(url: string): { href: string; external: boolean } {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return { href: url, external: false };
+  }
+
+  if (config.siteUrl) {
+    try {
+      const siteOrigin = new URL(config.siteUrl).origin;
+      const parsed = new URL(url);
+      if (parsed.origin === siteOrigin) {
+        return { href: parsed.pathname + parsed.search + parsed.hash, external: false };
+      }
+    } catch {
+      // invalid URL, treat as external
+    }
+  }
+
+  return { href: url, external: true };
+}
 
 export function resolveLink(raw: StrapiRawLink | null | undefined): ResolvedLink | null {
   if (!raw) return null;
@@ -12,8 +33,7 @@ export function resolveLink(raw: StrapiRawLink | null | undefined): ResolvedLink
   }
 
   if (raw.url) {
-    const isExternal = raw.url.startsWith('http://') || raw.url.startsWith('https://');
-    return { href: raw.url, external: isExternal };
+    return resolveUrl(raw.url);
   }
 
   if (raw.file?.url) {
