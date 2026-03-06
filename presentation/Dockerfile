@@ -5,6 +5,7 @@ WORKDIR /app
 # Copy only package files for npm ci caching
 COPY package.json package-lock.json ./
 COPY packages/strapi-client/package.json ./packages/strapi-client/
+COPY packages/cache/package.json ./packages/cache/
 COPY presentation/package.json ./presentation/
 
 # Create stubs for other workspace members
