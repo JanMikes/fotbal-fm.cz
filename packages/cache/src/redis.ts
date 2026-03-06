@@ -1,40 +1,30 @@
 type RedisClient = import('ioredis').default;
 
 let redisClient: RedisClient | null = null;
-let redisAvailable = true;
-let redisChecked = false;
+let lastFailedAt = 0;
+const RETRY_AFTER_MS = 10_000; // Retry connection after 10s on failure
 
 function isServer(): boolean {
   return typeof window === 'undefined';
 }
 
 export async function getRedisClient(): Promise<RedisClient | null> {
-  if (!isServer()) {
-    return null;
-  }
-
-  if (!redisAvailable) {
-    return null;
-  }
-
-  if (redisClient) {
-    return redisClient;
-  }
+  if (!isServer()) return null;
 
   const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    if (!redisChecked) {
-      console.warn('[Redis] REDIS_URL not configured, caching disabled');
-      redisChecked = true;
-    }
-    redisAvailable = false;
+  if (!redisUrl) return null;
+
+  if (redisClient) return redisClient;
+
+  // Backoff: don't retry too often after a failure
+  if (lastFailedAt && Date.now() - lastFailedAt < RETRY_AFTER_MS) {
     return null;
   }
 
   try {
     const Redis = (await import('ioredis')).default;
 
-    redisClient = new Redis(redisUrl, {
+    const client = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
         if (times > 3) {
@@ -46,24 +36,23 @@ export async function getRedisClient(): Promise<RedisClient | null> {
       lazyConnect: true,
     });
 
-    redisClient.on('error', (err) => {
+    client.on('error', (err) => {
       console.error('[Redis] Connection error:', err.message);
     });
 
-    redisClient.on('connect', () => {
+    client.on('connect', () => {
+      lastFailedAt = 0;
       console.log('[Redis] Connected successfully');
     });
 
-    await redisClient.connect().catch((err) => {
-      console.error('[Redis] Initial connection failed:', err.message);
-      redisAvailable = false;
-      redisClient = null;
-    });
-
+    await client.connect();
+    redisClient = client;
+    lastFailedAt = 0;
     return redisClient;
   } catch (error) {
-    console.error('[Redis] Failed to create client:', error);
-    redisAvailable = false;
+    console.error('[Redis] Failed to connect:', (error as Error).message);
+    lastFailedAt = Date.now();
+    redisClient = null;
     return null;
   }
 }

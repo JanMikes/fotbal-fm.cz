@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { invalidateCache } from '@fotbal-fm/cache';
+import { invalidateCache, isValidWebhookSecret } from '@fotbal-fm/cache';
 import type { WebhookPayload } from '@fotbal-fm/cache';
 
 export async function POST(request: NextRequest) {
-  const webhookSecret = process.env.STRAPI_WEBHOOK_SECRET;
   const signature = request.headers.get('X-Strapi-Webhook-Signature');
 
-  if (!webhookSecret || signature !== webhookSecret) {
+  if (!isValidWebhookSecret(signature, process.env.STRAPI_WEBHOOK_SECRET)) {
     console.log('[Webhook] Unauthorized: secret mismatch or missing');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -22,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.log(`[Webhook] ${payload.event} on ${payload.model}${payload.entry?.slug ? ` slug:${payload.entry.slug}` : ''}`);
 
     // Wait for Strapi's DB transaction to commit
-    // Strapi sends webhook BEFORE the transaction commits
+    // Strapi fires webhook before the transaction is committed
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const result = await invalidateCache(payload);

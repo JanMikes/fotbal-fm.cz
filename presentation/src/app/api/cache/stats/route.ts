@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cacheStats } from '@fotbal-fm/cache';
+import { cacheStats, isValidWebhookSecret } from '@fotbal-fm/cache';
 
 export async function GET(request: NextRequest) {
-  const secret = request.nextUrl.searchParams.get('secret');
+  const secret = request.headers.get('X-Strapi-Webhook-Signature');
 
-  if (!process.env.STRAPI_WEBHOOK_SECRET || secret !== process.env.STRAPI_WEBHOOK_SECRET) {
+  if (!isValidWebhookSecret(secret, process.env.STRAPI_WEBHOOK_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

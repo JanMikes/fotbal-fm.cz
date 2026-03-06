@@ -74,7 +74,7 @@ function buildSlides(
       title: article.title,
       subtitle: 'Článek',
       description: article.description ?? undefined,
-      link: `/${categorySlug}/clanek/${article.slug}`,
+      link: `/kategorie/${categorySlug}/clanek/${article.slug}`,
       ctaText: 'Číst více',
     });
   } else if (heroData.heroSlide3Title && heroData.heroSlide3Text) {

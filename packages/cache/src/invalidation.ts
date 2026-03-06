@@ -11,8 +11,6 @@ export interface WebhookPayload {
   };
 }
 
-// Maps normalized model name → cache key patterns used in data.ts
-// First pattern is for specific entry (uses slug/id), rest are collection-level
 const MODEL_CACHE_MAP: Record<string, {
   specific: (entry: WebhookPayload['entry']) => string[];
   collection: string[];
@@ -28,7 +26,6 @@ const MODEL_CACHE_MAP: Record<string, {
       return keys;
     },
     collection: ['categories:*', 'category:*', 'category-groups:*', 'category-hero:*'],
-    // Category changes can affect queries filtered by category
     cascading: ['news:cat:*', 'matches:*', 'match:*', 'players:*', 'standings:*', 'player-highlights:*'],
   },
   'category-group': {
@@ -50,15 +47,9 @@ const MODEL_CACHE_MAP: Record<string, {
   'news-article-type': {
     specific: () => [],
     collection: ['news-article-types:*'],
-    // Type changes can affect news article listings
     cascading: ['news:*'],
   },
   'match': {
-    specific: () => [],
-    collection: ['matches:*', 'match:*'],
-    cascading: [],
-  },
-  'tournament-match': {
     specific: () => [],
     collection: ['matches:*', 'match:*'],
     cascading: [],
@@ -113,13 +104,11 @@ const MODEL_CACHE_MAP: Record<string, {
   'tournament': {
     specific: () => [],
     collection: [],
-    // Tournaments appear inside match data
     cascading: ['matches:*', 'match:*'],
   },
-  'team-logo': {
+  'team': {
     specific: () => [],
     collection: [],
-    // Team logos appear in matches and standings
     cascading: ['matches:*', 'match:*', 'standings:*'],
   },
 };
@@ -135,10 +124,21 @@ export function normalizeModelName(model: string): string {
   return model;
 }
 
+function isPluginModel(model: string): boolean {
+  return model.startsWith('plugin::');
+}
+
 export async function invalidateCache(
   payload: WebhookPayload,
-): Promise<{ model: string; strategy: 'specific' | 'collection' | 'full'; deleted: number }> {
+): Promise<{ model: string; strategy: 'specific' | 'collection' | 'ignored' | 'full'; deleted: number }> {
   const model = normalizeModelName(payload.model);
+
+  // Ignore Strapi plugin models (users-permissions, upload, etc.)
+  if (isPluginModel(payload.model)) {
+    console.log(`[Cache] Ignoring plugin model "${payload.model}"`);
+    return { model, strategy: 'ignored', deleted: 0 };
+  }
+
   const mapping = MODEL_CACHE_MAP[model];
 
   if (!mapping) {
@@ -148,50 +148,27 @@ export async function invalidateCache(
   }
 
   let totalDeleted = 0;
-  let strategy: 'specific' | 'collection' | 'full' = 'specific';
 
-  // Step 1: Try specific key invalidation (only for single-entry events)
+  // Step 1: Try specific key invalidation (for single-entry events with slug)
   const isSpecificEvent = ['entry.update', 'entry.publish', 'entry.unpublish'].includes(payload.event);
   if (isSpecificEvent && payload.entry) {
     const specificKeys = mapping.specific(payload.entry);
     if (specificKeys.length > 0) {
       for (const key of specificKeys) {
-        const ok = await cacheDelete(key);
-        if (ok) totalDeleted++;
+        totalDeleted += await cacheDelete(key);
       }
-      console.log(`[Cache] Specific invalidation for ${model}: deleted ${totalDeleted} keys (${specificKeys.join(', ')})`);
-
-      // For updates, also invalidate collection listings that include this entry
-      // because the entry might now appear differently in lists
-      for (const pattern of mapping.collection) {
-        const count = await cacheDeletePattern(pattern);
-        totalDeleted += count;
-      }
-
-      // Also handle cascading patterns
-      for (const pattern of mapping.cascading) {
-        const count = await cacheDeletePattern(pattern);
-        totalDeleted += count;
-      }
-
-      return { model, strategy: 'specific', deleted: totalDeleted };
+      console.log(`[Cache] Specific invalidation for ${model}: ${specificKeys.join(', ')}`);
     }
   }
 
-  // Step 2: Collection-level invalidation (for create/delete or when no specific keys)
-  strategy = 'collection';
+  // Step 2: Always invalidate collection + cascading patterns
+  // Even on specific events, lists that contain this entry need refreshing
   const allPatterns = [...mapping.collection, ...mapping.cascading];
-
-  if (allPatterns.length === 0) {
-    console.log(`[Cache] No patterns for model "${model}", nothing to invalidate`);
-    return { model, strategy: 'collection', deleted: 0 };
-  }
-
   for (const pattern of allPatterns) {
-    const count = await cacheDeletePattern(pattern);
-    totalDeleted += count;
+    totalDeleted += await cacheDeletePattern(pattern);
   }
 
-  console.log(`[Cache] Collection invalidation for ${model}: deleted ${totalDeleted} keys`);
+  const strategy = isSpecificEvent && payload.entry ? 'specific' : 'collection';
+  console.log(`[Cache] ${strategy} invalidation for ${model}: deleted ${totalDeleted} keys`);
   return { model, strategy, deleted: totalDeleted };
 }
