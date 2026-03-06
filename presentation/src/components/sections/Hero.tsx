@@ -149,6 +149,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   if (slides.length === 0) return null;
 
   return (
+    <div className="relative">
     <section className="relative h-[820px] lg:h-[1000px] mt-0 clip-diagonal-bottom">
       {/* Static Background Image (replaces per-slide images when set) */}
       {staticBg && (
@@ -183,14 +184,16 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {!staticBg && !slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
-              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-12 lg:-mt-16">
+              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[100px] lg:-mt-16">
                 <div className="container mx-auto px-4 lg:px-8">
-                  {/* Slide Label & Category Switcher */}
+                  {/* Slide Label & Category Switcher (desktop only in flow) */}
                   <div className="w-fit mb-6 lg:mb-10">
-                    <p className="text-white/80 text-lg lg:text-2xl font-bold mb-3">
+                    <p className="text-white/80 text-lg lg:text-2xl font-bold mb-3 hidden lg:block">
                       {getSlideLabel(slide.type)}
                     </p>
-                    {categorySwitcher}
+                    <div className="hidden lg:block">
+                      {categorySwitcher}
+                    </div>
                   </div>
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
@@ -228,8 +231,8 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
       {/* Navigation Arrows & Dot Indicators */}
       {slides.length > 1 && (
-        <div className="absolute bottom-32 lg:bottom-40 inset-x-0 z-10">
-          <div className="container mx-auto px-4 lg:px-8 flex items-center gap-3">
+        <div className="absolute bottom-44 lg:bottom-40 inset-x-0 z-10">
+          <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between lg:justify-start lg:gap-3">
             <button
               onClick={scrollPrev}
               className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
@@ -237,14 +240,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <button
-              onClick={scrollNext}
-              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              aria-label="Další"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-2">
               {slides.map((_, index) => (
                 <button
                   key={index}
@@ -259,39 +255,78 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 />
               ))}
             </div>
+            <button
+              onClick={scrollNext}
+              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              aria-label="Další"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
         </div>
       )}
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-20 lg:bottom-24 right-6 lg:right-10 z-10 flex flex-col items-center gap-1 text-white/40 animate-bounce">
+      <div className="absolute bottom-20 lg:bottom-24 right-6 lg:right-10 z-10 hidden lg:flex flex-col items-center gap-1 text-white/40 animate-bounce">
         <Mouse className="w-8 h-8" />
         <ChevronDown className="w-6 h-6 -mt-1" />
       </div>
 
     </section>
+
+    {/* Mobile Category Switcher (fixed to bottom-right, above nav arrows) */}
+    {categorySwitcher && (
+      <div className="fixed bottom-[15px] right-[15px] z-50 lg:hidden">
+        {categorySwitcher}
+      </div>
+    )}
+    </div>
   );
 }
 
 function MatchSlide({ slide }: { slide: HeroSlide }) {
   const match = slide.match!;
   return (
-    <div className="text-center lg:text-left">
+    <div className="text-left lg:text-left">
+      {/* Competition + Round */}
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-xs uppercase tracking-[0.2em] mb-6"
+        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-2 lg:mb-6 opacity-70 lg:opacity-100"
       >
         {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
+
+      {/* Slide Title (mobile only) */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="text-white/80 text-xl font-bold mt-2 mb-4 lg:hidden"
+      >
+        {getSlideLabel(slide.type)}
+      </motion.p>
+
+      {/* Match Info (mobile: before match display, desktop: after) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-col items-start mb-10 lg:hidden"
+      >
+        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
+          {match.matchDate} &bull; {match.matchTime}
+        </span>
+        {match.venue && <p className="text-white/60 text-xs mt-3">{match.venue}</p>}
+      </motion.div>
 
       {/* Match Display */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-10 mb-6"
+        transition={{ delay: 0.25 }}
+        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-6"
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
@@ -299,18 +334,18 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             name={match.homeTeam}
             logo={match.homeTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center shrink-0"
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
-          <span className="text-white font-bold text-sm uppercase tracking-wide">
+          <span className="text-white font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.homeTeam}
           </span>
         </div>
 
         {/* VS */}
-        <div className="flex flex-col items-center px-4">
-          <span className="text-3xl lg:text-4xl font-black text-white">VS</span>
+        <div className="flex items-center justify-center px-2 lg:px-4">
+          <span className="text-xl lg:text-4xl font-black text-white">VS</span>
         </div>
 
         {/* Away Team */}
@@ -319,22 +354,22 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             name={match.awayTeam}
             logo={match.awayTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center shrink-0"
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
-          <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
+          <span className="text-white/70 font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.awayTeam}
           </span>
         </div>
       </motion.div>
 
-      {/* Match Info */}
+      {/* Match Info (desktop only, after match display) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="inline-flex flex-col items-center lg:items-start mb-6"
+        className="hidden lg:inline-flex flex-col items-start mb-6"
       >
         <span className="inline-block -ml-4 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate} &bull; {match.matchTime}
@@ -348,22 +383,46 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
 function ResultSlide({ slide }: { slide: HeroSlide }) {
   const match = slide.match!;
   return (
-    <div className="text-center lg:text-left">
+    <div className="text-left lg:text-left">
+      {/* Competition + Round */}
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-xs uppercase tracking-[0.2em] mb-6"
+        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-2 lg:mb-6 opacity-70 lg:opacity-100"
       >
         {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
+
+      {/* Slide Title (mobile only) */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="text-white/80 text-xl font-bold mt-2 mb-4 lg:hidden"
+      >
+        {getSlideLabel(slide.type)}
+      </motion.p>
+
+      {/* Match Info (mobile: before result display, desktop: after) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-col items-start mb-10 lg:hidden"
+      >
+        <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
+          {match.matchDate}
+        </span>
+        {match.venue && <p className="text-white/60 text-xs mt-3">{match.venue}</p>}
+      </motion.div>
 
       {/* Result Display */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-10 mb-6"
+        transition={{ delay: 0.25 }}
+        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-6"
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
@@ -371,18 +430,18 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             name={match.homeTeam}
             logo={match.homeTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center shrink-0"
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
-          <span className="text-white font-bold text-sm uppercase tracking-wide">
+          <span className="text-white font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.homeTeam}
           </span>
         </div>
 
         {/* Score */}
-        <div className="flex flex-col items-center px-4">
-          <span className="text-4xl lg:text-5xl font-black text-white">
+        <div className="flex items-center justify-center px-2 lg:px-4">
+          <span className="text-2xl lg:text-5xl font-black text-white">
             {match.homeScore} : {match.awayScore}
           </span>
         </div>
@@ -393,22 +452,22 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             name={match.awayTeam}
             logo={match.awayTeamLogo}
             size={80}
-            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center"
+            className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center shrink-0"
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
-          <span className="text-white/70 font-bold text-sm uppercase tracking-wide">
+          <span className="text-white/70 font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.awayTeam}
           </span>
         </div>
       </motion.div>
 
-      {/* Match Info */}
+      {/* Match Info (desktop only, after result display) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="inline-flex flex-col items-center lg:items-start mb-6"
+        className="hidden lg:inline-flex flex-col items-start mb-6"
       >
         <span className="inline-block -ml-4 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate}
