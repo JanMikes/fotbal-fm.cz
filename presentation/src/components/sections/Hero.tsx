@@ -184,7 +184,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {!staticBg && !slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
-              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[230px] lg:-mt-16">
+              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[280px] lg:-mt-16">
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher (desktop only in flow) */}
                   <div className="w-fit mb-6 lg:mb-10">
@@ -231,7 +231,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
       {/* Navigation Arrows & Dot Indicators */}
       {slides.length > 1 && (
-        <div className="absolute bottom-[270px] lg:bottom-40 inset-x-0 z-10">
+        <div className="absolute bottom-[320px] lg:bottom-40 inset-x-0 z-10">
           <div className="container mx-auto px-4 lg:px-8 flex items-center justify-start gap-3">
             <button
               onClick={scrollPrev}
@@ -295,7 +295,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.1 }}
         className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-3 lg:mb-6 opacity-70 lg:opacity-100"
       >
-        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><br className="lg:hidden" /><span className="font-extrabold">{slide.round}</span></>}
+        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><span className="block lg:inline mt-2 lg:mt-0 font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Slide Title (mobile only) */}
@@ -391,7 +391,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         transition={{ delay: 0.1 }}
         className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-3 lg:mb-6 opacity-70 lg:opacity-100"
       >
-        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><br className="lg:hidden" /><span className="font-extrabold">{slide.round}</span></>}
+        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><span className="block lg:inline mt-2 lg:mt-0 font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Slide Title (mobile only) */}
