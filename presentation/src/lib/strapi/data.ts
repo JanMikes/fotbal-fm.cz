@@ -113,7 +113,7 @@ export async function getNewsArticlesByCategory(
 
   return cacheGetOrSet(cacheKey, async () => {
     const client = getStrapiClient();
-    const filters: Record<string, unknown> = {};
+    const filters: Record<string, unknown> = { date: { $notNull: true } };
     if (categorySlug) {
       filters.categories = { slug: { $eq: categorySlug } };
     }
@@ -156,7 +156,7 @@ export async function getAllNewsArticles(
 
   return cacheGetOrSet(cacheKey, async () => {
     const client = getStrapiClient();
-    const filters: Record<string, unknown> = {};
+    const filters: Record<string, unknown> = { date: { $notNull: true } };
     const typesArr = Array.isArray(newsArticleTypeSlugs) ? newsArticleTypeSlugs : newsArticleTypeSlugs ? [newsArticleTypeSlugs] : [];
     const catsArr = Array.isArray(categorySlugs) ? categorySlugs : categorySlugs ? [categorySlugs] : [];
     const typeFilter = typesArr.length === 1
