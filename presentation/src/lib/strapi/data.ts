@@ -115,7 +115,10 @@ export async function getNewsArticlesByCategory(
     const client = getStrapiClient();
     const filters: Record<string, unknown> = { date: { $notNull: true } };
     if (categorySlug) {
-      filters.categories = { slug: { $eq: categorySlug } };
+      filters.$or = [
+        { categories: { slug: { $eq: categorySlug } } },
+        { categories: { id: { $null: true } } },
+      ];
     }
     const typesArr = Array.isArray(newsArticleTypeSlugs) ? newsArticleTypeSlugs : newsArticleTypeSlugs ? [newsArticleTypeSlugs] : [];
     if (typesArr.length === 1) {
