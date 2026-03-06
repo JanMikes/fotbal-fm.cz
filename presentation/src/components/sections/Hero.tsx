@@ -184,7 +184,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {!staticBg && !slide.image && <div className="absolute inset-0 bg-gradient-hero" />}
 
               {/* Content */}
-              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[100px] lg:-mt-16">
+              <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[230px] lg:-mt-16">
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label & Category Switcher (desktop only in flow) */}
                   <div className="w-fit mb-6 lg:mb-10">
@@ -231,14 +231,21 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
       {/* Navigation Arrows & Dot Indicators */}
       {slides.length > 1 && (
-        <div className="absolute bottom-44 lg:bottom-40 inset-x-0 z-10">
-          <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between lg:justify-start lg:gap-3">
+        <div className="absolute bottom-[270px] lg:bottom-40 inset-x-0 z-10">
+          <div className="container mx-auto px-4 lg:px-8 flex items-center justify-start gap-3">
             <button
               onClick={scrollPrev}
               className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
               aria-label="Předchozí"
             >
               <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={scrollNext}
+              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              aria-label="Další"
+            >
+              <ChevronRight className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-2">
               {slides.map((_, index) => (
@@ -255,13 +262,6 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 />
               ))}
             </div>
-            <button
-              onClick={scrollNext}
-              className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              aria-label="Další"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
           </div>
         </div>
       )}
@@ -293,9 +293,9 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-2 lg:mb-6 opacity-70 lg:opacity-100"
+        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-3 lg:mb-6 opacity-70 lg:opacity-100"
       >
-        {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
+        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><br className="lg:hidden" /><span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Slide Title (mobile only) */}
@@ -303,7 +303,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="text-white/80 text-xl font-bold mt-2 mb-4 lg:hidden"
+        className="text-white/80 text-2xl font-bold mb-3 lg:hidden"
       >
         {getSlideLabel(slide.type)}
       </motion.p>
@@ -313,7 +313,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="flex flex-col items-start mb-10 lg:hidden"
+        className="flex flex-col items-start mb-5 lg:hidden"
       >
         <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate} &bull; {match.matchTime}
@@ -326,7 +326,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-6"
+        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-5 lg:mb-6"
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
@@ -338,7 +338,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
-          <span className="text-white font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
+          <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.homeTeam}
           </span>
         </div>
@@ -358,7 +358,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
-          <span className="text-white/70 font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
+          <span className="text-white/70 font-bold text-xs lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.awayTeam}
           </span>
         </div>
@@ -389,9 +389,9 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-2 lg:mb-6 opacity-70 lg:opacity-100"
+        className="text-accent text-[10px] lg:text-xs uppercase tracking-[0.2em] mb-3 lg:mb-6 opacity-70 lg:opacity-100"
       >
-        {slide.subtitle}{slide.round && <>{' • '}<span className="font-extrabold">{slide.round}</span></>}
+        {slide.subtitle}{slide.round && <><span className="hidden lg:inline">{' • '}</span><br className="lg:hidden" /><span className="font-extrabold">{slide.round}</span></>}
       </motion.p>
 
       {/* Slide Title (mobile only) */}
@@ -399,7 +399,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="text-white/80 text-xl font-bold mt-2 mb-4 lg:hidden"
+        className="text-white/80 text-2xl font-bold mb-3 lg:hidden"
       >
         {getSlideLabel(slide.type)}
       </motion.p>
@@ -409,7 +409,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="flex flex-col items-start mb-10 lg:hidden"
+        className="flex flex-col items-start mb-5 lg:hidden"
       >
         <span className="inline-block bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-white text-sm font-semibold">
           {match.matchDate}
@@ -422,7 +422,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-6"
+        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 lg:flex lg:flex-row lg:items-center lg:justify-start lg:gap-10 mb-5 lg:mb-6"
       >
         {/* Home Team */}
         <div className="flex flex-col items-center gap-2">
@@ -434,7 +434,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white"
           />
-          <span className="text-white font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
+          <span className="text-white font-bold text-xs lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.homeTeam}
           </span>
         </div>
@@ -456,7 +456,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
             bgClassName="bg-white/10 backdrop-blur-sm border border-white/10"
             fallbackClassName="text-lg lg:text-xl font-black text-white/60"
           />
-          <span className="text-white/70 font-bold text-[10px] lg:text-sm uppercase tracking-wide text-center leading-tight">
+          <span className="text-white/70 font-bold text-xs lg:text-sm uppercase tracking-wide text-center leading-tight">
             {match.awayTeam}
           </span>
         </div>
