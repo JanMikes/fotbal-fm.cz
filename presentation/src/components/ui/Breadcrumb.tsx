@@ -24,14 +24,14 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={item.href} className="flex items-center gap-1.5">
-              <ChevronRight className="w-3.5 h-3.5 text-primary/30" />
+            <li key={item.href} className="flex items-center gap-1.5 min-w-0 max-w-[10rem] sm:max-w-none">
+              <ChevronRight className="w-3.5 h-3.5 text-primary/30 shrink-0" />
               {isLast ? (
-                <span className="text-primary/70 font-medium">{item.label}</span>
+                <span className="text-primary/70 font-medium truncate">{item.label}</span>
               ) : (
                 <Link
                   href={item.href}
-                  className="hover:text-accent transition-colors"
+                  className="hover:text-accent transition-colors truncate"
                 >
                   {item.label}
                 </Link>

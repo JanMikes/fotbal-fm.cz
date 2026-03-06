@@ -170,36 +170,10 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="flex items-end gap-8 mb-12">
-                <div>
-                  <h2 className="text-section text-primary uppercase font-black leading-tight">
-                    {currentHighlight.title}
-                  </h2>
-                  <div className="w-24 h-1 bg-accent mt-3" />
-                </div>
-                {hasMultipleHighlights && (
-                  <div className="flex items-center gap-1 ml-auto mb-1">
-                    <button
-                      onClick={prevHighlight}
-                      className="p-1.5 text-primary/40 hover:text-primary transition-colors"
-                      aria-label="Předchozí"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={nextHighlight}
-                      className="p-1.5 text-primary/40 hover:text-primary transition-colors"
-                      aria-label="Další"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-end gap-6">
+              {/* Mobile: stacked layout, Desktop: side by side */}
+              <div className="flex items-end gap-4 sm:gap-6">
                 {/* Player Image */}
-                <div className="relative w-48 h-64 shrink-0">
+                <div className="relative w-32 h-44 sm:w-48 sm:h-64 shrink-0">
                   <Image
                     src={currentHighlight.playerPhoto?.url ?? '/player-placeholder.png'}
                     alt={currentHighlight.playerName}
@@ -208,30 +182,67 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
                   />
                 </div>
 
-                {/* Player Info + Stats */}
-                <div className="flex-1">
-                  <p className="text-primary/60 text-lg">{currentHighlight.playerFirstName}</p>
-                  <p className="text-primary text-3xl font-black uppercase leading-tight mb-4">
+                {/* Player Name + Highlight Stat */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm sm:text-base font-bold text-primary">
+                      {currentHighlight.title}
+                    </h3>
+                    {hasMultipleHighlights && (
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          onClick={prevHighlight}
+                          className="p-1 text-primary/40 hover:text-primary transition-colors"
+                          aria-label="Předchozí"
+                        >
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                        <button
+                          onClick={nextHighlight}
+                          className="p-1 text-primary/40 hover:text-primary transition-colors"
+                          aria-label="Další"
+                        >
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-primary/60 text-base sm:text-lg">{currentHighlight.playerFirstName}</p>
+                  <p className="text-primary text-2xl sm:text-3xl font-black uppercase leading-tight mb-3 sm:mb-4">
                     {currentHighlight.playerLastName}
                   </p>
 
-                  <div className="inline-flex items-center gap-2 bg-accent px-4 py-2 mb-6">
-                    <span className="text-2xl font-black text-white">{currentHighlight.highlightStat.value}</span>
-                    <span className="text-sm text-white/80 font-medium">{currentHighlight.highlightStat.label}</span>
+                  <div className="inline-flex items-center mb-4 sm:mb-6">
+                    <div className="bg-accent px-3 py-1.5 min-w-[3rem] text-center border-r-4 border-primary">
+                      <span className="text-xl sm:text-2xl font-black text-white">{currentHighlight.highlightStat.value}</span>
+                    </div>
+                    <span className="text-xs sm:text-sm text-primary/70 font-medium ml-3">{currentHighlight.highlightStat.label}</span>
                   </div>
 
-                  {/* Stats column */}
-                  <div className="space-y-1">
+                  {/* Stats - hidden on mobile, shown inline on sm+ */}
+                  <div className="hidden sm:block space-y-1">
                     {currentHighlight.stats.map((stat) => (
-                      <div key={stat.label} className="flex items-center gap-3">
-                        <div className="bg-primary px-3 py-1.5 min-w-[3rem] text-center">
+                      <div key={stat.label} className="flex items-center">
+                        <div className="bg-primary px-3 py-1.5 min-w-[3rem] text-center border-r-4 border-accent">
                           <span className="text-lg font-black text-white">{stat.value}</span>
                         </div>
-                        <span className="text-sm text-primary/70 font-medium">{stat.label}</span>
+                        <span className="text-sm text-primary/70 font-medium ml-3">{stat.label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Stats - mobile only, full width below */}
+              <div className="sm:hidden mt-6 space-y-2">
+                {currentHighlight.stats.map((stat) => (
+                  <div key={stat.label} className="flex items-center">
+                    <div className="bg-primary px-4 py-2 min-w-[4rem] text-center border-r-4 border-accent">
+                      <span className="text-xl font-black text-white">{stat.value}</span>
+                    </div>
+                    <span className="text-base text-primary/70 font-medium ml-4">{stat.label}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}

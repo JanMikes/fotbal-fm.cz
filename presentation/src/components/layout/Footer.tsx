@@ -138,13 +138,13 @@ export default function Footer({ footer }: FooterProps) {
             <p className="text-white/60 mb-6">
               Přihlaste se k odběru novinek a nikdy nepropásněte důležité informace.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Váš e-mail"
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 border-r-0 text-white placeholder:text-white/40 focus:outline-none focus:bg-white/15 focus:border-accent transition-colors"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 sm:border-r-0 text-white placeholder:text-white/40 focus:outline-none focus:bg-white/15 focus:border-accent transition-colors"
                 required
               />
               <button
