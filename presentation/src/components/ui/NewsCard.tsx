@@ -29,7 +29,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
     : categorySlug
       ? `/kategorie/${categorySlug}/clanek/${article.slug}`
       : `/novinky/clanek/${article.slug}`;
-  const imageUrl = article.mainPhoto?.url || '/news/news-1.jpg';
+  const imageUrl = article.mainPhoto?.url || '/news-placeholder.jpg';
   if (featured) {
     return (
       <Link href={href} className="block">

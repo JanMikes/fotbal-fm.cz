@@ -1,6 +1,6 @@
 import { getRedisClient } from './redis';
 
-const DEFAULT_TTL_SECONDS = 24 * 60 * 60;
+const DEFAULT_TTL_SECONDS = 5 * 60;
 const CACHE_PREFIX = 'fotbalfm:';
 const NULL_SENTINEL = '__CACHE_NULL__';
 
