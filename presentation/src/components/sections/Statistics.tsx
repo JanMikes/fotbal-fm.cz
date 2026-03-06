@@ -234,7 +234,7 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
               </div>
 
               {/* Stats - mobile only, full width below */}
-              <div className="sm:hidden mt-6 space-y-2">
+              <div className="sm:hidden mt-6 ml-4 space-y-2">
                 {currentHighlight.stats.map((stat) => (
                   <div key={stat.label} className="flex items-center">
                     <div className="bg-primary px-4 py-2 min-w-[4rem] text-center border-r-4 border-accent">
@@ -246,6 +246,9 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
               </div>
             </motion.div>
           )}
+
+          {/* Spacer after highlight on mobile */}
+          {currentHighlight && <div className="lg:hidden h-8" />}
 
           {/* Right: Standings Table */}
           <motion.div
