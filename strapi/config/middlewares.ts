@@ -20,7 +20,7 @@ export default [
   {
     name: 'strapi::cors',
     config: {
-      origin: ['http://localhost:3000', 'http://nextjs:3000', 'http://localhost:3001', 'http://presentation:3000'],
+      origin: ['http://localhost:3000', 'http://backoffice:3000', 'http://localhost:3001', 'http://web:3000'],
       credentials: true,
     },
   },

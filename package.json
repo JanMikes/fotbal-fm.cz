@@ -3,8 +3,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "nextjs",
-    "presentation",
+    "backoffice",
+    "web",
     "api"
   ],
   "scripts": {

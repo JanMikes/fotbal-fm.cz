@@ -67,11 +67,11 @@ services:
                 condition: service_healthy
         command: bash -c "npm install && npm run dev"
 
-    nextjs:
+    backoffice:
         image: node:24
         restart: unless-stopped
         tty: true
-        working_dir: /app/nextjs
+        working_dir: /app/backoffice
         ports:
             - "3000:3000"
         volumes:
@@ -97,13 +97,13 @@ services:
             EMAIL_TO: "info@fotbal-fm.cz"
         depends_on:
             - mailpit
-        command: bash -c "cd /app && npm install && cd /app/nextjs && npm run dev"
+        command: bash -c "cd /app && npm install && cd /app/backoffice && npm run dev"
 
-    presentation:
+    web:
         image: node:24
         restart: unless-stopped
         tty: true
-        working_dir: /app/presentation
+        working_dir: /app/web
         ports:
             - "3001:3000"
         volumes:
@@ -122,7 +122,7 @@ services:
                 condition: service_started
             redis:
                 condition: service_healthy
-        command: bash -c "cd /app && npm install && cd /app/presentation && npm run dev"
+        command: bash -c "cd /app && npm install && cd /app/web && npm run dev"
 
     api:
         image: node:24

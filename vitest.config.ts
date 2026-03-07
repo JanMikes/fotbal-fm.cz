@@ -5,8 +5,8 @@ export default defineConfig({
     projects: [
       'packages/strapi-client',
       'api',
-      'presentation',
-      'nextjs',
+      'web',
+      'backoffice',
     ],
   },
 });

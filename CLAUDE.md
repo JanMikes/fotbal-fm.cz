@@ -4,8 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a monorepo containing two main applications:
-- **nextjs/**: Next.js 16 frontend application (TypeScript, React 19, Tailwind CSS 4)
+This is a monorepo containing multiple applications:
+- **backoffice/**: Next.js 16 backoffice application for coaches/management (TypeScript, React 19, Tailwind CSS 4)
+- **web/**: Next.js 16 public-facing website (TypeScript, React 19, Tailwind CSS 4)
+- **api/**: REST API service (Hono, TypeScript)
 - **strapi/**: Strapi 5 CMS backend (TypeScript, PostgreSQL)
 
 The applications are orchestrated with Docker Compose and share uploaded media files via volume mounting.
@@ -15,7 +17,10 @@ The applications are orchestrated with Docker Compose and share uploaded media f
 ### Monorepo Structure
 ```
 /
-├── nextjs/          # Frontend application
+├── backoffice/      # Backoffice application (coaches/management)
+├── web/             # Public-facing website
+├── api/             # REST API service
+├── packages/        # Shared packages
 ├── strapi/          # CMS backend
 └── compose.yaml     # Docker orchestration
 ```
@@ -23,14 +28,16 @@ The applications are orchestrated with Docker Compose and share uploaded media f
 ### Docker Services
 - **postgres**: PostgreSQL 17 database for Strapi
 - **strapi**: Strapi CMS (port 1337)
-- **nextjs**: Next.js frontend (port 3000)
+- **backoffice**: Backoffice app (port 3000)
+- **web**: Public website (port 3001)
+- **api**: REST API (port 4000)
 - **adminer**: Database management UI (port 8000)
 
 ### Shared Resources
-The Next.js app has read access to Strapi uploads via shared volume:
-- `strapi/public/uploads` → `nextjs/public/uploads`
+The backoffice app has read access to Strapi uploads via shared volume:
+- `strapi/public/uploads` → `backoffice/public/uploads`
 
-This allows Next.js to serve media files uploaded through Strapi without API calls.
+This allows the backoffice app to serve media files uploaded through Strapi without API calls.
 
 ## Development Commands
 
@@ -48,34 +55,54 @@ docker compose up -d
 docker compose down
 
 # Restart a specific service
-docker compose restart nextjs
+docker compose restart backoffice
+docker compose restart web
 docker compose restart strapi
 
 # Access points:
-# - Next.js: http://localhost:3000
+# - Backoffice: http://localhost:3000
+# - Web: http://localhost:3001
 # - Strapi Admin: http://localhost:1337/admin
 # - Adminer: http://localhost:8000
 ```
 
-### Next.js Development
+### Backoffice Development
 ```bash
-# Run commands inside the nextjs container
-docker compose exec nextjs <command>
+# Run commands inside the backoffice container
+docker compose exec backoffice <command>
 
 # Install dependencies
-docker compose exec nextjs npm install
+docker compose exec backoffice npm install
 
 # Run linting
-docker compose exec nextjs npm run lint
+docker compose exec backoffice npm run lint
 
 # Build for production
-docker compose exec nextjs npm run build
+docker compose exec backoffice npm run build
 
 # Run any other npm script
-docker compose exec nextjs npm run <script-name>
+docker compose exec backoffice npm run <script-name>
 
 # Open interactive shell in container
-docker compose exec nextjs bash
+docker compose exec backoffice bash
+```
+
+### Web Development
+```bash
+# Run commands inside the web container
+docker compose exec web <command>
+
+# Install dependencies
+docker compose exec web npm install
+
+# Run linting
+docker compose exec web npm run lint
+
+# Build for production
+docker compose exec web npm run build
+
+# Open interactive shell in container
+docker compose exec web bash
 ```
 
 ### Strapi Development
@@ -112,11 +139,12 @@ docker compose exec strapi bash
 docker compose logs
 
 # View logs from specific service
-docker compose logs nextjs
+docker compose logs backoffice
+docker compose logs web
 docker compose logs strapi
 
 # Follow logs in real-time
-docker compose logs -f nextjs
+docker compose logs -f backoffice
 
 # Check service status
 docker compose ps
@@ -189,7 +217,7 @@ Configured for PostgreSQL via environment variables in `compose.yaml`. The datab
 
 Database selection is controlled by the `DATABASE_CLIENT` environment variable.
 
-### Next.js Configuration
+### Backoffice Configuration
 - Uses App Router (Next.js 16+)
 - TypeScript with path alias: `@/*` maps to root directory
 - Tailwind CSS 4 with PostCSS

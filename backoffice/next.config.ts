@@ -29,7 +29,7 @@ const sentryConfig = process.env.SENTRY_DSN ? {
 
   org: "thedevscz",
 
-  project: "fotbal-fm-nextjs",
+  project: "fotbal-fm-backoffice",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,

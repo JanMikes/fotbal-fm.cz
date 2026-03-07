@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   test: {
-    name: 'nextjs',
+    name: 'backoffice',
     include: ['lib/__tests__/**/*.test.ts'],
   },
 });

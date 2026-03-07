@@ -8,8 +8,8 @@ COPY packages/strapi-client/package.json ./packages/strapi-client/
 COPY api/package.json ./api/
 
 # Create stubs for other workspace members
-RUN mkdir -p nextjs && echo '{"name":"@fotbal-fm/nextjs","version":"0.1.0","private":true}' > nextjs/package.json \
- && mkdir -p presentation && echo '{"name":"@fotbal-fm/presentation","version":"0.1.0","private":true}' > presentation/package.json
+RUN mkdir -p backoffice && echo '{"name":"@fotbal-fm/backoffice","version":"0.1.0","private":true}' > backoffice/package.json \
+ && mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json
 
 RUN --mount=type=cache,target=/root/.npm npm ci
 

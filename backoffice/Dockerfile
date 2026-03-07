@@ -5,11 +5,10 @@ WORKDIR /app
 # Copy only package files for npm ci caching
 COPY package.json package-lock.json ./
 COPY packages/strapi-client/package.json ./packages/strapi-client/
-COPY packages/cache/package.json ./packages/cache/
-COPY presentation/package.json ./presentation/
+COPY backoffice/package.json ./backoffice/
 
 # Create stubs for other workspace members
-RUN mkdir -p nextjs && echo '{"name":"@fotbal-fm/nextjs","version":"0.1.0","private":true}' > nextjs/package.json \
+RUN mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json \
  && mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json
 
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -25,17 +24,18 @@ COPY --from=deps /app ./
 
 # Copy source code (overwrites package.json-only copies)
 COPY packages/ ./packages/
-COPY presentation/ ./presentation/
+COPY backoffice/ ./backoffice/
 
-WORKDIR /app/presentation
+WORKDIR /app/backoffice
 
 ENV NODE_ENV=production
 
-ARG PUBLIC_UPLOADS_URL=http://localhost:8080
-ENV PUBLIC_UPLOADS_URL=${PUBLIC_UPLOADS_URL}
+ARG SENTRY_AUTH_TOKEN
+ARG APP_VERSION
+ENV SENTRY_RELEASE="${APP_VERSION}"
 
-RUN --mount=type=cache,target=/app/presentation/.next/cache \
-    npx next build
+RUN --mount=type=cache,target=/app/backoffice/.next/cache \
+    SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN npx next build --webpack
 
 # ---
 
@@ -45,12 +45,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
 
-COPY --from=builder /app/presentation/.next/standalone ./
-COPY --from=builder /app/presentation/.next/static ./presentation/.next/static
-COPY --from=builder /app/presentation/public ./presentation/public
+COPY --from=builder /app/backoffice/.next/standalone ./
+COPY --from=builder /app/backoffice/.next/static ./backoffice/.next/static
+COPY --from=builder /app/backoffice/public ./backoffice/public
 
 EXPOSE 3000
 
-CMD ["node", "presentation/server.js"]
+CMD ["node", "backoffice/server.js"]

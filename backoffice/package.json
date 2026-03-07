@@ -1,5 +1,5 @@
 {
-  "name": "@fotbal-fm/nextjs",
+  "name": "@fotbal-fm/backoffice",
   "version": "0.1.0",
   "private": true,
   "scripts": {

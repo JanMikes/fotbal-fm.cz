@@ -21,7 +21,7 @@ export type {
 export { buildStrapiQueryString } from '@fotbal-fm/strapi-client';
 
 // =============================================================================
-// Raw Strapi Entity Types (nextjs-specific, as returned from API)
+// Raw Strapi Entity Types (backoffice-specific, as returned from API)
 // =============================================================================
 
 /**

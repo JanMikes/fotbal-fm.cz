@@ -2,3 +2,4 @@ node_modules
 compose.override.yaml
 
 .claude/settings.local.json
+home_matches_export.xlsx
