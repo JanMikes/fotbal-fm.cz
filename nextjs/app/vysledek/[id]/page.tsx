@@ -202,6 +202,18 @@ export default function MatchResultDetailPage({ params }: PageProps) {
               </div>
             )}
 
+            {/* Lineup */}
+            {match.lineup && (
+              <div className="pt-6 border-t border-border">
+                <p className="text-sm font-medium text-text-label mb-3">
+                  Sestava Frýdek:
+                </p>
+                <p className="text-text-secondary whitespace-pre-line leading-relaxed">
+                  {match.lineup}
+                </p>
+              </div>
+            )}
+
             {/* Match Report */}
             {match.matchReport && (
               <div className="pt-6 border-t border-border">

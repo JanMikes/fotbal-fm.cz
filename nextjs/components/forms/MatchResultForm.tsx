@@ -83,6 +83,7 @@ export default function MatchResultForm({
           homeGoalscorers: initialData.homeGoalscorers || '',
           awayGoalscorers: initialData.awayGoalscorers || '',
           matchReport: initialData.matchReport || '',
+          lineup: initialData.lineup || '',
           categoryIds: initialData.categories?.map(c => c.id) || [],
           matchDate: initialData.matchDate,
           imagesUrl: initialData.imagesUrl || '',
@@ -263,6 +264,18 @@ export default function MatchResultForm({
           {...register('awayGoalscorers')}
           placeholder="Jména střelců a minuty"
           error={errors.awayGoalscorers?.message}
+        />
+      </FormField>
+
+      <FormField
+        label="Sestava Frýdek"
+        error={errors.lineup?.message}
+        hint="Např. Novák, Dvořák, Svoboda, ..."
+      >
+        <Input
+          {...register('lineup')}
+          placeholder="Jména hráčů"
+          error={errors.lineup?.message}
         />
       </FormField>
 

@@ -754,6 +754,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    lineup: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::match.match'> &
       Schema.Attribute.Private;

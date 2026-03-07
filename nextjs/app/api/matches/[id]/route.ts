@@ -76,6 +76,7 @@ export const PUT = withAuthFormData(async (
     homeGoalscorers: getStringField(formData, 'homeGoalscorers'),
     awayGoalscorers: getStringField(formData, 'awayGoalscorers'),
     matchReport: getStringField(formData, 'matchReport'),
+    lineup: getStringField(formData, 'lineup'),
     categories,
     matchDate: getStringField(formData, 'matchDate'),
     imagesUrl: getStringField(formData, 'imagesUrl'),

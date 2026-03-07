@@ -98,6 +98,7 @@ export interface StrapiRawMatch {
   homeGoalscorers?: string | null;
   awayGoalscorers?: string | null;
   matchReport?: string | null;
+  lineup?: string | null;
   categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   matchDate?: string | null;
   imagesUrl?: string | null;
@@ -293,6 +294,7 @@ export const strapiRawMatchSchema = z.object({
   homeGoalscorers: z.string().nullable().optional(),
   awayGoalscorers: z.string().nullable().optional(),
   matchReport: z.string().nullable().optional(),
+  lineup: z.string().nullable().optional(),
   categories: z.array(strapiRawCategorySchema).nullable().optional(),
   matchDate: z.string().nullable().optional(),
   imagesUrl: z.string().nullable().optional(),

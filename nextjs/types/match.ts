@@ -79,6 +79,7 @@ export interface Match {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  lineup?: string;
   images: StrapiImage[];
   files: StrapiFile[];
   categories: Category[];
@@ -110,6 +111,7 @@ export interface MatchFormData {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  lineup?: string;
   categoryIds: string[];
   matchDate: string;
   imagesUrl?: string;
@@ -126,6 +128,7 @@ export interface CreateMatchRequest {
   homeGoalscorers?: string;
   awayGoalscorers?: string;
   matchReport?: string;
+  lineup?: string;
   categories: string[];
   matchDate: string;
   imagesUrl?: string;

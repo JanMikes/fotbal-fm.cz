@@ -63,6 +63,9 @@ export function useCreateMatch(options?: {
       if (data.matchReport) {
         formData.append('matchReport', data.matchReport);
       }
+      if (data.lineup) {
+        formData.append('lineup', data.lineup);
+      }
       if (data.imagesUrl) {
         formData.append('imagesUrl', data.imagesUrl);
       }
@@ -132,6 +135,9 @@ export function useUpdateMatch(
       }
       if (data.matchReport) {
         formData.append('matchReport', data.matchReport);
+      }
+      if (data.lineup) {
+        formData.append('lineup', data.lineup);
       }
       if (data.imagesUrl) {
         formData.append('imagesUrl', data.imagesUrl);

@@ -97,6 +97,7 @@ export function mapMatch(raw: unknown): Match {
     homeGoalscorers: nullToUndefined(data.homeGoalscorers),
     awayGoalscorers: nullToUndefined(data.awayGoalscorers),
     matchReport: nullToUndefined(data.matchReport),
+    lineup: nullToUndefined(data.lineup),
     categories: mapCategories(data.categories),
     matchDate: data.matchDate ?? data.createdAt.split('T')[0],
     imagesUrl: nullToUndefined(data.imagesUrl),

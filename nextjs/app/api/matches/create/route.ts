@@ -43,6 +43,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
     homeGoalscorers: getStringField(formData, 'homeGoalscorers'),
     awayGoalscorers: getStringField(formData, 'awayGoalscorers'),
     matchReport: getStringField(formData, 'matchReport'),
+    lineup: getStringField(formData, 'lineup'),
     categories,
     matchDate: getStringField(formData, 'matchDate'),
     imagesUrl: getStringField(formData, 'imagesUrl'),

@@ -57,6 +57,9 @@
     "matchReport": {
       "type": "text"
     },
+    "lineup": {
+      "type": "text"
+    },
     "images": {
       "type": "media",
       "multiple": true,

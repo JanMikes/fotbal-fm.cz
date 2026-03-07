@@ -105,6 +105,7 @@ export const matchSchema = z.object({
   homeGoalscorers: z.string().optional(),
   awayGoalscorers: z.string().optional(),
   matchReport: z.string().optional(),
+  lineup: z.string().optional(),
   categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
   imagesUrl: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
@@ -130,6 +131,7 @@ export const matchApiSchema = z.object({
   homeGoalscorers: emptyToUndefined,
   awayGoalscorers: emptyToUndefined,
   matchReport: emptyToUndefined,
+  lineup: emptyToUndefined,
   categories: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
   matchDate: z.string().min(1, 'Datum zápasu je povinné'),
   imagesUrl: z.preprocess(
