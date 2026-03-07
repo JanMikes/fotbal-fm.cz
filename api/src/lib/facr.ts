@@ -406,6 +406,26 @@ export async function scrapeStandings(
   return standings;
 }
 
+/**
+ * Format a Date as DD.MM.YYYY (Czech date format used by FAČR forms).
+ */
+function formatCzechDate(date: Date): string {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
+/**
+ * Get the start date of the current football season (1st July).
+ * Season 2025/2026 starts on 01.07.2025.
+ */
+function getSeasonStartDate(): string {
+  const now = new Date();
+  const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  return formatCzechDate(new Date(year, 6, 1)); // July 1
+}
+
 // ---- Matches (Excel export) ----
 
 export interface FacrMatch {
@@ -553,7 +573,10 @@ export async function scrapeMatchesXlsx(
   }
 
   // Step 4: POST search to load results (required before export)
-  console.log('[FAČR] Step 4: Searching matches...');
+  // Explicitly set txtDatumOd to season start — the FAČR form pre-fills it
+  // with today's date, which would exclude past matches with updated scores.
+  const seasonStart = getSeasonStartDate();
+  console.log(`[FAČR] Step 4: Searching matches (from ${seasonStart})...`);
   const searchFormData = new URLSearchParams({
     __EVENTTARGET: 'ctl00$MainContent$btnSearch',
     __EVENTARGUMENT: '',
@@ -570,7 +593,7 @@ export async function scrapeMatchesXlsx(
     'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
     'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
     'ctl00$MainContent$listOddilTyp': '0',
-    'ctl00$MainContent$txtDatumOd': '',
+    'ctl00$MainContent$txtDatumOd': seasonStart,
     'ctl00$MainContent$txtDatumDo': '',
     'ctl00$MainContent$txtSearchHriste': '',
     'ctl00$MainContent$listSearchRocnik': '18',
@@ -623,7 +646,7 @@ export async function scrapeMatchesXlsx(
     'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
     'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
     'ctl00$MainContent$listOddilTyp': '0',
-    'ctl00$MainContent$txtDatumOd': '',
+    'ctl00$MainContent$txtDatumOd': seasonStart,
     'ctl00$MainContent$txtDatumDo': '',
     'ctl00$MainContent$txtSearchHriste': '',
     'ctl00$MainContent$listSearchRocnik': '18',
