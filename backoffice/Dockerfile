@@ -11,7 +11,9 @@ COPY backoffice/package.json ./backoffice/
 RUN mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json \
  && mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json
 
-RUN --mount=type=cache,target=/root/.npm npm install
+# Remove lockfile to avoid npm optional dependency bug (https://github.com/npm/cli/issues/4828)
+# where platform-specific bindings are skipped when lockfile was generated on a different OS
+RUN --mount=type=cache,target=/root/.npm rm package-lock.json && npm install
 
 # ---
 
