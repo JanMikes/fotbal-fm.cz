@@ -56,11 +56,14 @@ services:
             TRANSFER_TOKEN_SALT: toBeModifiedTransferTokenSalt
             JWT_SECRET: toBeModifiedJwtSecret
             NODE_OPTIONS: "--max-http-header-size=65536"
+            REDIS_URL: redis://redis:6379
         working_dir: /app
         volumes:
             - ./strapi:/app
         depends_on:
             postgres:
+                condition: service_healthy
+            redis:
                 condition: service_healthy
         command: bash -c "npm install && npm run dev"
 

@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { registerCacheInvalidation } from './cache-invalidation';
 
 const CATEGORIES = [
   { name: 'Muži A', slug: 'muzi-a', sortOrder: 1 },
@@ -61,5 +62,6 @@ export default {
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await seedCategories(strapi);
+    registerCacheInvalidation(strapi);
   },
 };
