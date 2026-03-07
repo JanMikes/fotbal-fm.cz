@@ -95,10 +95,14 @@ export default function DashboardCalendar({
     matches.forEach((m) => {
       const matchDate = parseISO(m.matchDate);
       if (isSameDay(matchDate, selectedDate)) {
+        const isFuture = m.homeScore === null || m.awayScore === null;
         items.push({
           id: m.id,
           type: 'match',
-          title: `${m.homeTeam} ${m.homeScore}:${m.awayScore} ${m.awayTeam}`,
+          title: isFuture
+            ? `${m.homeTeam} vs ${m.awayTeam}`
+            : `${m.homeTeam} ${m.homeScore}:${m.awayScore} ${m.awayTeam}`,
+          subtitle: m.tournamentName,
           date: matchDate,
           link: `/vysledek/${m.id}`,
           categories: m.categories,

@@ -40,7 +40,7 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
               </span>
             </div>
           )}
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <Link href={`/turnaj/${tournament.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
             </Link>

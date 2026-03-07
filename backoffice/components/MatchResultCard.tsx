@@ -16,9 +16,10 @@ export default function MatchResultCard({ match }: MatchResultCardProps) {
     month: 'numeric',
     year: 'numeric',
   });
+  const isFuture = match.homeScore === null || match.awayScore === null;
 
   return (
-    <Card variant="elevated">
+    <Card variant="elevated" className={isFuture ? 'opacity-80' : ''}>
       <div className="space-y-4">
         {/* TOP: Actions & Date */}
         <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-2">
@@ -26,7 +27,7 @@ export default function MatchResultCard({ match }: MatchResultCardProps) {
             <Calendar className="w-4 h-4" />
             <span>{formattedDate}</span>
           </div>
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <Link href={`/vysledek/${match.id}`} className="flex-1 md:flex-none">
               <Button variant="secondary" size="sm" className="w-full md:w-auto">Detail</Button>
             </Link>
@@ -69,6 +70,11 @@ export default function MatchResultCard({ match }: MatchResultCardProps) {
           </span>
         </div>
 
+        {/* Tournament name */}
+        {match.tournamentName && (
+          <p className="text-xs text-text-muted">{match.tournamentName}</p>
+        )}
+
         {/* Match Score */}
         <div className="flex items-center justify-between">
           <div className="flex-1 flex items-center justify-end gap-2">
@@ -79,11 +85,19 @@ export default function MatchResultCard({ match }: MatchResultCardProps) {
           </div>
 
           <div className="mx-2 md:mx-4">
-            <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-xl px-3 py-1 md:px-4 md:py-2">
-              <div className="text-xl md:text-2xl font-bold text-text-primary text-center tracking-wider">
-                {match.homeScore} : {match.awayScore}
+            {isFuture ? (
+              <div className="px-3 py-1 md:px-4 md:py-2">
+                <div className="text-lg md:text-xl font-medium text-text-muted text-center tracking-wider">
+                  vs
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 rounded-lg md:rounded-xl px-3 py-1 md:px-4 md:py-2">
+                <div className="text-xl md:text-2xl font-bold text-text-primary text-center tracking-wider">
+                  {match.homeScore} : {match.awayScore}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 flex items-center gap-2">

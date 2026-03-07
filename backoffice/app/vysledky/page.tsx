@@ -19,6 +19,7 @@ function MatchResultsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [matchFilter, setMatchFilter] = useState<'played' | 'future'>('played');
   const showSuccess = searchParams.get('success') === 'true';
 
   const fetchMatches = useCallback(async (category: string) => {
@@ -51,6 +52,11 @@ function MatchResultsPageContent() {
     if (!user) return;
     fetchMatches(selectedCategory);
   }, [user, selectedCategory, fetchMatches]);
+
+  const filteredMatches = matches.filter((m) => {
+    const isPlayed = m.homeScore !== null && m.awayScore !== null;
+    return matchFilter === 'played' ? isPlayed : !isPlayed;
+  });
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -85,11 +91,33 @@ function MatchResultsPageContent() {
           </Link>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
           <CategoryFilter
             value={selectedCategory}
             onChange={handleCategoryChange}
           />
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={() => setMatchFilter('played')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                matchFilter === 'played'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface text-text-secondary hover:bg-surface-hover'
+              }`}
+            >
+              Odehrané
+            </button>
+            <button
+              onClick={() => setMatchFilter('future')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                matchFilter === 'future'
+                  ? 'bg-primary text-white'
+                  : 'bg-surface text-text-secondary hover:bg-surface-hover'
+              }`}
+            >
+              Budoucí
+            </button>
+          </div>
         </div>
 
         {showSuccess && (
@@ -106,27 +134,35 @@ function MatchResultsPageContent() {
 
         {loading ? (
           <LoadingSpinner />
-        ) : matches.length === 0 && !error ? (
+        ) : filteredMatches.length === 0 && !error ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-elevated rounded-full mb-4">
               <Trophy className="w-10 h-10 text-text-muted" />
             </div>
             <h2 className="text-2xl font-semibold text-text-primary mb-2">
-              {selectedCategory ? 'Žádné výsledky v této kategorii' : 'Zatím žádné výsledky'}
+              {matchFilter === 'future'
+                ? 'Žádné budoucí zápasy'
+                : selectedCategory
+                  ? 'Žádné výsledky v této kategorii'
+                  : 'Zatím žádné výsledky'}
             </h2>
             <p className="text-text-secondary mb-6">
-              Začněte zadáním prvního výsledku zápasu
+              {matchFilter === 'played'
+                ? 'Začněte zadáním prvního výsledku zápasu'
+                : 'Zatím nejsou naplánované žádné zápasy'}
             </p>
-            <Link href="/zadat-vysledek">
-              <Button variant="primary" size="lg">
-                <Plus className="w-5 h-5 mr-2" />
-                Přidat první výsledek
-              </Button>
-            </Link>
+            {matchFilter === 'played' && (
+              <Link href="/zadat-vysledek">
+                <Button variant="primary" size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Přidat první výsledek
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="space-y-6">
-            {matches.map((match) => (
+            {filteredMatches.map((match) => (
               <MatchResultCard
                 key={match.id}
                 match={match}

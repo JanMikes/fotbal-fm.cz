@@ -182,12 +182,13 @@ function parseCompetitionsTable(html: string): FacrCompetition[] {
     while ((cellMatch = cellRegex.exec(rows[i])) !== null) {
       const text = cellMatch[1]
         .replace(/<[^>]*>/g, '')
+        .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
         .replace(/&ndash;/g, '–')
+        .replace(/&nbsp;/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
       cells.push(text);
