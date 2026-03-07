@@ -42,6 +42,7 @@ const SUMMARY_POPULATE = {
   homeTeam: { fields: ['id', 'documentId', 'name'] },
   awayTeam: { fields: ['id', 'documentId', 'name'] },
   categories: { fields: ['id', 'documentId', 'name', 'slug', 'sortOrder'] },
+  tournament: { fields: ['id', 'documentId', 'name'] },
 };
 
 /**
@@ -131,17 +132,32 @@ export class MatchRepository implements RepositoryWithUploads<
    * Find matches with minimal populate for dashboard/calendar views.
    */
   async findAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Match[]> {
-    const result = await this.client.findMany<StrapiRawMatch>(
-      CONTENT_TYPE,
-      {
-        populate: SUMMARY_POPULATE,
-        sort: 'createdAt:desc',
-        pagination: { limit: options?.limit ?? 100 },
-        filters: options?.filters,
-      }
-    );
+    const allMatches: StrapiRawMatch[] = [];
+    let page = 1;
+    const pageSize = 100;
 
-    return mapMatches(result.data);
+    // Fetch all pages for calendar completeness
+    while (true) {
+      const result = await this.client.findMany<StrapiRawMatch>(
+        CONTENT_TYPE,
+        {
+          populate: SUMMARY_POPULATE,
+          sort: 'matchDate:desc',
+          pagination: { page, pageSize },
+          filters: options?.filters,
+        }
+      );
+
+      allMatches.push(...result.data);
+
+      const total = result.pagination?.total ?? result.data.length;
+      if (allMatches.length >= total || result.data.length < pageSize) {
+        break;
+      }
+      page++;
+    }
+
+    return mapMatches(allMatches);
   }
 
   async findPaginated(options?: UserFilterOptions): Promise<PaginatedResult<Match>> {
