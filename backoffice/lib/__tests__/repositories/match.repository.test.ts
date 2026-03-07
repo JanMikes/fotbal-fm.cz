@@ -160,13 +160,13 @@ describe('MatchRepository', () => {
       const client = createMockClient();
       const repo = new MatchRepository(client as never);
 
-      await repo.findAllSummary({ limit: 5 });
+      await repo.findAllSummary();
 
       expect(client.findMany).toHaveBeenCalledWith(
         'matches',
         expect.objectContaining({
-          pagination: { limit: 5 },
-          sort: 'createdAt:desc',
+          pagination: { page: 1, pageSize: 100 },
+          sort: 'matchDate:desc',
           populate: expect.not.objectContaining({ images: true }),
         })
       );
