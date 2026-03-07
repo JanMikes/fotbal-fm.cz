@@ -2,7 +2,7 @@ FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Copy only package files for npm ci caching
+# Copy only package files for dependency installation
 COPY package.json package-lock.json ./
 COPY packages/strapi-client/package.json ./packages/strapi-client/
 COPY api/package.json ./api/
@@ -11,7 +11,7 @@ COPY api/package.json ./api/
 RUN mkdir -p backoffice && echo '{"name":"@fotbal-fm/backoffice","version":"0.1.0","private":true}' > backoffice/package.json \
  && mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json
 
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm npm install
 
 # ---
 
