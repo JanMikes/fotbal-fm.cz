@@ -700,6 +700,37 @@ export interface ApiFooterFooter extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiFormForm extends Struct.CollectionTypeSchema {
+  collectionName: 'forms';
+  info: {
+    displayName: 'Formul\u00E1\u0159';
+    pluralName: 'forms';
+    singularName: 'form';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    inputGroups: Schema.Attribute.Component<'form.input-group', true> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::form.form'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    submitButtonText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Odeslat'>;
+    successMessage: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Formul\u00E1\u0159 byl \u00FAsp\u011B\u0161n\u011B odesl\u00E1n. D\u011Bkujeme!'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
@@ -935,6 +966,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
         'components.badges',
         'components.image',
         'components.news-articles',
+        'components.form',
       ]
     > &
       Schema.Attribute.Required;
@@ -965,6 +997,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
         'components.news-articles',
         'components.badges',
         'components.image',
+        'components.form',
       ]
     >;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
@@ -1010,6 +1043,7 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
         'components.badges',
         'components.image',
         'components.news-articles',
+        'components.form',
       ]
     >;
     createdAt: Schema.Attribute.DateTime;
@@ -1042,6 +1076,7 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
         'components.news-articles',
         'components.badges',
         'components.image',
+        'components.form',
       ]
     >;
     publishedAt: Schema.Attribute.DateTime;
@@ -1809,6 +1844,7 @@ declare module '@strapi/strapi' {
       'api::comment.comment': ApiCommentComment;
       'api::event.event': ApiEventEvent;
       'api::footer.footer': ApiFooterFooter;
+      'api::form.form': ApiFormForm;
       'api::match.match': ApiMatchMatch;
       'api::navigation.navigation': ApiNavigationNavigation;
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;

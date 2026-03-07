@@ -22,6 +22,7 @@ import { Popup } from '../dynamic/Popup';
 import { Badges } from '../dynamic/Badges';
 import { ImageBlock } from '../dynamic/ImageBlock';
 import { NewsArticles } from '../dynamic/NewsArticles';
+import { FormBlock } from '../dynamic/FormBlock';
 
 interface DynamicZoneProps {
   components: DynamicZoneComponent[];
@@ -86,6 +87,8 @@ function DynamicZoneItem({ component, sidebar }: { component: DynamicZoneCompone
       return <ImageBlock data={component} />;
     case 'components.news-articles':
       return <NewsArticles data={component} sidebar={sidebar} />;
+    case 'components.form':
+      return <FormBlock data={component} />;
     default:
       return <ComponentError componentType={(component as DynamicZoneComponent).__component} />;
   }

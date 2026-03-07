@@ -63,7 +63,7 @@ services:
             SMTP_USER: ""
             SMTP_PASSWORD: ""
             SMTP_SECURE: "false"
-            EMAIL_FROM: "noreply@fotbal-fm.cz"
+            EMAIL_FROM: "notifikace@fotbal-fm.cz"
         working_dir: /app
         volumes:
             - ./strapi:/app
@@ -125,6 +125,14 @@ services:
             PUBLIC_UPLOADS_URL: http://localhost:8080
             REDIS_URL: redis://redis:6379
             STRAPI_WEBHOOK_SECRET: dev-webhook-secret
+            FORM_TOKEN_SECRET: dev-form-token-secret-at-least-32-chars
+            # Email Configuration (Mailpit for development)
+            SMTP_HOST: mailpit
+            SMTP_PORT: "1025"
+            SMTP_USER: ""
+            SMTP_PASSWORD: ""
+            SMTP_SECURE: "false"
+            EMAIL_FROM: "noreply@fotbal-fm.cz"
         depends_on:
             strapi:
                 condition: service_started
@@ -132,6 +140,8 @@ services:
                 condition: service_started
             redis:
                 condition: service_healthy
+            mailpit:
+                condition: service_started
         command: bash -c "cd /app && npm install && cd /app/web && npm run dev"
 
     api:

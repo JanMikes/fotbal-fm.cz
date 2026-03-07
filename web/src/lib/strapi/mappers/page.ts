@@ -216,6 +216,14 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent): DynamicZon
         show_all_link: resolveTextLink(raw.show_all_link as Parameters<typeof resolveTextLink>[0]),
       };
 
+    case 'components.form':
+      return {
+        ...base,
+        __component: 'components.form',
+        form: mapFormDefinition(raw.form),
+        recipients: mapRecipients(raw.recipients),
+      };
+
     default:
       return null;
   }
@@ -322,4 +330,43 @@ function mapBadges(raw: unknown) {
     variant: b.variant ?? 'default',
     size: b.size ?? 'M',
   }));
+}
+
+function mapFormDefinition(raw: unknown) {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  return {
+    documentId: (r.documentId as string) ?? '',
+    name: (r.name as string) ?? '',
+    submitButtonText: (r.submitButtonText as string) ?? 'Odeslat',
+    successMessage: (r.successMessage as string) ?? 'Formulář byl úspěšně odeslán. Děkujeme!',
+    inputGroups: mapInputGroups(r.inputGroups),
+  };
+}
+
+function mapInputGroups(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((g) => ({
+    title: g.title ?? null,
+    inputs: mapFormInputs(g.inputs),
+  }));
+}
+
+function mapFormInputs(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((i) => ({
+    name: i.name ?? '',
+    label: i.label ?? '',
+    type: i.type ?? 'text',
+    placeholder: i.placeholder ?? null,
+    required: i.required ?? false,
+    helpText: i.helpText ?? null,
+    options: i.options ?? null,
+    width: i.width ?? 'full',
+  }));
+}
+
+function mapRecipients(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((r) => r.email as string).filter(Boolean);
 }

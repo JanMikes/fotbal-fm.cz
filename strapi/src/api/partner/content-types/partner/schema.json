@@ -55,7 +55,8 @@
         "components.popup",
         "components.badges",
         "components.image",
-        "components.news-articles"
+        "components.news-articles",
+        "components.form"
       ]
     },
     "panel": {
@@ -76,7 +77,8 @@
         "components.photo-gallery",
         "components.news-articles",
         "components.badges",
-        "components.image"
+        "components.image",
+        "components.form"
       ]
     }
   }

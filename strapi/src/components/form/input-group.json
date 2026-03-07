@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_form_input_groups",
+  "info": {
+    "displayName": "Skupina polí",
+    "icon": "layer"
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "component",
+      "repeatable": true,
+      "component": "form.input",
+      "required": true
+    }
+  }
+}

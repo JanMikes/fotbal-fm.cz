@@ -160,6 +160,20 @@ function buildDynamicZonePopulate() {
           show_all_link: textLinkPopulate,
         },
       },
+      'components.form': {
+        populate: {
+          form: {
+            populate: {
+              inputGroups: {
+                populate: {
+                  inputs: { populate: '*' },
+                },
+              },
+            },
+          },
+          recipients: { populate: '*' },
+        },
+      },
     },
   };
 }

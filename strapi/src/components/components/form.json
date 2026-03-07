@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_components_forms",
+  "info": {
+    "displayName": "Formulář",
+    "icon": "paperPlane"
+  },
+  "attributes": {
+    "form": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::form.form",
+      "required": true
+    },
+    "recipients": {
+      "type": "component",
+      "repeatable": true,
+      "component": "form.recipient",
+      "required": true
+    }
+  }
+}

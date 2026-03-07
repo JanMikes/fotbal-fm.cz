@@ -1,0 +1,41 @@
+{
+  "collectionName": "components_form_inputs",
+  "info": {
+    "displayName": "Pole formuláře",
+    "icon": "pencil"
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["text", "email", "tel", "number", "textarea", "select", "checkbox", "radio", "file"],
+      "required": true,
+      "default": "text"
+    },
+    "placeholder": {
+      "type": "string"
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+    "helpText": {
+      "type": "string"
+    },
+    "options": {
+      "type": "text"
+    },
+    "width": {
+      "type": "enumeration",
+      "enum": ["full", "half"],
+      "default": "full"
+    }
+  }
+}

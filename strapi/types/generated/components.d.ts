@@ -103,6 +103,20 @@ export interface ComponentsFeatureCards extends Struct.ComponentSchema {
   };
 }
 
+export interface ComponentsForm extends Struct.ComponentSchema {
+  collectionName: 'components_components_forms';
+  info: {
+    displayName: 'Formul\u00E1\u0159';
+    icon: 'paperPlane';
+  };
+  attributes: {
+    form: Schema.Attribute.Relation<'oneToOne', 'api::form.form'> &
+      Schema.Attribute.Required;
+    recipients: Schema.Attribute.Component<'form.recipient', true> &
+      Schema.Attribute.Required;
+  };
+}
+
 export interface ComponentsGallerySlider extends Struct.ComponentSchema {
   collectionName: 'components_components_gallery_sliders';
   info: {
@@ -531,6 +545,63 @@ export interface FooterLinkSection extends Struct.ComponentSchema {
   };
 }
 
+export interface FormInput extends Struct.ComponentSchema {
+  collectionName: 'components_form_inputs';
+  info: {
+    displayName: 'Pole formul\u00E1\u0159e';
+    icon: 'pencil';
+  };
+  attributes: {
+    helpText: Schema.Attribute.String;
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    options: Schema.Attribute.Text;
+    placeholder: Schema.Attribute.String;
+    required: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    type: Schema.Attribute.Enumeration<
+      [
+        'text',
+        'email',
+        'tel',
+        'number',
+        'textarea',
+        'select',
+        'checkbox',
+        'radio',
+        'file',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'text'>;
+    width: Schema.Attribute.Enumeration<['full', 'half']> &
+      Schema.Attribute.DefaultTo<'full'>;
+  };
+}
+
+export interface FormInputGroup extends Struct.ComponentSchema {
+  collectionName: 'components_form_input_groups';
+  info: {
+    displayName: 'Skupina pol\u00ED';
+    icon: 'layer';
+  };
+  attributes: {
+    inputs: Schema.Attribute.Component<'form.input', true> &
+      Schema.Attribute.Required;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface FormRecipient extends Struct.ComponentSchema {
+  collectionName: 'components_form_recipients';
+  info: {
+    displayName: 'P\u0159\u00EDjemce';
+    icon: 'envelop';
+  };
+  attributes: {
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
+  };
+}
+
 export interface TournamentPlayer extends Struct.ComponentSchema {
   collectionName: 'components_tournament_players';
   info: {
@@ -554,6 +625,7 @@ declare module '@strapi/strapi' {
       'components.contact-cards': ComponentsContactCards;
       'components.documents': ComponentsDocuments;
       'components.feature-cards': ComponentsFeatureCards;
+      'components.form': ComponentsForm;
       'components.gallery-slider': ComponentsGallerySlider;
       'components.heading': ComponentsHeading;
       'components.image': ComponentsImage;
@@ -584,6 +656,9 @@ declare module '@strapi/strapi' {
       'elements.text-link': ElementsTextLink;
       'elements.timeline-item': ElementsTimelineItem;
       'footer.link-section': FooterLinkSection;
+      'form.input': FormInput;
+      'form.input-group': FormInputGroup;
+      'form.recipient': FormRecipient;
       'tournament.player': TournamentPlayer;
     }
   }

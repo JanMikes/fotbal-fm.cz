@@ -8,7 +8,7 @@ describe('buildPagePopulate', () => {
     expect(result).toHaveProperty('sidebar');
   });
 
-  it('content has on syntax for all 22 components', () => {
+  it('content has on syntax for all 23 components', () => {
     const result = buildPagePopulate();
     const on = result.content.on;
     expect(on).toBeDefined();
@@ -36,12 +36,13 @@ describe('buildPagePopulate', () => {
       'components.badges',
       'components.image',
       'components.news-articles',
+      'components.form',
     ];
 
     for (const comp of expectedComponents) {
       expect(on).toHaveProperty(comp);
     }
-    expect(Object.keys(on)).toHaveLength(22);
+    expect(Object.keys(on)).toHaveLength(23);
   });
 
   it('sidebar has same on keys as content', () => {

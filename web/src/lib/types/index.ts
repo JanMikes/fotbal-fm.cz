@@ -377,6 +377,36 @@ export interface ComponentNewsArticles extends DynamicZoneBase {
   show_all_link: ResolvedTextLink | null;
 }
 
+export interface FormInput {
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+  placeholder: string | null;
+  required: boolean;
+  helpText: string | null;
+  options: string | null;
+  width: 'full' | 'half';
+}
+
+export interface FormInputGroup {
+  title: string | null;
+  inputs: FormInput[];
+}
+
+export interface FormDefinition {
+  documentId: string;
+  name: string;
+  submitButtonText: string;
+  successMessage: string;
+  inputGroups: FormInputGroup[];
+}
+
+export interface ComponentForm extends DynamicZoneBase {
+  __component: 'components.form';
+  form: FormDefinition | null;
+  recipients: string[];
+}
+
 export type DynamicZoneComponent =
   | ComponentText
   | ComponentHeading
@@ -399,4 +429,5 @@ export type DynamicZoneComponent =
   | ComponentPopup
   | ComponentBadges
   | ComponentImage
-  | ComponentNewsArticles;
+  | ComponentNewsArticles
+  | ComponentForm;

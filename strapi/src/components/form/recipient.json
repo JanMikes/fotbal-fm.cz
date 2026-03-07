@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_form_recipients",
+  "info": {
+    "displayName": "Příjemce",
+    "icon": "envelop"
+  },
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true
+    }
+  }
+}
