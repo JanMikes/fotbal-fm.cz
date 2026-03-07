@@ -80,6 +80,12 @@ async function main() {
 
     parsedMatches = parseMatchRows(rows);
     console.log(`Parsed ${parsedMatches.length} valid matches`);
+
+    // Save to file so production deployments use fresh data
+    const dataFilePath = path.join(__dirname, '../../data/matches.json');
+    fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
+    fs.writeFileSync(dataFilePath, JSON.stringify(parsedMatches, null, 2));
+    console.log(`Saved matches to ${dataFilePath}`);
   }
 
   // 3. Load category-code mappings from Strapi

@@ -61,6 +61,12 @@ async function main() {
 
     // 1. Scrape competitions from FAČR
     scraped = await scrapeCompetitions(email, password);
+
+    // Save to file so production deployments use fresh data
+    const dataFilePath = path.join(__dirname, '../../data/tournaments.json');
+    fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
+    fs.writeFileSync(dataFilePath, JSON.stringify(scraped, null, 2));
+    console.log(`Saved tournaments to ${dataFilePath}`);
   }
 
   // 2. Load category-code mappings from Strapi

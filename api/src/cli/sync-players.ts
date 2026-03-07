@@ -137,6 +137,12 @@ async function main() {
 
     // 1. Scrape players from FAČR
     scraped = await scrapePlayers(email, password);
+
+    // Save to file so production deployments use fresh data
+    const dataFilePath = path.join(__dirname, '../../data/players.json');
+    fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
+    fs.writeFileSync(dataFilePath, JSON.stringify(scraped, null, 2));
+    console.log(`Saved players to ${dataFilePath}`);
   }
 
   // 2. Load existing players from Strapi

@@ -72,6 +72,12 @@ async function main() {
 
     // 1. Scrape standings from FAČR
     scraped = await scrapeStandings(email, password);
+
+    // Save to file so production deployments use fresh data
+    const dataFilePath = path.join(__dirname, '../../data/standings.json');
+    fs.mkdirSync(path.dirname(dataFilePath), { recursive: true });
+    fs.writeFileSync(dataFilePath, JSON.stringify(scraped, null, 2));
+    console.log(`Saved standings to ${dataFilePath}`);
   }
 
   // 2. Load category-code mappings from Strapi
