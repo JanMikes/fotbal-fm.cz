@@ -222,9 +222,9 @@ export interface StrapiRawUser {
  * Schema for validating raw media from Strapi
  */
 export const strapiRawMediaSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   documentId: z.string().optional(),
-  name: z.string(),
+  name: z.string().optional(),
   alternativeText: z.string().nullable().optional(),
   caption: z.string().nullable().optional(),
   width: z.number().optional().nullable(),
@@ -236,14 +236,14 @@ export const strapiRawMediaSchema = z.object({
     large: z.object({ url: z.string(), width: z.number(), height: z.number() }).optional(),
   }).nullable().optional(),
   hash: z.string().optional(),
-  ext: z.string(),
-  mime: z.string(),
-  size: z.number(),
+  ext: z.string().optional(),
+  mime: z.string().optional(),
+  size: z.number().optional(),
   url: z.string(),
   previewUrl: z.string().nullable().optional(),
   provider: z.string().optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 /**

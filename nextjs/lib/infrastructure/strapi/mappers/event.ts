@@ -40,12 +40,11 @@ export function mapEvent(raw: unknown): Event {
   const parseResult = strapiRawEventSchema.safeParse(raw);
 
   if (!parseResult.success) {
-    // Log detailed error information for debugging
-    console.error('[mapEvent] Validation failed. Errors:', JSON.stringify(parseResult.error.issues, null, 2));
-    console.error('[mapEvent] Raw data received:', JSON.stringify(raw, null, 2));
+    const rawObj = raw as Record<string, unknown>;
+    console.error('[mapEvent] Validation failed for event id=%s documentId=%s. Errors:', rawObj?.id, rawObj?.documentId, JSON.stringify(parseResult.error.issues, null, 2));
     throw new ValidationError(
       'Neplatná data události ze Strapi',
-      { zodErrors: parseResult.error.issues, raw }
+      { zodErrors: parseResult.error.issues }
     );
   }
 
@@ -88,8 +87,8 @@ export function mapEvents(rawArray: unknown[]): Event[] {
 export function safeMapEvent(raw: unknown): Event | null {
   try {
     return mapEvent(raw);
-  } catch (error) {
-    console.error('[safeMapEvent] Failed to map event:', error);
+  } catch {
+    // Error already logged by mapEvent
     return null;
   }
 }

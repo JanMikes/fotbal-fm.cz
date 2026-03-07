@@ -141,6 +141,28 @@ export class MatchService {
   }
 
   /**
+   * Get all matches with minimal data for dashboard/calendar
+   */
+  async getAllSummary(limit?: number): Promise<Result<Match[], AppError>> {
+    try {
+      const matches = await this.repository.findAllSummary({ limit });
+      return ok(matches);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'MatchService', method: 'getAllSummary' },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání zápasů',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Create a new match with file uploads
    */
   async create(

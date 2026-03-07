@@ -74,12 +74,11 @@ export function mapMatch(raw: unknown): Match {
   const parseResult = strapiRawMatchSchema.safeParse(raw);
 
   if (!parseResult.success) {
-    // Log detailed error information for debugging
-    console.error('[mapMatch] Validation failed. Errors:', JSON.stringify(parseResult.error.issues, null, 2));
-    console.error('[mapMatch] Raw data received:', JSON.stringify(raw, null, 2));
+    const rawObj = raw as Record<string, unknown>;
+    console.error('[mapMatch] Validation failed for match id=%s documentId=%s. Errors:', rawObj?.id, rawObj?.documentId, JSON.stringify(parseResult.error.issues, null, 2));
     throw new ValidationError(
       'Neplatná data zápasu ze Strapi',
-      { zodErrors: parseResult.error.issues, raw }
+      { zodErrors: parseResult.error.issues }
     );
   }
 
@@ -136,8 +135,8 @@ export function mapMatches(rawArray: unknown[]): Match[] {
 export function safeMapMatch(raw: unknown): Match | null {
   try {
     return mapMatch(raw);
-  } catch (error) {
-    console.error('[safeMapMatch] Failed to map match:', error);
+  } catch {
+    // Error already logged by mapMatch
     return null;
   }
 }

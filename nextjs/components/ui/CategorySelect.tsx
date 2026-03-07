@@ -1,6 +1,6 @@
 'use client';
 
-import Select, { MultiValue, ClassNamesConfig } from 'react-select';
+import Select, { MultiValue, SingleValue, ClassNamesConfig } from 'react-select';
 import { useCategories } from '@/hooks/api';
 import { Category } from '@/types/category';
 
@@ -9,6 +9,7 @@ interface CategorySelectProps {
   onChange: (categoryIds: string[]) => void;
   error?: string;
   required?: boolean;
+  multiple?: boolean;
 }
 
 interface CategoryOption {
@@ -20,6 +21,7 @@ export default function CategorySelect({
   value,
   onChange,
   error,
+  multiple = true,
 }: CategorySelectProps) {
   const { categories, isLoading } = useCategories();
 
@@ -32,9 +34,14 @@ export default function CategorySelect({
   // Get selected options from value prop
   const selectedOptions = options.filter((opt) => value.includes(opt.value));
 
-  // Handle selection change
-  const handleChange = (selected: MultiValue<CategoryOption>) => {
+  // Handle multi-select change
+  const handleMultiChange = (selected: MultiValue<CategoryOption>) => {
     onChange(selected ? selected.map((opt) => opt.value) : []);
+  };
+
+  // Handle single-select change
+  const handleSingleChange = (selected: SingleValue<CategoryOption>) => {
+    onChange(selected ? [selected.value] : []);
   };
 
   // Define classNames for Tailwind styling
@@ -79,19 +86,35 @@ export default function CategorySelect({
 
   return (
     <div className="space-y-2">
-      <Select<CategoryOption, true>
-        isMulti
-        unstyled
-        options={options}
-        value={selectedOptions}
-        onChange={handleChange}
-        isLoading={isLoading}
-        isDisabled={isLoading}
-        placeholder="Vyberte kategorie..."
-        noOptionsMessage={() => 'Žádné kategorie nenalezeny'}
-        loadingMessage={() => 'Načítání...'}
-        classNames={selectClassNames}
-      />
+      {multiple ? (
+        <Select<CategoryOption, true>
+          isMulti
+          unstyled
+          options={options}
+          value={selectedOptions}
+          onChange={handleMultiChange}
+          isLoading={isLoading}
+          isDisabled={isLoading}
+          placeholder="Vyberte kategorie..."
+          noOptionsMessage={() => 'Žádné kategorie nenalezeny'}
+          loadingMessage={() => 'Načítání...'}
+          classNames={selectClassNames}
+        />
+      ) : (
+        <Select<CategoryOption, false>
+          unstyled
+          options={options}
+          value={selectedOptions[0] || null}
+          onChange={handleSingleChange}
+          isLoading={isLoading}
+          isDisabled={isLoading}
+          placeholder="Vyberte kategorii..."
+          noOptionsMessage={() => 'Žádné kategorie nenalezeny'}
+          loadingMessage={() => 'Načítání...'}
+          classNames={selectClassNames as unknown as ClassNamesConfig<CategoryOption, false>}
+          isClearable
+        />
+      )}
       {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );

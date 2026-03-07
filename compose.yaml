@@ -79,7 +79,7 @@ services:
         environment:
             NODE_ENV: development
             STRAPI_URL: http://strapi:1337
-            PUBLIC_UPLOADS_URL: http://nginx:80
+            PUBLIC_UPLOADS_URL: http://localhost:8080
             REGISTRATION_SECRET: "secret"
             # Sentry Configuration
             # Leave empty for local development
@@ -112,7 +112,7 @@ services:
             NODE_ENV: development
             PORT: 3000
             STRAPI_URL: http://strapi:1337
-            PUBLIC_UPLOADS_URL: http://nginx:80
+            PUBLIC_UPLOADS_URL: http://localhost:8080
             REDIS_URL: redis://redis:6379
             STRAPI_WEBHOOK_SECRET: dev-webhook-secret
         depends_on:
@@ -137,7 +137,7 @@ services:
             NODE_ENV: development
             PORT: 4000
             STRAPI_URL: http://strapi:1337
-            PUBLIC_UPLOADS_URL: http://nginx:80
+            PUBLIC_UPLOADS_URL: http://localhost:8080
         depends_on:
             - strapi
         command: bash -c "cd /app && npm install && cd /app/api && npm run dev"

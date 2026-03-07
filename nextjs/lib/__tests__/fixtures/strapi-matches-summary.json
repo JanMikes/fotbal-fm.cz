@@ -1,0 +1,271 @@
+{
+  "data": [
+    {
+      "id": 433,
+      "documentId": "j93v5rx7qrx7yoqxw1p6z301",
+      "homeScore": 8,
+      "awayScore": 0,
+      "homeGoalscorers": null,
+      "awayGoalscorers": null,
+      "matchDate": "2026-03-04",
+      "matchTime": null,
+      "venue": null,
+      "round": null,
+      "season": null,
+      "matchReport": null,
+      "imagesUrl": null,
+      "facrId": null,
+      "competitionName": null,
+      "competitionCode": null,
+      "period": null,
+      "organizingBody": null,
+      "createdAt": "2026-03-04T20:30:58.130Z",
+      "updatedAt": "2026-03-04T20:30:58.130Z",
+      "publishedAt": "2026-03-04T20:30:58.124Z",
+      "lineup": null,
+      "homeTeam": {
+        "id": 253,
+        "documentId": "oogd2cvln2idw39fctlkg4nk",
+        "name": "FC ZBROJOVKA BRNO"
+      },
+      "awayTeam": {
+        "id": 2,
+        "documentId": "azhlft0nzxsg46qmgxvoh13q",
+        "name": "FK Frýdek-Místek"
+      },
+      "categories": [
+        {
+          "id": 3,
+          "documentId": "ubt8qtmviv8ujgzshafj9iym",
+          "name": "Dorost U16",
+          "slug": "dorost-u16",
+          "sortOrder": 3,
+          "createdAt": "2025-12-18T17:25:08.742Z",
+          "updatedAt": "2026-03-03T17:22:37.176Z",
+          "publishedAt": "2026-03-03T17:22:37.135Z",
+          "hidden": false,
+          "sportbmCategoryId": "16273",
+          "heroSlide3Title": null,
+          "heroSlide3Text": null,
+          "heroSlide3Link": null,
+          "sortOrderInGroup": null
+        }
+      ]
+    },
+    {
+      "id": 432,
+      "documentId": "nnfrlbwo6yc6nl59hlnpqhsm",
+      "homeScore": 8,
+      "awayScore": 0,
+      "homeGoalscorers": null,
+      "awayGoalscorers": null,
+      "matchDate": "2026-03-04",
+      "matchTime": null,
+      "venue": null,
+      "round": null,
+      "season": null,
+      "matchReport": "Bez komentáře.",
+      "imagesUrl": null,
+      "facrId": null,
+      "competitionName": null,
+      "competitionCode": null,
+      "period": null,
+      "organizingBody": null,
+      "createdAt": "2026-03-04T20:30:38.501Z",
+      "updatedAt": "2026-03-04T20:30:38.501Z",
+      "publishedAt": "2026-03-04T20:30:38.493Z",
+      "lineup": null,
+      "homeTeam": {
+        "id": 253,
+        "documentId": "oogd2cvln2idw39fctlkg4nk",
+        "name": "FC ZBROJOVKA BRNO"
+      },
+      "awayTeam": {
+        "id": 2,
+        "documentId": "azhlft0nzxsg46qmgxvoh13q",
+        "name": "FK Frýdek-Místek"
+      },
+      "categories": [
+        {
+          "id": 3,
+          "documentId": "ubt8qtmviv8ujgzshafj9iym",
+          "name": "Dorost U16",
+          "slug": "dorost-u16",
+          "sortOrder": 3,
+          "createdAt": "2025-12-18T17:25:08.742Z",
+          "updatedAt": "2026-03-03T17:22:37.176Z",
+          "publishedAt": "2026-03-03T17:22:37.135Z",
+          "hidden": false,
+          "sportbmCategoryId": "16273",
+          "heroSlide3Title": null,
+          "heroSlide3Text": null,
+          "heroSlide3Link": null,
+          "sortOrderInGroup": null
+        }
+      ]
+    },
+    {
+      "id": 431,
+      "documentId": "ni79yehn5a9dryqyny4o97me",
+      "homeScore": 8,
+      "awayScore": 0,
+      "homeGoalscorers": null,
+      "awayGoalscorers": null,
+      "matchDate": "2026-03-04",
+      "matchTime": null,
+      "venue": null,
+      "round": null,
+      "season": null,
+      "matchReport": "Bez komentáře…",
+      "imagesUrl": null,
+      "facrId": null,
+      "competitionName": null,
+      "competitionCode": null,
+      "period": null,
+      "organizingBody": null,
+      "createdAt": "2026-03-04T20:30:05.001Z",
+      "updatedAt": "2026-03-04T20:30:05.001Z",
+      "publishedAt": "2026-03-04T20:30:04.994Z",
+      "lineup": null,
+      "homeTeam": {
+        "id": 253,
+        "documentId": "oogd2cvln2idw39fctlkg4nk",
+        "name": "FC ZBROJOVKA BRNO"
+      },
+      "awayTeam": {
+        "id": 2,
+        "documentId": "azhlft0nzxsg46qmgxvoh13q",
+        "name": "FK Frýdek-Místek"
+      },
+      "categories": [
+        {
+          "id": 3,
+          "documentId": "ubt8qtmviv8ujgzshafj9iym",
+          "name": "Dorost U16",
+          "slug": "dorost-u16",
+          "sortOrder": 3,
+          "createdAt": "2025-12-18T17:25:08.742Z",
+          "updatedAt": "2026-03-03T17:22:37.176Z",
+          "publishedAt": "2026-03-03T17:22:37.135Z",
+          "hidden": false,
+          "sportbmCategoryId": "16273",
+          "heroSlide3Title": null,
+          "heroSlide3Text": null,
+          "heroSlide3Link": null,
+          "sortOrderInGroup": null
+        }
+      ]
+    },
+    {
+      "id": 430,
+      "documentId": "w5d1mlu6n370vs2y3plhpo3k",
+      "homeScore": 8,
+      "awayScore": 0,
+      "homeGoalscorers": null,
+      "awayGoalscorers": null,
+      "matchDate": "2026-03-04",
+      "matchTime": null,
+      "venue": null,
+      "round": null,
+      "season": null,
+      "matchReport": "Bez komentáře…",
+      "imagesUrl": null,
+      "facrId": null,
+      "competitionName": null,
+      "competitionCode": null,
+      "period": null,
+      "organizingBody": null,
+      "createdAt": "2026-03-04T20:29:51.768Z",
+      "updatedAt": "2026-03-04T20:29:51.768Z",
+      "publishedAt": "2026-03-04T20:29:51.762Z",
+      "lineup": null,
+      "homeTeam": {
+        "id": 253,
+        "documentId": "oogd2cvln2idw39fctlkg4nk",
+        "name": "FC ZBROJOVKA BRNO"
+      },
+      "awayTeam": {
+        "id": 2,
+        "documentId": "azhlft0nzxsg46qmgxvoh13q",
+        "name": "FK Frýdek-Místek"
+      },
+      "categories": [
+        {
+          "id": 3,
+          "documentId": "ubt8qtmviv8ujgzshafj9iym",
+          "name": "Dorost U16",
+          "slug": "dorost-u16",
+          "sortOrder": 3,
+          "createdAt": "2025-12-18T17:25:08.742Z",
+          "updatedAt": "2026-03-03T17:22:37.176Z",
+          "publishedAt": "2026-03-03T17:22:37.135Z",
+          "hidden": false,
+          "sportbmCategoryId": "16273",
+          "heroSlide3Title": null,
+          "heroSlide3Text": null,
+          "heroSlide3Link": null,
+          "sortOrderInGroup": null
+        }
+      ]
+    },
+    {
+      "id": 429,
+      "documentId": "kd5tgszcb4zqfcad053heytz",
+      "homeScore": 8,
+      "awayScore": 0,
+      "homeGoalscorers": null,
+      "awayGoalscorers": null,
+      "matchDate": "2026-03-04",
+      "matchTime": null,
+      "venue": null,
+      "round": null,
+      "season": null,
+      "matchReport": "Bez komentáře…",
+      "imagesUrl": null,
+      "facrId": null,
+      "competitionName": null,
+      "competitionCode": null,
+      "period": null,
+      "organizingBody": null,
+      "createdAt": "2026-03-04T20:29:29.955Z",
+      "updatedAt": "2026-03-04T20:29:29.955Z",
+      "publishedAt": "2026-03-04T20:29:29.946Z",
+      "lineup": null,
+      "homeTeam": {
+        "id": 253,
+        "documentId": "oogd2cvln2idw39fctlkg4nk",
+        "name": "FC ZBROJOVKA BRNO"
+      },
+      "awayTeam": {
+        "id": 2,
+        "documentId": "azhlft0nzxsg46qmgxvoh13q",
+        "name": "FK Frýdek-Místek"
+      },
+      "categories": [
+        {
+          "id": 3,
+          "documentId": "ubt8qtmviv8ujgzshafj9iym",
+          "name": "Dorost U16",
+          "slug": "dorost-u16",
+          "sortOrder": 3,
+          "createdAt": "2025-12-18T17:25:08.742Z",
+          "updatedAt": "2026-03-03T17:22:37.176Z",
+          "publishedAt": "2026-03-03T17:22:37.135Z",
+          "hidden": false,
+          "sportbmCategoryId": "16273",
+          "heroSlide3Title": null,
+          "heroSlide3Text": null,
+          "heroSlide3Link": null,
+          "sortOrderInGroup": null
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "start": 0,
+      "limit": 5,
+      "total": 433
+    }
+  }
+}

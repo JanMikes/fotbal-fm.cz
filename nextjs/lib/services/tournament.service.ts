@@ -138,6 +138,28 @@ export class TournamentService {
   }
 
   /**
+   * Get all tournaments with minimal data for dashboard/calendar
+   */
+  async getAllSummary(limit?: number): Promise<Result<Tournament[], AppError>> {
+    try {
+      const tournaments = await this.repository.findAllSummary({ limit });
+      return ok(tournaments);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'TournamentService', method: 'getAllSummary' },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání turnajů',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Get all tournaments for dropdown selection
    */
   async getAllForDropdown(): Promise<Result<Tournament[], AppError>> {

@@ -19,6 +19,7 @@ export default function TeamLogo({ name, logo, size = 32, className = '' }: Team
         fill
         className="object-contain"
         sizes={`${size}px`}
+        unoptimized
       />
     </div>
   );

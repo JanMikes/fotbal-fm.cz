@@ -30,6 +30,14 @@ const DEFAULT_POPULATE = {
 };
 
 /**
+ * Minimal populate for summary/calendar views.
+ * No photos, files, or author — just name, dates, and categories.
+ */
+const SUMMARY_POPULATE = {
+  categories: { fields: ['id', 'documentId', 'name', 'slug', 'sortOrder'] },
+};
+
+/**
  * Build Strapi query options from find options
  */
 function buildQueryOptions(options?: UserFilterOptions) {
@@ -107,6 +115,23 @@ export class EventRepository implements RepositoryWithUploads<
     return mapEvents(result.data);
   }
 
+  /**
+   * Find events with minimal populate for dashboard/calendar views.
+   */
+  async findAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Event[]> {
+    const result = await this.client.findMany<StrapiRawEvent>(
+      CONTENT_TYPE,
+      {
+        populate: SUMMARY_POPULATE,
+        sort: 'createdAt:desc',
+        pagination: { limit: options?.limit ?? 100 },
+        filters: options?.filters,
+      }
+    );
+
+    return mapEvents(result.data);
+  }
+
   async findPaginated(options?: UserFilterOptions): Promise<PaginatedResult<Event>> {
     const queryOptions = buildQueryOptions(options);
 
@@ -142,12 +167,17 @@ export class EventRepository implements RepositoryWithUploads<
       };
     }
 
-    const raw = await this.client.create<StrapiRawEvent>(
+    const created = await this.client.create<StrapiRawEvent>(
       CONTENT_TYPE,
       strapiData
     );
 
-    return mapEvent(raw);
+    // Re-fetch with full populate since create response lacks relations
+    const event = await this.findById(created.documentId);
+    if (!event) {
+      return mapEvent(created);
+    }
+    return event;
   }
 
   async update(id: string, data: Partial<CreateEventRequest>): Promise<Event> {
@@ -162,13 +192,18 @@ export class EventRepository implements RepositoryWithUploads<
       };
     }
 
-    const raw = await this.client.update<StrapiRawEvent>(
+    await this.client.update<StrapiRawEvent>(
       CONTENT_TYPE,
       id,
       strapiData
     );
 
-    return mapEvent(raw);
+    // Re-fetch with full populate since update response lacks relations
+    const event = await this.findById(id);
+    if (!event) {
+      throw new NotFoundError(`Událost s ID ${id} nebyla nalezena po aktualizaci`);
+    }
+    return event;
   }
 
   async delete(id: string): Promise<void> {
@@ -235,12 +270,12 @@ export class EventRepository implements RepositoryWithUploads<
     let uploadResults: UploadResults = {};
     if (Object.keys(filesToUpload).length > 0) {
       uploadResults = await this.uploadFiles(event.id, filesToUpload);
+      const updated = await this.findById(event.id);
+      return { event: updated ?? event, uploadResults };
     }
 
-    const updated = await this.findById(event.id);
-
     return {
-      event: updated ?? event,
+      event,
       uploadResults,
     };
   }
@@ -263,12 +298,12 @@ export class EventRepository implements RepositoryWithUploads<
     let uploadResults: UploadResults = {};
     if (Object.keys(filesToUpload).length > 0) {
       uploadResults = await this.uploadFiles(id, filesToUpload);
+      const updated = await this.findById(id);
+      return { event: updated ?? event, uploadResults };
     }
 
-    const updated = await this.findById(id);
-
     return {
-      event: updated ?? event,
+      event,
       uploadResults,
     };
   }

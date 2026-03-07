@@ -1,0 +1,75 @@
+{
+  "data": {
+    "id": 444,
+    "documentId": "zz9jyohea26zk3chdyn47gnl",
+    "homeScore": 0,
+    "awayScore": 0,
+    "homeGoalscorers": "0",
+    "awayGoalscorers": "0",
+    "matchDate": "2026-03-07",
+    "matchTime": null,
+    "venue": null,
+    "round": null,
+    "season": null,
+    "matchReport": "Test report",
+    "imagesUrl": null,
+    "facrId": null,
+    "competitionName": null,
+    "competitionCode": null,
+    "period": null,
+    "organizingBody": null,
+    "createdAt": "2026-03-07T13:51:02.029Z",
+    "updatedAt": "2026-03-07T14:38:47.293Z",
+    "publishedAt": "2026-03-07T14:38:47.285Z",
+    "lineup": null,
+    "homeTeam": {
+      "id": 33,
+      "documentId": "e3gfrlgbb5mkyi20t6hnprng",
+      "name": "FK Frýdek-Místek z.s.",
+      "logo": null
+    },
+    "awayTeam": {
+      "id": 269,
+      "documentId": "j29tupv15ugvn1qij64gi8zf",
+      "name": "FC Zlín",
+      "logo": {
+        "id": 378,
+        "documentId": "kkxgqquaz2ve0u1x6bzse2ff",
+        "url": "/uploads/zlin_a2aee51497.png",
+        "alternativeText": null,
+        "width": 310,
+        "height": 310
+      }
+    },
+    "categories": [
+      {
+        "id": 4,
+        "documentId": "cm6adl47cnh19rx3852bwavw",
+        "name": "Dorost U17",
+        "slug": "dorost-u17",
+        "sortOrder": 4,
+        "createdAt": "2025-12-18T17:25:08.749Z",
+        "updatedAt": "2026-03-06T10:08:21.016Z",
+        "publishedAt": "2026-03-06T10:08:20.958Z",
+        "hidden": false
+      }
+    ],
+    "images": null,
+    "files": null,
+    "tournament": null,
+    "author": {
+      "id": 22,
+      "documentId": "bojz66s5ypf15gr02vu7f5q6",
+      "firstname": "Kamil",
+      "lastname": "Raška",
+      "email": "kamil.raska@seznam.cz"
+    },
+    "lastModifiedBy": {
+      "id": 2,
+      "documentId": "h1v3lgvji1za8ki2hbpxi3m8",
+      "firstname": "Jan",
+      "lastname": "Mikeš"
+    }
+  },
+  "meta": {}
+}

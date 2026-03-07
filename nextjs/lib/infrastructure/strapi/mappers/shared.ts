@@ -11,8 +11,8 @@ import { getPublicUploadsUrl } from '@/lib/config';
  * Minimal media interface that works with both TypeScript types and Zod inferred types
  */
 interface RawMediaLike {
-  id: number;
-  name: string;
+  id?: number;
+  name?: string;
   alternativeText?: string | null;
   caption?: string | null;
   width?: number | null;
@@ -26,11 +26,11 @@ interface RawMediaLike {
   url: string;
   previewUrl?: string | null;
   provider?: string;
-  size: number;
-  ext: string;
-  mime: string;
-  createdAt: string;
-  updatedAt: string;
+  size?: number;
+  ext?: string;
+  mime?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // =============================================================================
@@ -97,8 +97,8 @@ export function transformImageFormats(formats: RawMediaLike['formats']): StrapiI
  */
 export function mapRawMediaToImage(media: RawMediaLike): StrapiImage {
   return {
-    id: media.id,
-    name: media.name,
+    id: media.id ?? 0,
+    name: media.name ?? '',
     alternativeText: media.alternativeText ?? null,
     caption: media.caption ?? null,
     width: media.width ?? 0,
@@ -107,11 +107,11 @@ export function mapRawMediaToImage(media: RawMediaLike): StrapiImage {
     url: transformImageUrl(media.url),
     previewUrl: media.previewUrl ?? null,
     provider: media.provider ?? 'local',
-    size: media.size,
-    ext: media.ext,
-    mime: media.mime,
-    createdAt: media.createdAt,
-    updatedAt: media.updatedAt,
+    size: media.size ?? 0,
+    ext: media.ext ?? '',
+    mime: media.mime ?? '',
+    createdAt: media.createdAt ?? '',
+    updatedAt: media.updatedAt ?? '',
   };
 }
 
@@ -120,18 +120,18 @@ export function mapRawMediaToImage(media: RawMediaLike): StrapiImage {
  */
 export function mapRawMediaToFile(media: RawMediaLike): StrapiFile {
   return {
-    id: media.id,
-    name: media.name,
+    id: media.id ?? 0,
+    name: media.name ?? '',
     alternativeText: media.alternativeText ?? null,
     caption: media.caption ?? null,
     url: transformImageUrl(media.url),
     previewUrl: media.previewUrl ?? null,
     provider: media.provider ?? 'local',
-    size: media.size,
-    ext: media.ext,
-    mime: media.mime,
-    createdAt: media.createdAt,
-    updatedAt: media.updatedAt,
+    size: media.size ?? 0,
+    ext: media.ext ?? '',
+    mime: media.mime ?? '',
+    createdAt: media.createdAt ?? '',
+    updatedAt: media.updatedAt ?? '',
   };
 }
 

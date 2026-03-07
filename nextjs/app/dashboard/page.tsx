@@ -27,22 +27,13 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const [mrRes, tRes, eRes] = await Promise.all([
-          fetch('/api/matches/list'),
-          fetch('/api/tournaments/list'),
-          fetch('/api/events/list'),
-        ]);
-
-        const [mrData, tData, eData] = await Promise.all([
-          mrRes.json(),
-          tRes.json(),
-          eRes.json(),
-        ]);
+        const res = await fetch('/api/dashboard/summary');
+        const json = await res.json();
 
         setData({
-          matches: mrData.data?.matches || [],
-          tournaments: tData.data?.tournaments || [],
-          events: eData.data?.events || [],
+          matches: json.data?.matches || [],
+          tournaments: json.data?.tournaments || [],
+          events: json.data?.events || [],
         });
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);

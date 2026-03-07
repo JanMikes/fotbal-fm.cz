@@ -108,12 +108,11 @@ export function mapTournament(raw: unknown): Tournament {
   const parseResult = strapiRawTournamentSchema.safeParse(raw);
 
   if (!parseResult.success) {
-    // Log detailed error information for debugging
-    console.error('[mapTournament] Validation failed. Errors:', JSON.stringify(parseResult.error.issues, null, 2));
-    console.error('[mapTournament] Raw data received:', JSON.stringify(raw, null, 2));
+    const rawObj = raw as Record<string, unknown>;
+    console.error('[mapTournament] Validation failed for tournament id=%s documentId=%s. Errors:', rawObj?.id, rawObj?.documentId, JSON.stringify(parseResult.error.issues, null, 2));
     throw new ValidationError(
       'Neplatná data turnaje ze Strapi',
-      { zodErrors: parseResult.error.issues, raw }
+      { zodErrors: parseResult.error.issues }
     );
   }
 
@@ -164,8 +163,8 @@ export function mapTournaments(rawArray: unknown[]): Tournament[] {
 export function safeMapTournament(raw: unknown): Tournament | null {
   try {
     return mapTournament(raw);
-  } catch (error) {
-    console.error('[safeMapTournament] Failed to map tournament:', error);
+  } catch {
+    // Error already logged by mapTournament
     return null;
   }
 }

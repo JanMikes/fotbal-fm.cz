@@ -35,6 +35,16 @@ const DEFAULT_POPULATE = {
 };
 
 /**
+ * Minimal populate for summary/calendar views.
+ * Only fetches team names, scores, date, and categories — no images, files, or author.
+ */
+const SUMMARY_POPULATE = {
+  homeTeam: { fields: ['id', 'documentId', 'name'] },
+  awayTeam: { fields: ['id', 'documentId', 'name'] },
+  categories: { fields: ['id', 'documentId', 'name', 'slug', 'sortOrder'] },
+};
+
+/**
  * Build Strapi query options from find options
  */
 function buildQueryOptions(options?: UserFilterOptions) {
@@ -117,6 +127,23 @@ export class MatchRepository implements RepositoryWithUploads<
     return mapMatches(result.data);
   }
 
+  /**
+   * Find matches with minimal populate for dashboard/calendar views.
+   */
+  async findAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Match[]> {
+    const result = await this.client.findMany<StrapiRawMatch>(
+      CONTENT_TYPE,
+      {
+        populate: SUMMARY_POPULATE,
+        sort: 'createdAt:desc',
+        pagination: { limit: options?.limit ?? 100 },
+        filters: options?.filters,
+      }
+    );
+
+    return mapMatches(result.data);
+  }
+
   async findPaginated(options?: UserFilterOptions): Promise<PaginatedResult<Match>> {
     const queryOptions = buildQueryOptions(options);
 
@@ -165,12 +192,17 @@ export class MatchRepository implements RepositoryWithUploads<
       strapiData.tournament = tournament;
     }
 
-    const raw = await this.client.create<StrapiRawMatch>(
+    const created = await this.client.create<StrapiRawMatch>(
       CONTENT_TYPE,
       strapiData
     );
 
-    return mapMatch(raw);
+    // Re-fetch with full populate since create response lacks relations
+    const match = await this.findById(created.documentId);
+    if (!match) {
+      return mapMatch(created);
+    }
+    return match;
   }
 
   async update(id: string, data: Partial<CreateMatchRequest>): Promise<Match> {
@@ -206,13 +238,18 @@ export class MatchRepository implements RepositoryWithUploads<
       strapiData.tournament = tournament || null;
     }
 
-    const raw = await this.client.update<StrapiRawMatch>(
+    await this.client.update<StrapiRawMatch>(
       CONTENT_TYPE,
       id,
       strapiData
     );
 
-    return mapMatch(raw);
+    // Re-fetch with full populate since update response lacks relations
+    const match = await this.findById(id);
+    if (!match) {
+      throw new NotFoundError(`Zápas s ID ${id} nebyl nalezen po aktualizaci`);
+    }
+    return match;
   }
 
   async delete(id: string): Promise<void> {
@@ -283,12 +320,13 @@ export class MatchRepository implements RepositoryWithUploads<
     let uploadResults: UploadResults = {};
     if (Object.keys(filesToUpload).length > 0) {
       uploadResults = await this.uploadFiles(match.id, filesToUpload);
+      // Re-fetch only if files were uploaded
+      const updated = await this.findById(match.id);
+      return { match: updated ?? match, uploadResults };
     }
 
-    const updated = await this.findById(match.id);
-
     return {
-      match: updated ?? match,
+      match,
       uploadResults,
     };
   }
@@ -314,12 +352,13 @@ export class MatchRepository implements RepositoryWithUploads<
     let uploadResults: UploadResults = {};
     if (Object.keys(filesToUpload).length > 0) {
       uploadResults = await this.uploadFiles(id, filesToUpload);
+      // Re-fetch only if files were uploaded (to get updated file relations)
+      const updated = await this.findById(id);
+      return { match: updated ?? match, uploadResults };
     }
 
-    const updated = await this.findById(id);
-
     return {
-      match: updated ?? match,
+      match,
       uploadResults,
     };
   }

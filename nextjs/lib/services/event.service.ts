@@ -141,6 +141,28 @@ export class EventService {
   }
 
   /**
+   * Get all events with minimal data for dashboard/calendar
+   */
+  async getAllSummary(limit?: number): Promise<Result<Event[], AppError>> {
+    try {
+      const events = await this.repository.findAllSummary({ limit });
+      return ok(events);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'EventService', method: 'getAllSummary' },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání událostí',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Create a new event with file uploads
    */
   async create(

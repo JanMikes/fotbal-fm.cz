@@ -148,6 +148,7 @@ export default function MatchResultForm({
               onChange={field.onChange}
               error={errors.categoryIds?.message}
               required
+              multiple={false}
             />
           )}
         />
