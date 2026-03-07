@@ -9,15 +9,21 @@ import { TournamentService } from '@/lib/services';
 
 export const GET = withAuth(async (
   request: NextRequest,
-  { userId, jwt }
+  { jwt }
 ) => {
   const { searchParams } = new URL(request.url);
-  const onlyMine = searchParams.get('onlyMine') === 'true';
+  const category = searchParams.get('category');
 
-  addApiBreadcrumb('Listing tournaments', { onlyMine, userId });
+  addApiBreadcrumb('Listing tournaments', { category });
 
   const service = TournamentService.forUser(jwt);
-  const result = await service.getAll(onlyMine ? userId : undefined);
+
+  const filters: Record<string, unknown> = {};
+  if (category) {
+    filters.categories = { documentId: { $eq: category } };
+  }
+
+  const result = await service.getAll(undefined, Object.keys(filters).length > 0 ? filters : undefined);
 
   if (!result.success) {
     return ApiErrors.serverError(result.error.message);

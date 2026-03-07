@@ -115,11 +115,11 @@ export class TournamentService {
   }
 
   /**
-   * Get all tournaments with optional user filter
+   * Get all tournaments with optional user filter and additional filters
    */
-  async getAll(userId?: number): Promise<Result<Tournament[], AppError>> {
+  async getAll(userId?: number, filters?: Record<string, unknown>): Promise<Result<Tournament[], AppError>> {
     try {
-      const tournaments = await this.repository.findAll({ userId });
+      const tournaments = await this.repository.findAll({ userId, filters });
       return ok(tournaments);
     } catch (error) {
       Sentry.captureException(error, {

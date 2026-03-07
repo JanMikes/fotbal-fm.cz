@@ -1,16 +1,14 @@
 import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
-import { Calendar, MapPin, Edit, Image, User, Trophy, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Edit, Image as ImageIcon, User, Trophy, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 interface TournamentCardProps {
   tournament: Tournament;
-  currentUserId?: number;
 }
 
-export default function TournamentCard({ tournament, currentUserId }: TournamentCardProps) {
-  const isOwner = currentUserId && tournament.authorId === currentUserId;
+export default function TournamentCard({ tournament }: TournamentCardProps) {
   const formattedDateFrom = tournament.dateFrom
     ? new Date(tournament.dateFrom).toLocaleDateString('cs-CZ', {
         day: 'numeric',
@@ -52,14 +50,12 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
                 Okomentovat
               </Button>
             </Link>
-            {isOwner && (
-              <Link href={`/upravit-turnaj/${tournament.id}`} className="flex-1 md:flex-none">
-                <Button variant="secondary" size="sm" className="w-full md:w-auto">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Upravit
-                </Button>
-              </Link>
-            )}
+            <Link href={`/upravit-turnaj/${tournament.id}`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <Edit className="w-4 h-4 mr-1" />
+                Upravit
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -87,7 +83,7 @@ export default function TournamentCard({ tournament, currentUserId }: Tournament
               Zápasy {tournament.matches?.length ?? 0}
             </span>
             <span className="flex items-center gap-1.5">
-              <Image className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4" />
               Fotografie {tournament.photos?.length ?? 0}
             </span>
           </div>

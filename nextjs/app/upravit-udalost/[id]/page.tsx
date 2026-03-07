@@ -36,12 +36,6 @@ export default function EditEventPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst událost');
         }
 
-        // Check ownership
-        if (data.data.event.authorId !== user.id) {
-          setError('Nemáte oprávnění upravit tento záznam');
-          return;
-        }
-
         setEvent(data.data.event);
       } catch (err) {
         if (err instanceof Error) {

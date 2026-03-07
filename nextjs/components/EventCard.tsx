@@ -1,16 +1,14 @@
 import { Event } from '@/types/event';
 import Card from '@/components/ui/Card';
-import { Calendar, Clock, Camera, Edit, Image, User, MessageCircle } from 'lucide-react';
+import { Calendar, Clock, Camera, Edit, Image as ImageIcon, User, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 
 interface EventCardProps {
   event: Event;
-  currentUserId?: number;
 }
 
-export default function EventCard({ event, currentUserId }: EventCardProps) {
-  const isOwner = currentUserId && event.authorId === currentUserId;
+export default function EventCard({ event }: EventCardProps) {
   const dateFrom = new Date(event.dateFrom);
   const formattedDateFrom = dateFrom.toLocaleDateString('cs-CZ', {
     day: 'numeric',
@@ -59,14 +57,12 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
                 Okomentovat
               </Button>
             </Link>
-            {isOwner && (
-              <Link href={`/upravit-udalost/${event.id}`} className="flex-1 md:flex-none">
-                <Button variant="secondary" size="sm" className="w-full md:w-auto">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Upravit
-                </Button>
-              </Link>
-            )}
+            <Link href={`/upravit-udalost/${event.id}`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <Edit className="w-4 h-4 mr-1" />
+                Upravit
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -101,7 +97,7 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
         {/* Photo count */}
         <div className="flex items-center text-sm">
           <span className="flex items-center gap-1.5 text-text-muted">
-            <Image className="w-4 h-4" />
+            <ImageIcon className="w-4 h-4" />
             Fotografie {event.photos?.length ?? 0}
           </span>
         </div>

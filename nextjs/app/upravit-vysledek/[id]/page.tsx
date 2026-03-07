@@ -36,12 +36,6 @@ export default function EditMatchResultPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst výsledek');
         }
 
-        // Check ownership
-        if (data.data.match.authorId !== user.id) {
-          setError('Nemáte oprávnění upravit tento záznam');
-          return;
-        }
-
         setMatch(data.data.match);
       } catch (err) {
         if (err instanceof Error) {

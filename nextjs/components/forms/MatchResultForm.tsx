@@ -24,27 +24,39 @@ interface MatchResultFormProps {
   mode?: 'create' | 'edit';
   initialData?: Match;
   recordId?: string;
+  tournamentId?: string;
 }
 
 export default function MatchResultForm({
   mode = 'create',
   initialData,
   recordId,
+  tournamentId,
 }: MatchResultFormProps) {
   const router = useRouter();
   const [images, setImages] = useState<FileList | null>(null);
   const [files, setFiles] = useState<FileList | null>(null);
 
   // Use the appropriate mutation hook based on mode
+  const effectiveTournamentId = tournamentId || initialData?.tournamentId;
+
   const createMutation = useCreateMatch({
     onSuccess: () => {
-      router.push('/vysledky?success=true');
+      if (effectiveTournamentId) {
+        router.push(`/turnaj/${effectiveTournamentId}?success=true`);
+      } else {
+        router.push('/vysledky?success=true');
+      }
     },
   });
 
   const updateMutation = useUpdateMatch(recordId || '', {
     onSuccess: () => {
-      router.push(`/vysledek/${recordId}?success=true`);
+      if (effectiveTournamentId) {
+        router.push(`/turnaj/${effectiveTournamentId}?success=true`);
+      } else {
+        router.push(`/vysledek/${recordId}?success=true`);
+      }
     },
   });
 
@@ -78,6 +90,7 @@ export default function MatchResultForm({
         }
       : {
           categoryIds: [],
+          tournament: tournamentId || '',
         },
   });
 
@@ -254,7 +267,7 @@ export default function MatchResultForm({
       </FormField>
 
       <FormField
-        label="Zpráva ze zápasu"
+        label="Komentář trenéra"
         error={errors.matchReport?.message}
         hint="Shrnutí průběhu zápasu. Můžete použít formátování."
       >

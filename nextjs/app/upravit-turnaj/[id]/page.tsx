@@ -39,12 +39,6 @@ export default function EditTournamentPage({ params }: PageProps) {
           throw new Error(data.error || 'Nepodařilo se načíst turnaj');
         }
 
-        // Check ownership
-        if (data.data.tournament.authorId !== user.id) {
-          setError('Nemáte oprávnění upravit tento záznam');
-          return;
-        }
-
         setTournament(data.data.tournament);
       } catch (err) {
         if (err instanceof Error) {

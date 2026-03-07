@@ -70,14 +70,7 @@ export default function TournamentForm({
           dateTo: initialData.dateTo || '',
           categoryIds: initialData.categories?.map(c => c.id) || [],
           imagesUrl: initialData.imagesUrl || '',
-          matches: initialData.matches?.map(m => ({
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            homeScore: m.homeScore ?? undefined,
-            awayScore: m.awayScore ?? undefined,
-            homeGoalscorers: m.homeGoalscorers || '',
-            awayGoalscorers: m.awayGoalscorers || '',
-          })) || [],
+          matches: [],
           players: initialData.players || [],
         }
       : {
@@ -264,7 +257,9 @@ export default function TournamentForm({
         {/* Tournament Matches Section */}
         <div className="border-t pt-6 mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Zápasy turnaje</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              {mode === 'edit' ? 'Přidat nové zápasy' : 'Zápasy turnaje'}
+            </h3>
             <Button
               type="button"
               variant="accent"

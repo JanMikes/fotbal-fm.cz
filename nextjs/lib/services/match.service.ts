@@ -5,7 +5,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Match, CreateMatchRequest } from '@/types/match';
-import { MatchRepository, UploadResults, PaginatedResult } from '@/lib/repositories';
+import { MatchRepository, UploadResults } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserMatchRepository } from '@/lib/di';
@@ -118,11 +118,11 @@ export class MatchService {
   }
 
   /**
-   * Get all matches with optional user filter
+   * Get all matches with optional user filter and additional filters
    */
-  async getAll(userId?: number): Promise<Result<Match[], AppError>> {
+  async getAll(userId?: number, filters?: Record<string, unknown>): Promise<Result<Match[], AppError>> {
     try {
-      const matches = await this.repository.findAll({ userId });
+      const matches = await this.repository.findAll({ userId, filters });
       return ok(matches);
     } catch (error) {
       Sentry.captureException(error, {

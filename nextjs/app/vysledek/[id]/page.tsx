@@ -13,6 +13,7 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import LastUpdatedInfo from '@/components/ui/LastUpdatedInfo';
 import CommentSection from '@/components/CommentSection';
 import ImageGallery from '@/components/ui/ImageGallery';
+import TeamLogo from '@/components/ui/TeamLogo';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -82,7 +83,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
     return null;
   }
 
-  const matchDate = new Date(match.createdAt);
+  const matchDate = new Date(match.matchDate);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
     month: 'numeric',
@@ -90,8 +91,6 @@ export default function MatchResultDetailPage({ params }: PageProps) {
     hour: '2-digit',
     minute: '2-digit',
   });
-
-  const isOwner = user.id === match.authorId;
 
   return (
     <div className="bg-background py-8">
@@ -103,14 +102,12 @@ export default function MatchResultDetailPage({ params }: PageProps) {
               Zpět na výsledky
             </Button>
           </Link>
-          {isOwner && (
-            <Link href={`/upravit-vysledek/${match.id}`}>
-              <Button variant="secondary" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Upravit
-              </Button>
-            </Link>
-          )}
+          <Link href={`/upravit-vysledek/${match.id}`}>
+            <Button variant="secondary" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Upravit
+            </Button>
+          </Link>
         </div>
 
         <Card variant="elevated">
@@ -152,10 +149,11 @@ export default function MatchResultDetailPage({ params }: PageProps) {
 
             {/* Match Score */}
             <div className="flex items-center justify-between">
-              <div className="flex-1 text-right">
-                <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
+              <div className="flex-1 flex items-center justify-end gap-3">
+                <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary text-right">
                   {match.homeTeam}
                 </h3>
+                <TeamLogo name={match.homeTeam} logo={match.homeTeamLogo} size={40} />
               </div>
 
               <div className="mx-2 md:mx-6">
@@ -166,7 +164,8 @@ export default function MatchResultDetailPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 flex items-center gap-3">
+                <TeamLogo name={match.awayTeam} logo={match.awayTeamLogo} size={40} />
                 <h3 className="text-sm md:text-xl font-medium md:font-semibold text-text-primary">
                   {match.awayTeam}
                 </h3>
@@ -207,7 +206,7 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             {match.matchReport && (
               <div className="pt-6 border-t border-border">
                 <p className="text-sm font-medium text-text-label mb-3">
-                  Zpráva ze zápasu:
+                  Komentář trenéra:
                 </p>
                 <p className="text-text-secondary whitespace-pre-line leading-relaxed">
                   {match.matchReport}

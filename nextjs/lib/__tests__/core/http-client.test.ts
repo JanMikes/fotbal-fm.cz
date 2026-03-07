@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { AppError as AppErrorType } from '../../core/errors';
 
 vi.mock('@sentry/nextjs', () => ({
   addBreadcrumb: vi.fn(),
@@ -119,8 +120,8 @@ describe('HttpClient', () => {
         expect.unreachable('Should throw');
       } catch (e) {
         expect(e).toBeInstanceOf(AppError);
-        expect((e as AppError).statusCode).toBe(401);
-        expect((e as AppError).code).toBe(ErrorCode.UNAUTHORIZED);
+        expect((e as AppErrorType).statusCode).toBe(401);
+        expect((e as AppErrorType).code).toBe(ErrorCode.UNAUTHORIZED);
       }
     });
 
@@ -132,8 +133,8 @@ describe('HttpClient', () => {
         await client.get('/admin');
         expect.unreachable('Should throw');
       } catch (e) {
-        expect((e as AppError).statusCode).toBe(403);
-        expect((e as AppError).code).toBe(ErrorCode.FORBIDDEN);
+        expect((e as AppErrorType).statusCode).toBe(403);
+        expect((e as AppErrorType).code).toBe(ErrorCode.FORBIDDEN);
       }
     });
 
@@ -145,8 +146,8 @@ describe('HttpClient', () => {
         await client.get('/missing');
         expect.unreachable('Should throw');
       } catch (e) {
-        expect((e as AppError).statusCode).toBe(404);
-        expect((e as AppError).code).toBe(ErrorCode.NOT_FOUND);
+        expect((e as AppErrorType).statusCode).toBe(404);
+        expect((e as AppErrorType).code).toBe(ErrorCode.NOT_FOUND);
       }
     });
 
@@ -158,8 +159,8 @@ describe('HttpClient', () => {
         await client.post('/items', {});
         expect.unreachable('Should throw');
       } catch (e) {
-        expect((e as AppError).statusCode).toBe(400);
-        expect((e as AppError).code).toBe(ErrorCode.VALIDATION_FAILED);
+        expect((e as AppErrorType).statusCode).toBe(400);
+        expect((e as AppErrorType).code).toBe(ErrorCode.VALIDATION_FAILED);
       }
     });
 
@@ -171,8 +172,8 @@ describe('HttpClient', () => {
         await client.get('/error');
         expect.unreachable('Should throw');
       } catch (e) {
-        expect((e as AppError).statusCode).toBe(500);
-        expect((e as AppError).code).toBe(ErrorCode.STRAPI_ERROR);
+        expect((e as AppErrorType).statusCode).toBe(500);
+        expect((e as AppErrorType).code).toBe(ErrorCode.STRAPI_ERROR);
       }
     });
 
@@ -187,7 +188,7 @@ describe('HttpClient', () => {
         await client.get('/bad');
         expect.unreachable('Should throw');
       } catch (e) {
-        expect((e as AppError).message).toBe('Strapi specific error');
+        expect((e as AppErrorType).message).toBe('Strapi specific error');
       }
     });
 

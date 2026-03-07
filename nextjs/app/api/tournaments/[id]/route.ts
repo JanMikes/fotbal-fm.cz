@@ -58,19 +58,6 @@ export const PUT = withAuthFormData(async (
 
   const service = TournamentService.forUser(jwt);
 
-  // Check ownership
-  const existingResult = await service.getById(id);
-  if (!existingResult.success) {
-    if (existingResult.error.code === 'NOT_FOUND') {
-      return ApiErrors.notFound(existingResult.error.message);
-    }
-    return ApiErrors.serverError(existingResult.error.message);
-  }
-
-  if (existingResult.data.authorId !== userId) {
-    return ApiErrors.forbidden('Nemáte oprávnění upravit tento záznam');
-  }
-
   // Parse categories from JSON
   const categoryIdsJson = getStringField(formData, 'categoryIds');
   let categories: string[] = [];

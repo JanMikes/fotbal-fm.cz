@@ -1,17 +1,15 @@
 import { Match } from '@/types/match';
 import Card from '@/components/ui/Card';
-import { Calendar, Edit, Image, User, MessageCircle } from 'lucide-react';
+import { Calendar, Edit, Image as ImageIcon, User, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import TeamLogo from '@/components/ui/TeamLogo';
 
 interface MatchResultCardProps {
   match: Match;
-  currentUserId?: number;
 }
 
-export default function MatchResultCard({ match, currentUserId }: MatchResultCardProps) {
-  const isOwner = currentUserId && match.authorId === currentUserId;
-
+export default function MatchResultCard({ match }: MatchResultCardProps) {
   const matchDate = new Date(match.matchDate);
   const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
     day: 'numeric',
@@ -38,14 +36,12 @@ export default function MatchResultCard({ match, currentUserId }: MatchResultCar
                 Okomentovat
               </Button>
             </Link>
-            {isOwner && (
-              <Link href={`/upravit-vysledek/${match.id}`} className="flex-1 md:flex-none">
-                <Button variant="secondary" size="sm" className="w-full md:w-auto">
-                  <Edit className="w-4 h-4 mr-1" />
-                  Upravit
-                </Button>
-              </Link>
-            )}
+            <Link href={`/upravit-vysledek/${match.id}`} className="flex-1 md:flex-none">
+              <Button variant="secondary" size="sm" className="w-full md:w-auto">
+                <Edit className="w-4 h-4 mr-1" />
+                Upravit
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -68,17 +64,18 @@ export default function MatchResultCard({ match, currentUserId }: MatchResultCar
             )}
           </div>
           <span className="flex items-center gap-1.5 text-text-muted">
-            <Image className="w-4 h-4" />
+            <ImageIcon className="w-4 h-4" />
             Fotografie {match.images.length}
           </span>
         </div>
 
         {/* Match Score */}
         <div className="flex items-center justify-between">
-          <div className="flex-1 text-right">
-            <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
+          <div className="flex-1 flex items-center justify-end gap-2">
+            <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary text-right">
               {match.homeTeam}
             </h3>
+            <TeamLogo name={match.homeTeam} logo={match.homeTeamLogo} size={28} />
           </div>
 
           <div className="mx-2 md:mx-4">
@@ -89,7 +86,8 @@ export default function MatchResultCard({ match, currentUserId }: MatchResultCar
             </div>
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 flex items-center gap-2">
+            <TeamLogo name={match.awayTeam} logo={match.awayTeamLogo} size={28} />
             <h3 className="text-sm md:text-lg font-medium md:font-semibold text-text-primary">
               {match.awayTeam}
             </h3>

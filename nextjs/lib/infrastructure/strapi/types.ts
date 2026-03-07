@@ -82,6 +82,7 @@ export interface StrapiRawTeam {
   id: number;
   documentId: string;
   name: string;
+  logo?: StrapiRawMedia | null;
 }
 
 /**
@@ -276,6 +277,7 @@ export const strapiRawTeamSchema = z.object({
   id: z.number(),
   documentId: z.string(),
   name: z.string(),
+  logo: strapiRawMediaSchema.nullable().optional(),
 });
 
 /**

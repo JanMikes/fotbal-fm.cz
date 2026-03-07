@@ -10,7 +10,7 @@ import { Plus, CalendarDays } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import FilterToggle from '@/components/ui/FilterToggle';
+import CategoryFilter from '@/components/ui/CategoryFilter';
 
 function EventsPageContent() {
   const { user, loading: userLoading } = useRequireAuth();
@@ -18,13 +18,17 @@ function EventsPageContent() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const showSuccess = searchParams.get('success') === 'true';
 
-  const fetchEvents = useCallback(async (onlyMine: boolean) => {
+  const fetchEvents = useCallback(async (category: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/events/list?onlyMine=${onlyMine}`);
+      const params = new URLSearchParams();
+      if (category) {
+        params.set('category', category);
+      }
+      const response = await fetch(`/api/events/list?${params.toString()}`);
       const data = await response.json();
 
       if (!data.success) {
@@ -45,11 +49,11 @@ function EventsPageContent() {
 
   useEffect(() => {
     if (!user) return;
-    fetchEvents(showOnlyMine);
-  }, [user, showOnlyMine, fetchEvents]);
+    fetchEvents(selectedCategory);
+  }, [user, selectedCategory, fetchEvents]);
 
-  const handleFilterChange = (value: boolean) => {
-    setShowOnlyMine(value);
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
   };
 
   if (userLoading) {
@@ -81,14 +85,12 @@ function EventsPageContent() {
           </Link>
         </div>
 
-        {!loading && events.length > 0 && (
-          <div className="mb-6">
-            <FilterToggle
-              storageKey="filter_showOnlyMine_udalosti"
-              onChange={handleFilterChange}
-            />
-          </div>
-        )}
+        <div className="mb-6">
+          <CategoryFilter
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+          />
+        </div>
 
         {showSuccess && (
           <div className="mb-6">
@@ -110,7 +112,7 @@ function EventsPageContent() {
               <CalendarDays className="w-10 h-10 text-text-muted" />
             </div>
             <h2 className="text-2xl font-semibold text-text-primary mb-2">
-              {showOnlyMine ? 'Nemáte žádné události' : 'Zatím žádné události'}
+              {selectedCategory ? 'Žádné události v této kategorii' : 'Zatím žádné události'}
             </h2>
             <p className="text-text-secondary mb-6">
               Začněte vytvořením první události
@@ -128,7 +130,6 @@ function EventsPageContent() {
               <EventCard
                 key={event.id}
                 event={event}
-                currentUserId={user.id}
               />
             ))}
           </div>

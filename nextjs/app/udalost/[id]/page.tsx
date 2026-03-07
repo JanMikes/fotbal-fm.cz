@@ -102,8 +102,6 @@ export default function EventDetailPage({ params }: PageProps) {
     ? 'bg-primary/20 text-primary'
     : 'bg-success/20 text-success';
 
-  const isOwner = user.id === event.authorId;
-
   return (
     <div className="bg-background py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -114,14 +112,12 @@ export default function EventDetailPage({ params }: PageProps) {
               Zpět na události
             </Button>
           </Link>
-          {isOwner && (
-            <Link href={`/upravit-udalost/${event.id}`}>
-              <Button variant="secondary" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Upravit
-              </Button>
-            </Link>
-          )}
+          <Link href={`/upravit-udalost/${event.id}`}>
+            <Button variant="secondary" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Upravit
+            </Button>
+          </Link>
         </div>
 
         <Card variant="elevated">

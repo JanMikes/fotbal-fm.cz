@@ -10,7 +10,7 @@ import { Plus, Trophy } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import FilterToggle from '@/components/ui/FilterToggle';
+import CategoryFilter from '@/components/ui/CategoryFilter';
 
 function MatchResultsPageContent() {
   const { user, loading: userLoading } = useRequireAuth();
@@ -18,13 +18,17 @@ function MatchResultsPageContent() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const showSuccess = searchParams.get('success') === 'true';
 
-  const fetchMatches = useCallback(async (onlyMine: boolean) => {
+  const fetchMatches = useCallback(async (category: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/matches/list?onlyMine=${onlyMine}`);
+      const params = new URLSearchParams();
+      if (category) {
+        params.set('category', category);
+      }
+      const response = await fetch(`/api/matches/list?${params.toString()}`);
       const data = await response.json();
 
       if (!data.success) {
@@ -45,11 +49,11 @@ function MatchResultsPageContent() {
 
   useEffect(() => {
     if (!user) return;
-    fetchMatches(showOnlyMine);
-  }, [user, showOnlyMine, fetchMatches]);
+    fetchMatches(selectedCategory);
+  }, [user, selectedCategory, fetchMatches]);
 
-  const handleFilterChange = (value: boolean) => {
-    setShowOnlyMine(value);
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
   };
 
   if (userLoading) {
@@ -81,14 +85,12 @@ function MatchResultsPageContent() {
           </Link>
         </div>
 
-        {!loading && matches.length > 0 && (
-          <div className="mb-6">
-            <FilterToggle
-              storageKey="filter_showOnlyMine_vysledky"
-              onChange={handleFilterChange}
-            />
-          </div>
-        )}
+        <div className="mb-6">
+          <CategoryFilter
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+          />
+        </div>
 
         {showSuccess && (
           <div className="mb-6">
@@ -110,7 +112,7 @@ function MatchResultsPageContent() {
               <Trophy className="w-10 h-10 text-text-muted" />
             </div>
             <h2 className="text-2xl font-semibold text-text-primary mb-2">
-              {showOnlyMine ? 'Nemáte žádné výsledky' : 'Zatím žádné výsledky'}
+              {selectedCategory ? 'Žádné výsledky v této kategorii' : 'Zatím žádné výsledky'}
             </h2>
             <p className="text-text-secondary mb-6">
               Začněte zadáním prvního výsledku zápasu
@@ -128,7 +130,6 @@ function MatchResultsPageContent() {
               <MatchResultCard
                 key={match.id}
                 match={match}
-                currentUserId={user.id}
               />
             ))}
           </div>

@@ -6,6 +6,19 @@ const nextConfig: NextConfig = {
   // Generate source maps for error tracking, but don't serve them publicly
   productionBrowserSourceMaps: false,
   transpilePackages: ['@fotbal-fm/strapi-client'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8080',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fotbal-fm.cz',
+      },
+    ],
+  },
 };
 
 // Only enable Sentry instrumentation if DSN is provided (production builds)

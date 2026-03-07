@@ -7,12 +7,14 @@ import { z } from 'zod/v4';
 import { Match } from '@/types/match';
 import { Category } from '@/types/category';
 import { strapiRawMatchSchema, strapiRawCategorySchema } from '../types';
+import { TeamLogoInfo } from '@/types/match';
 import {
   mapMediaToImages,
   mapMediaToFiles,
   mapUserInfo,
   extractUserId,
   nullToUndefined,
+  transformImageUrl,
 } from './shared';
 import { ValidationError } from '@/lib/core/errors';
 
@@ -30,6 +32,19 @@ function mapCategories(categories: z.infer<typeof strapiRawCategorySchema>[] | n
     slug: c.slug,
     sortOrder: c.sortOrder ?? 0,
   }));
+}
+
+/**
+ * Map raw team logo media to TeamLogoInfo
+ */
+function mapTeamLogo(team: { logo?: { url: string; alternativeText?: string | null; width?: number | null; height?: number | null } | null } | null | undefined): TeamLogoInfo | null {
+  if (!team?.logo?.url) return null;
+  return {
+    url: transformImageUrl(team.logo.url),
+    alternativeText: team.logo.alternativeText ?? null,
+    width: team.logo.width ?? 0,
+    height: team.logo.height ?? 0,
+  };
 }
 
 /**
@@ -75,6 +90,8 @@ export function mapMatch(raw: unknown): Match {
     id: data.documentId,
     homeTeam: data.homeTeam?.name ?? '',
     awayTeam: data.awayTeam?.name ?? '',
+    homeTeamLogo: mapTeamLogo(data.homeTeam),
+    awayTeamLogo: mapTeamLogo(data.awayTeam),
     homeScore: data.homeScore,
     awayScore: data.awayScore,
     homeGoalscorers: nullToUndefined(data.homeGoalscorers),

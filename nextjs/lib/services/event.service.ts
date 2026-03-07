@@ -118,11 +118,11 @@ export class EventService {
   }
 
   /**
-   * Get all events with optional user filter
+   * Get all events with optional user filter and additional filters
    */
-  async getAll(userId?: number): Promise<Result<Event[], AppError>> {
+  async getAll(userId?: number, filters?: Record<string, unknown>): Promise<Result<Event[], AppError>> {
     try {
-      const events = await this.repository.findAll({ userId });
+      const events = await this.repository.findAll({ userId, filters });
       return ok(events);
     } catch (error) {
       Sentry.captureException(error, {

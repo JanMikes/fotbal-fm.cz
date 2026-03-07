@@ -20,14 +20,18 @@ describe('Result type', () => {
     it('creates successful result', () => {
       const result = ok(42);
       expect(result.success).toBe(true);
-      expect(result.data).toBe(42);
+      if (result.success) {
+        expect(result.data).toBe(42);
+      }
     });
 
     it('creates failed result', () => {
       const error = new Error('fail');
       const result = err(error);
       expect(result.success).toBe(false);
-      expect(result.error).toBe(error);
+      if (!result.success) {
+        expect(result.error).toBe(error);
+      }
     });
   });
 
@@ -173,14 +177,18 @@ describe('Result type', () => {
     it('creates result with warnings', () => {
       const result = okWithWarnings(42, ['warning 1']);
       expect(result.success).toBe(true);
-      expect(result.data).toBe(42);
-      expect(result.warnings).toEqual(['warning 1']);
+      if (result.success) {
+        expect(result.data).toBe(42);
+        expect(result.warnings).toEqual(['warning 1']);
+      }
     });
 
     it('creates result without warnings', () => {
       const result = okWithWarnings(42);
       expect(result.success).toBe(true);
-      expect(result.warnings).toBeUndefined();
+      if (result.success) {
+        expect(result.warnings).toBeUndefined();
+      }
     });
   });
 });

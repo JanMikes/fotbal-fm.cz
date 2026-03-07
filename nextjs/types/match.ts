@@ -61,10 +61,19 @@ export interface UserInfo {
   email?: string;
 }
 
+export interface TeamLogoInfo {
+  url: string;
+  alternativeText: string | null;
+  width: number;
+  height: number;
+}
+
 export interface Match {
   id: string;
   homeTeam: string;
   awayTeam: string;
+  homeTeamLogo: TeamLogoInfo | null;
+  awayTeamLogo: TeamLogoInfo | null;
   homeScore: number | null;
   awayScore: number | null;
   homeGoalscorers?: string;

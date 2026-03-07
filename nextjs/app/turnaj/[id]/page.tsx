@@ -6,7 +6,8 @@ import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Edit, Trophy } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Edit, Trophy, Plus } from 'lucide-react';
+import MatchResultCard from '@/components/MatchResultCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -101,8 +102,6 @@ export default function TournamentDetailPage({ params }: PageProps) {
       })
     : null;
 
-  const isOwner = user.id === tournament.authorId;
-
   return (
     <div className="bg-background py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -113,14 +112,12 @@ export default function TournamentDetailPage({ params }: PageProps) {
               Zpět na turnaje
             </Button>
           </Link>
-          {isOwner && (
-            <Link href={`/upravit-turnaj/${tournament.id}`}>
-              <Button variant="secondary" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Upravit
-              </Button>
-            </Link>
-          )}
+          <Link href={`/upravit-turnaj/${tournament.id}`}>
+            <Button variant="secondary" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Upravit
+            </Button>
+          </Link>
         </div>
 
         <Card variant="elevated">
@@ -202,29 +199,33 @@ export default function TournamentDetailPage({ params }: PageProps) {
             )}
 
             {/* Matches */}
-            {tournament.matches && tournament.matches.length > 0 && (
-              <div className="pt-6 border-t border-border">
-                <p className="text-sm font-medium text-text-label mb-4">
-                  Zápasy ({tournament.matches.length}):
+            <div className="pt-6 border-t border-border">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium text-text-label">
+                  Zápasy ({tournament.matches?.length ?? 0}):
                 </p>
-                <div className="space-y-3">
+                <Link href={`/zadat-vysledek?tournament=${tournament.id}`}>
+                  <Button variant="accent" size="sm">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Přidat zápas
+                  </Button>
+                </Link>
+              </div>
+              {tournament.matches && tournament.matches.length > 0 ? (
+                <div className="space-y-4">
                   {tournament.matches.map((match) => (
-                    <div
+                    <MatchResultCard
                       key={match.id}
-                      className="flex items-center justify-between p-4 bg-surface-elevated rounded-lg border border-border"
-                    >
-                      <span className="font-medium text-text-primary">{match.homeTeam}</span>
-                      <div className="px-4 py-1 bg-primary/10 rounded-lg">
-                        <span className="font-bold text-primary">
-                          {match.homeScore} : {match.awayScore}
-                        </span>
-                      </div>
-                      <span className="font-medium text-text-primary">{match.awayTeam}</span>
-                    </div>
+                      match={match}
+                    />
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm text-text-muted text-center py-4 bg-surface-elevated rounded-lg">
+                  Zatím nebyly přidány žádné zápasy.
+                </p>
+              )}
+            </div>
 
             {/* Players / Awards */}
             {tournament.players && tournament.players.length > 0 && (
