@@ -52,6 +52,26 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Heslo je povinné'),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Neplatný formát emailu'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    code: z.string().min(1, 'Kód je povinný'),
+    password: z
+      .string()
+      .min(8, 'Heslo musí mít alespoň 8 znaků')
+      .regex(/[A-Z]/, 'Heslo musí obsahovat alespoň jedno velké písmeno')
+      .regex(/[a-z]/, 'Heslo musí obsahovat alespoň jedno malé písmeno')
+      .regex(/[0-9]/, 'Heslo musí obsahovat alespoň jednu číslici'),
+    passwordConfirmation: z.string().min(1, 'Potvrzení hesla je povinné'),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: 'Hesla se neshodují',
+    path: ['passwordConfirmation'],
+  });
+
 export const registerSchema = z.object({
   email: z.string().email('Neplatný formát emailu'),
   password: z
@@ -249,6 +269,8 @@ export const commentApiSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;

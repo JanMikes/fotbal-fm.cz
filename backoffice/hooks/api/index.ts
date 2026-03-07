@@ -31,6 +31,8 @@ export {
 // Auth
 export {
   useLogin,
+  useForgotPassword,
+  useResetPassword,
   useRegister,
   useUpdateProfile,
   useChangePassword,

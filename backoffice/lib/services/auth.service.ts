@@ -285,6 +285,104 @@ export class AuthService {
   }
 
   /**
+   * Request password reset (forgot password)
+   */
+  async forgotPassword(email: string): Promise<Result<void, AppError>> {
+    try {
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: 'Forgot password request',
+        level: 'info',
+        data: { email },
+      });
+
+      const response = await fetch(`${this.strapiUrl}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        return this.handleAuthError(error, response.status);
+      }
+
+      return ok(undefined);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'AuthService', method: 'forgotPassword' },
+        extra: { email },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při odesílání požadavku na reset hesla',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
+   * Reset password with code from email
+   */
+  async resetPassword(
+    code: string,
+    password: string,
+    passwordConfirmation: string
+  ): Promise<Result<AuthResult, AppError>> {
+    try {
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: 'Password reset attempt',
+        level: 'info',
+      });
+
+      const response = await fetch(`${this.strapiUrl}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code, password, passwordConfirmation }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        return this.handleAuthError(error, response.status);
+      }
+
+      const data: StrapiAuthResponse = await response.json();
+
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: 'Password reset successful',
+        level: 'info',
+        data: { userId: data.user.id },
+      });
+
+      return ok({
+        user: this.mapStrapiUser(data.user),
+        jwt: data.jwt,
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'AuthService', method: 'resetPassword' },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při resetování hesla',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Change user password
    */
   async changePassword(

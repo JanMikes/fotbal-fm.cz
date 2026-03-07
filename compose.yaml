@@ -57,6 +57,13 @@ services:
             JWT_SECRET: toBeModifiedJwtSecret
             NODE_OPTIONS: "--max-http-header-size=65536"
             REDIS_URL: redis://redis:6379
+            # Email Configuration (Mailpit for development)
+            SMTP_HOST: mailpit
+            SMTP_PORT: "1025"
+            SMTP_USER: ""
+            SMTP_PASSWORD: ""
+            SMTP_SECURE: "false"
+            EMAIL_FROM: "noreply@fotbal-fm.cz"
         working_dir: /app
         volumes:
             - ./strapi:/app
@@ -65,6 +72,8 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+            mailpit:
+                condition: service_started
         command: bash -c "npm install && npm run dev"
 
     backoffice:
@@ -95,6 +104,7 @@ services:
             SMTP_SECURE: "false"
             EMAIL_FROM: "noreply@fotbal-fm.cz"
             EMAIL_TO: "info@fotbal-fm.cz"
+            APP_URL: "http://localhost:3000"
         depends_on:
             - mailpit
         command: bash -c "cd /app && npm install && cd /app/backoffice && npm run dev"

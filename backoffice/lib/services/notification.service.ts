@@ -189,6 +189,7 @@ export class NotificationService {
     comment: Comment,
     entityType: 'match' | 'tournament' | 'event',
     entityName: string,
+    entityId: string,
     entityAuthorEmail?: string
   ): void {
     try {
@@ -196,10 +197,10 @@ export class NotificationService {
         category: 'notification',
         message: 'Sending comment added notification',
         level: 'info',
-        data: { commentId: comment.id, entityType, entityName, hasEntityAuthorEmail: !!entityAuthorEmail },
+        data: { commentId: comment.id, entityType, entityName, entityId, hasEntityAuthorEmail: !!entityAuthorEmail },
       });
 
-      baseNotifyCommentAdded(comment, entityType, entityName, entityAuthorEmail);
+      baseNotifyCommentAdded(comment, entityType, entityName, entityId, entityAuthorEmail);
     } catch (error) {
       Sentry.captureException(error, {
         tags: { service: 'NotificationService', method: 'notifyCommentAdded' },

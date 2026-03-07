@@ -1,4 +1,5 @@
 import { sendEmailAsync } from './email';
+import { config } from './config';
 import type { Tournament } from '@/types/tournament';
 import type { Event } from '@/types/event';
 import type { Match, UserInfo } from '@/types/match';
@@ -59,6 +60,16 @@ function createEmailHtml(title: string, content: string): string {
   `;
 }
 
+function getEntityUrl(entityType: 'match' | 'tournament' | 'event', entityId: string): string {
+  const paths = { match: 'vysledek', tournament: 'turnaj', event: 'udalost' };
+  return `${config.APP_URL}/${paths[entityType]}/${entityId}`;
+}
+
+function formatEntityLink(entityType: 'match' | 'tournament' | 'event', entityId: string, entityName: string): string {
+  const url = getEntityUrl(entityType, entityId);
+  return `<a href="${url}" style="color: #2563eb; text-decoration: underline;">${entityName}</a>`;
+}
+
 // ============== Notification Functions ==============
 
 /**
@@ -99,7 +110,7 @@ export function notifyTournamentCreated(
   const content = `
     <h1>Vytvořen nový turnaj</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
+      <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('tournament', tournament.id, tournament.name)}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
@@ -131,7 +142,7 @@ export function notifyTournamentUpdated(
   const content = `
     <h1>Turnaj byl upraven</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Název:</span> ${tournament.name}</div>
+      <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('tournament', tournament.id, tournament.name)}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
@@ -159,7 +170,7 @@ export function notifyMatchCreated(match: Match): void {
   const content = `
     <h1>Přidán nový výsledek zápasu</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Zápas:</span> ${match.homeTeam} vs ${match.awayTeam}</div>
+      <div class="detail-row"><span class="label">Zápas:</span> ${formatEntityLink('match', match.id, `${match.homeTeam} vs ${match.awayTeam}`)}</div>
       <div class="detail-row"><span class="label">Výsledek:</span> ${match.homeScore} : ${match.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
@@ -189,7 +200,7 @@ export function notifyMatchUpdated(match: Match): void {
   const content = `
     <h1>Výsledek zápasu byl upraven</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Zápas:</span> ${match.homeTeam} vs ${match.awayTeam}</div>
+      <div class="detail-row"><span class="label">Zápas:</span> ${formatEntityLink('match', match.id, `${match.homeTeam} vs ${match.awayTeam}`)}</div>
       <div class="detail-row"><span class="label">Výsledek:</span> ${match.homeScore} : ${match.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
@@ -214,7 +225,7 @@ export function notifyEventCreated(event: Event): void {
   const content = `
     <h1>Vytvořena nová událost</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Název:</span> ${event.name}</div>
+      <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('event', event.id, event.name)}</div>
       <div class="detail-row"><span class="label">Typ:</span> ${eventTypeLabel}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
@@ -241,7 +252,7 @@ export function notifyEventUpdated(event: Event): void {
   const content = `
     <h1>Událost byla upravena</h1>
     <div class="details">
-      <div class="detail-row"><span class="label">Název:</span> ${event.name}</div>
+      <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('event', event.id, event.name)}</div>
       <div class="detail-row"><span class="label">Typ:</span> ${eventTypeLabel}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
@@ -263,6 +274,7 @@ export function notifyCommentAdded(
   comment: Comment,
   entityType: 'match' | 'tournament' | 'event',
   entityName: string,
+  entityId: string,
   entityAuthorEmail?: string
 ): void {
   const entityTypeLabels = {
@@ -272,12 +284,13 @@ export function notifyCommentAdded(
   };
 
   const subject = `Nový komentář k: ${entityName}`;
+  const entityLink = formatEntityLink(entityType, entityId, entityName);
 
   const content = `
     <h1>Přidán nový komentář</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Typ:</span> ${entityTypeLabels[entityType]}</div>
-      <div class="detail-row"><span class="label">Entita:</span> ${entityName}</div>
+      <div class="detail-row"><span class="label">Entita:</span> ${entityLink}</div>
       <div class="detail-row"><span class="label">Autor:</span> ${formatAuthor(comment.author)}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(comment.createdAt)}</div>
     </div>

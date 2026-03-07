@@ -12,6 +12,8 @@ import {
   RegisterFormData,
   UpdateProfileFormData,
   ChangePasswordFormData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
 } from '@/lib/validation';
 
 /**
@@ -44,6 +46,38 @@ export function useLogin(options?: {
 }) {
   return useMutation<LoginResponse, LoginFormData>({
     endpoint: '/api/auth/login',
+    method: 'POST',
+    transformVariables: (data) => JSON.stringify(data),
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  });
+}
+
+/**
+ * Hook for forgot password
+ */
+export function useForgotPassword(options?: {
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+}) {
+  return useMutation<{ ok: boolean }, ForgotPasswordFormData>({
+    endpoint: '/api/auth/forgot-password',
+    method: 'POST',
+    transformVariables: (data) => JSON.stringify(data),
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  });
+}
+
+/**
+ * Hook for reset password
+ */
+export function useResetPassword(options?: {
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+}) {
+  return useMutation<{ ok: boolean }, ResetPasswordFormData>({
+    endpoint: '/api/auth/reset-password',
     method: 'POST',
     transformVariables: (data) => JSON.stringify(data),
     onSuccess: options?.onSuccess,

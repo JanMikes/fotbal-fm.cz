@@ -271,8 +271,10 @@ export class CommentService {
         }
       }
 
+      const entityId = (match || tournament || event)!;
+
       if (!entityName) {
-        entityName = `ID: ${match || tournament || event}`;
+        entityName = `ID: ${entityId}`;
       }
 
       // Don't notify entity author if they are the comment author (avoid self-notification)
@@ -282,6 +284,7 @@ export class CommentService {
         commentWithAuthor,
         entityType,
         entityName,
+        entityId,
         shouldNotifyEntityAuthor ? entityAuthorEmail : undefined
       );
     } catch (error) {

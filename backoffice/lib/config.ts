@@ -29,6 +29,9 @@ const envSchema = z.object({
   SMTP_SECURE: z.enum(['true', 'false']).default('false'),
   EMAIL_FROM: z.string().default('noreply@fotbal-fm.cz'),
   EMAIL_TO: z.string().default('info@fotbal-fm.cz'),
+
+  // Application URL (for links in emails)
+  APP_URL: z.string().url().default('http://localhost:3000'),
 });
 
 /**
@@ -60,6 +63,7 @@ function validateEnv() {
       SMTP_SECURE: 'false' as const,
       EMAIL_FROM: 'noreply@fotbal-fm.cz',
       EMAIL_TO: 'info@fotbal-fm.cz',
+      APP_URL: 'http://localhost:3000',
     };
   }
 
@@ -78,6 +82,7 @@ function validateEnv() {
       SMTP_SECURE: process.env.SMTP_SECURE,
       EMAIL_FROM: process.env.EMAIL_FROM,
       EMAIL_TO: process.env.EMAIL_TO,
+      APP_URL: process.env.APP_URL,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
