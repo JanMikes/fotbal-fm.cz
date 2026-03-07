@@ -1,5 +1,5 @@
 import type { Core } from '@strapi/strapi';
-import { registerCacheInvalidation } from './cache-invalidation';
+import { registerCacheMiddleware, connectCacheRedis } from './cache-invalidation';
 
 const CATEGORIES = [
   { name: 'Muži A', slug: 'muzi-a', sortOrder: 1 },
@@ -47,11 +47,13 @@ async function seedCategories(strapi: Core.Strapi) {
 let cleanupCache: (() => Promise<void>) | null = null;
 
 export default {
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register({ strapi }: { strapi: Core.Strapi }) {
+    registerCacheMiddleware(strapi);
+  },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await seedCategories(strapi);
-    cleanupCache = registerCacheInvalidation(strapi);
+    cleanupCache = connectCacheRedis(strapi);
   },
 
   async destroy() {

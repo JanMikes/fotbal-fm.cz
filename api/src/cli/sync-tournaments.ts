@@ -160,6 +160,7 @@ async function main() {
   if (uniqueWithout.length > 0) {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
+
 }
 
 main().catch((err) => {

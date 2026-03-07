@@ -405,6 +405,7 @@ async function main() {
     console.log(`  Updated:         ${updated}`);
     console.log(`  Photos uploaded: ${photosUploaded}`);
   }
+
 }
 
 main().catch((err) => {

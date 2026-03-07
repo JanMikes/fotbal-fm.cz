@@ -77,18 +77,16 @@ const MODEL_CACHE_PATTERNS: Record<string, {
   },
 };
 
-const LIFECYCLE_EVENTS = [
-  'afterCreate',
-  'afterUpdate',
-  'afterDelete',
-  'afterDeleteMany',
-  'afterUpdateMany',
-] as const;
+const DOCUMENT_ACTIONS = new Set([
+  'create',
+  'update',
+  'delete',
+  'publish',
+  'unpublish',
+]);
 
 function normalizeModelUid(uid: string): string | null {
-  // Only handle api:: models, ignore plugin:: models
   if (!uid.startsWith('api::')) return null;
-  // "api::news-article.news-article" → "news-article"
   return uid.split('::')[1].split('.')[0];
 }
 
@@ -134,14 +132,61 @@ async function invalidateModel(redis: Redis, modelName: string): Promise<number>
 
 const DEBOUNCE_MS = 2000;
 
-export function registerCacheInvalidation(strapi: Core.Strapi): (() => Promise<void>) | null {
+let redis: Redis | null = null;
+let connected = false;
+const pendingTimers = new Map<string, NodeJS.Timeout>();
+
+function scheduleInvalidation(strapi: Core.Strapi, modelName: string) {
+  const existing = pendingTimers.get(modelName);
+  if (existing) clearTimeout(existing);
+
+  pendingTimers.set(modelName, setTimeout(async () => {
+    pendingTimers.delete(modelName);
+    if (!redis) return;
+    try {
+      const deleted = await invalidateModel(redis, modelName);
+      strapi.log.info(`[Cache] Invalidated ${modelName}: deleted ${deleted} keys`);
+    } catch (error) {
+      strapi.log.error(`[Cache] Failed to invalidate ${modelName}: ${(error as Error).message}`);
+    }
+  }, DEBOUNCE_MS));
+}
+
+/**
+ * Register document service middleware — must be called in register().
+ */
+export function registerCacheMiddleware(strapi: Core.Strapi): void {
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
     strapi.log.warn('[Cache] REDIS_URL not set, cache invalidation disabled');
-    return null;
+    return;
   }
 
-  let redis: Redis;
+  strapi.documents.use(async (context, next) => {
+    const result = await next();
+
+    if (!connected) return result;
+    if (!DOCUMENT_ACTIONS.has(context.action)) return result;
+
+    const modelName = normalizeModelUid(context.uid);
+    if (!modelName) return result;
+
+    strapi.log.debug(`[Cache] ${context.action} on ${modelName}, scheduling invalidation`);
+    scheduleInvalidation(strapi, modelName);
+
+    return result;
+  });
+
+  strapi.log.info('[Cache] Document service middleware registered');
+}
+
+/**
+ * Connect to Redis — called in bootstrap() after Strapi is fully initialized.
+ */
+export function connectCacheRedis(strapi: Core.Strapi): (() => Promise<void>) | null {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) return null;
+
   try {
     redis = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
@@ -155,9 +200,6 @@ export function registerCacheInvalidation(strapi: Core.Strapi): (() => Promise<v
     strapi.log.error(`[Cache] Failed to create Redis client: ${(error as Error).message}`);
     return null;
   }
-
-  let connected = false;
-  const pendingTimers = new Map<string, NodeJS.Timeout>();
 
   redis.on('error', (err) => {
     strapi.log.error(`[Cache] Redis error: ${err.message}`);
@@ -175,50 +217,11 @@ export function registerCacheInvalidation(strapi: Core.Strapi): (() => Promise<v
     .then(() => strapi.log.info('[Cache] Redis connected'))
     .catch((err) => strapi.log.error(`[Cache] Redis connection failed: ${err.message}`));
 
-  function scheduleInvalidation(modelName: string) {
-    const existing = pendingTimers.get(modelName);
-    if (existing) clearTimeout(existing);
-
-    pendingTimers.set(modelName, setTimeout(async () => {
-      pendingTimers.delete(modelName);
-      try {
-        const deleted = await invalidateModel(redis, modelName);
-        strapi.log.info(`[Cache] Invalidated ${modelName}: deleted ${deleted} keys`);
-      } catch (error) {
-        strapi.log.error(`[Cache] Failed to invalidate ${modelName}: ${(error as Error).message}`);
-      }
-    }, DEBOUNCE_MS));
-  }
-
-  // Get all api:: content type UIDs
-  const contentTypes = Object.keys(strapi.contentTypes).filter((uid) => uid.startsWith('api::'));
-
-  for (const uid of contentTypes) {
-    strapi.db.lifecycles.subscribe({
-      models: [uid],
-      ...Object.fromEntries(
-        LIFECYCLE_EVENTS.map((event) => [
-          event,
-          () => {
-            if (!connected) return;
-
-            const modelName = normalizeModelUid(uid);
-            if (!modelName) return;
-
-            scheduleInvalidation(modelName);
-          },
-        ]),
-      ),
-    });
-  }
-
-  strapi.log.info(`[Cache] Lifecycle-based cache invalidation registered for ${contentTypes.length} content types`);
-
   return async () => {
     for (const timer of pendingTimers.values()) {
       clearTimeout(timer);
     }
     pendingTimers.clear();
-    await redis.quit();
+    if (redis) await redis.quit();
   };
 }
