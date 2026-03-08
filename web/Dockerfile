@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/strapi-client/package.json ./packages/strapi-client/
 COPY packages/cache/package.json ./packages/cache/
+COPY packages/form/package.json ./packages/form/
 COPY web/package.json ./web/
 
 # Create stubs for other workspace members

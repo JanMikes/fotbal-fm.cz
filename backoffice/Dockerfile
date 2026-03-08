@@ -9,7 +9,9 @@ COPY backoffice/package.json ./backoffice/
 
 # Create stubs for other workspace members
 RUN mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json \
- && mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json
+ && mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json \
+ && mkdir -p packages/form && echo '{"name":"@fotbal-fm/form","version":"0.1.0","private":true}' > packages/form/package.json \
+ && mkdir -p packages/cache && echo '{"name":"@fotbal-fm/cache","version":"0.1.0","private":true}' > packages/cache/package.json
 
 # Remove lockfile to avoid npm optional dependency bug (https://github.com/npm/cli/issues/4828)
 # where platform-specific bindings are skipped when lockfile was generated on a different OS
