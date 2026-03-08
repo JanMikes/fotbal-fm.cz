@@ -86,7 +86,12 @@ describe('MatchRepository', () => {
 
   describe('create', () => {
     it('re-fetches with populate after create', async () => {
-      const client = createMockClient();
+      const client = createMockClient({
+        // findMany is called for team lookups and duplicate check — return empty for all
+        findMany: vi.fn().mockResolvedValue({ data: [], pagination: null }),
+        // create is called for teams and match — return unpopulated data
+        create: vi.fn().mockResolvedValue(unpopulatedFixture.data),
+      });
       const repo = new MatchRepository(client as never);
 
       const result = await repo.create({
