@@ -53,10 +53,17 @@ function MatchResultsPageContent() {
     fetchMatches(selectedCategory);
   }, [user, selectedCategory, fetchMatches]);
 
-  const filteredMatches = matches.filter((m) => {
-    const isPlayed = m.homeScore !== null && m.awayScore !== null;
-    return matchFilter === 'played' ? isPlayed : !isPlayed;
-  });
+  const filteredMatches = matches
+    .filter((m) => {
+      const isPlayed = m.homeScore !== null && m.awayScore !== null;
+      return matchFilter === 'played' ? isPlayed : !isPlayed;
+    })
+    .sort((a, b) => {
+      if (matchFilter === 'future') {
+        return a.matchDate.localeCompare(b.matchDate);
+      }
+      return b.matchDate.localeCompare(a.matchDate);
+    });
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -96,10 +103,10 @@ function MatchResultsPageContent() {
             value={selectedCategory}
             onChange={handleCategoryChange}
           />
-          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
+          <div className="flex w-full sm:w-auto rounded-lg border border-border overflow-hidden shrink-0">
             <button
               onClick={() => setMatchFilter('played')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium transition-colors ${
                 matchFilter === 'played'
                   ? 'bg-primary text-white'
                   : 'bg-surface text-text-secondary hover:bg-surface-hover'
@@ -109,7 +116,7 @@ function MatchResultsPageContent() {
             </button>
             <button
               onClick={() => setMatchFilter('future')}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium transition-colors ${
                 matchFilter === 'future'
                   ? 'bg-primary text-white'
                   : 'bg-surface text-text-secondary hover:bg-surface-hover'
