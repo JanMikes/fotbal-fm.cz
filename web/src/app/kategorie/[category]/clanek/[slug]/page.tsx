@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { ArticleDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
 import { getNewsArticleBySlug, getCategoryBySlug, getSidebarArticles } from '@/lib/strapi/data';
+import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 
 interface ArticlePageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     openGraph: {
       title: article.title,
       description,
-      images: article.mainPhoto ? [{ url: article.mainPhoto.url }] : undefined,
+      images: article.mainPhoto ? [{ url: toPublicUrl(article.mainPhoto.url) }] : undefined,
     },
   };
 }

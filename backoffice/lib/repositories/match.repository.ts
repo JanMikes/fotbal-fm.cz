@@ -117,15 +117,28 @@ export class MatchRepository implements RepositoryWithUploads<
 
   async findAll(options?: UserFilterOptions): Promise<Match[]> {
     const queryOptions = buildQueryOptions(options);
-    // Set high limit for "all" queries
-    queryOptions.pagination = { limit: 100 };
+    const allMatches: StrapiRawMatch[] = [];
+    let page = 1;
+    const pageSize = 100;
 
-    const result = await this.client.findMany<StrapiRawMatch>(
-      CONTENT_TYPE,
-      queryOptions
-    );
+    while (true) {
+      queryOptions.pagination = { page, pageSize };
 
-    return mapMatches(result.data);
+      const result = await this.client.findMany<StrapiRawMatch>(
+        CONTENT_TYPE,
+        queryOptions
+      );
+
+      allMatches.push(...result.data);
+
+      const total = result.pagination?.total ?? result.data.length;
+      if (allMatches.length >= total || result.data.length < pageSize) {
+        break;
+      }
+      page++;
+    }
+
+    return mapMatches(allMatches);
   }
 
   /**

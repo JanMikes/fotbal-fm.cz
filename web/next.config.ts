@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 
-const uploadsUrl = process.env.PUBLIC_UPLOADS_URL || 'http://localhost:8080';
+const uploadsUrl = process.env.INTERNAL_UPLOADS_URL || process.env.PUBLIC_UPLOADS_URL || 'http://localhost:8080';
 const parsedUrl = new URL(uploadsUrl);
 
 const nextConfig: NextConfig = {

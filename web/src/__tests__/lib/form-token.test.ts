@@ -4,6 +4,7 @@ vi.mock('@/lib/config', () => ({
   config: {
     strapi: { url: 'http://strapi:1337', apiToken: 'test-token' },
     publicUploadsUrl: 'http://uploads.test',
+    internalUploadsUrl: 'http://uploads.test',
     formTokenSecret: 'test-form-token-secret-for-signing',
     smtp: { host: 'localhost', port: 1025, user: '', password: '', secure: false, from: 'test@test.cz' },
   },

@@ -91,12 +91,12 @@ function MatchResultsPageContent() {
           </Link>
         </div>
 
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CategoryFilter
             value={selectedCategory}
             onChange={handleCategoryChange}
           />
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-lg border border-border overflow-hidden shrink-0">
             <button
               onClick={() => setMatchFilter('played')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${

@@ -10,19 +10,12 @@ import { MarkdownContent } from '../ui/MarkdownContent';
 import ImageLightbox from '../ui/ImageLightbox';
 import type { NewsArticle, NewsArticleSummary } from '@/lib/types';
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
+import { formatDate } from '@/lib/date';
 
 interface ArticleDetailProps {
   article: NewsArticle;
   categorySlug?: string;
   sidebarArticles?: NewsArticleSummary[];
-}
-
-function formatDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 function estimateReadingTime(content: string | null): number {

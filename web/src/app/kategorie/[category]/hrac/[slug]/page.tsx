@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { PlayerDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
 import { getPlayerByCategoryAndSlug, getCategoryBySlug } from '@/lib/strapi/data';
+import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 
 interface PlayerPageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
     description: player.bio || `Profil hráče ${player.name} - FK Frýdek-Místek`,
     openGraph: {
       title: player.name,
-      images: player.photo ? [{ url: player.photo.url }] : undefined,
+      images: player.photo ? [{ url: toPublicUrl(player.photo.url) }] : undefined,
     },
   };
 }

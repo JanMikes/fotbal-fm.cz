@@ -29,7 +29,7 @@ export default function PartnerCard({ partner, className }: PartnerCardProps) {
           </div>
         ) : (
           <div className="w-full aspect-[3/2] mb-4 bg-surface-light flex items-center justify-center">
-            <span className="text-primary/30 text-4xl font-bold">{partner.name.charAt(0)}</span>
+            <span className="text-primary/30 text-4xl font-bold">{partner.name?.charAt(0)}</span>
           </div>
         )}
         <h3 className="font-bold text-primary text-center group-hover:text-accent transition-colors duration-300">

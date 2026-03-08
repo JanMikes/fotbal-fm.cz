@@ -4,7 +4,21 @@ import type { StrapiRawMedia } from '../types';
 
 export function transformImageUrl(url: string): string {
   if (url.startsWith('/uploads/')) {
+    return `${config.internalUploadsUrl}${url}`;
+  }
+  return url;
+}
+
+export function transformPublicUrl(url: string): string {
+  if (url.startsWith('/uploads/')) {
     return `${config.publicUploadsUrl}${url}`;
+  }
+  return url;
+}
+
+export function toPublicUrl(url: string): string {
+  if (config.internalUploadsUrl !== config.publicUploadsUrl) {
+    return url.replace(config.internalUploadsUrl, config.publicUploadsUrl);
   }
   return url;
 }
@@ -32,7 +46,7 @@ export function mapMediaArray(raw: StrapiRawMedia[] | null | undefined): MediaIm
 
 export function mapFile(raw: StrapiRawMedia): MediaFile {
   return {
-    url: transformImageUrl(raw.url),
+    url: transformPublicUrl(raw.url),
     name: raw.name || raw.url.split('/').pop() || 'File',
   };
 }

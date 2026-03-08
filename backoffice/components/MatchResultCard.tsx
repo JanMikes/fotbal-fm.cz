@@ -10,12 +10,8 @@ interface MatchResultCardProps {
 }
 
 export default function MatchResultCard({ match }: MatchResultCardProps) {
-  const matchDate = new Date(match.matchDate);
-  const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-  });
+  const [year, month, day] = match.matchDate.split('-').map(Number);
+  const formattedDate = `${day}. ${month}. ${year}` + (match.matchTime ? ` ${match.matchTime.slice(0, 5)}` : '');
   const isFuture = match.homeScore === null || match.awayScore === null;
 
   return (

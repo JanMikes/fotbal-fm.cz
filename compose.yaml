@@ -123,6 +123,7 @@ services:
             PORT: 3000
             STRAPI_URL: http://strapi:1337
             PUBLIC_UPLOADS_URL: http://localhost:8080
+            INTERNAL_UPLOADS_URL: http://nginx
             REDIS_URL: redis://redis:6379
             STRAPI_WEBHOOK_SECRET: dev-webhook-secret
             FORM_TOKEN_SECRET: dev-form-token-secret-at-least-32-chars

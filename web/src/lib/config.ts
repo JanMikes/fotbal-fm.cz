@@ -4,6 +4,7 @@ export const config = {
     apiToken: process.env.STRAPI_API_TOKEN || '',
   },
   publicUploadsUrl: process.env.PUBLIC_UPLOADS_URL || 'http://localhost:8080',
+  internalUploadsUrl: process.env.INTERNAL_UPLOADS_URL || process.env.PUBLIC_UPLOADS_URL || 'http://localhost:8080',
   siteUrl: process.env.SITE_URL || '',
   formTokenSecret: process.env.FORM_TOKEN_SECRET || '',
   smtp: {

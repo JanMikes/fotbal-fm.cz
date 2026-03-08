@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import Badge from './Badge';
 import type { NewsArticleSummary } from '@/lib/types';
 import { stripMarkdown } from '@/lib/markdown';
+import { formatDate } from '@/lib/date';
 
 interface NewsCardProps {
   article: NewsArticleSummary;
@@ -13,14 +14,6 @@ interface NewsCardProps {
   featured?: boolean;
   className?: string;
   hrefPrefix?: string;
-}
-
-function formatDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 export default function NewsCard({ article, categorySlug, featured = false, className, hrefPrefix }: NewsCardProps) {

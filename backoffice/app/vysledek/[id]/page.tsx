@@ -83,14 +83,8 @@ export default function MatchResultDetailPage({ params }: PageProps) {
     return null;
   }
 
-  const matchDate = new Date(match.matchDate);
-  const formattedDate = matchDate.toLocaleDateString('cs-CZ', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const [year, month, day] = match.matchDate.split('-').map(Number);
+  const formattedDate = `${day}. ${month}. ${year}` + (match.matchTime ? ` ${match.matchTime.slice(0, 5)}` : '');
 
   return (
     <div className="bg-background py-8">
