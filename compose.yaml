@@ -159,8 +159,17 @@ services:
             PORT: 4000
             STRAPI_URL: http://strapi:1337
             PUBLIC_UPLOADS_URL: http://localhost:8080
+            FORM_TOKEN_SECRET: dev-form-token-secret-at-least-32-chars
+            # Email Configuration (Mailpit for development)
+            SMTP_HOST: mailpit
+            SMTP_PORT: "1025"
+            SMTP_USER: ""
+            SMTP_PASSWORD: ""
+            SMTP_SECURE: "false"
+            EMAIL_FROM: "noreply@fotbal-fm.cz"
         depends_on:
             - strapi
+            - mailpit
         command: bash -c "cd /app && npm install && cd /app/api && npm run dev"
 
     nginx:

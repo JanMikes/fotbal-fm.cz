@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import {
   withAuthFormData,
   apiSuccess,
+  apiErrorFromAppError,
   ApiErrors,
   getStringField,
   getFiles,
@@ -75,7 +76,7 @@ export const POST = withAuthFormData(async (request, { userId, jwt, formData }) 
   );
 
   if (!result.success) {
-    return ApiErrors.serverError(result.error.message);
+    return apiErrorFromAppError(result.error);
   }
 
   return apiSuccess(

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fotbal-fm/cache": "*",
+    "@fotbal-fm/form": "*",
     "@fotbal-fm/strapi-client": "*",
     "@tailwindcss/typography": "^0.5.19",
     "clsx": "^2.1.1",

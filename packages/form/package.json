@@ -1,0 +1,15 @@
+{
+  "name": "@fotbal-fm/form",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "dependencies": {
+    "nodemailer": "^7.0.3"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6"
+  }
+}

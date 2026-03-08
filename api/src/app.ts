@@ -15,6 +15,7 @@ import { standingsRoute } from './routes/standings.js';
 import { playersRoute } from './routes/players.js';
 import { newsRoute } from './routes/news.js';
 import { partnersRoute } from './routes/partners.js';
+import { formsRoute } from './routes/forms.js';
 
 export const app = new OpenAPIHono();
 
@@ -35,6 +36,7 @@ app.route('/api/v1', standingsRoute);
 app.route('/api/v1', playersRoute);
 app.route('/api/v1', newsRoute);
 app.route('/api/v1', partnersRoute);
+app.route('/api/v1', formsRoute);
 
 // OpenAPI spec
 app.doc('/openapi.json', {

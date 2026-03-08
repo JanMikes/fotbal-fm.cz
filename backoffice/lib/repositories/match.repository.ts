@@ -13,7 +13,7 @@ import {
   UploadResults,
   UserFilterOptions,
 } from './base';
-import { NotFoundError } from '@/lib/core/errors';
+import { NotFoundError, DuplicateError } from '@/lib/core/errors';
 import { TeamRepository } from './team.repository';
 
 const CONTENT_TYPE = 'matches';
@@ -202,13 +202,35 @@ export class MatchRepository implements RepositoryWithUploads<
     const strapiData: Record<string, unknown> = { ...rest };
 
     // Resolve team names to documentIds (find or create)
+    let homeTeamId: string | undefined;
+    let awayTeamId: string | undefined;
     if (homeTeam) {
-      const homeTeamId = await this.teamRepository.findOrCreate(homeTeam);
+      homeTeamId = await this.teamRepository.findOrCreate(homeTeam);
       strapiData.homeTeam = homeTeamId;
     }
     if (awayTeam) {
-      const awayTeamId = await this.teamRepository.findOrCreate(awayTeam);
+      awayTeamId = await this.teamRepository.findOrCreate(awayTeam);
       strapiData.awayTeam = awayTeamId;
+    }
+
+    // Check for duplicate match (same teams + date)
+    if (homeTeamId && awayTeamId && data.matchDate) {
+      const existing = await this.client.findMany<StrapiRawMatch>(
+        CONTENT_TYPE,
+        {
+          filters: {
+            homeTeam: { documentId: { $eq: homeTeamId } },
+            awayTeam: { documentId: { $eq: awayTeamId } },
+            matchDate: { $eq: data.matchDate },
+          },
+          pagination: { pageSize: 1 },
+        }
+      );
+      if (existing.data.length > 0) {
+        throw new DuplicateError(
+          'Zápas s těmito týmy a datem již existuje. Pokud chcete upravit existující zápas, použijte tlačítko "Upravit".'
+        );
+      }
     }
 
     if (categories && categories.length > 0) {

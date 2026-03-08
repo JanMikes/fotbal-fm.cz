@@ -165,33 +165,45 @@ async function main() {
     console.log(`Created ${teamsCreated} new teams`);
   }
 
-  // 6. Load existing matches with facrId from Strapi (paginated)
+  // 6. Load existing matches from Strapi (paginated)
+  //    - Matches WITH facrId: for direct upsert by facrId
+  //    - Matches WITHOUT facrId: for merging with manually-created matches (by teams + date)
 
   const existingByFacrId = new Map<string, string>();
+  // Composite key: "homeTeamDocId:awayTeamDocId:matchDate" -> documentId
+  const existingByCompositeKey = new Map<string, string>();
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
-    const res = await strapiGet<StrapiMatch>(
+    const res = await strapiGet<StrapiMatch & { homeTeam?: { documentId: string } | null; awayTeam?: { documentId: string } | null; matchDate?: string | null }>(
       '/matches',
       {
-        fields: ['facrId'],
-        filters: { facrId: { $notNull: true } },
+        fields: ['facrId', 'matchDate'],
+        populate: {
+          homeTeam: { fields: ['documentId'] },
+          awayTeam: { fields: ['documentId'] },
+        },
         pagination: { pageSize: 100, page },
       },
     );
     for (const mr of res.data) {
       if (mr.facrId) {
         existingByFacrId.set(mr.facrId, mr.documentId);
+      } else if (mr.homeTeam?.documentId && mr.awayTeam?.documentId && mr.matchDate) {
+        // Only index manually-created matches (no facrId) for composite key fallback
+        const key = `${mr.homeTeam.documentId}:${mr.awayTeam.documentId}:${mr.matchDate}`;
+        existingByCompositeKey.set(key, mr.documentId);
       }
     }
     totalPages = res.meta?.pagination?.pageCount ?? 1;
     page++;
   }
-  console.log(`Loaded ${existingByFacrId.size} existing matches with facrId`);
+  console.log(`Loaded ${existingByFacrId.size} existing matches with facrId, ${existingByCompositeKey.size} manual matches for merge`);
 
   // 7. Upsert matches
   let created = 0;
   let updated = 0;
+  let merged = 0;
   const withoutCategory: string[] = [];
   let linkedToTournament = 0;
 
@@ -237,6 +249,7 @@ async function main() {
       ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
     };
 
+    // 1. Check if match exists by facrId (direct match)
     const existingDocId = existingByFacrId.get(match.facrId);
     if (existingDocId) {
       await strapiPut(`/matches/${existingDocId}`, {
@@ -244,10 +257,28 @@ async function main() {
       });
       updated++;
     } else {
-      await strapiPost('/matches', {
-        data: { ...scrapedFields, ...relationFields },
-      });
-      created++;
+      // 2. Check if a manually-created match exists (same teams + date)
+      //    Merge with it: set facrId and scraped metadata, but preserve
+      //    user-entered fields (goalscorers, lineup, matchReport)
+      const compositeKey = homeTeamDocId && awayTeamDocId && match.matchDate
+        ? `${homeTeamDocId}:${awayTeamDocId}:${match.matchDate}` : '';
+      const manualDocId = compositeKey ? existingByCompositeKey.get(compositeKey) : undefined;
+
+      if (manualDocId) {
+        // Merge: only update scraped fields, preserve user-entered data
+        await strapiPut(`/matches/${manualDocId}`, {
+          data: { ...scrapedFields, ...relationFields },
+        });
+        // Move to facrId lookup to prevent future composite key lookups
+        existingByFacrId.set(match.facrId, manualDocId);
+        existingByCompositeKey.delete(compositeKey);
+        merged++;
+      } else {
+        await strapiPost('/matches', {
+          data: { ...scrapedFields, ...relationFields },
+        });
+        created++;
+      }
     }
   }
 
@@ -257,6 +288,7 @@ async function main() {
   console.log(`  Total:    ${parsedMatches.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  console.log(`  Merged:   ${merged} (linked manual matches to FAČR data)`);
   console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
   console.log(`  Linked to tournament: ${linkedToTournament}`);
   console.log(`  Matched:  ${parsedMatches.length - uniqueWithout.length} with category`);

@@ -114,6 +114,16 @@ export class NotFoundError extends AppError {
 }
 
 /**
+ * Duplicate error - thrown when attempting to create a resource that already exists
+ */
+export class DuplicateError extends AppError {
+  constructor(message: string = 'Záznam již existuje') {
+    super(message, ErrorCode.ALREADY_EXISTS, 409);
+    this.name = 'DuplicateError';
+  }
+}
+
+/**
  * Network error - thrown when external service communication fails
  */
 export class NetworkError extends AppError {
