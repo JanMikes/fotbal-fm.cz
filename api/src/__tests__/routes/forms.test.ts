@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createFormToken } from '@fotbal-fm/form';
 
+// Must set before the route module is imported
+const TEST_SECRET = 'test-form-token-secret-at-least-32-chars';
+process.env.FORM_TOKEN_SECRET = TEST_SECRET;
+
 vi.mock('../../lib/strapi.js', () => ({
   strapiGet: vi.fn(),
   strapiPost: vi.fn(),
@@ -21,10 +25,8 @@ const { strapiGet } = await import('../../lib/strapi.js');
 const { sendEmail } = await import('@fotbal-fm/form');
 const { app } = await import('../../app.js');
 
-const FORM_TOKEN_SECRET = process.env.FORM_TOKEN_SECRET || 'dev-form-token-secret-at-least-32-chars';
-
 function makeToken(recipients: string[]) {
-  return createFormToken(recipients, FORM_TOKEN_SECRET);
+  return createFormToken(recipients, TEST_SECRET);
 }
 
 function buildFormData(entries: Record<string, string | File>): FormData {
