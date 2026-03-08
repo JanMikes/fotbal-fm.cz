@@ -1,4 +1,4 @@
-import { sendEmail as _sendEmail, type EmailOptions } from '@fotbal-fm/form';
+import { sendEmail as _sendEmail, type EmailOptions } from '@fotbal-fm/form/email';
 import { config } from './config';
 
 export type { EmailOptions };

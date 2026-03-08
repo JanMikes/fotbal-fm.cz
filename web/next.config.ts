@@ -6,7 +6,7 @@ const parsedUrl = new URL(uploadsUrl);
 const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['@fotbal-fm/strapi-client', '@fotbal-fm/cache', '@fotbal-fm/form'],
-  serverExternalPackages: ['ioredis'],
+  serverExternalPackages: ['ioredis', 'nodemailer'],
   images: {
     dangerouslyAllowSVG: true,
     dangerouslyAllowLocalIP: true,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { processFormData, buildEmailHtml, FormValidationError } from '@fotbal-fm/form';
+import { processFormData, buildEmailHtml, FormValidationError } from '@fotbal-fm/form/processing';
 import { verifyFormToken } from '@/lib/form-token';
 import { sendEmail } from '@/lib/email';
 import { getRedisClient } from '@fotbal-fm/cache';

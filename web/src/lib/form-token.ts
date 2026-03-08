@@ -1,4 +1,4 @@
-import { createFormToken as _createFormToken, verifyFormToken as _verifyFormToken } from '@fotbal-fm/form';
+import { createFormToken as _createFormToken, verifyFormToken as _verifyFormToken } from '@fotbal-fm/form/token';
 import { config } from './config';
 
 function getSecret(): string {

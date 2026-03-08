@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./token": "./src/form-token.ts",
+    "./processing": "./src/form-processing.ts",
+    "./email": "./src/email.ts"
   },
   "types": "./src/index.ts",
   "dependencies": {
