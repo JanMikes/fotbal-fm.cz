@@ -245,8 +245,11 @@ const submitRoute = createRoute({
     body: {
       content: {
         'multipart/form-data': {
-          schema: z.any().openapi({
-            description: 'Form fields as multipart/form-data. Required fields: _token (from GET /forms), _formName (form name). Additional fields match the form definition. File inputs are sent as file parts.',
+          schema: z.object({
+            _token: z.string().optional().openapi({ description: 'Signed token from GET /forms response', example: 'eyJyIjpbI...' }),
+            _formName: z.string().optional().openapi({ description: 'Name of the form being submitted', example: 'Kontaktní formulář' }),
+          }).catchall(z.union([z.string(), z.any()])).openapi({
+            description: 'Dynamic form fields plus optional file attachments. Fields _token and _formName are required. All other fields correspond to the form input names.',
           }),
         },
       },
