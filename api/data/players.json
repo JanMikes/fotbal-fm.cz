@@ -9,15 +9,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=a4c6a491-84fd-4eec-a86e-5abe4fe272df"
   },
   {
-    "facrId": "15091965",
-    "name": "Veronika Adásková",
-    "facrUuid": "9864d4e4-af59-472f-bc9b-6efa2d45ff5a",
-    "dateOfBirth": "2015-09-11",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2b6d66ed-74ea-4407-bfbe-8e9057639ae5"
-  },
-  {
     "facrId": "05051834",
     "name": "Prince Agyemang",
     "facrUuid": "c0ccda57-7a27-46b0-8d65-a889852388ab",
@@ -304,15 +295,6 @@
     "nationality": "Vietnam",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=4536b1c9-06d2-4dfd-87a9-eb10c6f1e527"
-  },
-  {
-    "facrId": "15021283",
-    "name": "Anna Daňková",
-    "facrUuid": "0b1694d7-d3f4-4976-ad7d-4d674e7403f4",
-    "dateOfBirth": "2015-02-20",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=ab2649db-eb11-46f9-90de-d3e27e524b95"
   },
   {
     "facrId": "16062005",
@@ -1998,15 +1980,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=1a3fe205-ec76-4d00-b38d-9c7a824c50ad"
   },
   {
-    "facrId": "16070122",
-    "name": "Thea Nováková",
-    "facrUuid": "3074d4df-de86-4548-afe8-44db2453b799",
-    "dateOfBirth": "2016-07-09",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=37044f12-33bf-4e20-90cb-b9a0252257b4"
-  },
-  {
     "facrId": "13010345",
     "name": "Dominik Novotný",
     "facrUuid": "01d09f10-e2e2-4c56-a884-73dbbd5fecff",
@@ -2509,15 +2482,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=e5bf149b-78f3-4a5d-ac9d-1b5a526d5eb4"
-  },
-  {
-    "facrId": "07020441",
-    "name": "Ondřej Sojčák",
-    "facrUuid": "85500477-7f05-4479-bcdf-cf20306cb04d",
-    "dateOfBirth": "2007-02-01",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=6d796213-539f-48c1-a699-db60c2610d84"
   },
   {
     "facrId": "18060795",
