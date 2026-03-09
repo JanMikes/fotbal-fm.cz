@@ -237,14 +237,65 @@ formsRoute.openapi(listRoute, async (c) => {
   return c.json({ data: forms });
 });
 
+const submitRoute = createRoute({
+  method: 'post',
+  path: '/forms/submit',
+  description: 'Submit a form with multipart/form-data. Include _token (from GET /forms) and _formName as fields. All other fields are sent as form data. File inputs are sent as attachments.',
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: z.any().openapi({
+            description: 'Form fields as multipart/form-data. Required fields: _token (from GET /forms), _formName (form name). Additional fields match the form definition. File inputs are sent as file parts.',
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({ data: z.object({ ok: z.boolean() }) }),
+        },
+      },
+      description: 'Form submitted successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Validation error or invalid token',
+    },
+    429: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Rate limit exceeded',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: z.object({ error: z.string() }),
+        },
+      },
+      description: 'Server error',
+    },
+  },
+});
+
 // POST /forms/submit - submit form data (multipart/form-data)
-formsRoute.post('/forms/submit', async (c) => {
+formsRoute.openapi(submitRoute, async (c) => {
   try {
     const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
     if (!checkRateLimit(ip)) {
       return c.json(
         { error: 'Příliš mnoho odeslaných formulářů. Zkuste to prosím později.' },
-        429,
+        429 as const,
       );
     }
 
@@ -254,12 +305,12 @@ formsRoute.post('/forms/submit', async (c) => {
     const formName = body.get('_formName') as string | null;
 
     if (!token || !formName) {
-      return c.json({ error: 'Neplatný požadavek. Chybí _token nebo _formName.' }, 400);
+      return c.json({ error: 'Neplatný požadavek. Chybí _token nebo _formName.' }, 400 as const);
     }
 
     const recipients = verifyFormToken(token, FORM_TOKEN_SECRET);
     if (!recipients || recipients.length === 0) {
-      return c.json({ error: 'Neplatný token.' }, 400);
+      return c.json({ error: 'Neplatný token.' }, 400 as const);
     }
 
     const { fields, attachments } = await processFormData(body);
@@ -275,16 +326,16 @@ formsRoute.post('/forms/submit', async (c) => {
     if (!success) {
       return c.json(
         { error: 'Odeslání e-mailu se nezdařilo. Zkuste to prosím později.' },
-        500,
+        500 as const,
       );
     }
 
     return c.json({ data: { ok: true } });
   } catch (error) {
     if (error instanceof FormValidationError) {
-      return c.json({ error: error.message }, 400);
+      return c.json({ error: error.message }, 400 as const);
     }
     console.error('[Form Submit] Error:', error);
-    return c.json({ error: 'Nastala neočekávaná chyba.' }, 500);
+    return c.json({ error: 'Nastala neočekávaná chyba.' }, 500 as const);
   }
 });
