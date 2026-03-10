@@ -42,14 +42,14 @@ describe('GET /api/v1/forms', () => {
     vi.clearAllMocks();
   });
 
-  it('returns forms extracted from pages', async () => {
+  it('returns forms extracted from partners', async () => {
     vi.mocked(strapiGet).mockResolvedValueOnce({
       data: [
         {
           id: 1,
-          documentId: 'page-1',
-          title: 'Contact',
-          slug: 'contact',
+          documentId: 'partner-1',
+          name: 'Test Partner',
+          slug: 'test-partner',
           content: [
             {
               id: 1,
@@ -83,7 +83,7 @@ describe('GET /api/v1/forms', () => {
               recipients: [{ id: 1, email: 'admin@test.com' }],
             },
           ],
-          sidebar: null,
+          panel: null,
         },
       ],
       meta: {},
@@ -102,10 +102,10 @@ describe('GET /api/v1/forms', () => {
     expect(json.data[0].form.inputGroups[0].inputs[0].required).toBe(true);
   });
 
-  it('returns empty array when no pages have forms', async () => {
+  it('returns empty array when no partners have forms', async () => {
     vi.mocked(strapiGet).mockResolvedValueOnce({
       data: [
-        { id: 1, documentId: 'page-1', title: 'About', slug: 'about', content: [], sidebar: null },
+        { id: 1, documentId: 'partner-1', name: 'Partner', slug: 'partner', content: [], panel: null },
       ],
       meta: {},
     });
@@ -120,9 +120,9 @@ describe('GET /api/v1/forms', () => {
       data: [
         {
           id: 1,
-          documentId: 'page-1',
-          title: 'Page',
-          slug: 'page',
+          documentId: 'partner-1',
+          name: 'Partner',
+          slug: 'partner',
           content: [
             {
               id: 1,
@@ -131,7 +131,7 @@ describe('GET /api/v1/forms', () => {
               recipients: [],
             },
           ],
-          sidebar: null,
+          panel: null,
         },
       ],
       meta: {},
@@ -147,9 +147,9 @@ describe('GET /api/v1/forms', () => {
       data: [
         {
           id: 1,
-          documentId: 'page-1',
-          title: 'Page',
-          slug: 'page',
+          documentId: 'partner-1',
+          name: 'Partner',
+          slug: 'partner',
           content: [
             {
               id: 1,
@@ -173,7 +173,7 @@ describe('GET /api/v1/forms', () => {
               recipients: [{ id: 1, email: 'a@b.com' }],
             },
           ],
-          sidebar: null,
+          panel: null,
         },
       ],
       meta: {},

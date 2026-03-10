@@ -64,13 +64,13 @@ interface StrapiRawFormComponent {
   recipients: StrapiRawRecipient[];
 }
 
-interface StrapiRawPage {
+interface StrapiRawPartner {
   id: number;
   documentId: string;
-  title: string;
+  name: string;
   slug: string;
   content: StrapiRawFormComponent[];
-  sidebar: StrapiRawFormComponent[] | null;
+  panel: StrapiRawFormComponent[] | null;
 }
 
 // --- Zod schemas ---
@@ -122,18 +122,18 @@ function buildFormPopulate() {
     content: {
       on: { 'components.form': formPopulate },
     },
-    sidebar: {
+    panel: {
       on: { 'components.form': formPopulate },
     },
   };
 }
 
-function extractFormsFromPages(pages: StrapiRawPage[]) {
+function extractFormsFromPartners(partners: StrapiRawPartner[]) {
   const seen = new Set<string>();
   const forms: { token: string; form: z.infer<typeof FormWithTokenSchema>['form'] }[] = [];
 
-  for (const page of pages) {
-    const zones = [...(page.content || []), ...(page.sidebar || [])];
+  for (const partner of partners) {
+    const zones = [...(partner.content || []), ...(partner.panel || [])];
 
     for (const component of zones) {
       if (component.__component !== 'components.form') continue;
@@ -227,13 +227,13 @@ export const formsRoute = new OpenAPIHono();
 
 // GET /forms - list all available forms
 formsRoute.openapi(listRoute, async (c) => {
-  const result = await strapiGet<StrapiRawPage>('/pages', {
-    fields: ['title', 'slug'],
+  const result = await strapiGet<StrapiRawPartner>('/partners', {
+    fields: ['name', 'slug'],
     populate: buildFormPopulate(),
     pagination: { pageSize: 100 },
   });
 
-  const forms = extractFormsFromPages(result.data);
+  const forms = extractFormsFromPartners(result.data);
   return c.json({ data: forms });
 });
 
