@@ -569,6 +569,7 @@ export interface FormInput extends Struct.ComponentSchema {
         'checkbox',
         'radio',
         'file',
+        'date',
       ]
     > &
       Schema.Attribute.Required &

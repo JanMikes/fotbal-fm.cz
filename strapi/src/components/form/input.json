@@ -15,7 +15,7 @@
     },
     "type": {
       "type": "enumeration",
-      "enum": ["text", "email", "tel", "number", "textarea", "select", "checkbox", "radio", "file"],
+      "enum": ["text", "email", "tel", "number", "textarea", "select", "checkbox", "radio", "file", "date"],
       "required": true,
       "default": "text"
     },

@@ -101,19 +101,20 @@ function InputGroupRenderer({ group }: { group: FormInputGroup }) {
 
 function InputRenderer({ input }: { input: FormInput }) {
   const id = `form-field-${input.name}`;
-  const baseClasses = 'w-full px-4 py-2.5 border border-gray-300 rounded-lg text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors';
+  const baseClasses = 'w-full px-4 py-2.5 border border-gray-300 rounded-lg text-primary bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-colors';
 
   if (input.type === 'checkbox') {
     return (
-      <label className="flex items-start gap-3 cursor-pointer">
+      <label className="flex items-start gap-3 cursor-pointer group">
         <input
           type="checkbox"
           name={input.name}
           required={input.required}
           value="true"
-          className="mt-0.5 w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent/50"
+          className="mt-0.5 w-5 h-5 shrink-0 appearance-none border-2 border-gray-300 rounded bg-white checked:bg-accent checked:border-accent focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors cursor-pointer"
+          style={{ backgroundImage: 'none' }}
         />
-        <span className="text-sm text-primary">
+        <span className="text-sm text-primary select-none">
           {input.label}
           {input.required && <span className="text-red-500 ml-1">*</span>}
           {input.helpText && <span className="block text-xs text-gray-500 mt-0.5">{input.helpText}</span>}
@@ -133,15 +134,15 @@ function InputRenderer({ input }: { input: FormInput }) {
         </span>
         <div className="space-y-2">
           {options.map((option, i) => (
-            <label key={i} className="flex items-center gap-2 cursor-pointer">
+            <label key={i} className="flex items-center gap-3 cursor-pointer group">
               <input
                 type="radio"
                 name={input.name}
                 value={option}
                 required={input.required}
-                className="w-4 h-4 border-gray-300 text-accent focus:ring-accent/50"
+                className="w-5 h-5 shrink-0 appearance-none border-2 border-gray-300 rounded-full bg-white checked:border-[5px] checked:border-accent focus:outline-none focus:ring-2 focus:ring-accent/50 transition-colors cursor-pointer"
               />
-              <span className="text-sm text-primary">{option}</span>
+              <span className="text-sm text-primary select-none">{option}</span>
             </label>
           ))}
         </div>
@@ -167,25 +168,34 @@ function InputRenderer({ input }: { input: FormInput }) {
           className={baseClasses}
         />
       ) : input.type === 'select' ? (
-        <select
-          id={id}
-          name={input.name}
-          required={input.required}
-          className={baseClasses}
-        >
-          <option value="">{input.placeholder || 'Vyberte...'}</option>
-          {options.map((option, i) => (
-            <option key={i} value={option}>{option}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            id={id}
+            name={input.name}
+            required={input.required}
+            className={`${baseClasses} appearance-none pr-10 cursor-pointer`}
+          >
+            <option value="">{input.placeholder || 'Vyberte...'}</option>
+            {options.map((option, i) => (
+              <option key={i} value={option}>{option}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
       ) : input.type === 'file' ? (
-        <input
-          id={id}
-          type="file"
-          name={input.name}
-          required={input.required}
-          className="w-full text-sm text-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-accent/10 file:text-accent file:font-medium hover:file:bg-accent/20 file:cursor-pointer cursor-pointer"
-        />
+        <div className="w-full px-4 py-2.5 border border-gray-300 rounded-lg transition-colors focus-within:ring-2 focus-within:ring-accent/50 focus-within:border-accent">
+          <input
+            id={id}
+            type="file"
+            name={input.name}
+            required={input.required}
+            className="w-full text-sm text-primary file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:bg-accent/10 file:text-accent file:font-medium hover:file:bg-accent/20 file:cursor-pointer cursor-pointer file:transition-colors"
+          />
+        </div>
       ) : (
         <input
           id={id}

@@ -380,7 +380,7 @@ export interface ComponentNewsArticles extends DynamicZoneBase {
 export interface FormInput {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file' | 'date';
   placeholder: string | null;
   required: boolean;
   helpText: string | null;

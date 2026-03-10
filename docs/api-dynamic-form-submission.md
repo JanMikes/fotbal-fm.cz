@@ -67,7 +67,7 @@ Response:
 }
 ```
 
-**Input types:** `text`, `email`, `tel`, `number`, `textarea`, `select`, `checkbox`, `radio`, `file`
+**Input types:** `text`, `email`, `tel`, `number`, `textarea`, `select`, `checkbox`, `radio`, `file`, `date`
 
 - `options` — pre-parsed array for `select` and `radio` types, `null` for others
 - `width` — layout hint: `"full"` or `"half"`

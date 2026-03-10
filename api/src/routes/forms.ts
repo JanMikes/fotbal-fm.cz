@@ -29,7 +29,7 @@ interface StrapiRawInput {
   id: number;
   name: string;
   label: string;
-  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+  type: 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file' | 'date';
   placeholder: string | null;
   required: boolean;
   helpText: string | null;
@@ -78,7 +78,7 @@ interface StrapiRawPage {
 const FormInputSchema = z.object({
   name: z.string(),
   label: z.string(),
-  type: z.enum(['text', 'email', 'tel', 'number', 'textarea', 'select', 'checkbox', 'radio', 'file']),
+  type: z.enum(['text', 'email', 'tel', 'number', 'textarea', 'select', 'checkbox', 'radio', 'file', 'date']),
   placeholder: z.string().nullable(),
   required: z.boolean(),
   helpText: z.string().nullable(),
