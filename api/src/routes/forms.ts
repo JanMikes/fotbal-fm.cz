@@ -240,21 +240,7 @@ formsRoute.openapi(listRoute, async (c) => {
 const submitRoute = createRoute({
   method: 'post',
   path: '/forms/submit',
-  description: 'Submit a form with multipart/form-data. Include _token (from GET /forms) and _formName as fields. All other fields are sent as form data. File inputs are sent as attachments.',
-  request: {
-    body: {
-      content: {
-        'multipart/form-data': {
-          schema: z.object({
-            _token: z.string().optional().openapi({ description: 'Signed token from GET /forms response', example: 'eyJyIjpbI...' }),
-            _formName: z.string().optional().openapi({ description: 'Name of the form being submitted', example: 'Kontaktní formulář' }),
-          }).catchall(z.union([z.string(), z.any()])).openapi({
-            description: 'Dynamic form fields plus optional file attachments. Fields _token and _formName are required. All other fields correspond to the form input names.',
-          }),
-        },
-      },
-    },
-  },
+  description: 'Submit a form. Accepts multipart/form-data (with file uploads) or application/x-www-form-urlencoded. Include _token (from GET /forms) and _formName as fields. All other fields correspond to the form input names.',
   responses: {
     200: {
       content: {
@@ -291,7 +277,7 @@ const submitRoute = createRoute({
   },
 });
 
-// POST /forms/submit - submit form data (multipart/form-data)
+// POST /forms/submit - submit form data (multipart/form-data or application/x-www-form-urlencoded)
 formsRoute.openapi(submitRoute, async (c) => {
   try {
     const ip = c.req.header('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
@@ -302,7 +288,19 @@ formsRoute.openapi(submitRoute, async (c) => {
       );
     }
 
-    const body = await c.req.formData();
+    const contentType = c.req.header('content-type') || '';
+    let body: FormData;
+
+    if (contentType.includes('multipart/form-data')) {
+      body = await c.req.formData();
+    } else {
+      // Fallback for application/x-www-form-urlencoded or other formats
+      const text = await c.req.text();
+      body = new FormData();
+      for (const [key, value] of new URLSearchParams(text)) {
+        body.append(key, value);
+      }
+    }
 
     const token = body.get('_token') as string | null;
     const formName = body.get('_formName') as string | null;
