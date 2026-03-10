@@ -288,13 +288,11 @@ formsRoute.openapi(submitRoute, async (c) => {
       );
     }
 
-    const contentType = c.req.header('content-type') || '';
     let body: FormData;
-
-    if (contentType.includes('multipart/form-data')) {
-      body = await c.req.formData();
-    } else {
-      // Fallback for application/x-www-form-urlencoded or other formats
+    try {
+      body = await c.req.raw.clone().formData();
+    } catch {
+      // Malformed multipart or url-encoded - parse as URLSearchParams
       const text = await c.req.text();
       body = new FormData();
       for (const [key, value] of new URLSearchParams(text)) {
