@@ -473,6 +473,7 @@ describe('mapPage', () => {
               default_open: true,
               files: [],
               photos: [],
+              contacts: [],
             },
           ],
         },
@@ -484,6 +485,44 @@ describe('mapPage', () => {
     const accordion = result.content[0] as { sections: Array<{ title: string; default_open: boolean }> };
     expect(accordion.sections[0].title).toBe('FAQ');
     expect(accordion.sections[0].default_open).toBe(true);
+  });
+
+  it('maps accordion-sections with contacts', () => {
+    const raw: StrapiRawPage = {
+      id: 1,
+      documentId: 'page-1',
+      title: 'Test',
+      slug: 'test',
+      meta_description: null,
+      parent: null,
+      content: [
+        {
+          id: 121,
+          __component: 'components.accordion-sections',
+          sections: [
+            {
+              title: 'Kontakty',
+              description: null,
+              default_open: false,
+              files: [],
+              photos: [],
+              contacts: [
+                { name: 'Jan', role: 'Trenér', phone: '+420111', email: 'jan@test.cz', photo: null },
+              ],
+            },
+          ],
+        },
+      ],
+      sidebar: null,
+    };
+
+    const result = mapPage(raw);
+    const accordion = result.content[0] as { sections: Array<{ contacts: Array<{ name: string; role: string; phone: string; email: string }> }> };
+    expect(accordion.sections[0].contacts).toHaveLength(1);
+    expect(accordion.sections[0].contacts[0].name).toBe('Jan');
+    expect(accordion.sections[0].contacts[0].role).toBe('Trenér');
+    expect(accordion.sections[0].contacts[0].phone).toBe('+420111');
+    expect(accordion.sections[0].contacts[0].email).toBe('jan@test.cz');
   });
 
   it('provides defaults for missing optional fields', () => {
