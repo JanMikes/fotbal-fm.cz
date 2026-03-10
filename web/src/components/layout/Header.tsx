@@ -6,14 +6,12 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram, Youtube, Twitter } from 'lucide-react';
+import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram } from 'lucide-react';
 import type { CategoryGroup, NavigationItem } from '@/lib/types';
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
-  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
-  { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
-  { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
+  { icon: Facebook, href: 'https://www.facebook.com/fotbalfm', label: 'Facebook' },
+  { icon: Instagram, href: 'https://www.instagram.com/fotbal_fm/', label: 'Instagram' },
 ];
 
 interface HeaderProps {
