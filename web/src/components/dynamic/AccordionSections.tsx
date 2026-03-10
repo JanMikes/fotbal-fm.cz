@@ -41,7 +41,7 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
         />
       </button>
       {isOpen && (
-        <div className="p-4 pt-0 bg-white space-y-4">
+        <div className="p-4 bg-white space-y-4">
           {section.description && (
             <MarkdownContent content={section.description} className="prose-sm text-primary/70" />
           )}
@@ -92,14 +92,14 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="font-medium text-sm text-primary">{contact.name}</p>
+                    <p className="font-bold text-sm text-primary">{contact.name}</p>
                     {contact.role && (
-                      <p className="text-xs text-primary/60">{contact.role}</p>
+                      <p className="text-xs text-primary/60 mb-1.5">{contact.role}</p>
                     )}
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
                       {contact.phone && (
-                        <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-xs text-primary/70 hover:text-accent transition-colors">
-                          <Phone className="w-3 h-3" />
+                        <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-sm text-primary/70 hover:text-accent transition-colors">
+                          <Phone className="w-3.5 h-3.5" />
                           {contact.phone}
                         </a>
                       )}
