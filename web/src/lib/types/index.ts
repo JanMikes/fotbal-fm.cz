@@ -343,6 +343,13 @@ export interface ComponentAccordionSections extends DynamicZoneBase {
     default_open: boolean;
     files: { name: string | null; file: MediaImage | null }[];
     photos: { image: MediaImage | null }[];
+    contacts: {
+      name: string;
+      role: string | null;
+      phone: string | null;
+      email: string | null;
+      photo: MediaImage | null;
+    }[];
   }[];
 }
 

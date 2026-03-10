@@ -285,6 +285,7 @@ const accordionData: ComponentAccordionSections = {
       default_open: true,
       files: [],
       photos: [],
+      contacts: [],
     },
     {
       title: 'Kde zaparkovat?',
@@ -294,6 +295,7 @@ const accordionData: ComponentAccordionSections = {
         { name: 'Mapa parkování', file: mockImg('hero.jpg', 'Mapa', 100, 100) },
       ],
       photos: [],
+      contacts: [],
     },
     {
       title: 'Pravidla vstupu na stadion',
@@ -303,6 +305,9 @@ const accordionData: ComponentAccordionSections = {
       photos: [
         { image: mockImg('stadium.jpg', 'Stadion 1', 400, 300) },
         { image: mockImg('match.jpg', 'Stadion 2', 400, 300) },
+      ],
+      contacts: [
+        { name: 'Jan Novák', role: 'Správce stadionu', phone: '+420 123 456 789', email: 'novak@example.com', photo: null },
       ],
     },
   ],

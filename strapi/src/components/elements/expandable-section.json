@@ -24,6 +24,11 @@
       "type": "component",
       "component": "elements.photo",
       "repeatable": true
+    },
+    "contacts": {
+      "type": "component",
+      "component": "elements.contact-card-person",
+      "repeatable": true
     }
   }
 }

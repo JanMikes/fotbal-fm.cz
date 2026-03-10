@@ -397,6 +397,7 @@ export interface ElementsExpandableSection extends Struct.ComponentSchema {
     displayName: 'Rozbalovac\u00ED sekce';
   };
   attributes: {
+    contacts: Schema.Attribute.Component<'elements.contact-card-person', true>;
     default_open: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     description: Schema.Attribute.RichText;
     files: Schema.Attribute.Component<'elements.document-item', true>;

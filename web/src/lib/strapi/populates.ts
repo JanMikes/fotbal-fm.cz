@@ -33,10 +33,17 @@ const slidePopulate = {
   },
 };
 
+const contactCardPopulate = {
+  populate: {
+    photo: mediaFields,
+  },
+};
+
 const expandableSectionPopulate = {
   populate: {
     files: documentItemPopulate,
     photos: photoPopulate,
+    contacts: contactCardPopulate,
   },
 };
 
@@ -50,12 +57,6 @@ const featureCardPopulate = {
 const bannerCardPopulate = {
   populate: {
     link: textLinkPopulate,
-  },
-};
-
-const contactCardPopulate = {
-  populate: {
-    photo: mediaFields,
   },
 };
 

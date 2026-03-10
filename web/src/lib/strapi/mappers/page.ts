@@ -320,6 +320,7 @@ function mapExpandableSections(raw: unknown) {
     default_open: s.default_open ?? false,
     files: mapDocuments(s.files),
     photos: mapPhotos(s.photos),
+    contacts: mapContactCards(s.contacts),
   }));
 }
 

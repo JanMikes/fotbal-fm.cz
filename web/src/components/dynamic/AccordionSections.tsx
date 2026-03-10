@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { clsx } from 'clsx';
-import { ChevronDown, FileText, Download } from 'lucide-react';
+import { ChevronDown, FileText, Download, Mail, Phone } from 'lucide-react';
 import type { ComponentAccordionSections } from '@/lib/types';
 import { MarkdownContent } from '../ui/MarkdownContent';
 
@@ -73,6 +73,44 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, 33vw"
                   />
+                </div>
+              ))}
+            </div>
+          )}
+          {section.contacts && section.contacts.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {section.contacts.map((contact, j) => (
+                <div key={j} className="flex items-center gap-3 p-3 bg-surface-light rounded-lg">
+                  {contact.photo && (
+                    <div className="relative w-12 h-12 shrink-0 rounded-full overflow-hidden">
+                      <Image
+                        src={contact.photo.url}
+                        alt={contact.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-primary">{contact.name}</p>
+                    {contact.role && (
+                      <p className="text-xs text-primary/60">{contact.role}</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                      {contact.phone && (
+                        <a href={`tel:${contact.phone}`} className="flex items-center gap-1 text-xs text-primary/70 hover:text-accent transition-colors">
+                          <Phone className="w-3 h-3" />
+                          {contact.phone}
+                        </a>
+                      )}
+                      {contact.email && (
+                        <a href={`mailto:${contact.email}`} className="flex items-center gap-1 text-xs text-primary/70 hover:text-accent transition-colors">
+                          <Mail className="w-3 h-3" />
+                          {contact.email}
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
