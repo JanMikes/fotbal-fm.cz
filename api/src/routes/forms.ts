@@ -294,6 +294,8 @@ formsRoute.openapi(submitRoute, async (c) => {
     } catch {
       // Malformed multipart or url-encoded - parse as URLSearchParams
       const text = await c.req.text();
+      console.log('[Form Submit] formData() failed, raw body:', text.substring(0, 500));
+      console.log('[Form Submit] Content-Type:', c.req.header('content-type'));
       body = new FormData();
       for (const [key, value] of new URLSearchParams(text)) {
         body.append(key, value);
@@ -304,6 +306,7 @@ formsRoute.openapi(submitRoute, async (c) => {
     const formName = body.get('_formName') as string | null;
 
     if (!token || !formName) {
+      console.log('[Form Submit] Missing fields. _token:', !!token, '_formName:', !!formName, 'body keys:', [...body.keys()]);
       return c.json({ error: 'Neplatný požadavek. Chybí _token nebo _formName.' }, 400 as const);
     }
 
