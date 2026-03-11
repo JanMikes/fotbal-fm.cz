@@ -1,6 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
+import { MapPin } from 'lucide-react';
 import type { Match } from '@/lib/types';
 import TeamLogo from './TeamLogo';
 
@@ -34,7 +35,7 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
       )}
     >
       {/* Left panel - round & date */}
-      <div className="flex flex-col items-center justify-center bg-primary px-4 py-4 min-w-[120px] md:min-w-[150px] shrink-0">
+      <div className="flex flex-col items-center justify-center bg-primary py-4 w-[120px] sm:w-[150px] shrink-0">
         {match.round && (
           <span className="text-white font-semibold text-sm mb-2">
             {match.round}. kolo
@@ -43,11 +44,16 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
         <span className="text-[11px] text-accent-light font-medium border border-accent-light/60 rounded-full px-3 py-1 whitespace-nowrap">
           {formatFullDate(match.rawMatchDate)}
         </span>
+        {match.matchTime && (
+          <span className="text-accent text-sm font-semibold mt-1.5 sm:hidden">
+            {match.matchTime}
+          </span>
+        )}
       </div>
 
       {/* Main content */}
       <div className="flex flex-1 items-center px-4 md:px-6 py-4 gap-4 md:gap-6 min-w-0">
-        {/* Time badge */}
+        {/* Time badge - desktop only (on mobile it's in the left panel) */}
         {match.matchTime && (
           <span className="bg-accent text-white text-sm font-medium rounded-full px-4 py-1.5 whitespace-nowrap shrink-0 hidden sm:block">
             {match.matchTime}
@@ -107,11 +113,20 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
               {match.awayTeam}
             </span>
           </div>
+
+          {/* Venue - mobile only */}
+          {match.venue && (
+            <div className="flex items-center gap-1 mt-2 text-xs text-primary/50 md:hidden">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="truncate">{match.venue}</span>
+            </div>
+          )}
         </div>
 
         {/* Right side - venue */}
         {match.venue && (
-          <div className="text-sm text-primary/50 text-right shrink-0 hidden md:flex md:items-center">
+          <div className="text-sm text-primary/50 text-right shrink-0 hidden md:flex md:items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
             {match.venue}
           </div>
         )}

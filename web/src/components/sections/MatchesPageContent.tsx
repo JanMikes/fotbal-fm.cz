@@ -36,9 +36,9 @@ export default function MatchesPageContent({ matches }: MatchesPageContentProps)
   return (
     <div>
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-surface-light rounded-full shadow-sm mb-8 w-fit ml-auto">
+      <div className="flex items-center gap-1 sm:gap-2 p-1.5 bg-surface-light rounded-full shadow-sm mb-8 w-full sm:w-fit ml-auto">
         {([
-          { key: 'all', label: 'Všechny' },
+          { key: 'all', label: 'Vše' },
           { key: 'upcoming', label: 'Nadcházející' },
           { key: 'finished', label: 'Odehrané' },
         ] as const).map(({ key, label }) => (
@@ -46,7 +46,7 @@ export default function MatchesPageContent({ matches }: MatchesPageContentProps)
             key={key}
             onClick={() => setFilter(key)}
             className={clsx(
-              'px-6 py-2.5 rounded-full text-sm font-semibold uppercase tracking-wide transition-all',
+              'flex-1 sm:flex-initial px-3 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold uppercase tracking-wide transition-all whitespace-nowrap',
               filter === key
                 ? 'bg-accent text-white'
                 : 'text-primary/60 hover:text-primary'
