@@ -44,15 +44,13 @@ export default async function PartnerDetailPage({ params }: PageProps) {
         ]} />
         <div className="flex items-center gap-6 mb-8">
           {partner.logo && (
-            <div className="relative w-20 h-20 lg:w-24 lg:h-24 shrink-0">
-              <Image
-                src={partner.logo.url}
-                alt={partner.name}
-                fill
-                className="object-contain"
-                sizes="96px"
-              />
-            </div>
+            <Image
+              src={partner.logo.url}
+              alt={partner.name}
+              width={partner.logo.width}
+              height={partner.logo.height}
+              className="max-w-20 max-h-20 lg:max-w-28 lg:max-h-24 w-auto h-auto shrink-0 object-contain"
+            />
           )}
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold text-primary">{partner.name}</h1>
