@@ -132,14 +132,14 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
               <div className="flex items-center flex-1 lg:flex-none py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
                 {/* Desktop Navigation (left-aligned) */}
                 <nav className="hidden lg:flex items-center gap-6">
-                  {navigation.map((item) => {
+                  {navigation.map((item, index) => {
                     const linkProps = item.external
                       ? { target: '_blank' as const, rel: 'noopener noreferrer' }
                       : {};
                     const isActive = !item.external && pathname.startsWith(item.href);
                     return (
                       <Link
-                        key={item.href}
+                        key={`${index}-${item.href}`}
                         href={item.href}
                         {...linkProps}
                         className={clsx(
@@ -328,7 +328,7 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
               <nav className="space-y-2 mb-8">
                 {navigation.map((item, index) => (
                   <motion.div
-                    key={item.href}
+                    key={`${index}-${item.href}`}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}

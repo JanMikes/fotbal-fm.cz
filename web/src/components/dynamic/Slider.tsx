@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -15,13 +15,31 @@ interface SliderProps {
 
 export function Slider({ data }: SliderProps) {
   const plugins = data.autoplay
-    ? [Autoplay({ delay: data.autoplay_interval || 5000, stopOnInteraction: true })]
+    ? [Autoplay({ delay: data.autoplay_interval || 7000, stopOnInteraction: false })]
     : [];
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, plugins);
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const scrollPrev = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollPrev();
+    emblaApi.plugins().autoplay?.reset();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+    emblaApi.plugins().autoplay?.reset();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const resetAutoplay = () => emblaApi.plugins().autoplay?.reset();
+    emblaApi.on('pointerUp', resetAutoplay);
+    return () => {
+      emblaApi.off('pointerUp', resetAutoplay);
+    };
+  }, [emblaApi]);
 
   if (!data.slides || data.slides.length === 0) return null;
 

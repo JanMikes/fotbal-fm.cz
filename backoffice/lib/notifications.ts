@@ -5,6 +5,7 @@ import type { Event } from '@/types/event';
 import type { Match, UserInfo } from '@/types/match';
 import type { Comment } from '@/types/comment';
 import type { User } from '@/types/user';
+import type { Category } from '@/types/category';
 
 // ============== Helper Functions ==============
 
@@ -222,11 +223,16 @@ export function notifyEventCreated(event: Event): void {
 
   const eventTypeLabel = event.eventType === 'nadcházející' ? 'Nadcházející' : 'Proběhlá';
 
+  const categoriesText = event.categories?.length
+    ? event.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Vytvořena nová událost</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('event', event.id, event.name)}</div>
       <div class="detail-row"><span class="label">Typ:</span> ${eventTypeLabel}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
       ${event.requiresPhotographer ? `<div class="detail-row"><span class="label">Vyžaduje fotografa:</span> Ano</div>` : ''}
@@ -249,11 +255,16 @@ export function notifyEventUpdated(event: Event): void {
 
   const eventTypeLabel = event.eventType === 'nadcházející' ? 'Nadcházející' : 'Proběhlá';
 
+  const categoriesText = event.categories?.length
+    ? event.categories.map(c => c.name).join(', ')
+    : 'Bez kategorie';
+
   const content = `
     <h1>Událost byla upravena</h1>
     <div class="details">
       <div class="detail-row"><span class="label">Název:</span> ${formatEntityLink('event', event.id, event.name)}</div>
       <div class="detail-row"><span class="label">Typ:</span> ${eventTypeLabel}</div>
+      <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(event.modifiedBy || event.author)}</div>
@@ -275,13 +286,18 @@ export function notifyCommentAdded(
   entityType: 'match' | 'tournament' | 'event',
   entityName: string,
   entityId: string,
-  entityAuthorEmail?: string
+  entityAuthorEmail?: string,
+  categories?: Category[]
 ): void {
   const entityTypeLabels = {
     match: 'zápas',
     tournament: 'turnaj',
     event: 'událost',
   };
+
+  const categoriesText = categories?.length
+    ? categories.map(c => c.name).join(', ')
+    : undefined;
 
   const subject = `Nový komentář k: ${entityName}`;
   const entityLink = formatEntityLink(entityType, entityId, entityName);
@@ -291,6 +307,7 @@ export function notifyCommentAdded(
     <div class="details">
       <div class="detail-row"><span class="label">Typ:</span> ${entityTypeLabels[entityType]}</div>
       <div class="detail-row"><span class="label">Entita:</span> ${entityLink}</div>
+      ${categoriesText ? `<div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>` : ''}
       <div class="detail-row"><span class="label">Autor:</span> ${formatAuthor(comment.author)}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(comment.createdAt)}</div>
     </div>

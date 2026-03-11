@@ -22,6 +22,7 @@ import type { Event } from '@/types/event';
 import type { Match } from '@/types/match';
 import type { Comment } from '@/types/comment';
 import type { User } from '@/types/user';
+import type { Category } from '@/types/category';
 
 /**
  * Notification Service class for structured notification handling
@@ -190,7 +191,8 @@ export class NotificationService {
     entityType: 'match' | 'tournament' | 'event',
     entityName: string,
     entityId: string,
-    entityAuthorEmail?: string
+    entityAuthorEmail?: string,
+    categories?: Category[]
   ): void {
     try {
       Sentry.addBreadcrumb({
@@ -200,7 +202,7 @@ export class NotificationService {
         data: { commentId: comment.id, entityType, entityName, entityId, hasEntityAuthorEmail: !!entityAuthorEmail },
       });
 
-      baseNotifyCommentAdded(comment, entityType, entityName, entityId, entityAuthorEmail);
+      baseNotifyCommentAdded(comment, entityType, entityName, entityId, entityAuthorEmail, categories);
     } catch (error) {
       Sentry.captureException(error, {
         tags: { service: 'NotificationService', method: 'notifyCommentAdded' },

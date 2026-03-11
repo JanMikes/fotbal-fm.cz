@@ -108,7 +108,7 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: slides.length > 1, duration: 30 },
-    slides.length > 1 ? [Autoplay({ delay: 6000, stopOnInteraction: false })] : []
+    slides.length > 1 ? [Autoplay({ delay: 8000, stopOnInteraction: false })] : []
   );
 
   const scrollPrev = useCallback(() => {
@@ -141,8 +141,11 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
     if (!emblaApi) return;
     onSelect();
     emblaApi.on('select', onSelect);
+    const resetAutoplay = () => emblaApi.plugins().autoplay?.reset();
+    emblaApi.on('pointerUp', resetAutoplay);
     return () => {
       emblaApi.off('select', onSelect);
+      emblaApi.off('pointerUp', resetAutoplay);
     };
   }, [emblaApi, onSelect]);
 

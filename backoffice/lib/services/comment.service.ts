@@ -12,6 +12,7 @@ import {
   CommentRepository,
   CommentableEntity,
 } from '@/lib/repositories/comment.repository';
+import type { Category } from '@/types/category';
 import { NotificationService, getNotificationService } from './notification.service';
 import { MatchService } from './match.service';
 import { TournamentService } from './tournament.service';
@@ -241,6 +242,7 @@ export class CommentService {
       let entityName = '';
       let entityAuthorEmail: string | undefined;
       let entityAuthorId: number | undefined;
+      let entityCategories: Category[] | undefined;
 
       if (match) {
         entityType = 'match';
@@ -250,6 +252,7 @@ export class CommentService {
           entityName = `${result.data.homeTeam} vs ${result.data.awayTeam} (${result.data.homeScore}:${result.data.awayScore})`;
           entityAuthorEmail = result.data.author?.email;
           entityAuthorId = result.data.author?.id;
+          entityCategories = result.data.categories;
         }
       } else if (tournament) {
         entityType = 'tournament';
@@ -259,6 +262,7 @@ export class CommentService {
           entityName = result.data.name;
           entityAuthorEmail = result.data.author?.email;
           entityAuthorId = result.data.author?.id;
+          entityCategories = result.data.categories;
         }
       } else {
         entityType = 'event';
@@ -268,6 +272,7 @@ export class CommentService {
           entityName = result.data.name;
           entityAuthorEmail = result.data.author?.email;
           entityAuthorId = result.data.author?.id;
+          entityCategories = result.data.categories;
         }
       }
 
@@ -285,7 +290,8 @@ export class CommentService {
         entityType,
         entityName,
         entityId,
-        shouldNotifyEntityAuthor ? entityAuthorEmail : undefined
+        shouldNotifyEntityAuthor ? entityAuthorEmail : undefined,
+        entityCategories
       );
     } catch (error) {
       // Log but don't fail - comment was already created
