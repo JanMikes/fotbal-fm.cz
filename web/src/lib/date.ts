@@ -5,5 +5,5 @@ const MONTHS = [
 
 export function formatDate(isoDate: string): string {
   const d = new Date(isoDate);
-  return `${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return `${d.getUTCDate()}. ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
