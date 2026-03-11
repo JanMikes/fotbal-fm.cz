@@ -52,7 +52,7 @@ export default function NewsArticleTypeFilter({ types, categories }: NewsArticle
       <button
         onClick={resetAll}
         className={clsx(
-          'px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all border border-accent lg:px-5 lg:py-2 lg:text-sm',
+          'px-2 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-wide transition-all border border-accent sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm',
           !hasAnyFilter
             ? 'bg-accent text-white'
             : 'text-accent hover:bg-accent/5'
@@ -66,7 +66,7 @@ export default function NewsArticleTypeFilter({ types, categories }: NewsArticle
           key={type.slug}
           onClick={() => navigate('typ', toggleValue(activeTypes, type.slug))}
           className={clsx(
-            'px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all border border-accent lg:px-5 lg:py-2 lg:text-sm',
+            'px-2 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-wide transition-all border border-accent sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm',
             activeTypes.includes(type.slug)
               ? 'bg-accent text-white'
               : 'text-accent hover:bg-accent/5'
@@ -81,7 +81,7 @@ export default function NewsArticleTypeFilter({ types, categories }: NewsArticle
           key={cat.slug}
           onClick={() => navigate('kategorie', toggleValue(activeCategories, cat.slug))}
           className={clsx(
-            'px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all border border-accent lg:px-5 lg:py-2 lg:text-sm',
+            'px-2 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-wide transition-all border border-accent sm:px-3 sm:py-1.5 sm:text-xs lg:px-5 lg:py-2 lg:text-sm',
             activeCategories.includes(cat.slug)
               ? 'bg-accent text-white'
               : 'text-accent hover:bg-accent/5'
