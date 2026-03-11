@@ -211,10 +211,10 @@ export default function ArticleDetail({
           <div className="border-t lg:border-t-0 lg:border-l border-primary/10">
             <div className="lg:sticky lg:top-[142px] p-4">
               <div className="mb-4">
-                <div className="w-24 h-1 bg-accent mt-3 mb-1 lg:hidden"></div>
                 <h3 className="text-section text-primary uppercase font-black leading-tight lg:text-xs lg:font-bold lg:text-primary/40 lg:tracking-wider lg:leading-normal">
                   Další články
                 </h3>
+                <div className="w-24 h-1 bg-accent mt-3 mb-1 lg:hidden"></div>
               </div>
               <div className="flex flex-col gap-4">
                 {sidebarArticles.map((related) => (
