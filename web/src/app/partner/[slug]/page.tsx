@@ -49,7 +49,7 @@ export default async function PartnerDetailPage({ params }: PageProps) {
               alt={partner.name}
               width={partner.logo.width}
               height={partner.logo.height}
-              className="max-w-28 max-h-20 lg:max-w-40 lg:max-h-24 w-auto h-auto shrink-0 object-contain"
+              className="max-w-28 max-h-20 lg:max-w-[220px] lg:max-h-24 w-auto h-auto shrink-0 object-contain"
             />
           )}
           <div>
