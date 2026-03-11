@@ -112,7 +112,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
               {stripMarkdown(article.description).slice(0, 150)}
             </p>
           )}
-          <div className="flex items-center gap-3 text-small text-primary/50">
+          <div className="flex items-center gap-3 text-small text-accent">
             <time dateTime={article.date}>{formatDate(article.date)}</time>
           </div>
         </div>

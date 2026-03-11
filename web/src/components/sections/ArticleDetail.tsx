@@ -41,7 +41,7 @@ function SidebarCard({
       <p className="text-xs font-semibold text-primary line-clamp-2 group-hover:text-accent transition-colors leading-snug">
         {article.title}
       </p>
-      <p className="text-[11px] text-primary/40 mt-1" suppressHydrationWarning>{formatDate(article.date)}</p>
+      <p className="text-[11px] text-accent mt-1" suppressHydrationWarning>{formatDate(article.date)}</p>
       {article.mainPhoto && (
         <div className="relative aspect-[4/5] overflow-hidden mt-2">
           <Image
@@ -78,7 +78,7 @@ export default function ArticleDetail({
         {/* Left column */}
         <div>
           {/* Meta info */}
-          <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-primary/50">
+          <div className="px-6 pt-6 flex flex-wrap items-center gap-3 text-sm text-accent">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               <time dateTime={article.date} suppressHydrationWarning>{formatDate(article.date)}</time>
