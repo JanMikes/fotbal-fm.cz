@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { Calendar } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { MatchCard, MiniCalendar } from '../ui';
 import SectionHeader from '../ui/SectionHeader';
 import type { Match } from '@/lib/types';
@@ -36,7 +37,6 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
           <SectionHeader
             title="Kdy hrajeme"
             icon={Calendar}
-            moreLink={`/kategorie/${categorySlug}/zapasy`}
           />
 
           {/* Filter Tabs */}
@@ -151,6 +151,18 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
               )}
             </div>
           </div>
+        </div>
+
+        {/* Link to all matches */}
+        <div className="text-center">
+          <Link
+            href={`/kategorie/${categorySlug}/zapasy`}
+            className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors text-sm font-bold uppercase tracking-wide"
+          >
+            <Calendar className="w-5 h-5" />
+            <span className="border-b-2 border-accent pb-0.5">Všechny zápasy</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
 
       </div>
