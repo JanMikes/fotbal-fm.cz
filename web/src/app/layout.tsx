@@ -47,6 +47,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  other: {
+    'msapplication-TileColor': '#0a1e44',
+  },
 };
 
 export default async function RootLayout({
