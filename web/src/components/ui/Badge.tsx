@@ -26,7 +26,7 @@ export default function Badge({
   };
 
   const sizes = {
-    sm: 'px-2.5 py-1 text-xs',
+    sm: 'px-1.5 py-0.5 text-[0.6875rem] sm:px-2.5 sm:py-1 sm:text-xs',
     md: 'px-3 py-1.5 text-sm',
   };
 
