@@ -140,6 +140,10 @@ export interface PlayerHighlight {
 
 // Partners
 
+export interface PartnerCategory {
+  name: string;
+}
+
 export interface Partner {
   documentId: string;
   name: string;
@@ -147,6 +151,7 @@ export interface Partner {
   logo: MediaImage | null;
   description: string | null;
   sortOrder: number;
+  partnerCategory: PartnerCategory | null;
 }
 
 export interface PartnerDetail extends Partner {

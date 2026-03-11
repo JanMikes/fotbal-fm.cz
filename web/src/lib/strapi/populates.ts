@@ -198,6 +198,7 @@ export function buildPartnerPopulate() {
   const dz = buildDynamicZonePopulate();
   return {
     logo: mediaFields,
+    partnerCategory: { fields: ['name'] },
     content: dz,
     panel: dz,
   };

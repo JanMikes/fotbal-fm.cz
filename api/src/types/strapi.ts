@@ -109,6 +109,13 @@ export interface StrapiRawDynamicZoneComponent {
   [key: string]: unknown;
 }
 
+export interface StrapiRawPartnerCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  sortOrder: number;
+}
+
 export interface StrapiRawPartner {
   id: number;
   documentId: string;
@@ -117,6 +124,7 @@ export interface StrapiRawPartner {
   logo: StrapiRawMedia | null;
   description: string | null;
   sortOrder: number;
+  partnerCategory: StrapiRawPartnerCategory | null;
   content: StrapiRawDynamicZoneComponent[];
   panel: StrapiRawDynamicZoneComponent[] | null;
 }

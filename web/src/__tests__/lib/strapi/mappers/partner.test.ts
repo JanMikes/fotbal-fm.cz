@@ -20,6 +20,7 @@ function makeRawPartner(overrides: Partial<StrapiRawPartner> = {}): StrapiRawPar
     logo: null,
     description: 'A test partner',
     sortOrder: 5,
+    partnerCategory: null,
     content: [],
     panel: null,
     createdAt: '2025-01-01T00:00:00Z',
@@ -65,6 +66,18 @@ describe('mapPartner', () => {
     raw.sortOrder = undefined;
     const result = mapPartner(raw);
     expect(result.sortOrder).toBe(0);
+  });
+
+  it('maps partnerCategory when present', () => {
+    const result = mapPartner(makeRawPartner({
+      partnerCategory: { id: 1, documentId: 'pc-1', name: 'Generální partner', sortOrder: 1 },
+    }));
+    expect(result.partnerCategory).toEqual({ name: 'Generální partner' });
+  });
+
+  it('handles null partnerCategory', () => {
+    const result = mapPartner(makeRawPartner({ partnerCategory: null }));
+    expect(result.partnerCategory).toBeNull();
   });
 });
 

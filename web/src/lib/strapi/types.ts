@@ -152,6 +152,13 @@ export interface StrapiRawFooter {
   bottomLinks: StrapiRawTextLink[] | null;
 }
 
+export interface StrapiRawPartnerCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  sortOrder: number;
+}
+
 export interface StrapiRawPartner {
   id: number;
   documentId: string;
@@ -160,6 +167,7 @@ export interface StrapiRawPartner {
   logo: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   description: string | null;
   sortOrder: number;
+  partnerCategory: StrapiRawPartnerCategory | null;
   content: StrapiRawDynamicZoneComponent[];
   panel: StrapiRawDynamicZoneComponent[] | null;
   createdAt: string;

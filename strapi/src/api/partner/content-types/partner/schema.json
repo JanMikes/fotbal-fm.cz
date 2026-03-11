@@ -31,6 +31,11 @@
       "type": "integer",
       "default": 0
     },
+    "partnerCategory": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::partner-category.partner-category"
+    },
     "content": {
       "type": "dynamiczone",
       "components": [

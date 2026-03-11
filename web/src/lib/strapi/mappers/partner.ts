@@ -11,6 +11,7 @@ export function mapPartner(raw: StrapiRawPartner): Partner {
     logo: mapMedia(raw.logo),
     description: raw.description ?? null,
     sortOrder: raw.sortOrder ?? 0,
+    partnerCategory: raw.partnerCategory ? { name: raw.partnerCategory.name } : null,
   };
 }
 

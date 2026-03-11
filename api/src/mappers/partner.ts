@@ -10,6 +10,7 @@ export function mapPartnerSummary(raw: StrapiRawPartner) {
     logo: mapMedia(raw.logo),
     description: raw.description ? markdownToHtml(raw.description) : null,
     sortOrder: raw.sortOrder,
+    partnerCategory: raw.partnerCategory ? { name: raw.partnerCategory.name } : null,
   };
 }
 

@@ -224,6 +224,7 @@ partnersRoute.openapi(listRoute, async (c) => {
     pagination: { pageSize: 100 },
     populate: {
       logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+      partnerCategory: { fields: ['name'] },
     },
   });
 
@@ -240,6 +241,7 @@ partnersRoute.openapi(detailRoute, async (c) => {
     pagination: { pageSize: 1 },
     populate: {
       logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+      partnerCategory: { fields: ['name'] },
       content: dz,
       panel: dz,
     },

@@ -31,6 +31,7 @@ const mockPartners = {
       logo: img(60, 'sponzor_logo'),
       description: 'Generální partner klubu od roku 2015.',
       sortOrder: 1,
+      partnerCategory: { id: 1, documentId: 'pc-1', name: 'Generální partner', sortOrder: 1 },
       content: [],
       panel: null,
     },
@@ -42,6 +43,7 @@ const mockPartners = {
       logo: null,
       description: null,
       sortOrder: 2,
+      partnerCategory: null,
       content: [],
       panel: null,
     },
@@ -282,6 +284,7 @@ const mockPartnerAllComponents = {
       logo: img(60, 'logo'),
       description: 'Full test',
       sortOrder: 1,
+      partnerCategory: null,
       content: allComponents,
       panel: [],
     },
@@ -311,9 +314,11 @@ describe('GET /api/v1/partners', () => {
       logo: { url: url('sponzor_logo'), alternativeText: 'sponzor_logo', width: 800, height: 600 },
       description: '<p>Generální partner klubu od roku 2015.</p>\n',
       sortOrder: 1,
+      partnerCategory: { name: 'Generální partner' },
     });
     expect(json.data[1].logo).toBeNull();
     expect(json.data[1].description).toBeNull();
+    expect(json.data[1].partnerCategory).toBeNull();
   });
 });
 

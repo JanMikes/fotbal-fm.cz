@@ -35,6 +35,11 @@ export default function PartnerCard({ partner, className }: PartnerCardProps) {
         <h3 className="font-bold text-primary text-center group-hover:text-accent transition-colors duration-300">
           {partner.name}
         </h3>
+        {partner.partnerCategory && (
+          <p className="text-xs text-primary/50 text-center mt-1">
+            {partner.partnerCategory.name}
+          </p>
+        )}
         {partner.description && (
           <p className="text-small text-primary/60 text-center line-clamp-2 mt-2">
             {partner.description}

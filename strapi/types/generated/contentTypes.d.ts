@@ -1008,6 +1008,36 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPartnerCategoryPartnerCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'partner_categories';
+  info: {
+    displayName: 'Partner Category';
+    pluralName: 'partner-categories';
+    singularName: 'partner-category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::partner-category.partner-category'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
   collectionName: 'partners';
   info: {
@@ -1850,6 +1880,7 @@ declare module '@strapi/strapi' {
       'api::news-article-type.news-article-type': ApiNewsArticleTypeNewsArticleType;
       'api::news-article.news-article': ApiNewsArticleNewsArticle;
       'api::page.page': ApiPagePage;
+      'api::partner-category.partner-category': ApiPartnerCategoryPartnerCategory;
       'api::partner.partner': ApiPartnerPartner;
       'api::player-highlight.player-highlight': ApiPlayerHighlightPlayerHighlight;
       'api::player.player': ApiPlayerPlayer;

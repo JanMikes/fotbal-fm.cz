@@ -492,6 +492,7 @@ export async function getPartners(): Promise<Partner[]> {
     const { data } = await client.findMany<StrapiRawPartner>('partners', {
       populate: {
         logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
+        partnerCategory: { fields: ['name'] },
       },
       sort: 'sortOrder:asc',
       pagination: { pageSize: 100 },
