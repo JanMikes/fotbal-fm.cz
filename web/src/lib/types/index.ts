@@ -417,6 +417,7 @@ export interface ComponentForm extends DynamicZoneBase {
   __component: 'components.form';
   form: FormDefinition | null;
   recipients: string[];
+  hide_on_web: boolean;
 }
 
 export type DynamicZoneComponent =

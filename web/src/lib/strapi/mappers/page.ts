@@ -222,6 +222,7 @@ function mapDynamicZoneComponent(raw: StrapiRawDynamicZoneComponent): DynamicZon
         __component: 'components.form',
         form: mapFormDefinition(raw.form),
         recipients: mapRecipients(raw.recipients),
+        hide_on_web: (raw.hide_on_web as boolean) ?? false,
       };
 
     default:

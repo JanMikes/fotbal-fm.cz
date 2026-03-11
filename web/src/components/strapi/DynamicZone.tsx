@@ -88,6 +88,7 @@ function DynamicZoneItem({ component, sidebar }: { component: DynamicZoneCompone
     case 'components.news-articles':
       return <NewsArticles data={component} sidebar={sidebar} />;
     case 'components.form':
+      if (component.hide_on_web) return null;
       return <FormBlock data={component} />;
     default:
       return <ComponentError componentType={(component as DynamicZoneComponent).__component} />;

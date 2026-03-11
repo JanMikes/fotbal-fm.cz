@@ -75,6 +75,7 @@ describe('form component mapping', () => {
     expect(form.form!.inputGroups[0].inputs[0].width).toBe('half');
     expect(form.form!.inputGroups[1].inputs[1].options).toBe('Dotaz\nStížnost\nJiné');
     expect(form.recipients).toEqual(['admin@test.cz', 'info@test.cz']);
+    expect(form.hide_on_web).toBe(false);
   });
 
   it('maps form component with null form relation', () => {
@@ -100,6 +101,32 @@ describe('form component mapping', () => {
     const form = result.content[0] as ComponentForm;
     expect(form.form).toBeNull();
     expect(form.recipients).toEqual([]);
+    expect(form.hide_on_web).toBe(false);
+  });
+
+  it('maps hide_on_web when set to true', () => {
+    const raw: StrapiRawPage = {
+      id: 1,
+      documentId: 'page-1',
+      title: 'Test',
+      slug: 'test',
+      meta_description: null,
+      parent: null,
+      content: [
+        {
+          id: 203,
+          __component: 'components.form',
+          form: null,
+          recipients: [],
+          hide_on_web: true,
+        },
+      ],
+      sidebar: null,
+    };
+
+    const result = mapPage(raw);
+    const form = result.content[0] as ComponentForm;
+    expect(form.hide_on_web).toBe(true);
   });
 
   it('maps form with default values for missing fields', () => {

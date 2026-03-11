@@ -1109,6 +1109,10 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
         'components.form',
       ]
     >;
+    partnerCategory: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::partner-category.partner-category'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;

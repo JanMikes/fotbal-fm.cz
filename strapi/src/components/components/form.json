@@ -16,6 +16,10 @@
       "repeatable": true,
       "component": "form.recipient",
       "required": true
+    },
+    "hide_on_web": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -112,6 +112,7 @@ export interface ComponentsForm extends Struct.ComponentSchema {
   attributes: {
     form: Schema.Attribute.Relation<'oneToOne', 'api::form.form'> &
       Schema.Attribute.Required;
+    hide_on_web: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     recipients: Schema.Attribute.Component<'form.recipient', true> &
       Schema.Attribute.Required;
   };
