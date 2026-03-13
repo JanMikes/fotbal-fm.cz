@@ -3327,13 +3327,13 @@
       {
         "position": 7,
         "teamName": "ZBROJOVKA BRNO B",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 6,
-        "draws": 4,
+        "draws": 5,
         "losses": 6,
-        "goalsFor": 28,
-        "goalsAgainst": 31,
-        "points": 22
+        "goalsFor": 29,
+        "goalsAgainst": 32,
+        "points": 23
       },
       {
         "position": 8,
@@ -3426,13 +3426,13 @@
       {
         "position": 16,
         "teamName": "Kroměříž",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 3,
-        "draws": 2,
+        "draws": 3,
         "losses": 11,
-        "goalsFor": 17,
-        "goalsAgainst": 56,
-        "points": 11
+        "goalsFor": 18,
+        "goalsAgainst": 57,
+        "points": 12
       }
     ]
   },
@@ -3465,6 +3465,17 @@
       },
       {
         "position": 3,
+        "teamName": "ZBROJOVKA BRNO B",
+        "matchesPlayed": 17,
+        "wins": 11,
+        "draws": 1,
+        "losses": 5,
+        "goalsFor": 52,
+        "goalsAgainst": 28,
+        "points": 34
+      },
+      {
+        "position": 4,
         "teamName": "SIGMA Olomouc B",
         "matchesPlayed": 16,
         "wins": 11,
@@ -3473,17 +3484,6 @@
         "goalsFor": 37,
         "goalsAgainst": 22,
         "points": 34
-      },
-      {
-        "position": 4,
-        "teamName": "ZBROJOVKA BRNO B",
-        "matchesPlayed": 16,
-        "wins": 10,
-        "draws": 1,
-        "losses": 5,
-        "goalsFor": 49,
-        "goalsAgainst": 27,
-        "points": 31
       },
       {
         "position": 5,
@@ -3565,12 +3565,12 @@
       {
         "position": 12,
         "teamName": "Kroměříž",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 4,
         "draws": 3,
-        "losses": 9,
-        "goalsFor": 30,
-        "goalsAgainst": 49,
+        "losses": 10,
+        "goalsFor": 31,
+        "goalsAgainst": 52,
         "points": 15
       },
       {
@@ -3992,6 +3992,17 @@
     "rows": [
       {
         "position": 1,
+        "teamName": "OLOMOUC SIGMA",
+        "matchesPlayed": 18,
+        "wins": 13,
+        "draws": 4,
+        "losses": 1,
+        "goalsFor": 60,
+        "goalsAgainst": 25,
+        "points": 43
+      },
+      {
+        "position": 2,
         "teamName": "JIHLAVA",
         "matchesPlayed": 18,
         "wins": 13,
@@ -4002,7 +4013,18 @@
         "points": 41
       },
       {
-        "position": 2,
+        "position": 3,
+        "teamName": "ZBROJOVKA BRNO",
+        "matchesPlayed": 18,
+        "wins": 13,
+        "draws": 1,
+        "losses": 4,
+        "goalsFor": 79,
+        "goalsAgainst": 32,
+        "points": 40
+      },
+      {
+        "position": 4,
         "teamName": "Baník Ostrava",
         "matchesPlayed": 18,
         "wins": 12,
@@ -4013,36 +4035,14 @@
         "points": 40
       },
       {
-        "position": 3,
-        "teamName": "OLOMOUC SIGMA",
-        "matchesPlayed": 17,
-        "wins": 12,
-        "draws": 4,
-        "losses": 1,
-        "goalsFor": 55,
-        "goalsAgainst": 25,
-        "points": 40
-      },
-      {
-        "position": 4,
-        "teamName": "ZBROJOVKA BRNO",
-        "matchesPlayed": 17,
-        "wins": 12,
-        "draws": 1,
-        "losses": 4,
-        "goalsFor": 75,
-        "goalsAgainst": 32,
-        "points": 37
-      },
-      {
         "position": 5,
         "teamName": "Slovácko",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 10,
         "draws": 2,
-        "losses": 5,
+        "losses": 6,
         "goalsFor": 49,
-        "goalsAgainst": 29,
+        "goalsAgainst": 33,
         "points": 32
       },
       {
@@ -4092,12 +4092,12 @@
       {
         "position": 10,
         "teamName": "Frýdek-Místek",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 2,
         "draws": 3,
-        "losses": 12,
+        "losses": 13,
         "goalsFor": 13,
-        "goalsAgainst": 57,
+        "goalsAgainst": 62,
         "points": 9
       },
       {
@@ -4143,13 +4143,13 @@
       {
         "position": 2,
         "teamName": "OLOMOUC SIGMA",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 15,
-        "draws": 0,
+        "draws": 1,
         "losses": 2,
-        "goalsFor": 79,
-        "goalsAgainst": 16,
-        "points": 45
+        "goalsFor": 83,
+        "goalsAgainst": 20,
+        "points": 46
       },
       {
         "position": 3,
@@ -4176,24 +4176,24 @@
       {
         "position": 5,
         "teamName": "Slovácko",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 10,
         "draws": 0,
-        "losses": 7,
-        "goalsFor": 75,
-        "goalsAgainst": 44,
+        "losses": 8,
+        "goalsFor": 78,
+        "goalsAgainst": 48,
         "points": 30
       },
       {
         "position": 6,
         "teamName": "ZBROJOVKA BRNO",
-        "matchesPlayed": 17,
-        "wins": 8,
+        "matchesPlayed": 18,
+        "wins": 9,
         "draws": 2,
         "losses": 7,
-        "goalsFor": 72,
-        "goalsAgainst": 50,
-        "points": 26
+        "goalsFor": 76,
+        "goalsAgainst": 53,
+        "points": 29
       },
       {
         "position": 7,
@@ -4242,13 +4242,13 @@
       {
         "position": 11,
         "teamName": "Frýdek-Místek",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 3,
-        "draws": 1,
+        "draws": 2,
         "losses": 13,
-        "goalsFor": 27,
-        "goalsAgainst": 89,
-        "points": 10
+        "goalsFor": 31,
+        "goalsAgainst": 93,
+        "points": 11
       },
       {
         "position": 12,
