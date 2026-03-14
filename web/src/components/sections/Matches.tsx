@@ -30,7 +30,7 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
   }, [allMatches, selectedDate]);
 
   return (
-    <section className="py-section bg-surface-light">
+    <section className="py-section pb-4 lg:pb-section bg-surface-light">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -149,20 +149,20 @@ export default function Matches({ upcomingMatches, finishedMatches, allMatches, 
                   </p>
                 </motion.div>
               )}
+
+              {/* Link to all matches - positioned as 4th grid item */}
+              <div className="flex items-center justify-center">
+                <Link
+                  href={`/kategorie/${categorySlug}/zapasy`}
+                  className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors text-sm font-bold uppercase tracking-wide"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span className="border-b-2 border-accent pb-0.5">Všechny zápasy</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Link to all matches */}
-        <div className="text-center">
-          <Link
-            href={`/kategorie/${categorySlug}/zapasy`}
-            className="inline-flex items-center gap-2 text-accent hover:text-accent/80 transition-colors text-sm font-bold uppercase tracking-wide"
-          >
-            <Calendar className="w-5 h-5" />
-            <span className="border-b-2 border-accent pb-0.5">Všechny zápasy</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
 
       </div>
