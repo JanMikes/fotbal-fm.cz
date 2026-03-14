@@ -803,6 +803,26 @@
     ]
   },
   {
+    "sportbmId": "478460",
+    "name": "Matěj Filip",
+    "dateOfBirth": "2011-06-10",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
+    "sportbmId": "478742",
+    "name": "Rožnovský Matyáš",
+    "dateOfBirth": "2011-07-12",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      16275
+    ]
+  },
+  {
     "sportbmId": "267775",
     "name": "Matyáš Bartoň",
     "dateOfBirth": "2012-06-23",
@@ -2008,16 +2028,6 @@
     ]
   },
   {
-    "sportbmId": "351694",
-    "name": "Matyáš Mižďoch",
-    "dateOfBirth": "2019-04-16",
-    "number": null,
-    "photoFilename": null,
-    "groupIds": [
-      19349
-    ]
-  },
-  {
     "sportbmId": "356465",
     "name": "Matěj Hanko",
     "dateOfBirth": "2019-08-02",
@@ -2241,6 +2251,16 @@
     "sportbmId": "466470",
     "name": "Tobias Jakubowski",
     "dateOfBirth": "2019-06-06",
+    "number": null,
+    "photoFilename": null,
+    "groupIds": [
+      19349
+    ]
+  },
+  {
+    "sportbmId": "478861",
+    "name": "Artur Mati",
+    "dateOfBirth": "2019-12-13",
     "number": null,
     "photoFilename": null,
     "groupIds": [

@@ -7,13 +7,13 @@
       {
         "position": 1,
         "teamName": "TŘINEC",
-        "matchesPlayed": 18,
-        "wins": 13,
+        "matchesPlayed": 19,
+        "wins": 14,
         "draws": 3,
         "losses": 2,
-        "goalsFor": 42,
+        "goalsFor": 46,
         "goalsAgainst": 15,
-        "points": 42
+        "points": 45
       },
       {
         "position": 2,
@@ -161,12 +161,12 @@
       {
         "position": 15,
         "teamName": "START Brno",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 3,
         "draws": 8,
-        "losses": 7,
+        "losses": 8,
         "goalsFor": 19,
-        "goalsAgainst": 28,
+        "goalsAgainst": 32,
         "points": 17
       },
       {
@@ -3294,13 +3294,13 @@
       {
         "position": 4,
         "teamName": "Frýdek-Místek",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 8,
-        "draws": 6,
+        "draws": 7,
         "losses": 2,
         "goalsFor": 34,
         "goalsAgainst": 19,
-        "points": 30
+        "points": 31
       },
       {
         "position": 5,
@@ -3349,13 +3349,13 @@
       {
         "position": 9,
         "teamName": "VÍTKOVICE",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 5,
-        "draws": 5,
+        "draws": 6,
         "losses": 6,
         "goalsFor": 21,
         "goalsAgainst": 26,
-        "points": 20
+        "points": 21
       },
       {
         "position": 10,
@@ -3649,13 +3649,13 @@
       {
         "position": 3,
         "teamName": "Uničov",
-        "matchesPlayed": 16,
+        "matchesPlayed": 17,
         "wins": 11,
-        "draws": 1,
+        "draws": 2,
         "losses": 4,
-        "goalsFor": 38,
-        "goalsAgainst": 22,
-        "points": 34
+        "goalsFor": 41,
+        "goalsAgainst": 25,
+        "points": 35
       },
       {
         "position": 4,
@@ -3703,6 +3703,17 @@
       },
       {
         "position": 8,
+        "teamName": "Kunovice",
+        "matchesPlayed": 17,
+        "wins": 8,
+        "draws": 2,
+        "losses": 7,
+        "goalsFor": 31,
+        "goalsAgainst": 31,
+        "points": 26
+      },
+      {
+        "position": 9,
         "teamName": "Valašské Meziříčí",
         "matchesPlayed": 16,
         "wins": 8,
@@ -3713,36 +3724,25 @@
         "points": 25
       },
       {
-        "position": 9,
-        "teamName": "Kunovice",
-        "matchesPlayed": 16,
-        "wins": 7,
-        "draws": 2,
-        "losses": 7,
-        "goalsFor": 27,
-        "goalsAgainst": 30,
-        "points": 23
-      },
-      {
         "position": 10,
         "teamName": "Brumov",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 5,
-        "draws": 4,
+        "draws": 5,
         "losses": 6,
-        "goalsFor": 21,
-        "goalsAgainst": 28,
-        "points": 19
+        "goalsFor": 24,
+        "goalsAgainst": 31,
+        "points": 20
       },
       {
         "position": 11,
         "teamName": "Bílovec",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 5,
         "draws": 2,
-        "losses": 8,
-        "goalsFor": 33,
-        "goalsAgainst": 34,
+        "losses": 9,
+        "goalsFor": 34,
+        "goalsAgainst": 38,
         "points": 17
       },
       {
@@ -3993,13 +3993,13 @@
       {
         "position": 1,
         "teamName": "OLOMOUC SIGMA",
-        "matchesPlayed": 18,
-        "wins": 13,
+        "matchesPlayed": 19,
+        "wins": 14,
         "draws": 4,
         "losses": 1,
-        "goalsFor": 60,
-        "goalsAgainst": 25,
-        "points": 43
+        "goalsFor": 64,
+        "goalsAgainst": 26,
+        "points": 46
       },
       {
         "position": 2,
@@ -4081,12 +4081,12 @@
       {
         "position": 9,
         "teamName": "Opava",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 2,
         "draws": 5,
-        "losses": 11,
-        "goalsFor": 22,
-        "goalsAgainst": 48,
+        "losses": 12,
+        "goalsFor": 23,
+        "goalsAgainst": 52,
         "points": 11
       },
       {
