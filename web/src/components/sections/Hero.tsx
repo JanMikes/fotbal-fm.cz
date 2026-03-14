@@ -504,7 +504,7 @@ function ContentSlide({ slide }: { slide: HeroSlide }) {
         {slide.title}
       </motion.h1>
 
-      {slide.description && (
+      {slide.description && slide.type !== 'news' && (
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
