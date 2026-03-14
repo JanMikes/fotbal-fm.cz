@@ -8,9 +8,10 @@ import type { ComponentGallerySlider } from '@/lib/types';
 
 interface GallerySliderProps {
   data: ComponentGallerySlider;
+  sidebar?: boolean;
 }
 
-export function GallerySlider({ data }: GallerySliderProps) {
+export function GallerySlider({ data, sidebar }: GallerySliderProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: 'start',
@@ -29,7 +30,7 @@ export function GallerySlider({ data }: GallerySliderProps) {
       <div className="overflow-hidden rounded-lg" ref={emblaRef}>
         <div className="flex gap-4">
           {photos.map((photo, i) => (
-            <div key={i} className="flex-[0_0_80%] sm:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0">
+            <div key={i} className={sidebar ? 'flex-[0_0_100%] min-w-0' : 'flex-[0_0_80%] sm:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0'}>
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
                 <Image
                   src={photo.image!.url}

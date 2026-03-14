@@ -999,6 +999,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
         'components.badges',
         'components.image',
         'components.form',
+        'components.accordion-sections',
       ]
     >;
     slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;

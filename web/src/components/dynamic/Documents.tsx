@@ -4,6 +4,7 @@ import type { ComponentDocuments } from '@/lib/types';
 
 interface DocumentsProps {
   data: ComponentDocuments;
+  sidebar?: boolean;
 }
 
 const colClasses: Record<string, string> = {
@@ -12,11 +13,11 @@ const colClasses: Record<string, string> = {
   '3': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
 };
 
-export function Documents({ data }: DocumentsProps) {
+export function Documents({ data, sidebar }: DocumentsProps) {
   if (!data.documents || data.documents.length === 0) return null;
 
   return (
-    <div className={clsx('grid gap-3', colClasses[data.columns] || colClasses['3'])}>
+    <div className={clsx('grid gap-3', sidebar ? 'grid-cols-1' : (colClasses[data.columns] || colClasses['3']))}>
       {data.documents.map((doc, i) => (
         <a
           key={i}

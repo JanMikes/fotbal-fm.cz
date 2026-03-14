@@ -5,6 +5,7 @@ import type { ComponentFeatureCards } from '@/lib/types';
 
 interface FeatureCardsProps {
   data: ComponentFeatureCards;
+  sidebar?: boolean;
 }
 
 const colClasses: Record<string, string> = {
@@ -22,11 +23,11 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function FeatureCards({ data }: FeatureCardsProps) {
+export function FeatureCards({ data, sidebar }: FeatureCardsProps) {
   if (!data.cards || data.cards.length === 0) return null;
 
   return (
-    <div className={clsx('grid gap-6', colClasses[data.columns] || colClasses['3'])}>
+    <div className={clsx('grid gap-6', sidebar ? 'grid-cols-1' : (colClasses[data.columns] || colClasses['3']))}>
       {data.cards.map((card, i) => {
         const content = (
           <div className={clsx(

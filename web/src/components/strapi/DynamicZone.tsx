@@ -50,35 +50,35 @@ function DynamicZoneItem({ component, sidebar }: { component: DynamicZoneCompone
     case 'components.alert':
       return <Alert data={component} />;
     case 'components.links-list':
-      return <LinksList data={component} />;
+      return <LinksList data={component} sidebar={sidebar} />;
     case 'components.video':
       return <Video data={component} />;
     case 'components.feature-cards':
-      return <FeatureCards data={component} />;
+      return <FeatureCards data={component} sidebar={sidebar} />;
     case 'components.banner-cards':
       return <BannerCards data={component} />;
     case 'components.documents':
-      return <Documents data={component} />;
+      return <Documents data={component} sidebar={sidebar} />;
     case 'components.partner-logos':
       return <PartnerLogos data={component} />;
     case 'components.stats-highlights':
       return <StatsHighlights data={component} />;
     case 'components.timeline':
-      return <Timeline data={component} />;
+      return <Timeline data={component} sidebar={sidebar} />;
     case 'components.section-divider':
       return <SectionDivider data={component} />;
     case 'components.slider':
       return <Slider data={component} />;
     case 'components.gallery-slider':
-      return <GallerySlider data={component} />;
+      return <GallerySlider data={component} sidebar={sidebar} />;
     case 'components.photo-gallery':
-      return <PhotoGallery data={component} />;
+      return <PhotoGallery data={component} sidebar={sidebar} />;
     case 'components.button-group':
       return <ButtonGroup data={component} />;
     case 'components.contact-cards':
-      return <ContactCards data={component} />;
+      return <ContactCards data={component} sidebar={sidebar} />;
     case 'components.accordion-sections':
-      return <AccordionSections data={component} />;
+      return <AccordionSections data={component} sidebar={sidebar} />;
     case 'components.popup':
       return <Popup data={component} />;
     case 'components.badges':

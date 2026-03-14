@@ -4,13 +4,14 @@ import type { ComponentContactCards } from '@/lib/types';
 
 interface ContactCardsProps {
   data: ComponentContactCards;
+  sidebar?: boolean;
 }
 
-export function ContactCards({ data }: ContactCardsProps) {
+export function ContactCards({ data, sidebar }: ContactCardsProps) {
   if (!data.cards || data.cards.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={sidebar ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'}>
       {data.cards.map((card, i) => (
         <div key={i} className="bg-white rounded-lg shadow-card p-6 text-center">
           {card.photo && (

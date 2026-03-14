@@ -9,21 +9,22 @@ import { MarkdownContent } from '../ui/MarkdownContent';
 
 interface AccordionSectionsProps {
   data: ComponentAccordionSections;
+  sidebar?: boolean;
 }
 
-export function AccordionSections({ data }: AccordionSectionsProps) {
+export function AccordionSections({ data, sidebar }: AccordionSectionsProps) {
   if (!data.sections || data.sections.length === 0) return null;
 
   return (
     <div className="space-y-2">
       {data.sections.map((section, i) => (
-        <AccordionItem key={i} section={section} />
+        <AccordionItem key={i} section={section} sidebar={sidebar} />
       ))}
     </div>
   );
 }
 
-function AccordionItem({ section }: { section: ComponentAccordionSections['sections'][0] }) {
+function AccordionItem({ section, sidebar }: { section: ComponentAccordionSections['sections'][0]; sidebar?: boolean }) {
   const [isOpen, setIsOpen] = useState(section.default_open);
 
   return (
@@ -63,7 +64,7 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
             </div>
           )}
           {section.photos && section.photos.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className={sidebar ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-2 sm:grid-cols-3 gap-2'}>
               {section.photos.filter((p) => p.image).map((photo, j) => (
                 <div key={j} className="relative aspect-[4/3] rounded overflow-hidden">
                   <Image
@@ -78,7 +79,7 @@ function AccordionItem({ section }: { section: ComponentAccordionSections['secti
             </div>
           )}
           {section.contacts && section.contacts.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={sidebar ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}>
               {section.contacts.map((contact, j) => (
                 <div key={j} className="flex items-center gap-3 p-3 bg-surface-light rounded-lg">
                   {contact.photo && (

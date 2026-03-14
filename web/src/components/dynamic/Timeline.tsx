@@ -8,13 +8,14 @@ import type { ComponentTimeline } from '@/lib/types';
 
 interface TimelineProps {
   data: ComponentTimeline;
+  sidebar?: boolean;
 }
 
-export function Timeline({ data }: TimelineProps) {
+export function Timeline({ data, sidebar }: TimelineProps) {
   if (!data.items || data.items.length === 0) return null;
 
   if (data.style === 'style2') {
-    return <TimelineTable items={data.items} collapsible={data.collapsible} showPreview={data.showPreview} />;
+    return <TimelineTable items={data.items} collapsible={data.collapsible} showPreview={data.showPreview} sidebar={sidebar} />;
   }
 
   return <TimelineVertical items={data.items} collapsible={data.collapsible} showPreview={data.showPreview} />;
@@ -140,17 +141,17 @@ function TimelineVerticalItem({
   );
 }
 
-function TimelineTable({ items, collapsible, showPreview }: { items: TimelineItem[]; collapsible: boolean; showPreview: boolean }) {
+function TimelineTable({ items, collapsible, showPreview, sidebar }: { items: TimelineItem[]; collapsible: boolean; showPreview: boolean; sidebar?: boolean }) {
   return (
     <div className="divide-y divide-primary/10">
       {items.map((item, i) => (
-        <TimelineTableRow key={i} item={item} collapsible={collapsible} showPreview={showPreview} />
+        <TimelineTableRow key={i} item={item} collapsible={collapsible} showPreview={showPreview} sidebar={sidebar} />
       ))}
     </div>
   );
 }
 
-function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineItem; collapsible: boolean; showPreview: boolean }) {
+function TimelineTableRow({ item, collapsible, showPreview, sidebar }: { item: TimelineItem; collapsible: boolean; showPreview: boolean; sidebar?: boolean }) {
   const [isOpen, setIsOpen] = useState(!collapsible);
   const [needsCollapsing, setNeedsCollapsing] = useState(collapsible);
 
@@ -175,7 +176,10 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
             <MarkdownContent content={item.description} className="prose-sm" />
           </div>
         )}
-        <div className="flex flex-col gap-1 md:grid md:grid-cols-[auto_250px_1fr_auto] md:gap-x-4 md:items-start text-left">
+        <div className={clsx(
+          'flex flex-col gap-1 text-left',
+          !sidebar && 'md:grid md:grid-cols-[auto_250px_1fr_auto] md:gap-x-4 md:items-start'
+        )}>
           <span className="text-accent font-semibold min-w-[4rem] md:text-center">
             {item.number}
           </span>
@@ -219,7 +223,10 @@ function TimelineTableRow({ item, collapsible, showPreview }: { item: TimelineIt
   }
 
   return (
-    <div className="flex flex-col gap-1 py-3 md:grid md:grid-cols-[auto_250px_1fr] md:gap-x-4 md:items-start">
+    <div className={clsx(
+      'flex flex-col gap-1 py-3',
+      !sidebar && 'md:grid md:grid-cols-[auto_250px_1fr] md:gap-x-4 md:items-start'
+    )}>
       <span className="text-accent font-semibold min-w-[4rem] md:text-center">
         {item.number}
       </span>

@@ -83,7 +83,8 @@
         "components.news-articles",
         "components.badges",
         "components.image",
-        "components.form"
+        "components.form",
+        "components.accordion-sections"
       ]
     }
   }

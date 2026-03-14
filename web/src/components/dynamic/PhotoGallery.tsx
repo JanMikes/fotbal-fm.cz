@@ -4,6 +4,7 @@ import type { ComponentPhotoGallery } from '@/lib/types';
 
 interface PhotoGalleryProps {
   data: ComponentPhotoGallery;
+  sidebar?: boolean;
 }
 
 const colClasses: Record<string, string> = {
@@ -12,12 +13,12 @@ const colClasses: Record<string, string> = {
   '4': 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
 };
 
-export function PhotoGallery({ data }: PhotoGalleryProps) {
+export function PhotoGallery({ data, sidebar }: PhotoGalleryProps) {
   const photos = data.photos?.filter((p) => p.image) ?? [];
   if (photos.length === 0) return null;
 
   return (
-    <div className={clsx('grid gap-4', colClasses[data.columns] || colClasses['3'])}>
+    <div className={clsx('grid gap-4', sidebar ? 'grid-cols-2' : (colClasses[data.columns] || colClasses['3']))}>
       {photos.map((photo, i) => (
         <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden">
           <Image

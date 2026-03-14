@@ -5,12 +5,13 @@ import type { ComponentLinksList } from '@/lib/types';
 
 interface LinksListProps {
   data: ComponentLinksList;
+  sidebar?: boolean;
 }
 
-export function LinksList({ data }: LinksListProps) {
+export function LinksList({ data, sidebar }: LinksListProps) {
   if (!data.links || data.links.length === 0) return null;
 
-  const isGrid = data.layout === 'Grid';
+  const isGrid = data.layout === 'Grid' && !sidebar;
 
   return (
     <ul className={clsx(
