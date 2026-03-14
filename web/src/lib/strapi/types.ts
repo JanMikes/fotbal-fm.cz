@@ -151,6 +151,7 @@ export interface StrapiRawFooterPartner {
 export interface StrapiRawFooterPartnerSection {
   id: number;
   title: string;
+  style: 'big' | 'normal';
   partners: StrapiRawFooterPartner[] | null;
 }
 

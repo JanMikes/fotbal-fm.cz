@@ -23,6 +23,7 @@ function mapFooterPartner(raw: StrapiRawFooterPartner): FooterPartner {
 function mapFooterPartnerSection(raw: StrapiRawFooterPartnerSection): FooterPartnerSection {
   return {
     title: raw.title,
+    style: raw.style ?? 'normal',
     partners: (raw.partners ?? []).map(mapFooterPartner),
   };
 }

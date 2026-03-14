@@ -123,18 +123,23 @@ export default function Footer({ footer }: FooterProps) {
             <div className="flex flex-wrap gap-12">
               {footer.partnerSections.map((section, index) => (
                 <div key={index}>
-                  <h4 className="font-bold uppercase tracking-wider text-small text-accent mb-4">
+                  <h4 className="uppercase tracking-wider text-small text-accent mb-4">
                     {section.title}
                   </h4>
                   <div className="flex flex-wrap items-center gap-6">
                     {section.partners.map((partner, partnerIndex) => {
+                      const displayHeight = section.style === 'big' ? 80 : 40;
+                      const heightClass = section.style === 'big' ? 'h-[80px]' : 'h-[40px]';
+                      const displayWidth = partner.logo
+                        ? Math.round((partner.logo.width / partner.logo.height) * displayHeight)
+                        : 0;
                       const content = partner.logo ? (
                         <Image
                           src={partner.logo.url}
                           alt={partner.logo.alternativeText || partner.name}
-                          width={partner.logo.width}
-                          height={partner.logo.height}
-                          className="h-10 w-auto object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity"
+                          width={displayWidth}
+                          height={displayHeight}
+                          className={`${heightClass} w-auto object-contain`}
                         />
                       ) : (
                         <span className="text-white/60 text-small">{partner.name}</span>

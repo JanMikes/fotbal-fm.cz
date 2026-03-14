@@ -9,6 +9,12 @@
       "type": "string",
       "required": true
     },
+    "style": {
+      "type": "enumeration",
+      "enum": ["big", "normal"],
+      "default": "normal",
+      "required": true
+    },
     "partners": {
       "type": "component",
       "component": "footer.partner",

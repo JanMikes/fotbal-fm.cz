@@ -174,6 +174,7 @@ export interface FooterPartner {
 
 export interface FooterPartnerSection {
   title: string;
+  style: 'big' | 'normal';
   partners: FooterPartner[];
 }
 

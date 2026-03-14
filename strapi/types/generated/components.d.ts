@@ -568,6 +568,9 @@ export interface FooterPartnerSection extends Struct.ComponentSchema {
   };
   attributes: {
     partners: Schema.Attribute.Component<'footer.partner', true>;
+    style: Schema.Attribute.Enumeration<['big', 'normal']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'normal'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
