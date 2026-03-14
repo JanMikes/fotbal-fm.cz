@@ -91,7 +91,7 @@ export default function ArticleDetail({
           </div>
 
           {/* Title */}
-          <h1 className="px-6 pt-4 pb-4 text-2xl md:text-3xl font-black text-primary uppercase leading-tight">
+          <h1 className="px-6 pt-4 pb-4 text-2xl md:text-3xl font-black text-primary leading-tight">
             {article.title}
           </h1>
 
