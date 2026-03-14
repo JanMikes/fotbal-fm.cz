@@ -547,6 +547,31 @@ export interface FooterLinkSection extends Struct.ComponentSchema {
   };
 }
 
+export interface FooterPartner extends Struct.ComponentSchema {
+  collectionName: 'components_footer_partners';
+  info: {
+    description: 'Footer partner with logo and link';
+    displayName: 'Partner';
+  };
+  attributes: {
+    link: Schema.Attribute.String;
+    logo: Schema.Attribute.Media<'images'>;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface FooterPartnerSection extends Struct.ComponentSchema {
+  collectionName: 'components_footer_partner_sections';
+  info: {
+    description: 'Footer partner section with title and partner logos';
+    displayName: 'Sekce partner\u016F';
+  };
+  attributes: {
+    partners: Schema.Attribute.Component<'footer.partner', true>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface FormInput extends Struct.ComponentSchema {
   collectionName: 'components_form_inputs';
   info: {
@@ -659,6 +684,8 @@ declare module '@strapi/strapi' {
       'elements.text-link': ElementsTextLink;
       'elements.timeline-item': ElementsTimelineItem;
       'footer.link-section': FooterLinkSection;
+      'footer.partner': FooterPartner;
+      'footer.partner-section': FooterPartnerSection;
       'form.input': FormInput;
       'form.input-group': FormInputGroup;
       'form.recipient': FormRecipient;

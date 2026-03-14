@@ -33,6 +33,7 @@ describe('mapFooter', () => {
       bottomLinks: [
         { id: 200, text: 'Ochrana údajů', page: { slug: 'ochrana-udaju' }, anchor: null, url: null, file: null, disabled: false },
       ],
+      partnerSections: null,
     };
 
     const result = mapFooter(raw);
@@ -58,6 +59,7 @@ describe('mapFooter', () => {
       phone: null,
       linkSections: null,
       bottomLinks: null,
+      partnerSections: null,
     };
 
     const result = mapFooter(raw);
@@ -67,6 +69,7 @@ describe('mapFooter', () => {
     expect(result.phone).toBeNull();
     expect(result.linkSections).toEqual([]);
     expect(result.bottomLinks).toEqual([]);
+    expect(result.partnerSections).toEqual([]);
   });
 
   it('sorts link sections by sortOrder', () => {
@@ -82,6 +85,7 @@ describe('mapFooter', () => {
         { id: 10, title: 'First', links: [], sortOrder: 1 },
       ],
       bottomLinks: null,
+      partnerSections: null,
     };
 
     const result = mapFooter(raw);
@@ -111,6 +115,7 @@ describe('mapFooter', () => {
       bottomLinks: [
         { id: 200, text: 'Broken', page: null, anchor: null, url: null, file: null, disabled: false },
       ],
+      partnerSections: null,
     };
 
     const result = mapFooter(raw);

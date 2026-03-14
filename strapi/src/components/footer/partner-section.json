@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_footer_partner_sections",
+  "info": {
+    "displayName": "Sekce partnerů",
+    "description": "Footer partner section with title and partner logos"
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "partners": {
+      "type": "component",
+      "component": "footer.partner",
+      "repeatable": true
+    }
+  }
+}

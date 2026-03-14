@@ -212,6 +212,15 @@ export function buildFooterPopulate() {
       },
     },
     bottomLinks: textLinkPopulate,
+    partnerSections: {
+      populate: {
+        partners: {
+          populate: {
+            logo: mediaFields,
+          },
+        },
+      },
+    },
   };
 }
 

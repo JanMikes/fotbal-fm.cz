@@ -166,6 +166,17 @@ export interface FooterLinkSection {
   links: ResolvedTextLink[];
 }
 
+export interface FooterPartner {
+  name: string;
+  logo: MediaImage | null;
+  link: string | null;
+}
+
+export interface FooterPartnerSection {
+  title: string;
+  partners: FooterPartner[];
+}
+
 export interface Footer {
   text: string | null;
   address: string | null;
@@ -173,6 +184,7 @@ export interface Footer {
   phone: string | null;
   linkSections: FooterLinkSection[];
   bottomLinks: ResolvedTextLink[];
+  partnerSections: FooterPartnerSection[];
 }
 
 // Navigation

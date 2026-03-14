@@ -1,9 +1,6 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { Facebook, Instagram, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 import type { Footer as FooterType } from '@/lib/types';
 
 const socialLinks = [
@@ -18,15 +15,6 @@ interface FooterProps {
 }
 
 export default function Footer({ footer }: FooterProps) {
-  const [email, setEmail] = useState('');
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle newsletter subscription
-    console.log('Newsletter subscription:', email);
-    setEmail('');
-  };
-
   const contactItems = [
     footer?.address ? { icon: MapPin, text: footer.address } : null,
     footer?.mail ? { icon: Mail, text: footer.mail, href: `mailto:${footer.mail}` } : null,
@@ -129,33 +117,51 @@ export default function Footer({ footer }: FooterProps) {
           )}
         </div>
 
-        {/* Newsletter */}
-        <div className="mt-16 pt-12 border-t border-white/10">
-          <div className="max-w-xl">
-            <h4 className="font-bold uppercase tracking-wider text-small mb-2">
-              Newsletter
-            </h4>
-            <p className="text-white/60 mb-6">
-              Přihlaste se k odběru novinek a nikdy nepropásněte důležité informace.
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Váš e-mail"
-                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 sm:border-r-0 text-white placeholder:text-white/40 focus:outline-none focus:bg-white/15 focus:border-accent transition-colors"
-                required
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-accent text-white font-semibold uppercase tracking-wider text-small hover:bg-accent-dark transition-colors whitespace-nowrap"
-              >
-                Odebírat
-              </button>
-            </form>
+        {/* Partners */}
+        {footer?.partnerSections && footer.partnerSections.length > 0 && (
+          <div className="mt-16 pt-12 border-t border-white/10">
+            <div className="flex flex-wrap gap-12">
+              {footer.partnerSections.map((section, index) => (
+                <div key={index}>
+                  <h4 className="font-bold uppercase tracking-wider text-small text-accent mb-4">
+                    {section.title}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-6">
+                    {section.partners.map((partner, partnerIndex) => {
+                      const content = partner.logo ? (
+                        <Image
+                          src={partner.logo.url}
+                          alt={partner.logo.alternativeText || partner.name}
+                          width={partner.logo.width}
+                          height={partner.logo.height}
+                          className="h-10 w-auto object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity"
+                        />
+                      ) : (
+                        <span className="text-white/60 text-small">{partner.name}</span>
+                      );
+
+                      return partner.link ? (
+                        <a
+                          key={partnerIndex}
+                          href={partner.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={partner.name}
+                        >
+                          {content}
+                        </a>
+                      ) : (
+                        <span key={partnerIndex} title={partner.name}>
+                          {content}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Bottom Bar */}

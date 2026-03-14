@@ -691,6 +691,7 @@ export interface ApiFooterFooter extends Struct.SingleTypeSchema {
     > &
       Schema.Attribute.Private;
     mail: Schema.Attribute.Email;
+    partnerSections: Schema.Attribute.Component<'footer.partner-section', true>;
     phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     text: Schema.Attribute.Text;

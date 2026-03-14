@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_footer_partners",
+  "info": {
+    "displayName": "Partner",
+    "description": "Footer partner with logo and link"
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "logo": {
+      "type": "media",
+      "allowedTypes": ["images"],
+      "multiple": false
+    },
+    "link": {
+      "type": "string"
+    }
+  }
+}
