@@ -115,9 +115,11 @@ export function notifyTournamentCreated(
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
+      ${tournament.imagesUrl ? `<div class="detail-row"><span class="label">URL na fotky:</span> <a href="${tournament.imagesUrl}" style="color: #2563eb;">${tournament.imagesUrl}</a></div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
       <div class="detail-row"><span class="label">Vytvořil:</span> ${formatAuthor(tournament.author)}</div>
     </div>
+    ${tournament.players?.length ? `<h2>Ocenění hráči</h2><div class="details">${tournament.players.map(p => `<div class="detail-row"><span class="label">${p.title}:</span> ${p.playerName}</div>`).join('')}</div>` : ''}
     ${tournament.description ? `<h2>Popis</h2><p>${formatMultilineText(tournament.description)}</p>` : ''}
   `;
 
@@ -147,9 +149,12 @@ export function notifyTournamentUpdated(
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       ${tournament.dateFrom ? `<div class="detail-row"><span class="label">Datum:</span> ${formatDate(tournament.dateFrom)}${tournament.dateTo ? ` - ${formatDate(tournament.dateTo)}` : ''}</div>` : ''}
       ${tournament.location ? `<div class="detail-row"><span class="label">Místo:</span> ${tournament.location}</div>` : ''}
+      ${tournament.imagesUrl ? `<div class="detail-row"><span class="label">URL na fotky:</span> <a href="${tournament.imagesUrl}" style="color: #2563eb;">${tournament.imagesUrl}</a></div>` : ''}
       <div class="detail-row"><span class="label">Počet zápasů:</span> ${matchCount}</div>
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(tournament.modifiedBy || tournament.author)}</div>
     </div>
+    ${tournament.players?.length ? `<h2>Ocenění hráči</h2><div class="details">${tournament.players.map(p => `<div class="detail-row"><span class="label">${p.title}:</span> ${p.playerName}</div>`).join('')}</div>` : ''}
+    ${tournament.description ? `<h2>Popis</h2><p>${formatMultilineText(tournament.description)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -177,6 +182,8 @@ export function notifyMatchCreated(match: Match): void {
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
       ${match.homeGoalscorers ? `<div class="detail-row"><span class="label">Střelci (domácí):</span> ${match.homeGoalscorers}</div>` : ''}
       ${match.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${match.awayGoalscorers}</div>` : ''}
+      ${match.lineup ? `<div class="detail-row"><span class="label">Sestava:</span> ${match.lineup}</div>` : ''}
+      ${match.imagesUrl ? `<div class="detail-row"><span class="label">URL na fotky:</span> <a href="${match.imagesUrl}" style="color: #2563eb;">${match.imagesUrl}</a></div>` : ''}
       <div class="detail-row"><span class="label">Přidal:</span> ${formatAuthor(match.author)}</div>
     </div>
     ${match.matchReport ? `<h2>Zápis ze zápasu</h2><p>${formatMultilineText(match.matchReport)}</p>` : ''}
@@ -205,8 +212,13 @@ export function notifyMatchUpdated(match: Match): void {
       <div class="detail-row"><span class="label">Výsledek:</span> ${match.homeScore} : ${match.awayScore}</div>
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum zápasu:</span> ${formatDate(match.matchDate)}</div>
+      ${match.homeGoalscorers ? `<div class="detail-row"><span class="label">Střelci (domácí):</span> ${match.homeGoalscorers}</div>` : ''}
+      ${match.awayGoalscorers ? `<div class="detail-row"><span class="label">Střelci (hosté):</span> ${match.awayGoalscorers}</div>` : ''}
+      ${match.lineup ? `<div class="detail-row"><span class="label">Sestava:</span> ${match.lineup}</div>` : ''}
+      ${match.imagesUrl ? `<div class="detail-row"><span class="label">URL na fotky:</span> <a href="${match.imagesUrl}" style="color: #2563eb;">${match.imagesUrl}</a></div>` : ''}
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(match.modifiedBy || match.author)}</div>
     </div>
+    ${match.matchReport ? `<h2>Zápis ze zápasu</h2><p>${formatMultilineText(match.matchReport)}</p>` : ''}
   `;
 
   sendEmailAsync({
@@ -235,6 +247,7 @@ export function notifyEventCreated(event: Event): void {
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
+      ${event.publishDate ? `<div class="detail-row"><span class="label">Datum publikace:</span> ${formatDate(event.publishDate)}</div>` : ''}
       ${event.requiresPhotographer ? `<div class="detail-row"><span class="label">Vyžaduje fotografa:</span> Ano</div>` : ''}
       <div class="detail-row"><span class="label">Vytvořil:</span> ${formatAuthor(event.author)}</div>
     </div>
@@ -267,8 +280,11 @@ export function notifyEventUpdated(event: Event): void {
       <div class="detail-row"><span class="label">Kategorie:</span> ${categoriesText}</div>
       <div class="detail-row"><span class="label">Datum:</span> ${formatDate(event.dateFrom)}${event.dateTo ? ` - ${formatDate(event.dateTo)}` : ''}</div>
       ${event.eventTime ? `<div class="detail-row"><span class="label">Čas:</span> ${event.eventTime}${event.eventTimeTo ? ` - ${event.eventTimeTo}` : ''}</div>` : ''}
+      ${event.publishDate ? `<div class="detail-row"><span class="label">Datum publikace:</span> ${formatDate(event.publishDate)}</div>` : ''}
+      ${event.requiresPhotographer ? `<div class="detail-row"><span class="label">Vyžaduje fotografa:</span> Ano</div>` : ''}
       <div class="detail-row"><span class="label">Upravil:</span> ${formatAuthor(event.modifiedBy || event.author)}</div>
     </div>
+    ${event.description ? `<h2>Popis</h2><p>${formatMultilineText(event.description)}</p>` : ''}
   `;
 
   sendEmailAsync({
