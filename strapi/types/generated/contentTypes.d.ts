@@ -1109,6 +1109,7 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
         'components.badges',
         'components.image',
         'components.form',
+        'components.accordion-sections',
       ]
     >;
     partnerCategory: Schema.Attribute.Relation<
@@ -1184,6 +1185,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     dateOfBirth: Schema.Attribute.Date;
+    displayName: Schema.Attribute.String;
     email: Schema.Attribute.Email;
     facebook: Schema.Attribute.String;
     facrId: Schema.Attribute.String;

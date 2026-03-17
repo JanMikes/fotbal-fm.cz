@@ -44,6 +44,43 @@ async function seedCategories(strapi: Core.Strapi) {
   strapi.log.info(`Successfully seeded ${CATEGORIES.length} categories`);
 }
 
+async function setPlayerMainField(strapi: Core.Strapi) {
+  const storeKey = 'plugin_content_manager_configuration_content_types::api::player.player';
+  const config = await strapi.store.get({ key: storeKey }) as Record<string, unknown> | null;
+
+  if (config && (config as any).settings?.mainField === 'displayName') return;
+
+  const settings = (config as any)?.settings || {};
+  const updated = {
+    ...config,
+    settings: { ...settings, mainField: 'displayName' },
+  };
+
+  await strapi.store.set({ key: storeKey, value: updated });
+  strapi.log.info('Set Player mainField to displayName');
+}
+
+async function backfillPlayerDisplayNames(strapi: Core.Strapi) {
+  const players = await strapi.db.query('api::player.player').findMany({
+    where: { displayName: null },
+    select: ['id', 'name', 'number'],
+  });
+
+  if (players.length === 0) return;
+
+  strapi.log.info(`Backfilling displayName for ${players.length} players...`);
+
+  for (const player of players) {
+    const displayName = player.number ? `${player.name} (#${player.number})` : player.name;
+    await strapi.db.query('api::player.player').update({
+      where: { id: player.id },
+      data: { displayName },
+    });
+  }
+
+  strapi.log.info('Player displayName backfill complete');
+}
+
 let cleanupCache: (() => Promise<void>) | null = null;
 
 export default {
@@ -53,6 +90,8 @@ export default {
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await seedCategories(strapi);
+    await backfillPlayerDisplayNames(strapi);
+    await setPlayerMainField(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },
 
