@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+.prose blockquote {
+  color: var(--color-accent);
+  font-style: normal;
+  border-left-color: var(--color-accent);
+}
+
 :root {
   --color-primary: #081E44;
   --color-accent-dark: #065A8F;

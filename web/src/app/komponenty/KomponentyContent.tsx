@@ -59,6 +59,12 @@ const textData: ComponentText = {
   text: '<p>FK Frýdek-Místek je tradiční fotbalový klub s bohatou historií sahající do roku 1920. Klub hraje své domácí zápasy na stadionu Stovky, který pojme přes 5000 diváků.</p><p>Naším cílem je <strong>rozvíjet místní fotbalové talenty</strong> a poskytovat kvalitní sportovní zázemí pro hráče všech věkových kategorií.</p>',
 };
 
+const textWithHrAndBlockquote: ComponentText = {
+  id: 100,
+  __component: 'components.text',
+  text: 'Úvodní odstavec před horizontální čárou.\n\n---\n\nOdstavec po horizontální čáře.\n\n> Toto je citace. Může obsahovat **tučný text** a *kurzívu*.\n> Pokračování citace na dalším řádku.\n\nNormální text po citaci.\n\n> Další citace s jedním řádkem.\n\n---\n\nZávěrečný odstavec po druhé horizontální čáře.',
+};
+
 const headingData: ComponentHeading = {
   id: 2,
   __component: 'components.heading',
@@ -356,6 +362,10 @@ export default function KomponentyContent() {
 
       <Section title="components.text">
         <RichText data={textData} />
+      </Section>
+
+      <Section title="components.text (hr + blockquote)">
+        <RichText data={textWithHrAndBlockquote} />
       </Section>
 
       <Section title="components.alert">
