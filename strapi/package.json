@@ -15,9 +15,9 @@
     "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
-    "@strapi/plugin-users-permissions": "^5.38.0",
-    "@strapi/provider-email-nodemailer": "^5.38.0",
-    "@strapi/strapi": "^5.38.0",
+    "@strapi/plugin-users-permissions": "^5.39.0",
+    "@strapi/provider-email-nodemailer": "^5.39.0",
+    "@strapi/strapi": "^5.39.0",
     "ioredis": "^5.6.1",
     "pg": "8.8.0",
     "react": "^18.0.0",
