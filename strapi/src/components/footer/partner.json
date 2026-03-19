@@ -15,7 +15,7 @@
       "multiple": false
     },
     "link": {
-      "type": "string"
+      "type": "text"
     }
   }
 }
