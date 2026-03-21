@@ -312,6 +312,18 @@
     "season": 2025
   },
   {
+    "facrId": "2025009T1B",
+    "facrUuid": "77cedbb1-6830-4434-8bfb-0ee0d7ae3742",
+    "name": "PC T1B U-12 Valašské Meziříčí",
+    "code": "T1B",
+    "categoryLetter": "T",
+    "level": 1,
+    "group": "B",
+    "type": "Neurčeno PLANEO CUP – POHÁR MLÁDEŽE FAČR skupina B",
+    "organizingBody": "PLANEO CUP – POHÁR MLÁDEŽE FAČR",
+    "season": 2025
+  },
+  {
     "facrId": "2025812F2F",
     "facrUuid": "b6dc355b-73d3-4e3c-b3d6-3712345ae08d",
     "name": "6.liga ml. žáků 7+1 sk. A",

@@ -153,6 +153,15 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2f964d68-9489-417a-92c4-94dc218319d9"
   },
   {
+    "facrId": "00080394",
+    "name": "Marek Bielan",
+    "facrUuid": "0bb9274d-2a38-437b-8ce0-dfc4976cf9c5",
+    "dateOfBirth": "2000-08-09",
+    "nationality": "Česká",
+    "isActive": true,
+    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=5358497f-69d7-4a96-9d87-6b0be736bcd8"
+  },
+  {
     "facrId": "11051848",
     "name": "Markéta Bláhová",
     "facrUuid": "b8b0fb30-ec22-46b8-989b-635426442ae0",
@@ -709,15 +718,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=37222a99-c050-4047-8eac-bac6edd37ca5"
-  },
-  {
-    "facrId": "13011074",
-    "name": "Nikolas Hos",
-    "facrUuid": "4d2f6ad1-98fe-42d8-88aa-fd963d7125f6",
-    "dateOfBirth": "2013-01-07",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=22015859-fc87-4913-a4e0-fa3da62951b8"
   },
   {
     "facrId": "15050366",
@@ -1953,15 +1953,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2cded41d-2092-4ea1-bddd-029efd8ab9df"
   },
   {
-    "facrId": "12060807",
-    "name": "Natanael Novák",
-    "facrUuid": "ff886b8d-b497-449a-b4bc-d3fc158eded0",
-    "dateOfBirth": "2012-06-21",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2f2a9d8a-81e7-4f7a-bbf9-54732805d382"
-  },
-  {
     "facrId": "14070511",
     "name": "Šimon Novák",
     "facrUuid": "a4535ad1-d3d3-4198-8b69-7476f95bbcac",
@@ -3049,15 +3040,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=1338c1f1-2279-4893-95d2-f1c1601fa442"
-  },
-  {
-    "facrId": "10050713",
-    "name": "Ondřej Vondrák",
-    "facrUuid": "97aa173f-c207-4734-aa81-235a5ee14208",
-    "dateOfBirth": "2010-05-24",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2b3fbf75-d139-4872-89c2-9444d790dc95"
   },
   {
     "facrId": "09090907",

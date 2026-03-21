@@ -554,7 +554,7 @@ export interface FooterPartner extends Struct.ComponentSchema {
     displayName: 'Partner';
   };
   attributes: {
-    link: Schema.Attribute.String;
+    link: Schema.Attribute.Text;
     logo: Schema.Attribute.Media<'images'>;
     name: Schema.Attribute.String & Schema.Attribute.Required;
   };
