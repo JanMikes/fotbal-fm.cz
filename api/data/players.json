@@ -900,6 +900,15 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=347ce3b2-7cf2-4107-9090-a8fce94184f8"
   },
   {
+    "facrId": "12090769",
+    "name": "Jakub Jaroš",
+    "facrUuid": "019407b4-af44-4e7e-af17-3d1eb818a2dd",
+    "dateOfBirth": "2012-09-04",
+    "nationality": "Česká",
+    "isActive": true,
+    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=85257fe4-2a7c-4713-a3e5-f4bcfae06263"
+  },
+  {
     "facrId": "09050923",
     "name": "Oliver Jarotek",
     "facrUuid": "34a9d445-4336-4555-86ea-dc5bd5ce0899",
