@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -25,7 +25,9 @@ export default function TournamentDetailPage({ params }: PageProps) {
   const { id } = use(params);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: userLoading } = useRequireAuth();
+  const showNetworkWarning = searchParams.get('warning') === 'network';
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +121,14 @@ export default function TournamentDetailPage({ params }: PageProps) {
             </Button>
           </Link>
         </div>
+
+        {showNetworkWarning && (
+          <div className="mb-6">
+            <Alert variant="warning">
+              Při ukládání došlo k problému s připojením. Zápas byl pravděpodobně uložen — zkontrolujte seznam níže před opětovným zadáním.
+            </Alert>
+          </div>
+        )}
 
         <Card variant="elevated">
           <div className="space-y-6">

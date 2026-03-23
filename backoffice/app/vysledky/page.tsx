@@ -21,6 +21,7 @@ function MatchResultsPageContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [matchFilter, setMatchFilter] = useState<'played' | 'future'>('played');
   const showSuccess = searchParams.get('success') === 'true';
+  const showNetworkWarning = searchParams.get('warning') === 'network';
 
   const fetchMatches = useCallback(async (category: string) => {
     try {
@@ -130,6 +131,14 @@ function MatchResultsPageContent() {
         {showSuccess && (
           <div className="mb-6">
             <Alert variant="success">Výsledek zápasu byl úspěšně uložen!</Alert>
+          </div>
+        )}
+
+        {showNetworkWarning && (
+          <div className="mb-6">
+            <Alert variant="warning">
+              Při ukládání došlo k problému s připojením. Zápas byl pravděpodobně uložen — zkontrolujte seznam níže před opětovným zadáním.
+            </Alert>
           </div>
         )}
 

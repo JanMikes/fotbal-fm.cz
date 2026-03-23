@@ -13,7 +13,7 @@ import {
   UploadResults,
   UserFilterOptions,
 } from './base';
-import { NotFoundError, DuplicateError } from '@/lib/core/errors';
+import { NotFoundError } from '@/lib/core/errors';
 import { TeamRepository } from './team.repository';
 
 const CONTENT_TYPE = 'matches';
@@ -196,6 +196,36 @@ export class MatchRepository implements RepositoryWithUploads<
     return this.findAll({ ...options, userId });
   }
 
+  /**
+   * Find an existing match with the same teams, date, and category.
+   * Returns the documentId if found, null otherwise.
+   */
+  private async findDuplicate(
+    homeTeamId: string,
+    awayTeamId: string,
+    matchDate: string,
+    categoryIds: string[],
+  ): Promise<string | null> {
+    if (!homeTeamId || !awayTeamId || !matchDate || categoryIds.length === 0) {
+      return null;
+    }
+
+    const existing = await this.client.findMany<StrapiRawMatch>(
+      CONTENT_TYPE,
+      {
+        filters: {
+          homeTeam: { documentId: { $eq: homeTeamId } },
+          awayTeam: { documentId: { $eq: awayTeamId } },
+          matchDate: { $eq: matchDate },
+          categories: { documentId: { $in: categoryIds } },
+        },
+        pagination: { pageSize: 1 },
+      }
+    );
+
+    return existing.data.length > 0 ? existing.data[0].documentId : null;
+  }
+
   async create(data: CreateMatchRequest): Promise<Match> {
     // Transform categories array to Strapi 5 relation format
     const { categories, tournament, homeTeam, awayTeam, ...rest } = data;
@@ -213,23 +243,18 @@ export class MatchRepository implements RepositoryWithUploads<
       strapiData.awayTeam = awayTeamId;
     }
 
-    // Check for duplicate match (same teams + date)
-    if (homeTeamId && awayTeamId && data.matchDate) {
-      const existing = await this.client.findMany<StrapiRawMatch>(
-        CONTENT_TYPE,
-        {
-          filters: {
-            homeTeam: { documentId: { $eq: homeTeamId } },
-            awayTeam: { documentId: { $eq: awayTeamId } },
-            matchDate: { $eq: data.matchDate },
-          },
-          pagination: { pageSize: 1 },
-        }
+    // Check for duplicate match (same teams + date + category)
+    // If found, update the existing match instead of creating a duplicate
+    if (homeTeamId && awayTeamId && data.matchDate && categories?.length) {
+      const existingId = await this.findDuplicate(
+        homeTeamId,
+        awayTeamId,
+        data.matchDate,
+        categories,
       );
-      if (existing.data.length > 0) {
-        throw new DuplicateError(
-          'Zápas s těmito týmy a datem již existuje. Pokud chcete upravit existující zápas, použijte tlačítko "Upravit".'
-        );
+
+      if (existingId) {
+        return this.update(existingId, data);
       }
     }
 

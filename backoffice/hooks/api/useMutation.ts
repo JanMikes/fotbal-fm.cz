@@ -159,10 +159,15 @@ export function useMutation<TData = unknown, TVariables = unknown>({
         return { success: true, data: result.data, warnings: warnings ?? undefined };
       } catch (err) {
         let error: string;
+        let isNetworkError = false;
 
         if (err instanceof Error) {
           if (err.name === 'AbortError') {
-            error = 'Požadavek vypršel, zkuste to znovu';
+            error = 'Požadavek vypršel. Data mohla být uložena — zkontrolujte seznam před opětovným odesláním.';
+            isNetworkError = true;
+          } else if (err.message === 'Failed to fetch' || err.message === 'Load failed' || err.message === 'NetworkError when attempting to fetch resource.') {
+            error = 'Chyba připojení. Data mohla být uložena — zkontrolujte seznam před opětovným odesláním.';
+            isNetworkError = true;
           } else {
             error = err.message;
           }
@@ -179,6 +184,7 @@ export function useMutation<TData = unknown, TVariables = unknown>({
           },
           extra: {
             error,
+            isNetworkError,
           },
         });
 
@@ -189,7 +195,7 @@ export function useMutation<TData = unknown, TVariables = unknown>({
           data: null,
         });
         onError?.(error);
-        return { success: false, error };
+        return { success: false, error, isNetworkError };
       } finally {
         isSubmittingRef.current = false;
       }

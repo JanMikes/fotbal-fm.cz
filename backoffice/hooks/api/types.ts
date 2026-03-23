@@ -50,6 +50,8 @@ export interface MutationResult<T> {
   data?: T;
   error?: string;
   warnings?: string[];
+  /** True when the error was a network/timeout issue (server may have processed the request) */
+  isNetworkError?: boolean;
 }
 
 /**

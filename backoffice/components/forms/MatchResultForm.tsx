@@ -105,7 +105,15 @@ export default function MatchResultForm({
     if (mode === 'edit') {
       await updateMutation.mutate({ data, images, files });
     } else {
-      await createMutation.mutate({ data, images, files });
+      const result = await createMutation.mutate({ data, images, files });
+      // On network/timeout errors, the match was likely created server-side.
+      // Redirect to prevent the user from resubmitting and creating duplicates.
+      if (!result.success && result.isNetworkError) {
+        const target = effectiveTournamentId
+          ? `/turnaj/${effectiveTournamentId}?warning=network`
+          : '/vysledky?warning=network';
+        router.push(target);
+      }
     }
   };
 
