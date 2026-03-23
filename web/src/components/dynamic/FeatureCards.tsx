@@ -16,7 +16,7 @@ const colClasses: Record<string, string> = {
 
 function getInitials(name: string): string {
   return name
-    .split(' ')
+    .split(/\s+/)
     .map((n) => n[0])
     .join('')
     .toUpperCase()

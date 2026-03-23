@@ -24,7 +24,7 @@ export default function PlayerCard({ player, categorySlug, className }: PlayerCa
   const hasPhoto = !!player.photo?.url;
   const isPlayer = player.type === 'hráč';
   const displayPosition = player.position ? positionLabels[player.position] ?? player.position : player.positionText;
-  const nameParts = player.name.split(' ');
+  const nameParts = player.name.trim().split(/\s+/);
   const firstName = nameParts.slice(0, -1).join(' ');
   const lastName = nameParts[nameParts.length - 1];
 
