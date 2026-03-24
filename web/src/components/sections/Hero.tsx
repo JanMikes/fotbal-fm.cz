@@ -191,9 +191,9 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
                 <div className="container mx-auto px-4 lg:px-8">
                   {/* Slide Label (desktop only) */}
                   <div className="w-fit mb-6 lg:mb-10">
-                    <p className="text-white/80 text-lg lg:text-2xl font-bold mb-3 hidden lg:block">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl text-white font-black uppercase leading-tight hidden lg:block">
                       {getSlideLabel(slide.type)}
-                    </p>
+                    </h1>
                   </div>
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
@@ -303,7 +303,7 @@ function MatchSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="text-white/80 text-2xl font-bold mb-3 lg:hidden"
+        className="text-3xl md:text-4xl text-white font-black uppercase leading-tight mb-3 lg:hidden"
       >
         {getSlideLabel(slide.type)}
       </motion.p>
@@ -399,7 +399,7 @@ function ResultSlide({ slide }: { slide: HeroSlide }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="text-white/80 text-2xl font-bold mb-3 lg:hidden"
+        className="text-3xl md:text-4xl text-white font-black uppercase leading-tight mb-3 lg:hidden"
       >
         {getSlideLabel(slide.type)}
       </motion.p>
