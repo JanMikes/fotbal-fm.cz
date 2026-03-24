@@ -76,8 +76,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
 
           <div className="flex items-center gap-3">
             {/* View mode toggle */}
-            {activeTab === 'players' && (
-              <div className="flex items-center gap-1 p-1 bg-white/10 rounded-lg backdrop-blur-sm">
+            <div className="flex items-center gap-1 p-1 bg-white/10 rounded-lg backdrop-blur-sm">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={clsx(
@@ -102,8 +101,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
                 >
                   <List className="w-4 h-4" />
                 </button>
-              </div>
-            )}
+            </div>
 
             {/* Tab switcher */}
             {staff.length > 0 && (
@@ -232,8 +230,8 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
           </div>
         )}
 
-        {/* Staff Tab */}
-        {activeTab === 'staff' && (
+        {/* Staff Tab - Grid View */}
+        {activeTab === 'staff' && viewMode === 'grid' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -249,6 +247,59 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
                   transition={{ duration: 0.4, delay: index * 0.05 }}
                 >
                   <PlayerCard player={person} categorySlug={categorySlug} />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Staff Tab - Table View */}
+        {activeTab === 'staff' && viewMode === 'table' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="space-y-1">
+              {staff.map((person, index) => (
+                <motion.div
+                  key={person.documentId}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.03 }}
+                >
+                  <Link
+                    href={`/kategorie/${categorySlug}/hrac/${person.slug}`}
+                    className="flex items-center gap-4 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+                  >
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white/10">
+                      {person.photo?.url ? (
+                        <Image
+                          src={person.photo.url}
+                          alt={person.name}
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src="/player-placeholder.png"
+                          alt={person.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <span className="text-white font-semibold text-sm group-hover:text-accent transition-colors">
+                      {person.name}
+                    </span>
+                    {person.positionText && (
+                      <span className="text-white/40 text-xs ml-auto hidden sm:block">
+                        {person.positionText}
+                      </span>
+                    )}
+                  </Link>
                 </motion.div>
               ))}
             </div>
