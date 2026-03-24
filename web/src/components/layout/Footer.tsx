@@ -122,14 +122,14 @@ export default function Footer({ footer }: FooterProps) {
           <div className="mt-16 pt-12 border-t border-white/10">
             <div className="flex flex-wrap gap-12">
               {footer.partnerSections.map((section, index) => (
-                <div key={index}>
+                <div key={index} className={section.partners.length > 1 ? 'flex-1 min-w-0' : 'shrink-0'}>
                   <h4 className="uppercase tracking-wider text-small text-accent mb-4">
                     {section.title}
                   </h4>
-                  <div className="flex flex-wrap items-center gap-6">
+                  <div className={`flex flex-wrap items-center gap-6 ${section.partners.length > 1 ? 'justify-between' : ''}`}>
                     {section.partners.map((partner, partnerIndex) => {
-                      const displayHeight = section.style === 'big' ? 80 : 40;
-                      const heightClass = section.style === 'big' ? 'h-[80px]' : 'h-[40px]';
+                      const displayHeight = section.style === 'big' ? 80 : 55;
+                      const heightClass = section.style === 'big' ? 'h-[80px]' : 'h-[55px]';
                       const displayWidth = partner.logo
                         ? Math.round((partner.logo.width / partner.logo.height) * displayHeight)
                         : 0;
