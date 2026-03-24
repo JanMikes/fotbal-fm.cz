@@ -296,7 +296,7 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
                                 name={row.teamName}
                                 logo={row.teamLogo}
                                 size={20}
-                                className="shrink-0"
+                                className="w-5 h-5 shrink-0"
                               />
                             )}
                             {row.teamName}
