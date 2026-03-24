@@ -72,7 +72,7 @@ function buildSlides(
       type: 'news',
       image: heroData.heroSlide3Image ?? article.mainPhoto,
       title: article.title,
-      subtitle: 'Článek',
+      subtitle: 'Nejnovější aktualita',
       description: article.description ?? undefined,
       link: `/kategorie/${categorySlug}/clanek/${article.slug}`,
       ctaText: 'Číst více',
@@ -96,7 +96,7 @@ function getSlideLabel(type: HeroSlide['type']): string {
   switch (type) {
     case 'match-upcoming': return 'Další zápas';
     case 'match-result': return 'Poslední zápas';
-    case 'news': return 'Nejnovější aktualita';
+    case 'news': return '';
     case 'promo': return '';
   }
 }
