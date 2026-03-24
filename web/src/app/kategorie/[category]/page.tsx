@@ -62,14 +62,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         categorySwitcher={heroHasSlides ? switcherElement : undefined}
       />
       {!heroHasSlides && switcherElement && (
-        <div className="flex justify-center py-4">
+        <div className="fixed bottom-[15px] right-[15px] z-50">
           {switcherElement}
         </div>
       )}
       <Matches upcomingMatches={upcoming} finishedMatches={finished} allMatches={allMatches} categorySlug={categorySlug} />
       <Statistics standings={standings} playerHighlights={playerHighlights} playerCount={players.filter(p => p.type === 'hráč' && p.isActive).length} />
       <NewsList articles={newsResult.articles} categorySlug={categorySlug} />
-      <TeamSection players={players} categorySlug={categorySlug} />
+      <TeamSection players={players} categorySlug={categorySlug} categoryName={categoryWithHero?.category.name ?? categorySlug} />
     </>
   );
 }

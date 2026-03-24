@@ -189,14 +189,11 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
               {/* Content */}
               <div className="absolute top-[72px] lg:top-[126px] bottom-32 lg:bottom-40 left-0 right-0 flex items-center -mt-[280px] lg:-mt-16">
                 <div className="container mx-auto px-4 lg:px-8">
-                  {/* Slide Label & Category Switcher (desktop only in flow) */}
+                  {/* Slide Label (desktop only) */}
                   <div className="w-fit mb-6 lg:mb-10">
                     <p className="text-white/80 text-lg lg:text-2xl font-bold mb-3 hidden lg:block">
                       {getSlideLabel(slide.type)}
                     </p>
-                    <div className="hidden lg:block">
-                      {categorySwitcher}
-                    </div>
                   </div>
                   <AnimatePresence mode="wait">
                     {selectedIndex === index && (
@@ -277,9 +274,9 @@ export default function Hero({ upcomingMatch, lastResult, heroData, categorySlug
 
     </section>
 
-    {/* Mobile Category Switcher (fixed to bottom-right, above nav arrows) */}
+    {/* Category Switcher (fixed to bottom-right) */}
     {categorySwitcher && (
-      <div className="fixed bottom-[15px] right-[15px] z-50 lg:hidden">
+      <div className="fixed bottom-[15px] right-[15px] z-50">
         {categorySwitcher}
       </div>
     )}
