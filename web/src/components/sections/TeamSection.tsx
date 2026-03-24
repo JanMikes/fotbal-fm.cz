@@ -65,7 +65,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
           <div>
             <h2 className="text-section text-white uppercase mb-4">
               <span className="relative inline-block">
-                Tým
+                Tým - {categoryName}
                 <span className="absolute left-0 bottom-0 w-24 h-1.5 bg-accent transform translate-y-3" />
               </span>
             </h2>
@@ -115,7 +115,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
                       : 'text-white/60 hover:text-white'
                   )}
                 >
-                  Hráči - {categoryName}
+                  Hráči
                 </button>
                 <button
                   onClick={() => setActiveTab('staff')}

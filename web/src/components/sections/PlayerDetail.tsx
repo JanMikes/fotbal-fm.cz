@@ -40,7 +40,6 @@ export default function PlayerDetail({ player }: PlayerDetailProps) {
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-card" />
             {isPlayer && player.number != null && (
               <div className="absolute bottom-6 left-6">
                 <span className="text-7xl font-black text-accent number-display leading-none">

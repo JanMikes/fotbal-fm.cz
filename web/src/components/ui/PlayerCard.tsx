@@ -53,7 +53,6 @@ export default function PlayerCard({ player, categorySlug, className }: PlayerCa
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         )}
-        {hasPhoto && <div className="absolute inset-0 bg-gradient-card" />}
         <div className="absolute inset-0 p-5 flex flex-col justify-end">
           {isPlayer && player.number != null && (
             <span className="text-5xl font-black text-accent number-display mb-1 leading-none">
