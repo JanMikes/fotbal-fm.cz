@@ -225,15 +225,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=9ab0c17d-2e5d-4202-b69d-fcbd113c49d0"
   },
   {
-    "facrId": "11110637",
-    "name": "Maxim Burget",
-    "facrUuid": "76972841-4cc4-4930-8165-539ab32a0fb5",
-    "dateOfBirth": "2011-11-09",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=c98cc315-b437-44d3-95ed-be5d3c2b8ad7"
-  },
-  {
     "facrId": "19030652",
     "name": "Vojtěch Bušina",
     "facrUuid": "32da8587-ccaa-49df-b679-3cc2d0dae353",
@@ -657,15 +648,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=d0802900-8618-404a-a82c-a2f883535eb0"
   },
   {
-    "facrId": "14100031",
-    "name": "Quido Holeček",
-    "facrUuid": "9bf4fcd2-59a9-4d90-b112-0ecd9b96741d",
-    "dateOfBirth": "2014-10-10",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=4903827b-976b-4527-b6df-baf1d498838b"
-  },
-  {
     "facrId": "05061880",
     "name": "Filip Stanislav Holuj",
     "facrUuid": "7b76ca62-d1cc-42f5-8821-a2ffe1b72752",
@@ -772,6 +754,15 @@
     "nationality": "Jihoafrická republika",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=e781bf1d-eea1-4930-abe0-f245afced73e"
+  },
+  {
+    "facrId": "17021625",
+    "name": "Petra Hurtíková",
+    "facrUuid": "094dc919-b814-466d-851a-bf92b180b708",
+    "dateOfBirth": "2017-02-18",
+    "nationality": "Česká",
+    "isActive": true,
+    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=160c6261-5a2b-402c-b5cb-6ee6de0e45b0"
   },
   {
     "facrId": "96111117",
@@ -2439,15 +2430,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=6eac270f-4859-4078-99cb-0c88249fdbc6"
   },
   {
-    "facrId": "11020567",
-    "name": "Samuel Slánský",
-    "facrUuid": "863408a2-c972-4e77-afa8-329a8be7409c",
-    "dateOfBirth": "2011-02-25",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=de9634ed-d3ab-400c-aa9b-4685d3c1f994"
-  },
-  {
     "facrId": "18020717",
     "name": "Mikuláš Smítal",
     "facrUuid": "d0568ce3-b70c-4fca-9e4d-aca2efb960cd",
@@ -2491,6 +2473,15 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=80f15444-cab9-41a8-ae55-b96b3c32c6ab"
+  },
+  {
+    "facrId": "11030336",
+    "name": "Vojtěch Staněk",
+    "facrUuid": "16458891-58f0-424d-b2ce-c8c3dbbf83c1",
+    "dateOfBirth": "2011-03-22",
+    "nationality": "Česká",
+    "isActive": true,
+    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=e4101dc1-47b6-4d3a-83cc-e5410ec79129"
   },
   {
     "facrId": "17070220",
@@ -2563,15 +2554,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=1d4fbf8f-47ae-44a2-99fb-af2c569ee1d2"
-  },
-  {
-    "facrId": "14060308",
-    "name": "Adam Sukaný",
-    "facrUuid": "da15cca1-7fdb-4e50-9bdc-51b35029c655",
-    "dateOfBirth": "2014-06-27",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=9ca0acb7-1d9e-4eb9-9e43-58f673614f5e"
   },
   {
     "facrId": "06011659",
@@ -2995,15 +2977,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=3443d63a-e8d6-46a9-b579-b5475bcca240"
-  },
-  {
-    "facrId": "14081863",
-    "name": "Samuel Virág",
-    "facrUuid": "8b20af8c-0967-4ab6-a045-444af87a7d3f",
-    "dateOfBirth": "2014-08-15",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=a5f752ce-8454-42a9-bc24-7e6c652c241f"
   },
   {
     "facrId": "17110475",

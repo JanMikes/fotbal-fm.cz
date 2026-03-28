@@ -324,6 +324,18 @@
     "season": 2025
   },
   {
+    "facrId": "2025009T6A",
+    "facrUuid": "b1de6511-b540-4a44-87ed-5c2e6fabd284",
+    "name": "PC T6A U-13 Havířov",
+    "code": "T6A",
+    "categoryLetter": "T",
+    "level": 6,
+    "group": "A",
+    "type": "Neurčeno PLANEO CUP – POHÁR MLÁDEŽE FAČR skupina A",
+    "organizingBody": "PLANEO CUP – POHÁR MLÁDEŽE FAČR",
+    "season": 2025
+  },
+  {
     "facrId": "2025812F2F",
     "facrUuid": "b6dc355b-73d3-4e3c-b3d6-3712345ae08d",
     "name": "6.liga ml. žáků 7+1 sk. A",
