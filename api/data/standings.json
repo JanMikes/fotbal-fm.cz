@@ -51,13 +51,13 @@
       {
         "position": 5,
         "teamName": "Uničov",
-        "matchesPlayed": 20,
+        "matchesPlayed": 21,
         "wins": 11,
-        "draws": 5,
+        "draws": 6,
         "losses": 4,
         "goalsFor": 33,
         "goalsAgainst": 25,
-        "points": 38
+        "points": 39
       },
       {
         "position": 6,
@@ -73,16 +73,27 @@
       {
         "position": 7,
         "teamName": "SFK Vrchovina",
-        "matchesPlayed": 20,
+        "matchesPlayed": 21,
         "wins": 9,
-        "draws": 3,
+        "draws": 4,
         "losses": 8,
-        "goalsFor": 35,
-        "goalsAgainst": 34,
-        "points": 30
+        "goalsFor": 37,
+        "goalsAgainst": 36,
+        "points": 31
       },
       {
         "position": 8,
+        "teamName": "VSETÍN",
+        "matchesPlayed": 21,
+        "wins": 8,
+        "draws": 4,
+        "losses": 9,
+        "goalsFor": 29,
+        "goalsAgainst": 38,
+        "points": 28
+      },
+      {
+        "position": 9,
         "teamName": "VÍTKOVICE",
         "matchesPlayed": 21,
         "wins": 8,
@@ -90,17 +101,6 @@
         "losses": 10,
         "goalsFor": 29,
         "goalsAgainst": 33,
-        "points": 27
-      },
-      {
-        "position": 9,
-        "teamName": "VSETÍN",
-        "matchesPlayed": 20,
-        "wins": 8,
-        "draws": 3,
-        "losses": 9,
-        "goalsFor": 29,
-        "goalsAgainst": 38,
         "points": 27
       },
       {
@@ -116,6 +116,17 @@
       },
       {
         "position": 11,
+        "teamName": "Polanka nad Odrou",
+        "matchesPlayed": 21,
+        "wins": 6,
+        "draws": 6,
+        "losses": 9,
+        "goalsFor": 24,
+        "goalsAgainst": 38,
+        "points": 24
+      },
+      {
+        "position": 12,
         "teamName": "HLUBINA",
         "matchesPlayed": 21,
         "wins": 6,
@@ -123,17 +134,6 @@
         "losses": 10,
         "goalsFor": 26,
         "goalsAgainst": 34,
-        "points": 23
-      },
-      {
-        "position": 12,
-        "teamName": "Polanka nad Odrou",
-        "matchesPlayed": 20,
-        "wins": 6,
-        "draws": 5,
-        "losses": 9,
-        "goalsFor": 22,
-        "goalsAgainst": 36,
         "points": 23
       },
       {
@@ -3315,6 +3315,17 @@
       },
       {
         "position": 6,
+        "teamName": "ZBROJOVKA BRNO B",
+        "matchesPlayed": 19,
+        "wins": 7,
+        "draws": 5,
+        "losses": 7,
+        "goalsFor": 32,
+        "goalsAgainst": 34,
+        "points": 26
+      },
+      {
+        "position": 7,
         "teamName": "Hlučín",
         "matchesPlayed": 19,
         "wins": 7,
@@ -3325,51 +3336,51 @@
         "points": 26
       },
       {
-        "position": 7,
+        "position": 8,
         "teamName": "Svratka Brno",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 8,
         "draws": 1,
-        "losses": 9,
+        "losses": 10,
         "goalsFor": 27,
-        "goalsAgainst": 31,
+        "goalsAgainst": 33,
         "points": 25
       },
       {
-        "position": 8,
-        "teamName": "ZBROJOVKA BRNO B",
-        "matchesPlayed": 18,
-        "wins": 6,
-        "draws": 5,
-        "losses": 7,
-        "goalsFor": 30,
-        "goalsAgainst": 34,
-        "points": 23
-      },
-      {
         "position": 9,
-        "teamName": "ZNOJMO",
-        "matchesPlayed": 18,
-        "wins": 5,
-        "draws": 7,
-        "losses": 6,
-        "goalsFor": 21,
-        "goalsAgainst": 34,
+        "teamName": "VYSOČINA JIHLAVA B",
+        "matchesPlayed": 19,
+        "wins": 6,
+        "draws": 4,
+        "losses": 9,
+        "goalsFor": 32,
+        "goalsAgainst": 35,
         "points": 22
       },
       {
         "position": 10,
-        "teamName": "VYSOČINA JIHLAVA B",
-        "matchesPlayed": 18,
-        "wins": 6,
-        "draws": 3,
-        "losses": 9,
-        "goalsFor": 31,
-        "goalsAgainst": 34,
-        "points": 21
+        "teamName": "ZNOJMO",
+        "matchesPlayed": 19,
+        "wins": 5,
+        "draws": 7,
+        "losses": 7,
+        "goalsFor": 22,
+        "goalsAgainst": 40,
+        "points": 22
       },
       {
         "position": 11,
+        "teamName": "Karviná B",
+        "matchesPlayed": 19,
+        "wins": 4,
+        "draws": 9,
+        "losses": 6,
+        "goalsFor": 31,
+        "goalsAgainst": 27,
+        "points": 21
+      },
+      {
+        "position": 12,
         "teamName": "VÍTKOVICE",
         "matchesPlayed": 19,
         "wins": 5,
@@ -3380,40 +3391,40 @@
         "points": 21
       },
       {
-        "position": 12,
-        "teamName": "Karviná B",
-        "matchesPlayed": 18,
-        "wins": 4,
-        "draws": 8,
-        "losses": 6,
-        "goalsFor": 30,
-        "goalsAgainst": 26,
+        "position": 13,
+        "teamName": "Baník Ostrava B",
+        "matchesPlayed": 19,
+        "wins": 5,
+        "draws": 5,
+        "losses": 9,
+        "goalsFor": 31,
+        "goalsAgainst": 30,
         "points": 20
       },
       {
-        "position": 13,
-        "teamName": "Baník Ostrava B",
-        "matchesPlayed": 18,
-        "wins": 4,
-        "draws": 5,
-        "losses": 9,
-        "goalsFor": 25,
-        "goalsAgainst": 29,
-        "points": 17
-      },
-      {
         "position": 14,
-        "teamName": "Zlín B",
-        "matchesPlayed": 18,
-        "wins": 3,
-        "draws": 5,
-        "losses": 10,
-        "goalsFor": 18,
-        "goalsAgainst": 35,
-        "points": 14
+        "teamName": "Kroměříž",
+        "matchesPlayed": 19,
+        "wins": 4,
+        "draws": 3,
+        "losses": 12,
+        "goalsFor": 22,
+        "goalsAgainst": 60,
+        "points": 15
       },
       {
         "position": 15,
+        "teamName": "Zlín B",
+        "matchesPlayed": 19,
+        "wins": 3,
+        "draws": 5,
+        "losses": 11,
+        "goalsFor": 18,
+        "goalsAgainst": 37,
+        "points": 14
+      },
+      {
+        "position": 16,
         "teamName": "Hranice",
         "matchesPlayed": 19,
         "wins": 3,
@@ -3421,17 +3432,6 @@
         "losses": 13,
         "goalsFor": 24,
         "goalsAgainst": 61,
-        "points": 12
-      },
-      {
-        "position": 16,
-        "teamName": "Kroměříž",
-        "matchesPlayed": 18,
-        "wins": 3,
-        "draws": 3,
-        "losses": 12,
-        "goalsFor": 20,
-        "goalsAgainst": 60,
         "points": 12
       }
     ]
@@ -3477,24 +3477,24 @@
       {
         "position": 4,
         "teamName": "Baník Ostrava B",
-        "matchesPlayed": 18,
-        "wins": 11,
+        "matchesPlayed": 19,
+        "wins": 12,
         "draws": 3,
         "losses": 4,
-        "goalsFor": 47,
-        "goalsAgainst": 24,
-        "points": 36
+        "goalsFor": 51,
+        "goalsAgainst": 26,
+        "points": 39
       },
       {
         "position": 5,
         "teamName": "ZBROJOVKA BRNO B",
-        "matchesPlayed": 18,
-        "wins": 11,
+        "matchesPlayed": 19,
+        "wins": 12,
         "draws": 2,
         "losses": 5,
-        "goalsFor": 54,
-        "goalsAgainst": 30,
-        "points": 35
+        "goalsFor": 58,
+        "goalsAgainst": 32,
+        "points": 38
       },
       {
         "position": 6,
@@ -3521,16 +3521,27 @@
       {
         "position": 8,
         "teamName": "Zlín B",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 9,
         "draws": 1,
-        "losses": 8,
-        "goalsFor": 38,
-        "goalsAgainst": 32,
+        "losses": 9,
+        "goalsFor": 40,
+        "goalsAgainst": 36,
         "points": 28
       },
       {
         "position": 9,
+        "teamName": "VYSOČINA JIHLAVA B",
+        "matchesPlayed": 19,
+        "wins": 7,
+        "draws": 3,
+        "losses": 9,
+        "goalsFor": 46,
+        "goalsAgainst": 54,
+        "points": 24
+      },
+      {
+        "position": 10,
         "teamName": "Hlučín",
         "matchesPlayed": 19,
         "wins": 7,
@@ -3541,7 +3552,7 @@
         "points": 23
       },
       {
-        "position": 10,
+        "position": 11,
         "teamName": "VÍTKOVICE",
         "matchesPlayed": 19,
         "wins": 6,
@@ -3552,25 +3563,14 @@
         "points": 22
       },
       {
-        "position": 11,
-        "teamName": "VYSOČINA JIHLAVA B",
-        "matchesPlayed": 18,
-        "wins": 6,
-        "draws": 3,
-        "losses": 9,
-        "goalsFor": 38,
-        "goalsAgainst": 52,
-        "points": 21
-      },
-      {
         "position": 12,
         "teamName": "Kroměříž",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 4,
         "draws": 3,
-        "losses": 11,
-        "goalsFor": 31,
-        "goalsAgainst": 59,
+        "losses": 12,
+        "goalsFor": 32,
+        "goalsAgainst": 63,
         "points": 15
       },
       {
@@ -3587,35 +3587,35 @@
       {
         "position": 14,
         "teamName": "ZNOJMO",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 3,
         "draws": 3,
-        "losses": 12,
-        "goalsFor": 25,
-        "goalsAgainst": 57,
+        "losses": 13,
+        "goalsFor": 27,
+        "goalsAgainst": 61,
         "points": 12
       },
       {
         "position": 15,
         "teamName": "Karviná B",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 2,
         "draws": 5,
-        "losses": 11,
-        "goalsFor": 23,
-        "goalsAgainst": 50,
+        "losses": 12,
+        "goalsFor": 25,
+        "goalsAgainst": 58,
         "points": 11
       },
       {
         "position": 16,
         "teamName": "Svratka Brno",
-        "matchesPlayed": 18,
-        "wins": 1,
+        "matchesPlayed": 19,
+        "wins": 2,
         "draws": 4,
         "losses": 13,
-        "goalsFor": 20,
-        "goalsAgainst": 50,
-        "points": 7
+        "goalsFor": 24,
+        "goalsAgainst": 51,
+        "points": 10
       }
     ]
   },
@@ -3637,17 +3637,28 @@
       },
       {
         "position": 2,
-        "teamName": "HFK Olomouc",
-        "matchesPlayed": 17,
+        "teamName": "Šumperk",
+        "matchesPlayed": 19,
         "wins": 12,
-        "draws": 2,
-        "losses": 3,
-        "goalsFor": 56,
+        "draws": 3,
+        "losses": 4,
+        "goalsFor": 50,
         "goalsAgainst": 23,
-        "points": 38
+        "points": 39
       },
       {
         "position": 3,
+        "teamName": "HFK Olomouc",
+        "matchesPlayed": 18,
+        "wins": 12,
+        "draws": 2,
+        "losses": 4,
+        "goalsFor": 57,
+        "goalsAgainst": 25,
+        "points": 38
+      },
+      {
+        "position": 4,
         "teamName": "Uničov",
         "matchesPlayed": 19,
         "wins": 12,
@@ -3658,7 +3669,7 @@
         "points": 38
       },
       {
-        "position": 4,
+        "position": 5,
         "teamName": "Třinec",
         "matchesPlayed": 18,
         "wins": 11,
@@ -3669,37 +3680,26 @@
         "points": 36
       },
       {
-        "position": 5,
-        "teamName": "Šumperk",
-        "matchesPlayed": 18,
-        "wins": 11,
-        "draws": 3,
-        "losses": 4,
-        "goalsFor": 48,
-        "goalsAgainst": 22,
-        "points": 36
-      },
-      {
         "position": 6,
         "teamName": "Staré Město",
-        "matchesPlayed": 18,
-        "wins": 9,
+        "matchesPlayed": 19,
+        "wins": 10,
         "draws": 3,
         "losses": 6,
-        "goalsFor": 62,
-        "goalsAgainst": 36,
-        "points": 30
+        "goalsFor": 65,
+        "goalsAgainst": 37,
+        "points": 33
       },
       {
         "position": 7,
         "teamName": "Kunovice",
-        "matchesPlayed": 18,
-        "wins": 9,
+        "matchesPlayed": 19,
+        "wins": 10,
         "draws": 2,
         "losses": 7,
-        "goalsFor": 36,
-        "goalsAgainst": 31,
-        "points": 29
+        "goalsFor": 38,
+        "goalsAgainst": 32,
+        "points": 32
       },
       {
         "position": 8,
@@ -3715,12 +3715,12 @@
       {
         "position": 9,
         "teamName": "Přerov",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 8,
         "draws": 3,
-        "losses": 6,
-        "goalsFor": 30,
-        "goalsAgainst": 29,
+        "losses": 7,
+        "goalsFor": 31,
+        "goalsAgainst": 31,
         "points": 27
       },
       {
@@ -3781,12 +3781,12 @@
       {
         "position": 15,
         "teamName": "Frýdek-Místek B",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 1,
         "draws": 4,
-        "losses": 13,
-        "goalsFor": 20,
-        "goalsAgainst": 48,
+        "losses": 14,
+        "goalsFor": 21,
+        "goalsAgainst": 51,
         "points": 7
       },
       {
@@ -3810,24 +3810,24 @@
       {
         "position": 1,
         "teamName": "HFK Olomouc",
-        "matchesPlayed": 17,
-        "wins": 15,
+        "matchesPlayed": 18,
+        "wins": 16,
         "draws": 1,
         "losses": 1,
-        "goalsFor": 86,
-        "goalsAgainst": 19,
-        "points": 46
+        "goalsFor": 92,
+        "goalsAgainst": 21,
+        "points": 49
       },
       {
         "position": 2,
         "teamName": "Kunovice",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 13,
-        "draws": 4,
+        "draws": 5,
         "losses": 1,
-        "goalsFor": 91,
-        "goalsAgainst": 18,
-        "points": 43
+        "goalsFor": 92,
+        "goalsAgainst": 19,
+        "points": 44
       },
       {
         "position": 3,
@@ -3854,23 +3854,23 @@
       {
         "position": 5,
         "teamName": "Přerov",
-        "matchesPlayed": 17,
+        "matchesPlayed": 18,
         "wins": 9,
-        "draws": 4,
+        "draws": 5,
         "losses": 4,
-        "goalsFor": 41,
-        "goalsAgainst": 22,
-        "points": 31
+        "goalsFor": 42,
+        "goalsAgainst": 23,
+        "points": 32
       },
       {
         "position": 6,
         "teamName": "Staré Město",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 8,
         "draws": 7,
-        "losses": 3,
-        "goalsFor": 41,
-        "goalsAgainst": 29,
+        "losses": 4,
+        "goalsFor": 42,
+        "goalsAgainst": 31,
         "points": 31
       },
       {
@@ -3886,6 +3886,17 @@
       },
       {
         "position": 8,
+        "teamName": "Frýdek-Místek B",
+        "matchesPlayed": 19,
+        "wins": 8,
+        "draws": 4,
+        "losses": 7,
+        "goalsFor": 38,
+        "goalsAgainst": 33,
+        "points": 28
+      },
+      {
+        "position": 9,
         "teamName": "Třinec",
         "matchesPlayed": 18,
         "wins": 8,
@@ -3896,25 +3907,14 @@
         "points": 27
       },
       {
-        "position": 9,
-        "teamName": "Frýdek-Místek B",
-        "matchesPlayed": 18,
-        "wins": 7,
-        "draws": 4,
-        "losses": 7,
-        "goalsFor": 36,
-        "goalsAgainst": 32,
-        "points": 25
-      },
-      {
         "position": 10,
         "teamName": "Šumperk",
-        "matchesPlayed": 18,
+        "matchesPlayed": 19,
         "wins": 8,
         "draws": 0,
-        "losses": 10,
-        "goalsFor": 45,
-        "goalsAgainst": 37,
+        "losses": 11,
+        "goalsFor": 47,
+        "goalsAgainst": 43,
         "points": 24
       },
       {
@@ -4004,12 +4004,12 @@
       {
         "position": 2,
         "teamName": "OLOMOUC SIGMA",
-        "matchesPlayed": 20,
+        "matchesPlayed": 21,
         "wins": 15,
         "draws": 4,
-        "losses": 1,
-        "goalsFor": 69,
-        "goalsAgainst": 28,
+        "losses": 2,
+        "goalsFor": 70,
+        "goalsAgainst": 31,
         "points": 49
       },
       {
@@ -4026,13 +4026,13 @@
       {
         "position": 4,
         "teamName": "JIHLAVA",
-        "matchesPlayed": 20,
-        "wins": 13,
+        "matchesPlayed": 21,
+        "wins": 14,
         "draws": 2,
         "losses": 5,
-        "goalsFor": 56,
-        "goalsAgainst": 27,
-        "points": 41
+        "goalsFor": 59,
+        "goalsAgainst": 28,
+        "points": 44
       },
       {
         "position": 5,
@@ -4131,6 +4131,17 @@
     "rows": [
       {
         "position": 1,
+        "teamName": "OLOMOUC SIGMA",
+        "matchesPlayed": 21,
+        "wins": 17,
+        "draws": 2,
+        "losses": 2,
+        "goalsFor": 91,
+        "goalsAgainst": 24,
+        "points": 53
+      },
+      {
+        "position": 2,
         "teamName": "Baník Ostrava",
         "matchesPlayed": 21,
         "wins": 17,
@@ -4141,25 +4152,14 @@
         "points": 52
       },
       {
-        "position": 2,
-        "teamName": "OLOMOUC SIGMA",
-        "matchesPlayed": 20,
-        "wins": 16,
-        "draws": 2,
-        "losses": 2,
-        "goalsFor": 86,
-        "goalsAgainst": 22,
-        "points": 50
-      },
-      {
         "position": 3,
         "teamName": "JIHLAVA,",
-        "matchesPlayed": 20,
+        "matchesPlayed": 21,
         "wins": 16,
         "draws": 0,
-        "losses": 4,
-        "goalsFor": 90,
-        "goalsAgainst": 32,
+        "losses": 5,
+        "goalsFor": 92,
+        "goalsAgainst": 37,
         "points": 48
       },
       {
@@ -4336,6 +4336,17 @@
       },
       {
         "position": 7,
+        "teamName": "Frýdek-Místek",
+        "matchesPlayed": 16,
+        "wins": 10,
+        "draws": 1,
+        "losses": 5,
+        "goalsFor": 118,
+        "goalsAgainst": 69,
+        "points": 31
+      },
+      {
+        "position": 8,
         "teamName": "Poruba – Petřvald",
         "matchesPlayed": 16,
         "wins": 10,
@@ -4346,70 +4357,59 @@
         "points": 31
       },
       {
-        "position": 8,
-        "teamName": "Frýdek-Místek",
-        "matchesPlayed": 15,
-        "wins": 9,
-        "draws": 1,
-        "losses": 5,
-        "goalsFor": 113,
-        "goalsAgainst": 68,
-        "points": 28
-      },
-      {
         "position": 9,
         "teamName": "Uničov",
-        "matchesPlayed": 15,
-        "wins": 7,
+        "matchesPlayed": 16,
+        "wins": 8,
         "draws": 1,
         "losses": 7,
-        "goalsFor": 93,
+        "goalsFor": 111,
         "goalsAgainst": 87,
-        "points": 22
+        "points": 25
       },
       {
         "position": 10,
-        "teamName": "Přerov",
-        "matchesPlayed": 15,
+        "teamName": "Hranice",
+        "matchesPlayed": 17,
         "wins": 6,
         "draws": 2,
-        "losses": 7,
-        "goalsFor": 70,
-        "goalsAgainst": 103,
+        "losses": 9,
+        "goalsFor": 79,
+        "goalsAgainst": 120,
         "points": 20
       },
       {
         "position": 11,
-        "teamName": "Hranice",
+        "teamName": "Přerov",
         "matchesPlayed": 16,
         "wins": 6,
         "draws": 2,
         "losses": 8,
-        "goalsFor": 76,
-        "goalsAgainst": 116,
+        "goalsFor": 70,
+        "goalsAgainst": 111,
         "points": 20
       },
       {
         "position": 12,
         "teamName": "Hlučín",
-        "matchesPlayed": 15,
-        "wins": 4,
+        "matchesPlayed": 16,
+        "wins": 5,
         "draws": 2,
         "losses": 9,
-        "goalsFor": 87,
-        "goalsAgainst": 98,
-        "points": 14
+        "goalsFor": 91,
+        "goalsAgainst": 101,
+        "points": 17
       },
       {
         "position": 13,
         "teamName": "TŘINEC",
-        "matchesPlayed": 15,
-        "wins": 4,
+        "matchesPlayed": 16,
+        "wins": 5,
         "draws": 1,
         "losses": 10,
-        "goalsFor": 61,
+        "goalsFor": 69,
         "goalsAgainst": 91,
-        "points": 13
+        "points": 16
       },
       {
         "position": 14,
@@ -4436,23 +4436,23 @@
       {
         "position": 16,
         "teamName": "Nový Jičín",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 2,
         "draws": 0,
-        "losses": 13,
-        "goalsFor": 22,
-        "goalsAgainst": 133,
+        "losses": 14,
+        "goalsFor": 23,
+        "goalsAgainst": 138,
         "points": 6
       },
       {
         "position": 17,
         "teamName": "Krnov",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 1,
         "draws": 0,
-        "losses": 14,
+        "losses": 15,
         "goalsFor": 31,
-        "goalsAgainst": 276,
+        "goalsAgainst": 294,
         "points": 3
       },
       {
@@ -4520,38 +4520,49 @@
       {
         "position": 5,
         "teamName": "Frýdek-Místek",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 11,
         "draws": 2,
-        "losses": 2,
-        "goalsFor": 88,
-        "goalsAgainst": 29,
+        "losses": 3,
+        "goalsFor": 89,
+        "goalsAgainst": 32,
         "points": 35
       },
       {
         "position": 6,
         "teamName": "Hlučín",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 10,
-        "draws": 0,
+        "draws": 1,
         "losses": 5,
-        "goalsFor": 113,
-        "goalsAgainst": 41,
-        "points": 30
+        "goalsFor": 119,
+        "goalsAgainst": 47,
+        "points": 31
       },
       {
         "position": 7,
-        "teamName": "Hranice",
+        "teamName": "TŘINEC",
         "matchesPlayed": 16,
-        "wins": 8,
-        "draws": 3,
-        "losses": 5,
-        "goalsFor": 104,
-        "goalsAgainst": 76,
-        "points": 27
+        "wins": 9,
+        "draws": 1,
+        "losses": 6,
+        "goalsFor": 90,
+        "goalsAgainst": 41,
+        "points": 28
       },
       {
         "position": 8,
+        "teamName": "Hranice",
+        "matchesPlayed": 17,
+        "wins": 8,
+        "draws": 4,
+        "losses": 5,
+        "goalsFor": 110,
+        "goalsAgainst": 82,
+        "points": 28
+      },
+      {
+        "position": 9,
         "teamName": "HFK Olomouc",
         "matchesPlayed": 16,
         "wins": 8,
@@ -4560,17 +4571,6 @@
         "goalsFor": 109,
         "goalsAgainst": 43,
         "points": 26
-      },
-      {
-        "position": 9,
-        "teamName": "TŘINEC",
-        "matchesPlayed": 15,
-        "wins": 8,
-        "draws": 1,
-        "losses": 6,
-        "goalsFor": 87,
-        "goalsAgainst": 39,
-        "points": 25
       },
       {
         "position": 10,
@@ -4597,12 +4597,12 @@
       {
         "position": 12,
         "teamName": "Přerov",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 5,
         "draws": 0,
-        "losses": 10,
-        "goalsFor": 52,
-        "goalsAgainst": 83,
+        "losses": 11,
+        "goalsFor": 54,
+        "goalsAgainst": 86,
         "points": 15
       },
       {
@@ -4641,34 +4641,34 @@
       {
         "position": 16,
         "teamName": "Nový Jičín",
-        "matchesPlayed": 15,
-        "wins": 3,
+        "matchesPlayed": 16,
+        "wins": 4,
         "draws": 0,
         "losses": 12,
-        "goalsFor": 36,
-        "goalsAgainst": 125,
-        "points": 9
+        "goalsFor": 39,
+        "goalsAgainst": 126,
+        "points": 12
       },
       {
         "position": 17,
         "teamName": "Uničov",
-        "matchesPlayed": 15,
-        "wins": 0,
+        "matchesPlayed": 16,
+        "wins": 1,
         "draws": 0,
         "losses": 15,
-        "goalsFor": 9,
+        "goalsFor": 16,
         "goalsAgainst": 157,
-        "points": 0
+        "points": 3
       },
       {
         "position": 18,
         "teamName": "Krnov",
-        "matchesPlayed": 15,
+        "matchesPlayed": 16,
         "wins": 0,
         "draws": 0,
-        "losses": 15,
+        "losses": 16,
         "goalsFor": 4,
-        "goalsAgainst": 322,
+        "goalsAgainst": 329,
         "points": 0
       }
     ]
