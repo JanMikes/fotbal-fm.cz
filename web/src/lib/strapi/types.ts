@@ -182,6 +182,8 @@ export interface StrapiRawPartner {
   logo: import('@fotbal-fm/strapi-client').StrapiRawMedia | null;
   description: string | null;
   sortOrder: number;
+  show_on_web: boolean;
+  show_on_api: boolean;
   partnerCategory: StrapiRawPartnerCategory | null;
   content: StrapiRawDynamicZoneComponent[];
   panel: StrapiRawDynamicZoneComponent[] | null;

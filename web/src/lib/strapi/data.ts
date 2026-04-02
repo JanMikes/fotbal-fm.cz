@@ -490,6 +490,7 @@ export async function getPartners(): Promise<Partner[]> {
   return cacheGetOrSet('partners:all', async () => {
     const client = getStrapiClient();
     const { data } = await client.findMany<StrapiRawPartner>('partners', {
+      filters: { show_on_web: { $eq: true } },
       populate: {
         logo: { fields: ['url', 'alternativeText', 'width', 'height'] },
         partnerCategory: { fields: ['name'] },

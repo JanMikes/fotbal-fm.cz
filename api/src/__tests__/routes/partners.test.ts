@@ -320,6 +320,16 @@ describe('GET /api/v1/partners', () => {
     expect(json.data[1].description).toBeNull();
     expect(json.data[1].partnerCategory).toBeNull();
   });
+
+  it('filters by show_on_api', async () => {
+    vi.mocked(strapiGet).mockResolvedValueOnce({ data: [], meta: {} });
+
+    await app.request('/api/v1/partners');
+
+    expect(strapiGet).toHaveBeenCalledWith('/partners', expect.objectContaining({
+      filters: { show_on_api: { $eq: true } },
+    }));
+  });
 });
 
 describe('GET /api/v1/partners/:slug', () => {
@@ -335,6 +345,15 @@ describe('GET /api/v1/partners/:slug', () => {
 
     const json = await res.json();
     expect(json.error).toBe('Partner not found');
+  });
+
+  it('does not filter by show_on_api (detail accessible even when hidden from list)', async () => {
+    vi.mocked(strapiGet).mockResolvedValueOnce({ data: [], meta: {} });
+
+    await app.request('/api/v1/partners/some-partner');
+
+    const callArgs = vi.mocked(strapiGet).mock.calls[0];
+    expect(callArgs[1].filters).not.toHaveProperty('show_on_api');
   });
 
   it('maps all dynamic zone component types', async () => {

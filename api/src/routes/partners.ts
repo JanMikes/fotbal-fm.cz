@@ -220,6 +220,7 @@ export const partnersRoute = new OpenAPIHono();
 
 partnersRoute.openapi(listRoute, async (c) => {
   const result = await strapiGet<StrapiRawPartner>('/partners', {
+    filters: { show_on_api: { $eq: true } },
     sort: 'sortOrder:asc',
     pagination: { pageSize: 100 },
     populate: {

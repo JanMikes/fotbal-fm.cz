@@ -20,6 +20,8 @@ function makeRawPartner(overrides: Partial<StrapiRawPartner> = {}): StrapiRawPar
     logo: null,
     description: 'A test partner',
     sortOrder: 5,
+    show_on_web: true,
+    show_on_api: true,
     partnerCategory: null,
     content: [],
     panel: null,

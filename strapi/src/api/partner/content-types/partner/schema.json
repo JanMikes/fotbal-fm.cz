@@ -31,6 +31,14 @@
       "type": "integer",
       "default": 0
     },
+    "show_on_web": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_on_api": {
+      "type": "boolean",
+      "default": true
+    },
     "partnerCategory": {
       "type": "relation",
       "relation": "manyToOne",

@@ -468,12 +468,13 @@ describe('data layer', () => {
       expect(result[0].slug).toBe('partner-a');
     });
 
-    it('passes correct sort and pagination', async () => {
+    it('passes correct query options including show_on_web filter', async () => {
       mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
 
       await getPartners();
 
       expect(mockFindMany).toHaveBeenCalledWith('partners', expect.objectContaining({
+        filters: { show_on_web: { $eq: true } },
         sort: 'sortOrder:asc',
         pagination: { pageSize: 100 },
       }));
@@ -521,6 +522,15 @@ describe('data layer', () => {
       expect(callArgs.populate).toHaveProperty('logo');
       expect(callArgs.populate).toHaveProperty('content');
       expect(callArgs.populate).toHaveProperty('panel');
+    });
+
+    it('does not filter by show_on_web (detail accessible even when hidden from list)', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPartnerBySlug('hidden-partner');
+
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.filters).not.toHaveProperty('show_on_web');
     });
   });
 

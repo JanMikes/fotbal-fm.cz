@@ -1117,6 +1117,8 @@ export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
       'api::partner-category.partner-category'
     >;
     publishedAt: Schema.Attribute.DateTime;
+    show_on_api: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    show_on_web: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
