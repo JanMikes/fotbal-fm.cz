@@ -63,15 +63,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=7e787ce1-d966-4aeb-ac50-92ea077db0f1"
   },
   {
-    "facrId": "08030809",
-    "name": "Josef Bardoň",
-    "facrUuid": "1e57fcf1-d99b-4008-af31-9f1c2a4904cc",
-    "dateOfBirth": "2008-03-15",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=74dd4a90-15fc-4b0a-b61c-f85798288fd9"
-  },
-  {
     "facrId": "16072027",
     "name": "Erik Bártek",
     "facrUuid": "4bae37ee-32bf-4a31-84e0-41e6f3b38ac0",
@@ -324,15 +315,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=020477fe-9183-42ed-8eae-ec2d4d6eaa03"
   },
   {
-    "facrId": "14010884",
-    "name": "Matteo Dobrovski",
-    "facrUuid": "30fde6bd-701c-451c-b89c-0f4edf072890",
-    "dateOfBirth": "2014-01-14",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=c8fb4080-f3a2-425e-a0bc-42acff2e001d"
-  },
-  {
     "facrId": "11050385",
     "name": "Ondřej Dolný",
     "facrUuid": "32182df9-8348-4f41-9cd5-a0a65e0eea33",
@@ -522,15 +504,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=4d6dacd3-bd56-4d0d-9524-d5c5ab131bb1"
   },
   {
-    "facrId": "14080858",
-    "name": "Šimon Glogar",
-    "facrUuid": "5130ff32-ab8d-49d3-a0ed-4d5c8a1a38e1",
-    "dateOfBirth": "2014-08-21",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=3e9f2780-b946-47d8-b46f-7ce5f6e89cfe"
-  },
-  {
     "facrId": "19050275",
     "name": "Bastien Gmuca",
     "facrUuid": "674a4ce7-d905-4f07-8814-a9b3c3a584cb",
@@ -691,15 +664,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=1712d304-3673-4e96-8472-b63349dc8d6c"
-  },
-  {
-    "facrId": "08120298",
-    "name": "Matyáš Horňák",
-    "facrUuid": "3608bbce-58e8-4fa3-8669-f535d0da04c6",
-    "dateOfBirth": "2008-12-08",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=37222a99-c050-4047-8eac-bac6edd37ca5"
   },
   {
     "facrId": "15050366",
@@ -2763,15 +2727,6 @@
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=acc9d9ec-b842-4c7e-9eb7-486811b2ce0c"
   },
   {
-    "facrId": "08070945",
-    "name": "Tomáš Tengler",
-    "facrUuid": "ace379ad-ffe8-4d78-9b8b-5cbdb3b4fbad",
-    "dateOfBirth": "2008-07-17",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=5c6dbb1c-96cf-4a31-9262-f9fc7cd78e38"
-  },
-  {
     "facrId": "16060103",
     "name": "Jakub Teplý",
     "facrUuid": "a62dfcda-8a91-4b01-b9cc-cb74c0d484fc",
@@ -2788,15 +2743,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=530e4a14-9c46-48ea-b39b-8c84d9689865"
-  },
-  {
-    "facrId": "16091091",
-    "name": "Tomáš Tichý",
-    "facrUuid": "fbf46f76-bb97-4069-9e21-124ffe10f962",
-    "dateOfBirth": "2016-09-06",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=c82550f8-db8e-48c6-89eb-8d9ee5973f93"
   },
   {
     "facrId": "15100340",
@@ -2887,15 +2833,6 @@
     "nationality": "Česká",
     "isActive": true,
     "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=2c35a6c3-1d0c-4f4a-aa1c-46ada86b952f"
-  },
-  {
-    "facrId": "08090831",
-    "name": "Maxim Vaculík",
-    "facrUuid": "2c24b3be-6bc8-48d6-9ca7-93e387b2ef4a",
-    "dateOfBirth": "2008-09-12",
-    "nationality": "Česká",
-    "isActive": true,
-    "photoUrl": "https://is.fotbal.cz/public/hraci/get-foto.aspx?PublishId=41985327-0e7f-4f8b-9532-c49b8d4853d6"
   },
   {
     "facrId": "09070891",
