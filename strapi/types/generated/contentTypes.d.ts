@@ -980,6 +980,8 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     meta_description: Schema.Attribute.String;
     parent: Schema.Attribute.Relation<'manyToOne', 'api::page.page'>;
     publishedAt: Schema.Attribute.DateTime;
+    show_in_categories_nav: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     sidebar: Schema.Attribute.DynamicZone<
       [
         'components.text',

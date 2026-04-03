@@ -56,6 +56,10 @@
       "relation": "manyToOne",
       "target": "api::page.page"
     },
+    "show_in_categories_nav": {
+      "type": "boolean",
+      "default": false
+    },
     "sidebar": {
       "type": "dynamiczone",
       "components": [
