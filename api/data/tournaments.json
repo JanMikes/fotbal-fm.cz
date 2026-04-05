@@ -336,6 +336,18 @@
     "season": 2025
   },
   {
+    "facrId": "2025009T2A",
+    "facrUuid": "13b67326-5c45-49d1-9666-6b383b8feee9",
+    "name": "PC T2A U-12 Hlučín",
+    "code": "T2A",
+    "categoryLetter": "T",
+    "level": 2,
+    "group": "A",
+    "type": "Neurčeno PLANEO CUP – POHÁR MLÁDEŽE FAČR skupina A",
+    "organizingBody": "PLANEO CUP – POHÁR MLÁDEŽE FAČR",
+    "season": 2025
+  },
+  {
     "facrId": "2025812F2F",
     "facrUuid": "b6dc355b-73d3-4e3c-b3d6-3712345ae08d",
     "name": "6.liga ml. žáků 7+1 sk. A",
