@@ -275,9 +275,19 @@ const contactCardsData: ComponentContactCards = {
   id: 22,
   __component: 'components.contact-cards',
   cards: [
-    { name: 'Jan Novák', role: 'Prezident klubu', phone: '+420 777 123 456', email: 'novak@fkfm.cz', photo: mockImg('person-1.jpg', 'Jan Novák', 200, 200) },
-    { name: 'Petr Svoboda', role: 'Hlavní trenér A-týmu', phone: '+420 777 234 567', email: 'svoboda@fkfm.cz', photo: mockImg('person-2.jpg', 'Petr Svoboda', 200, 200) },
-    { name: 'Marie Dvořáková', role: 'Sekretariát', phone: '+420 777 345 678', email: 'dvorakova@fkfm.cz', photo: mockImg('person-3.jpg', 'Marie Dvořáková', 200, 200) },
+    { name: 'Jan Novák', role: 'Prezident klubu', phone: '+420 777 123 456', email: 'novak@fkfm.cz', photo: mockImg('person-1.jpg', 'Jan Novák', 200, 200), style: 'style-1' },
+    { name: 'Petr Svoboda', role: 'Hlavní trenér A-týmu', phone: '+420 777 234 567', email: 'svoboda@fkfm.cz', photo: mockImg('person-2.jpg', 'Petr Svoboda', 200, 200), style: 'style-1' },
+    { name: 'Marie Dvořáková', role: 'Sekretariát', phone: '+420 777 345 678', email: 'dvorakova@fkfm.cz', photo: mockImg('person-3.jpg', 'Marie Dvořáková', 200, 200), style: 'style-1' },
+  ],
+};
+
+const contactCardsStyle2Data: ComponentContactCards = {
+  id: 222,
+  __component: 'components.contact-cards',
+  cards: [
+    { name: 'Jan Novák', role: 'Prezident klubu', phone: '+420 777 123 456', email: 'novak@fkfm.cz', photo: mockImg('person-1.jpg', 'Jan Novák', 400, 400), style: 'style-2' },
+    { name: 'Petr Svoboda', role: 'Hlavní trenér A-týmu', phone: '+420 777 234 567', email: 'svoboda@fkfm.cz', photo: mockImg('person-2.jpg', 'Petr Svoboda', 400, 400), style: 'style-2' },
+    { name: 'Marie Dvořáková', role: 'Sekretariát', phone: '+420 777 345 678', email: 'dvorakova@fkfm.cz', photo: mockImg('person-3.jpg', 'Marie Dvořáková', 400, 400), style: 'style-2' },
   ],
 };
 
@@ -447,8 +457,12 @@ export default function KomponentyContent() {
         <ButtonGroup data={{ ...buttonGroupData, id: 212, alignment: 'R' }} />
       </Section>
 
-      <Section title="components.contact-cards">
+      <Section title="components.contact-cards (style 1)">
         <ContactCards data={contactCardsData} />
+      </Section>
+
+      <Section title="components.contact-cards (style 2)">
+        <ContactCards data={contactCardsStyle2Data} />
       </Section>
 
       <Section title="components.accordion-sections">

@@ -310,6 +310,7 @@ function mapContactCards(raw: unknown) {
     phone: c.phone ?? null,
     email: c.email ?? null,
     photo: mapMedia(c.photo),
+    style: (c.style as 'style-1' | 'style-2') ?? 'style-1',
   }));
 }
 

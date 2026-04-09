@@ -78,7 +78,7 @@ const sidebarContent: DynamicZoneComponent[] = [
     id: 201,
     __component: 'components.contact-cards',
     cards: [
-      { name: 'Jan Novák', role: 'Sekretariát', phone: '+420 777 123 456', email: 'info@fkfm.cz', photo: mockImg('person-1.jpg', 'Jan Novák', 100, 100) },
+      { name: 'Jan Novák', role: 'Sekretariát', phone: '+420 777 123 456', email: 'info@fkfm.cz', photo: mockImg('person-1.jpg', 'Jan Novák', 100, 100), style: 'style-1' },
     ],
   } as ComponentContactCards,
   {
@@ -134,7 +134,7 @@ export default function SidebarShowcase() {
           <DynamicZone components={mainContent} />
         </div>
         <SidePanel>
-          <DynamicZone components={sidebarContent} />
+          <DynamicZone components={sidebarContent} sidebar />
         </SidePanel>
       </div>
     </section>

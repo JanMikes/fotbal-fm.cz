@@ -376,6 +376,8 @@ export interface ElementsContactCardPerson extends Struct.ComponentSchema {
     phone: Schema.Attribute.String;
     photo: Schema.Attribute.Media<'images'>;
     role: Schema.Attribute.String;
+    style: Schema.Attribute.Enumeration<['style-1', 'style-2']> &
+      Schema.Attribute.DefaultTo<'style-1'>;
   };
 }
 

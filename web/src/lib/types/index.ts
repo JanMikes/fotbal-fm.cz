@@ -350,6 +350,7 @@ export interface ComponentContactCards extends DynamicZoneBase {
     phone: string | null;
     email: string | null;
     photo: MediaImage | null;
+    style: 'style-1' | 'style-2';
   }[];
 }
 
@@ -367,6 +368,7 @@ export interface ComponentAccordionSections extends DynamicZoneBase {
       phone: string | null;
       email: string | null;
       photo: MediaImage | null;
+      style: 'style-1' | 'style-2';
     }[];
   }[];
 }

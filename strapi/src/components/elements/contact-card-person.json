@@ -22,6 +22,11 @@
       "type": "media",
       "multiple": false,
       "allowedTypes": ["images"]
+    },
+    "style": {
+      "type": "enumeration",
+      "enum": ["style-1", "style-2"],
+      "default": "style-1"
     }
   }
 }
