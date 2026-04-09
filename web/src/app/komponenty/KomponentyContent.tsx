@@ -323,7 +323,7 @@ const accordionData: ComponentAccordionSections = {
         { image: mockImg('match.jpg', 'Stadion 2', 400, 300) },
       ],
       contacts: [
-        { name: 'Jan Novák', role: 'Správce stadionu', phone: '+420 123 456 789', email: 'novak@example.com', photo: null },
+        { name: 'Jan Novák', role: 'Správce stadionu', phone: '+420 123 456 789', email: 'novak@example.com', photo: null, style: 'style-1' },
       ],
     },
   ],
