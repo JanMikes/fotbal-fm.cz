@@ -216,6 +216,54 @@
     "season": 2025
   },
   {
+    "facrId": "2025003E5E",
+    "facrUuid": "e7068345-fafe-4296-90dc-ccc6f0049771",
+    "name": "1.MSŽL U 15 - 7 - 12",
+    "code": "E5E",
+    "categoryLetter": "E",
+    "level": 5,
+    "group": "E",
+    "type": "Neurčeno Řídící komise pro Moravu skupina E",
+    "organizingBody": "Řídící komise pro Moravu",
+    "season": 2025
+  },
+  {
+    "facrId": "2025003E6E",
+    "facrUuid": "1fe65635-1d44-40da-8286-a1fce1461504",
+    "name": "1.MSŽL U 14 - 7 - 12",
+    "code": "E6E",
+    "categoryLetter": "E",
+    "level": 6,
+    "group": "E",
+    "type": "Neurčeno Řídící komise pro Moravu skupina E",
+    "organizingBody": "Řídící komise pro Moravu",
+    "season": 2025
+  },
+  {
+    "facrId": "2025003F3S",
+    "facrUuid": "aff4cb6b-42ed-49d7-99e2-afb0ac031dca",
+    "name": "1. liga SpSM-U13 SEVER 1-6",
+    "code": "F3S",
+    "categoryLetter": "F",
+    "level": 3,
+    "group": "S",
+    "type": "Neurčeno Řídící komise pro Moravu skupina S",
+    "organizingBody": "Řídící komise pro Moravu",
+    "season": 2025
+  },
+  {
+    "facrId": "2025003F6S",
+    "facrUuid": "6b15c215-6c09-49d2-ac6b-3fc806ccb3ff",
+    "name": "1. liga SpSM-U12 SEVER 1-6",
+    "code": "F6S",
+    "categoryLetter": "F",
+    "level": 6,
+    "group": "S",
+    "type": "Neurčeno Řídící komise pro Moravu skupina S",
+    "organizingBody": "Řídící komise pro Moravu",
+    "season": 2025
+  },
+  {
     "facrId": "2025009U5C",
     "facrUuid": "d61ed7a3-2816-4c1d-832b-aab88c4d1762",
     "name": "PC U5C U-11 Nový Jičín",
