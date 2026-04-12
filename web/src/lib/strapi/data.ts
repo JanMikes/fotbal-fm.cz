@@ -369,6 +369,18 @@ export async function getFooter(): Promise<Footer | null> {
   }, TTL);
 }
 
+export async function getNavigationPages(): Promise<{ title: string; slug: string }[]> {
+  return cacheGetOrSet('navigation-pages:all', async () => {
+    const client = getStrapiClient();
+    const { data } = await client.findMany<StrapiRawPage>('pages', {
+      filters: { show_in_categories_nav: { $eq: true } },
+      fields: ['title', 'slug'],
+      pagination: { pageSize: 100 },
+    });
+    return data.map((p) => ({ title: p.title, slug: p.slug }));
+  }, TTL);
+}
+
 export async function getPageBySlug(slug: string): Promise<Page | null> {
   return cacheGetOrSet(`page:${slug}`, async () => {
     const client = getStrapiClient();

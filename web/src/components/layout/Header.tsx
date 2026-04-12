@@ -14,12 +14,18 @@ const socialLinks = [
   { icon: Instagram, href: 'https://www.instagram.com/fotbal_fm/', label: 'Instagram' },
 ];
 
+interface NavigationPage {
+  title: string;
+  slug: string;
+}
+
 interface HeaderProps {
   categoryGroups: CategoryGroup[];
   navigation?: NavigationItem[];
+  navigationPages?: NavigationPage[];
 }
 
-export default function Header({ categoryGroups, navigation = [] }: HeaderProps) {
+export default function Header({ categoryGroups, navigation = [], navigationPages = [] }: HeaderProps) {
   const pathname = usePathname();
   const activeCategorySlug = useMemo(() => {
     const match = pathname.match(/^\/kategorie\/([^/]+)/);
@@ -208,6 +214,21 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                               {group.name}
                             </Link>
                           ))}
+                          {navigationPages.map((page) => (
+                            <Link
+                              key={`page-${page.slug}`}
+                              href={`/${page.slug}`}
+                              onClick={() => setIsCategoryDropdownOpen(false)}
+                              className={clsx(
+                                'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
+                                pathname === `/${page.slug}`
+                                  ? 'bg-accent text-white'
+                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                              )}
+                            >
+                              {page.title}
+                            </Link>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -261,6 +282,21 @@ export default function Header({ categoryGroups, navigation = [] }: HeaderProps)
                       )}
                     >
                       {group.name}
+                    </Link>
+                  ))}
+                  {navigationPages.map((page) => (
+                    <Link
+                      key={`page-${page.slug}`}
+                      href={`/${page.slug}`}
+                      data-active={pathname === `/${page.slug}`}
+                      className={clsx(
+                        'px-3.5 py-1.5 text-xs whitespace-nowrap rounded-full border uppercase transition-all duration-300',
+                        pathname === `/${page.slug}`
+                          ? 'font-bold bg-accent text-white border-accent'
+                          : 'font-medium text-white/80 border-white/30 hover:text-white hover:border-white/60'
+                      )}
+                    >
+                      {page.title}
                     </Link>
                   ))}
                 </div>

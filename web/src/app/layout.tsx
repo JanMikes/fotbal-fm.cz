@@ -3,7 +3,7 @@ import { Montserrat } from 'next/font/google';
 import Script from 'next/script';
 import { Header, Footer } from '@/components/layout';
 import { ScrollToTop } from '@/components/ScrollToTop';
-import { getCategoryGroups, getFooter, getNavigation } from '@/lib/strapi/data';
+import { getCategoryGroups, getFooter, getNavigation, getNavigationPages } from '@/lib/strapi/data';
 import './globals.css';
 
 const GA_ID = 'G-5P268SSMFT';
@@ -57,9 +57,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [categoryGroups, navigation, footer] = await Promise.all([
+  const [categoryGroups, navigation, navigationPages, footer] = await Promise.all([
     getCategoryGroups(),
     getNavigation(),
+    getNavigationPages(),
     getFooter(),
   ]);
 
@@ -78,7 +79,7 @@ gtag('config', '${GA_ID}');`}
       )}
       <body className="font-sans">
         <ScrollToTop />
-        <Header categoryGroups={categoryGroups} navigation={navigation} />
+        <Header categoryGroups={categoryGroups} navigation={navigation} navigationPages={navigationPages} />
         {children}
         <Footer footer={footer} />
       </body>
