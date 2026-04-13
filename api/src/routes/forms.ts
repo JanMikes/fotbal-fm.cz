@@ -228,6 +228,7 @@ export const formsRoute = new OpenAPIHono();
 // GET /forms - list all available forms
 formsRoute.openapi(listRoute, async (c) => {
   const result = await strapiGet<StrapiRawPartner>('/partners', {
+    filters: { show_on_api: { $eq: true } },
     fields: ['name', 'slug'],
     populate: buildFormPopulate(),
     pagination: { pageSize: 100 },

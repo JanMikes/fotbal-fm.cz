@@ -102,6 +102,16 @@ describe('GET /api/v1/forms', () => {
     expect(json.data[0].form.inputGroups[0].inputs[0].required).toBe(true);
   });
 
+  it('filters by show_on_api', async () => {
+    vi.mocked(strapiGet).mockResolvedValueOnce({ data: [], meta: {} });
+
+    await app.request('/api/v1/forms');
+
+    expect(strapiGet).toHaveBeenCalledWith('/partners', expect.objectContaining({
+      filters: { show_on_api: { $eq: true } },
+    }));
+  });
+
   it('returns empty array when no partners have forms', async () => {
     vi.mocked(strapiGet).mockResolvedValueOnce({
       data: [
