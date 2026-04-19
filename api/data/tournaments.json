@@ -396,6 +396,18 @@
     "season": 2025
   },
   {
+    "facrId": "2025009T3A",
+    "facrUuid": "968c1ee8-60c5-4bae-8970-5e5c0f398817",
+    "name": "PC T3A U-12 Třinec",
+    "code": "T3A",
+    "categoryLetter": "T",
+    "level": 3,
+    "group": "A",
+    "type": "Neurčeno PLANEO CUP – POHÁR MLÁDEŽE FAČR skupina A",
+    "organizingBody": "PLANEO CUP – POHÁR MLÁDEŽE FAČR",
+    "season": 2025
+  },
+  {
     "facrId": "2025812F2F",
     "facrUuid": "b6dc355b-73d3-4e3c-b3d6-3712345ae08d",
     "name": "6.liga ml. žáků 7+1 sk. A",
