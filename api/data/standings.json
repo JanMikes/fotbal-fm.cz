@@ -5987,6 +5987,28 @@
       },
       {
         "position": 3,
+        "teamName": "Baška A",
+        "matchesPlayed": 10,
+        "wins": 7,
+        "draws": 1,
+        "losses": 2,
+        "goalsFor": 45,
+        "goalsAgainst": 20,
+        "points": 22
+      },
+      {
+        "position": 4,
+        "teamName": "Kunčice",
+        "matchesPlayed": 10,
+        "wins": 7,
+        "draws": 1,
+        "losses": 2,
+        "goalsFor": 36,
+        "goalsAgainst": 11,
+        "points": 22
+      },
+      {
+        "position": 5,
         "teamName": "Sedliště",
         "matchesPlayed": 9,
         "wins": 6,
@@ -5997,48 +6019,26 @@
         "points": 20
       },
       {
-        "position": 4,
-        "teamName": "Kunčice",
-        "matchesPlayed": 9,
-        "wins": 6,
-        "draws": 1,
-        "losses": 2,
-        "goalsFor": 34,
-        "goalsAgainst": 10,
-        "points": 19
-      },
-      {
-        "position": 5,
-        "teamName": "Baška A",
-        "matchesPlayed": 9,
-        "wins": 6,
-        "draws": 1,
-        "losses": 2,
-        "goalsFor": 37,
-        "goalsAgainst": 18,
-        "points": 19
-      },
-      {
         "position": 6,
-        "teamName": "FK FM",
-        "matchesPlayed": 9,
+        "teamName": "Kozlovice",
+        "matchesPlayed": 10,
         "wins": 5,
-        "draws": 1,
+        "draws": 2,
         "losses": 3,
-        "goalsFor": 51,
-        "goalsAgainst": 27,
-        "points": 16
+        "goalsFor": 26,
+        "goalsAgainst": 20,
+        "points": 17
       },
       {
         "position": 7,
-        "teamName": "Kozlovice",
-        "matchesPlayed": 9,
-        "wins": 4,
-        "draws": 2,
-        "losses": 3,
-        "goalsFor": 21,
-        "goalsAgainst": 17,
-        "points": 14
+        "teamName": "FK FM",
+        "matchesPlayed": 10,
+        "wins": 5,
+        "draws": 1,
+        "losses": 4,
+        "goalsFor": 54,
+        "goalsAgainst": 32,
+        "points": 16
       },
       {
         "position": 8,
@@ -6076,12 +6076,12 @@
       {
         "position": 11,
         "teamName": "Čeladná",
-        "matchesPlayed": 9,
+        "matchesPlayed": 10,
         "wins": 3,
         "draws": 1,
-        "losses": 5,
-        "goalsFor": 24,
-        "goalsAgainst": 31,
+        "losses": 6,
+        "goalsFor": 25,
+        "goalsAgainst": 33,
         "points": 10
       },
       {
@@ -6098,12 +6098,12 @@
       {
         "position": 13,
         "teamName": "Baška B",
-        "matchesPlayed": 9,
+        "matchesPlayed": 10,
         "wins": 3,
         "draws": 0,
-        "losses": 6,
-        "goalsFor": 20,
-        "goalsAgainst": 25,
+        "losses": 7,
+        "goalsFor": 22,
+        "goalsAgainst": 33,
         "points": 9
       },
       {
