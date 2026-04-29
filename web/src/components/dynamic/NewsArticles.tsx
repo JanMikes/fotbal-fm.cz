@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getNewsArticlesByCategory } from '@/lib/strapi/data';
+import { getAllNewsArticles } from '@/lib/strapi/data';
 import { NewsCard } from '@/components/ui';
 import type { ComponentNewsArticles } from '@/lib/types';
 
@@ -9,12 +9,13 @@ interface NewsArticlesProps {
 }
 
 export async function NewsArticles({ data, sidebar }: NewsArticlesProps) {
-  const categorySlug = data.categories?.[0]?.slug;
-  const { articles } = await getNewsArticlesByCategory(
-    categorySlug,
+  const categorySlugs = data.categories?.map((c) => c.slug).filter(Boolean) ?? [];
+  const linkCategorySlug = categorySlugs[0];
+  const { articles } = await getAllNewsArticles(
     1,
     data.limit || 6,
     data.newsArticleType?.slug,
+    categorySlugs.length > 0 ? categorySlugs : undefined,
   );
 
   if (articles.length === 0) return null;
@@ -26,7 +27,7 @@ export async function NewsArticles({ data, sidebar }: NewsArticlesProps) {
           <NewsCard
             key={article.documentId}
             article={article}
-            categorySlug={categorySlug || article.categories?.[0]?.slug || ''}
+            categorySlug={linkCategorySlug || article.categories?.[0]?.slug || ''}
           />
         ))}
       </div>
