@@ -47,10 +47,15 @@ const envSchema = z.object({
 });
 
 /**
- * Check if we're in a build-time environment (Next.js build process)
- * During build, we don't have access to runtime environment variables
+ * Skip strict env validation when runtime env isn't available or relevant:
+ * - during the Next.js production build (env injected later at runtime), and
+ * - under tests (vitest), so unit tests don't require real runtime env.
+ * In these cases validateEnv() returns safe placeholders instead of throwing.
  */
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+const isBuildTime =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  process.env.NODE_ENV === 'test' ||
+  !!process.env.VITEST;
 
 /**
  * Validates and parses environment variables
