@@ -83,6 +83,33 @@ export function apiError(
 }
 
 /**
+ * Create a raw binary response (e.g. image bytes).
+ *
+ * Returns a type compatible with the `withAuth` handler signature, which is
+ * otherwise specialized to JSON responses. The casts are isolated here so route
+ * handlers stay clean: `new NextResponse(Uint8Array)` is valid at runtime, but
+ * TS's DOM `BodyInit` type doesn't accept the generic `Uint8Array<ArrayBufferLike>`.
+ */
+export function apiBinary(
+  body: Uint8Array | ArrayBuffer,
+  options: {
+    contentType: string;
+    status?: number;
+    headers?: Record<string, string>;
+  }
+): NextResponse<ApiSuccessResponse<never> | ApiErrorResponse> {
+  const response = new NextResponse(body as unknown as BodyInit, {
+    status: options.status ?? 200,
+    headers: {
+      'Content-Type': options.contentType,
+      ...options.headers,
+    },
+  });
+
+  return response as unknown as NextResponse<ApiSuccessResponse<never> | ApiErrorResponse>;
+}
+
+/**
  * Create an error response from an AppError
  */
 export function apiErrorFromAppError(

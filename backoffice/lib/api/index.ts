@@ -7,6 +7,7 @@
 export {
   apiSuccess,
   apiError,
+  apiBinary,
   apiErrorFromAppError,
   handleApiError,
   ApiErrors,
