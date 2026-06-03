@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { AppError, ErrorCode } from './core/errors';
 
 /**
  * Environment variable schema definition
@@ -32,6 +33,17 @@ const envSchema = z.object({
 
   // Application URL (for links in emails)
   APP_URL: z.string().url().default('http://localhost:3000'),
+
+  // WBoost Brand-Manuals API (social-network template export) — server-side only.
+  // Optional: when unset the export feature is disabled but the rest of the app boots normally.
+  // getWboostConfig() surfaces a friendly error only when the feature is actually used.
+  WBOOST_API_BASE: z.string().url('WBOOST_API_BASE must be a valid URL').optional(),
+  WBOOST_CLIENT_ID: z.string().min(1).optional(),
+  WBOOST_CLIENT_SECRET: z.string().min(1).optional(),
+  WBOOST_PROJECT_ID: z.string().min(1).optional(),
+  // Picker thumbnails: 'true' once the API serves thumbnails from the API host.
+  // Default off — we never touch the object store directly.
+  WBOOST_THUMBNAILS: z.enum(['true', 'false']).default('false'),
 });
 
 /**
@@ -64,6 +76,11 @@ function validateEnv() {
       EMAIL_FROM: 'noreply@fotbal-fm.cz',
       EMAIL_TO: 'info@fotbal-fm.cz',
       APP_URL: 'http://localhost:3000',
+      WBOOST_API_BASE: undefined,
+      WBOOST_CLIENT_ID: undefined,
+      WBOOST_CLIENT_SECRET: undefined,
+      WBOOST_PROJECT_ID: undefined,
+      WBOOST_THUMBNAILS: 'false' as const,
     };
   }
 
@@ -83,6 +100,11 @@ function validateEnv() {
       EMAIL_FROM: process.env.EMAIL_FROM,
       EMAIL_TO: process.env.EMAIL_TO,
       APP_URL: process.env.APP_URL,
+      WBOOST_API_BASE: process.env.WBOOST_API_BASE,
+      WBOOST_CLIENT_ID: process.env.WBOOST_CLIENT_ID,
+      WBOOST_CLIENT_SECRET: process.env.WBOOST_CLIENT_SECRET,
+      WBOOST_PROJECT_ID: process.env.WBOOST_PROJECT_ID,
+      WBOOST_THUMBNAILS: process.env.WBOOST_THUMBNAILS,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -148,4 +170,69 @@ export function isProduction(): boolean {
  */
 export function isDevelopment(): boolean {
   return config.NODE_ENV === 'development';
+}
+
+/**
+ * Resolved WBoost Brand-Manuals API configuration (server-side only).
+ */
+export interface WboostConfig {
+  /** API host for OAuth token + templates + export + thumbnails (e.g. http://host.docker.internal:8099). */
+  apiBase: string;
+  clientId: string;
+  clientSecret: string;
+  projectId: string;
+  /**
+   * Whether picker thumbnails are served from the API host. Off by default until
+   * the API exposes a thumbnail endpoint; when off the picker shows text cards.
+   * We never reach the object store directly.
+   */
+  thumbnailsEnabled: boolean;
+}
+
+/**
+ * Get the WBoost export configuration.
+ * Throws a friendly AppError (503) if the feature is not configured, so a missing
+ * env var only fails when the export feature is actually used — never on app boot.
+ */
+export function getWboostConfig(): WboostConfig {
+  const {
+    WBOOST_API_BASE,
+    WBOOST_CLIENT_ID,
+    WBOOST_CLIENT_SECRET,
+    WBOOST_PROJECT_ID,
+    WBOOST_THUMBNAILS,
+  } = config;
+
+  if (
+    !WBOOST_API_BASE ||
+    !WBOOST_CLIENT_ID ||
+    !WBOOST_CLIENT_SECRET ||
+    !WBOOST_PROJECT_ID
+  ) {
+    throw new AppError(
+      'Export šablon není nakonfigurován (chybí WBOOST_* proměnné prostředí).',
+      ErrorCode.INTERNAL_ERROR,
+      503
+    );
+  }
+
+  return {
+    apiBase: WBOOST_API_BASE.replace(/\/$/, ''),
+    clientId: WBOOST_CLIENT_ID,
+    clientSecret: WBOOST_CLIENT_SECRET,
+    projectId: WBOOST_PROJECT_ID,
+    thumbnailsEnabled: WBOOST_THUMBNAILS === 'true',
+  };
+}
+
+/**
+ * Whether the WBoost export feature is configured.
+ */
+export function isWboostConfigured(): boolean {
+  return Boolean(
+    config.WBOOST_API_BASE &&
+      config.WBOOST_CLIENT_ID &&
+      config.WBOOST_CLIENT_SECRET &&
+      config.WBOOST_PROJECT_ID
+  );
 }
