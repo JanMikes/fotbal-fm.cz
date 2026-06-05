@@ -57,11 +57,36 @@ const makeRawTemplate = (overrides = {}) => ({
   ...overrides,
 });
 
+const makeRawImageInput = (overrides = {}) => ({
+  id: 'slot-1',
+  name: 'Foto',
+  description: 'Vaše fotka',
+  allowMove: true,
+  allowResize: true,
+  allowRotate: false,
+  hidable: true,
+  allowedDirectoryIds: ['dir-1'],
+  frame: { x: 100, y: 120, width: 400, height: 300 },
+  defaultImageUrl: 'http://store/standin.png',
+  ...overrides,
+});
+
+const makeRawGalleryImage = (overrides = {}) => ({
+  id: 'img-1',
+  url: 'http://store/photo.jpg',
+  directoryId: 'dir-1',
+  directoryName: 'Fotky',
+  uploadedAt: '2026-06-05 14:10',
+  ...overrides,
+});
+
 function makeFakeClient(overrides = {}) {
   return {
     listTemplates: vi.fn().mockResolvedValue([]),
     renderVariant: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
     fetchThumbnail: vi.fn().mockResolvedValue({ body: new Uint8Array([4, 5]), contentType: 'image/png' }),
+    listPlaceholderImages: vi.fn().mockResolvedValue([]),
+    uploadPlaceholderImage: vi.fn().mockResolvedValue(makeRawGalleryImage()),
     ...overrides,
   };
 }
@@ -237,6 +262,41 @@ describe('SocialExportService', () => {
       expect(t2.variants[0].hasDefaultPreview).toBe(false);
     });
 
+    it('maps imageInputs to DTOs', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [makeRawVariant({ imageInputs: [makeRawImageInput({ id: 'slotX' })] })],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const slot = result.data[0].variants[0].imageInputs[0];
+      expect(slot.id).toBe('slotX');
+      expect(slot.allowMove).toBe(true);
+      expect(slot.allowRotate).toBe(false);
+      expect(slot.hidable).toBe(true);
+      expect(slot.frame).toEqual({ x: 100, y: 120, width: 400, height: 300 });
+      expect(slot.defaultImageUrl).toBe('http://store/standin.png');
+      // allowedDirectoryIds is intentionally not exposed to the client DTO
+      expect(slot).not.toHaveProperty('allowedDirectoryIds');
+    });
+
+    it('defaults imageInputs to [] when the variant has none', async () => {
+      const rawTemplates = [makeRawTemplate({ variants: [makeRawVariant({})] })];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data[0].variants[0].imageInputs).toEqual([]);
+    });
+
     it('propagates AppError from client as err result', async () => {
       const appErr = new AppError('Šablony se nepodařilo načíst', ErrorCode.INTERNAL_ERROR, 500);
       const client = makeFakeClient({ listTemplates: vi.fn().mockRejectedValue(appErr) });
@@ -261,6 +321,17 @@ describe('SocialExportService', () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data).toBe(bytes);
+    });
+
+    it('passes images through to the client', async () => {
+      const renderVariant = vi.fn().mockResolvedValue(new Uint8Array([1]));
+      const client = makeFakeClient({ renderVariant });
+      const service = new SocialExportService(client as never);
+
+      const images = { slot1: 'img-9', slot2: { imageId: 'img-3', scale: 1.4 } };
+      await service.renderVariant('v1', { inp: 'val' }, images);
+
+      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images);
     });
 
     it('propagates AppError from client', async () => {
@@ -296,6 +367,68 @@ describe('SocialExportService', () => {
 
       const result = await service.getThumbnail('v99');
 
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toBe(appErr);
+    });
+  });
+
+  describe('listPlaceholderImages', () => {
+    it('maps raw gallery images to DTOs (url passed through)', async () => {
+      const raw = [makeRawGalleryImage({ id: 'g1' }), makeRawGalleryImage({ id: 'g2', directoryName: undefined, uploadedAt: undefined })];
+      const client = makeFakeClient({ listPlaceholderImages: vi.fn().mockResolvedValue(raw) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.listPlaceholderImages('v1', 'slot-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data[0]).toEqual({
+        id: 'g1',
+        url: 'http://store/photo.jpg',
+        directoryId: 'dir-1',
+        directoryName: 'Fotky',
+        uploadedAt: '2026-06-05 14:10',
+      });
+      // Missing optional fields become null
+      expect(result.data[1].directoryName).toBeNull();
+      expect(result.data[1].uploadedAt).toBeNull();
+    });
+
+    it('propagates AppError from client', async () => {
+      const appErr = new AppError('Slot nenalezen', ErrorCode.NOT_FOUND, 404);
+      const client = makeFakeClient({ listPlaceholderImages: vi.fn().mockRejectedValue(appErr) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.listPlaceholderImages('v1', 'bad');
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toBe(appErr);
+    });
+  });
+
+  describe('uploadPlaceholderImage', () => {
+    it('forwards file + filename + directoryId and maps the created image', async () => {
+      const uploadPlaceholderImage = vi.fn().mockResolvedValue(makeRawGalleryImage({ id: 'new-1' }));
+      const client = makeFakeClient({ uploadPlaceholderImage });
+      const service = new SocialExportService(client as never);
+
+      const blob = new Blob([new Uint8Array([1, 2])], { type: 'image/png' });
+      const result = await service.uploadPlaceholderImage('v1', 'slot-1', blob, 'photo.png', 'dir-1');
+
+      expect(uploadPlaceholderImage).toHaveBeenCalledWith('v1', 'slot-1', blob, 'photo.png', 'dir-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.id).toBe('new-1');
+    });
+
+    it('propagates AppError from client', async () => {
+      const appErr = new AppError('Složka není povolena', ErrorCode.FORBIDDEN, 403);
+      const client = makeFakeClient({ uploadPlaceholderImage: vi.fn().mockRejectedValue(appErr) });
+      const service = new SocialExportService(client as never);
+
+      const blob = new Blob([new Uint8Array([1])], { type: 'image/png' });
+      const result = await service.uploadPlaceholderImage('v1', 'slot-1', blob, 'x.png');
       expect(result.success).toBe(false);
       if (result.success) return;
       expect(result.error).toBe(appErr);

@@ -18,10 +18,16 @@ import {
 import TemplateGrid from '@/components/social-export/TemplateGrid';
 import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
+import ImageInputList from '@/components/social-export/images/ImageInputList';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { extractMatchPrefill, getMatchChips } from '@/lib/social-export/prefill';
 import { buildRenderInputs, InputFieldState, validateInputValue, isEditable } from '@/lib/social-export/field-rules';
+import {
+  buildRenderImages,
+  defaultImageSlotState,
+  type ImageSlotState,
+} from '@/lib/social-export/field-rules-image';
 import { Match } from '@/types/match';
 
 interface PageProps {
@@ -40,6 +46,14 @@ function initFormState(variant: TemplateVariantDTO, prefill: Record<string, stri
       input.id,
       { value: prefill[input.id] ?? '', hidden: false },
     ])
+  );
+}
+
+type ImageState = Record<string, ImageSlotState>;
+
+function initImageState(variant: TemplateVariantDTO): ImageState {
+  return Object.fromEntries(
+    variant.imageInputs.map((slot) => [slot.id, defaultImageSlotState()])
   );
 }
 
@@ -87,6 +101,8 @@ function SocialExportPageContent({ params }: PageProps) {
 
   // Form state (keyed by input id)
   const [formState, setFormState] = useState<FormState>({});
+  // Image-slot state (keyed by imageInput id)
+  const [imageState, setImageState] = useState<ImageState>({});
 
   // Render state
   const [isRendering, setIsRendering] = useState(false);
@@ -141,6 +157,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // Auto-advance if template has exactly one variant (already handled in handleSelectTemplate)
     const prefill = extractMatchPrefill(match, selectedVariant.inputs);
     setFormState(initFormState(selectedVariant, prefill));
+    setImageState(initImageState(selectedVariant));
     setPreviewUrl(null);
     setPreviewBlob(null);
     // dirty=true so the live preview renders the initial prefilled state.
@@ -170,7 +187,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // doRender/hasValidationErrors are recreated each render; depending on them
     // would reset the debounce on every render. Intentionally excluded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState, dirty, isRendering, selectedVariant]);
+  }, [formState, imageState, dirty, isRendering, selectedVariant]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -218,6 +235,19 @@ function SocialExportPageContent({ params }: PageProps) {
     []
   );
 
+  const handleImageChange = useCallback(
+    (slotId: string, partial: Partial<ImageSlotState>) => {
+      setImageState((prev) => ({
+        ...prev,
+        [slotId]: { ...(prev[slotId] ?? defaultImageSlotState()), ...partial },
+      }));
+      setDirty(true);
+      // A fresh edit re-enables the debounced live preview.
+      autoPreviewBlockedRef.current = false;
+    },
+    []
+  );
+
   function hasValidationErrors(): boolean {
     if (!selectedVariant) return false;
     return selectedVariant.inputs.some((input) => {
@@ -239,7 +269,8 @@ function SocialExportPageContent({ params }: PageProps) {
 
     try {
       const payload = buildRenderInputs(selectedVariant.inputs, formState);
-      const result = await renderVariant(selectedVariant.id, payload);
+      const imagePayload = buildRenderImages(selectedVariant.imageInputs, imageState);
+      const result = await renderVariant(selectedVariant.id, payload, imagePayload);
 
       if (result.error) {
         setRenderError(result.error);
@@ -451,6 +482,13 @@ function SocialExportPageContent({ params }: PageProps) {
               <h2 className="text-base font-semibold text-text-primary mb-4">
                 {selectedTemplate.name} — {selectedVariant.dimension}
               </h2>
+              <ImageInputList
+                variant={selectedVariant}
+                matchId={match.id}
+                matchImages={match.images}
+                state={imageState}
+                onChange={handleImageChange}
+              />
               <ExportInputForm
                 variant={selectedVariant}
                 chips={chips}

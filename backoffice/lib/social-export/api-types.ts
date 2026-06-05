@@ -19,6 +19,44 @@ export interface TemplateInputDTO {
   hidable: boolean;
 }
 
+/** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
+export interface ImageFrameDTO {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * An image placeholder slot, as exposed to the form. The user picks a picture
+ * (gallery / upload) that renders object-contain + centered in `frame`, and may
+ * move/zoom/rotate it within the allowed flags. Bind by `id`, never by `name`.
+ */
+export interface ImageInputDTO {
+  id: string;
+  name: string | null;
+  description: string | null;
+  allowMove: boolean;
+  allowResize: boolean;
+  allowRotate: boolean;
+  hidable: boolean;
+  /** Designer frame in canvas px; null only for malformed variants. */
+  frame: ImageFrameDTO | null;
+  /** Stand-in shown when the slot is left empty; absolute store URL, nullable. */
+  defaultImageUrl: string | null;
+}
+
+/** A pickable gallery image for an image slot (from the list/upload endpoints). */
+export interface GalleryImageDTO {
+  /** Use as `imageId` in the render `images` payload. */
+  id: string;
+  /** Presigned store URL, loadable directly by the browser. */
+  url: string;
+  directoryId: string;
+  directoryName: string | null;
+  uploadedAt: string | null;
+}
+
 /** One renderable variant (dimension/ratio) of a template. */
 export interface TemplateVariantDTO {
   id: string;
@@ -35,6 +73,8 @@ export interface TemplateVariantDTO {
   /** Whether the variant has a cached default render (previewImageUrl != null). */
   hasDefaultPreview: boolean;
   inputs: TemplateInputDTO[];
+  /** Image placeholder slots (empty when the variant has none). */
+  imageInputs: ImageInputDTO[];
 }
 
 /** A social-network template, grouped/sorted-ready for display. */
@@ -58,11 +98,30 @@ export interface TemplatesResponse {
  */
 export type RenderInputValue = string | { value?: string; hide?: boolean };
 
+/**
+ * A single render image value: a plain gallery image id (centered + contained),
+ * or an object with placement. `scale`/`offsetX`/`offsetY`/`rotation` are only
+ * accepted when the slot's matching `allow*` flag is true; `hide` only when
+ * `hidable`. Build it with `buildRenderImages` so disallowed params are never sent.
+ */
+export type RenderImageValue =
+  | string
+  | {
+      imageId?: string;
+      scale?: number;
+      offsetX?: number;
+      offsetY?: number;
+      rotation?: number;
+      hide?: boolean;
+    };
+
 /** Request body of `POST /api/social-export/render`. Returns raw `image/png` bytes. */
 export interface RenderRequest {
   variantId: string;
   /** Keyed by input UUID. Omitted inputs keep their default text. */
   inputs: Record<string, RenderInputValue>;
+  /** Keyed by imageInput UUID. Omitted slots keep their stand-in. Optional + backward-compatible. */
+  images?: Record<string, RenderImageValue>;
 }
 
 /** API route base path for the social-export feature. */

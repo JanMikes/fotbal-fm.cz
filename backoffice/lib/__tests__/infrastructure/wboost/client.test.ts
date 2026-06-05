@@ -95,6 +95,67 @@ describe('WboostClient', () => {
       expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json');
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { inp1: 'hello' } });
     });
+
+    it('includes `images` in the body when provided', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.renderVariant('v1', { t: 'x' }, { s: 'img-1' });
+
+      const [, init] = mockFetch.mock.calls[0];
+      expect(JSON.parse(init.body as string)).toEqual({ inputs: { t: 'x' }, images: { s: 'img-1' } });
+    });
+
+    it('omits the `images` key when images is empty (backward-compatible)', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.renderVariant('v1', { t: 'x' }, {});
+
+      const [, init] = mockFetch.mock.calls[0];
+      expect(JSON.parse(init.body as string)).toEqual({ inputs: { t: 'x' } });
+    });
+  });
+
+  describe('listPlaceholderImages', () => {
+    it('GETs the slot images URL with Authorization and returns the parsed array', async () => {
+      const images = [{ id: 'g1', url: 'u', directoryId: 'd', directoryName: 'D', uploadedAt: 't' }];
+      mockFetch.mockResolvedValueOnce(mockJsonResponse(images));
+
+      const client = new WboostClient(CFG, makeFakeTokenManager('tok') as never);
+      const result = await client.listPlaceholderImages('v1', 'slot-1');
+
+      expect(result).toEqual(images);
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'http://wboost.test/api/social-network-template-variants/v1/placeholders/slot-1/images'
+      );
+      expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer tok');
+    });
+  });
+
+  describe('uploadPlaceholderImage', () => {
+    it('POSTs multipart form (file + directoryId), no Content-Type override', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({ id: 'new', url: 'u', directoryId: 'd' }));
+
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+      const blob = new Blob([new Uint8Array([1, 2])], { type: 'image/png' });
+      const result = await client.uploadPlaceholderImage('v1', 'slot-1', blob, 'p.png', 'dir-9');
+
+      expect(result.id).toBe('new');
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe(
+        'http://wboost.test/api/social-network-template-variants/v1/placeholders/slot-1/images'
+      );
+      expect(init.method).toBe('POST');
+      expect(init.body).toBeInstanceOf(FormData);
+      const form = init.body as FormData;
+      expect(form.get('directoryId')).toBe('dir-9');
+      expect(form.get('file')).toBeInstanceOf(Blob);
+      // fetch must set the multipart boundary itself
+      expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    });
   });
 
   describe('fetchThumbnail', () => {

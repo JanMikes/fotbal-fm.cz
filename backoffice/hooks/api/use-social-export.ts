@@ -5,7 +5,13 @@
  */
 
 import useSWR from 'swr';
-import { SOCIAL_EXPORT_API_BASE, TemplateDTO, RenderInputValue } from '@/lib/social-export/api-types';
+import {
+  SOCIAL_EXPORT_API_BASE,
+  TemplateDTO,
+  RenderInputValue,
+  RenderImageValue,
+  GalleryImageDTO,
+} from '@/lib/social-export/api-types';
 
 // ---------------------------------------------------------------------------
 // Fetcher helper for SWR
@@ -49,13 +55,19 @@ export function useSocialExportTemplates(): {
 
 export async function renderVariant(
   variantId: string,
-  inputs: Record<string, RenderInputValue>
+  inputs: Record<string, RenderInputValue>,
+  images?: Record<string, RenderImageValue>
 ): Promise<{ blob?: Blob; error?: string }> {
   try {
+    const body =
+      images && Object.keys(images).length > 0
+        ? { variantId, inputs, images }
+        : { variantId, inputs };
+
     const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/render`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ variantId, inputs }),
+      body: JSON.stringify(body),
     });
 
     if (res.ok) {
@@ -74,6 +86,76 @@ export async function renderVariant(
     }
   } catch {
     return { error: 'Generování selhalo — síťová chyba' };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Image-slot gallery: list + upload
+// ---------------------------------------------------------------------------
+
+/** GET the gallery images an image slot can be filled with. */
+export async function fetchSlotImages(
+  variantId: string,
+  imageInputId: string
+): Promise<GalleryImageDTO[]> {
+  const qs = new URLSearchParams({ variantId, imageInputId }).toString();
+  const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/placeholder-images?${qs}`);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.error || 'Nepodařilo se načíst obrázky');
+  }
+  return json.data.images as GalleryImageDTO[];
+}
+
+/** Upload a local file into the slot's gallery and return the created image. */
+export async function uploadSlotImage(
+  variantId: string,
+  imageInputId: string,
+  file: File,
+  directoryId?: string
+): Promise<{ image?: GalleryImageDTO; error?: string }> {
+  try {
+    const form = new FormData();
+    form.append('variantId', variantId);
+    form.append('imageInputId', imageInputId);
+    form.append('file', file);
+    if (directoryId) form.append('directoryId', directoryId);
+
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/placeholder-images`, {
+      method: 'POST',
+      body: form,
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { error: json.error || 'Nahrání se nezdařilo' };
+    }
+    return { image: json.data.image as GalleryImageDTO };
+  } catch {
+    return { error: 'Nahrání se nezdařilo — síťová chyba' };
+  }
+}
+
+/** Upload a photo from this match's gallery into the slot and return the created image. */
+export async function uploadMatchPhoto(
+  variantId: string,
+  imageInputId: string,
+  matchId: string,
+  imageId: number,
+  directoryId?: string
+): Promise<{ image?: GalleryImageDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/placeholder-images/from-match`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variantId, imageInputId, matchId, imageId, directoryId }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { error: json.error || 'Nahrání se nezdařilo' };
+    }
+    return { image: json.data.image as GalleryImageDTO };
+  } catch {
+    return { error: 'Nahrání se nezdařilo — síťová chyba' };
   }
 }
 

@@ -11,12 +11,21 @@ import { Result, ok, err } from '@/lib/core/result';
 import { AppError, toAppError } from '@/lib/core/errors';
 import { getWboostConfig } from '@/lib/config';
 import { getWboostClient, WboostClient } from '@/lib/infrastructure/wboost/client';
-import type { WboostRawTemplate, WboostRawVariant, WboostRawInput } from '@/lib/infrastructure/wboost/types';
+import type {
+  WboostRawTemplate,
+  WboostRawVariant,
+  WboostRawInput,
+  WboostRawImageInput,
+  WboostRawGalleryImage,
+} from '@/lib/infrastructure/wboost/types';
 import type {
   TemplateDTO,
   TemplateVariantDTO,
   TemplateInputDTO,
+  ImageInputDTO,
+  GalleryImageDTO,
   RenderInputValue,
+  RenderImageValue,
 } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
@@ -35,6 +44,33 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
   };
 }
 
+function mapImageInput(raw: WboostRawImageInput): ImageInputDTO {
+  return {
+    id: raw.id,
+    name: raw.name,
+    description: raw.description,
+    allowMove: raw.allowMove,
+    allowResize: raw.allowResize,
+    allowRotate: raw.allowRotate,
+    hidable: raw.hidable,
+    frame: raw.frame,
+    // Presigned store URL, loadable directly by the browser (not behind the
+    // OAuth firewall, unlike the variant thumbnail endpoint).
+    defaultImageUrl: raw.defaultImageUrl,
+  };
+}
+
+/** Map a gallery image; the `url` is a presigned store URL passed through as-is. */
+export function mapGalleryImage(raw: WboostRawGalleryImage): GalleryImageDTO {
+  return {
+    id: raw.id,
+    url: raw.url,
+    directoryId: raw.directoryId,
+    directoryName: raw.directoryName ?? null,
+    uploadedAt: raw.uploadedAt ?? null,
+  };
+}
+
 function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): TemplateVariantDTO {
   const hasThumbnailSource = raw.previewImageUrl != null || raw.backgroundImageUrl != null;
   const thumbnailUrl =
@@ -50,6 +86,7 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
     thumbnailUrl,
     hasDefaultPreview: raw.previewImageUrl != null,
     inputs: raw.inputs.map(mapInput),
+    imageInputs: (raw.imageInputs ?? []).map(mapImageInput),
   };
 }
 
@@ -100,14 +137,52 @@ export class SocialExportService {
 
   async renderVariant(
     variantId: string,
-    inputs: Record<string, RenderInputValue>
+    inputs: Record<string, RenderInputValue>,
+    images?: Record<string, RenderImageValue>
   ): Promise<Result<Uint8Array, AppError>> {
     try {
-      const bytes = await this.client.renderVariant(variantId, inputs);
+      const bytes = await this.client.renderVariant(variantId, inputs, images);
       return ok(bytes);
     } catch (e) {
       if (e instanceof AppError) return err(e);
       Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'renderVariant' } });
+      return err(toAppError(e));
+    }
+  }
+
+  async listPlaceholderImages(
+    variantId: string,
+    imageInputId: string
+  ): Promise<Result<GalleryImageDTO[], AppError>> {
+    try {
+      const raw = await this.client.listPlaceholderImages(variantId, imageInputId);
+      return ok(raw.map(mapGalleryImage));
+    } catch (e) {
+      if (e instanceof AppError) return err(e);
+      Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'listPlaceholderImages' } });
+      return err(toAppError(e));
+    }
+  }
+
+  async uploadPlaceholderImage(
+    variantId: string,
+    imageInputId: string,
+    file: Blob,
+    filename: string,
+    directoryId?: string
+  ): Promise<Result<GalleryImageDTO, AppError>> {
+    try {
+      const raw = await this.client.uploadPlaceholderImage(
+        variantId,
+        imageInputId,
+        file,
+        filename,
+        directoryId
+      );
+      return ok(mapGalleryImage(raw));
+    } catch (e) {
+      if (e instanceof AppError) return err(e);
+      Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'uploadPlaceholderImage' } });
       return err(toAppError(e));
     }
   }

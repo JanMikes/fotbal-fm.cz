@@ -13,8 +13,8 @@ import * as Sentry from '@sentry/nextjs';
 import { AppError, ErrorCode, NetworkError } from '@/lib/core/errors';
 import { getWboostConfig, WboostConfig } from '@/lib/config';
 import { getWboostTokenManager, WboostTokenManager } from './token-manager';
-import type { WboostRawTemplate } from './types';
-import type { RenderInputValue } from '@/lib/social-export/api-types';
+import type { WboostRawTemplate, WboostRawGalleryImage } from './types';
+import type { RenderInputValue, RenderImageValue } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
 // Error message map (Czech)
@@ -92,7 +92,8 @@ export class WboostClient {
 
   async renderVariant(
     variantId: string,
-    inputs: Record<string, RenderInputValue>
+    inputs: Record<string, RenderInputValue>,
+    images?: Record<string, RenderImageValue>
   ): Promise<Uint8Array> {
     const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/export`;
 
@@ -103,13 +104,86 @@ export class WboostClient {
       data: { variantId },
     });
 
+    // Only include `images` when there is something to send — keeps the call
+    // byte-for-byte backward-compatible with text-only renders.
+    const body =
+      images && Object.keys(images).length > 0 ? { inputs, images } : { inputs };
+
     const res = await this.authedFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputs }),
+      body: JSON.stringify(body),
     });
 
     return new Uint8Array(await res.arrayBuffer());
+  }
+
+  /** List the gallery images an image slot can be filled with (its allowed folders only). */
+  async listPlaceholderImages(
+    variantId: string,
+    imageInputId: string
+  ): Promise<WboostRawGalleryImage[]> {
+    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/placeholders/${imageInputId}/images`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: 'Listing placeholder images',
+      level: 'info',
+      data: { variantId, imageInputId },
+    });
+
+    const res = await this.authedFetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    try {
+      return (await res.json()) as WboostRawGalleryImage[];
+    } catch {
+      throw new AppError(
+        'WBoost placeholder-images endpoint vrátil neplatný JSON',
+        ErrorCode.INTERNAL_ERROR,
+        502
+      );
+    }
+  }
+
+  /**
+   * Upload a new image into one of the slot's allowed folders and return the
+   * created gallery image. Sends multipart/form-data — the Content-Type (with
+   * boundary) is set by fetch, so we must not set it ourselves.
+   */
+  async uploadPlaceholderImage(
+    variantId: string,
+    imageInputId: string,
+    file: Blob,
+    filename: string,
+    directoryId?: string
+  ): Promise<WboostRawGalleryImage> {
+    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/placeholders/${imageInputId}/images`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: 'Uploading placeholder image',
+      level: 'info',
+      data: { variantId, imageInputId, directoryId },
+    });
+
+    const form = new FormData();
+    form.append('file', file, filename);
+    if (directoryId) form.append('directoryId', directoryId);
+
+    const res = await this.authedFetch(url, { method: 'POST', body: form });
+
+    try {
+      return (await res.json()) as WboostRawGalleryImage;
+    } catch {
+      throw new AppError(
+        'WBoost upload endpoint vrátil neplatný JSON',
+        ErrorCode.INTERNAL_ERROR,
+        502
+      );
+    }
   }
 
   async fetchThumbnail(

@@ -11,9 +11,22 @@ const renderInputValueSchema = z.union([
   }),
 ]);
 
+const renderImageValueSchema = z.union([
+  z.string(),
+  z.object({
+    imageId: z.string().optional(),
+    scale: z.number().optional(),
+    offsetX: z.number().optional(),
+    offsetY: z.number().optional(),
+    rotation: z.number().optional(),
+    hide: z.boolean().optional(),
+  }),
+]);
+
 const renderRequestSchema = z.object({
   variantId: z.string().min(1),
   inputs: z.record(z.string(), renderInputValueSchema),
+  images: z.record(z.string(), renderImageValueSchema).optional(),
 });
 
 export const POST = withAuth(async (request: NextRequest) => {
@@ -31,10 +44,10 @@ export const POST = withAuth(async (request: NextRequest) => {
     return ApiErrors.validationFailed(parsed.error.issues[0]?.message ?? 'Neplatná data požadavku');
   }
 
-  const { variantId, inputs } = parsed.data;
+  const { variantId, inputs, images } = parsed.data;
 
   const service = getSocialExportService();
-  const result = await service.renderVariant(variantId, inputs);
+  const result = await service.renderVariant(variantId, inputs, images);
 
   if (!result.success) {
     const { error } = result;
