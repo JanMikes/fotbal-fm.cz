@@ -47,6 +47,23 @@ function jwtExpiryMs(token: string): number | null {
   return null;
 }
 
+/** Collapse whitespace and cap length so a raw response body is safe to show in the UI. */
+function bodySnippet(raw: string): string {
+  const collapsed = raw.replace(/\s+/g, ' ').trim();
+  return collapsed ? collapsed.slice(0, 300) : '(prázdná odpověď)';
+}
+
+/** Log the full context of a bad token response to stdout (Docker logs). */
+function logTokenBody(reason: string, url: string, status: number, contentType: string, raw: string): void {
+  console.error(
+    `[WBoost] Token endpoint ${reason}:\n` +
+      `  url: ${url}\n` +
+      `  status: ${status}\n` +
+      `  content-type: ${contentType || '(none)'}\n` +
+      `  body: ${raw.slice(0, 2000) || '(empty)'}`
+  );
+}
+
 export class WboostTokenManager {
   private cache: TokenCache | null = null;
   /** Shared promise while a fetch is in flight, to avoid a thundering herd. */
@@ -125,12 +142,30 @@ export class WboostTokenManager {
       );
     }
 
+    // Read the body as text FIRST: parsing consumes the stream, so reading text
+    // afterwards is impossible — capture it now so a bad body can be shown.
+    const contentType = res.headers.get('content-type') ?? '';
+    const rawBody = await res.text();
+
     let data: WboostTokenResponse;
     try {
-      data = (await res.json()) as WboostTokenResponse;
+      data = JSON.parse(rawBody) as WboostTokenResponse;
     } catch {
+      logTokenBody('vrátil neplatný JSON', url, res.status, contentType, rawBody);
       throw new AppError(
-        'WBoost token endpoint vrátil neplatný JSON',
+        `WBoost token endpoint vrátil neplatný JSON (HTTP ${res.status}, content-type: ${
+          contentType || 'neznámý'
+        }). Odpověď: ${bodySnippet(rawBody)}`,
+        ErrorCode.INTERNAL_ERROR,
+        502
+      );
+    }
+
+    // Valid JSON but not a token (e.g. an OAuth error object returned with 200).
+    if (typeof data.access_token !== 'string' || data.access_token.length === 0) {
+      logTokenBody('neobsahuje access_token', url, res.status, contentType, rawBody);
+      throw new AppError(
+        `WBoost token endpoint nevrátil access_token (HTTP ${res.status}). Odpověď: ${bodySnippet(rawBody)}`,
         ErrorCode.INTERNAL_ERROR,
         502
       );

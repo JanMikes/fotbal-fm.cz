@@ -21,11 +21,13 @@ function makeManager() {
 }
 
 function mockTokenResponse(expiresIn = 3600, token = 'tok123') {
+  const body = { access_token: token, expires_in: expiresIn, token_type: 'Bearer' };
   return {
     ok: true,
     status: 200,
-    json: () => Promise.resolve({ access_token: token, expires_in: expiresIn, token_type: 'Bearer' }),
-    text: () => Promise.resolve(''),
+    headers: { get: () => 'application/json' },
+    json: () => Promise.resolve(body),
+    text: () => Promise.resolve(JSON.stringify(body)),
   };
 }
 
@@ -166,5 +168,44 @@ describe('WboostTokenManager', () => {
 
     const mgr = makeManager();
     await expect(mgr.getToken()).rejects.toBeInstanceOf(NetworkError);
+  });
+
+  it('surfaces the raw body + content-type when a 200 response is not JSON', async () => {
+    const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: { get: () => 'text/html' },
+      text: () => Promise.resolve('<html><body>Service Unavailable</body></html>'),
+    });
+
+    const mgr = makeManager();
+    try {
+      await mgr.getToken();
+      expect.unreachable('should have thrown');
+    } catch (e) {
+      const appErr = e as InstanceType<typeof AppError>;
+      expect(appErr).toBeInstanceOf(AppError);
+      expect(appErr.statusCode).toBe(502);
+      expect(appErr.message).toContain('Service Unavailable'); // raw body reaches the UI
+      expect(appErr.message).toContain('text/html'); // content-type included
+    }
+    expect(consoleErr).toHaveBeenCalled(); // also logged to stdout
+    consoleErr.mockRestore();
+  });
+
+  it('throws a clear error (with body) when the token JSON has no access_token', async () => {
+    const consoleErr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: { get: () => 'application/json' },
+      text: () => Promise.resolve(JSON.stringify({ error: 'invalid_client' })),
+    });
+
+    const mgr = makeManager();
+    await expect(mgr.getToken()).rejects.toThrow(/access_token/);
+    expect(consoleErr).toHaveBeenCalled();
+    consoleErr.mockRestore();
   });
 });
