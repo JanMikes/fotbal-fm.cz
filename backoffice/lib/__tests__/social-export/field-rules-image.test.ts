@@ -19,6 +19,8 @@ function makeImageInput(overrides: Partial<ImageInputDTO> = {}): ImageInputDTO {
     allowResize: false,
     allowRotate: false,
     hidable: false,
+    directories: [{ id: 'dir-1', name: 'Fotky' }],
+    includesRoot: false,
     frame: { x: 0, y: 0, width: 400, height: 300 },
     defaultImageUrl: null,
     ...overrides,

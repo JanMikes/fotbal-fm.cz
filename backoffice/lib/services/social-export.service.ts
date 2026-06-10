@@ -53,6 +53,9 @@ function mapImageInput(raw: WboostRawImageInput): ImageInputDTO {
     allowResize: raw.allowResize,
     allowRotate: raw.allowRotate,
     hidable: raw.hidable,
+    // Fallbacks cover older API payloads without the upload-target fields.
+    directories: raw.directories ?? [],
+    includesRoot: raw.includesRoot ?? false,
     frame: raw.frame,
     // Presigned store URL, loadable directly by the browser (not behind the
     // OAuth firewall, unlike the variant thumbnail endpoint).
@@ -65,7 +68,8 @@ export function mapGalleryImage(raw: WboostRawGalleryImage): GalleryImageDTO {
   return {
     id: raw.id,
     url: raw.url,
-    directoryId: raw.directoryId,
+    // Null = gallery root (the API omits null fields, so it may be absent).
+    directoryId: raw.directoryId ?? null,
     directoryName: raw.directoryName ?? null,
     uploadedAt: raw.uploadedAt ?? null,
   };

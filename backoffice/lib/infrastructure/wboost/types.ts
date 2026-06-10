@@ -33,6 +33,12 @@ export interface WboostRawFrame {
   height: number;
 }
 
+/** One gallery folder an image slot may pick from / upload into. */
+export interface WboostRawPlaceholderDirectory {
+  id: string;
+  name: string;
+}
+
 /**
  * A single image placeholder slot on a template variant. The designer drew a
  * fixed `frame`; the end-user picks (or uploads) a picture that is placed
@@ -54,8 +60,20 @@ export interface WboostRawImageInput {
   allowRotate: boolean;
   /** Offer a "hide this slot" toggle (sent as `{ hide: true }`). */
   hidable: boolean;
-  /** Gallery folder ids this slot may pull from (use the list endpoint to resolve). */
+  /** Raw designer allow-list ([] = unrestricted). Prefer `directories`. */
   allowedDirectoryIds: string[];
+  /**
+   * RESOLVED upload/pick folders with display names (the empty allow-list is
+   * already expanded, deleted folders dropped). These are the valid
+   * `directoryId` upload targets. May be absent on older payloads.
+   */
+  directories?: WboostRawPlaceholderDirectory[];
+  /**
+   * True for unrestricted slots: the gallery ROOT is also a valid pick source
+   * and upload target (upload with no `directoryId` stores into the root).
+   * May be absent on older payloads.
+   */
+  includesRoot?: boolean;
   /** Designer frame in canvas px; `null` only for malformed variants. */
   frame: WboostRawFrame | null;
   /** Stand-in shown if the slot is left empty. Absolute URL at the store host; nullable. */
@@ -89,9 +107,10 @@ export interface WboostRawGalleryImage {
   /** UUID — use as the `imageId` in the export `images` payload. */
   id: string;
   url: string;
-  directoryId: string;
-  /** Present on the list endpoint; absent on the upload response. */
-  directoryName?: string;
+  /** Null/absent for gallery-root images (the API serializer omits null fields). */
+  directoryId?: string | null;
+  /** Present on the list endpoint; null/absent for root images and on the upload response. */
+  directoryName?: string | null;
   /** Present on the list endpoint; absent on the upload response. */
   uploadedAt?: string;
 }

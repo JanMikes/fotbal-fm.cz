@@ -66,6 +66,8 @@ const makeRawImageInput = (overrides = {}) => ({
   allowRotate: false,
   hidable: true,
   allowedDirectoryIds: ['dir-1'],
+  directories: [{ id: 'dir-1', name: 'Fotky' }],
+  includesRoot: false,
   frame: { x: 100, y: 120, width: 400, height: 300 },
   defaultImageUrl: 'http://store/standin.png',
   ...overrides,
@@ -282,8 +284,32 @@ describe('SocialExportService', () => {
       expect(slot.hidable).toBe(true);
       expect(slot.frame).toEqual({ x: 100, y: 120, width: 400, height: 300 });
       expect(slot.defaultImageUrl).toBe('http://store/standin.png');
+      expect(slot.directories).toEqual([{ id: 'dir-1', name: 'Fotky' }]);
+      expect(slot.includesRoot).toBe(false);
       // allowedDirectoryIds is intentionally not exposed to the client DTO
       expect(slot).not.toHaveProperty('allowedDirectoryIds');
+    });
+
+    it('defaults the upload-target fields when an older payload omits them', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              imageInputs: [makeRawImageInput({ directories: undefined, includesRoot: undefined })],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const slot = result.data[0].variants[0].imageInputs[0];
+      expect(slot.directories).toEqual([]);
+      expect(slot.includesRoot).toBe(false);
     });
 
     it('defaults imageInputs to [] when the variant has none', async () => {
@@ -393,6 +419,21 @@ describe('SocialExportService', () => {
       // Missing optional fields become null
       expect(result.data[1].directoryName).toBeNull();
       expect(result.data[1].uploadedAt).toBeNull();
+    });
+
+    it('maps gallery-root images (absent directoryId) to null', async () => {
+      // Unrestricted slots list root images; the API omits their null
+      // directoryId/directoryName entirely.
+      const raw = [makeRawGalleryImage({ id: 'root-1', directoryId: undefined, directoryName: undefined })];
+      const client = makeFakeClient({ listPlaceholderImages: vi.fn().mockResolvedValue(raw) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.listPlaceholderImages('v1', 'slot-1');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data[0].directoryId).toBeNull();
+      expect(result.data[0].directoryName).toBeNull();
     });
 
     it('propagates AppError from client', async () => {

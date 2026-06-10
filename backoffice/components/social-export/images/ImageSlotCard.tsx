@@ -170,6 +170,8 @@ export default function ImageSlotCard({
         variantId={variantId}
         imageInputId={input.id}
         slotLabel={label}
+        directories={input.directories}
+        includesRoot={input.includesRoot}
         matchId={matchId}
         matchImages={matchImages}
         onPick={handlePick}

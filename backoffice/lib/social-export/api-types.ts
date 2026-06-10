@@ -27,6 +27,12 @@ export interface ImageFrameDTO {
   height: number;
 }
 
+/** One gallery folder an image slot may pick from / upload into. */
+export interface PlaceholderDirectoryDTO {
+  id: string;
+  name: string;
+}
+
 /**
  * An image placeholder slot, as exposed to the form. The user picks a picture
  * (gallery / upload) that renders object-contain + centered in `frame`, and may
@@ -40,6 +46,18 @@ export interface ImageInputDTO {
   allowResize: boolean;
   allowRotate: boolean;
   hidable: boolean;
+  /**
+   * The folders the slot may pick from / upload into (resolved server-side,
+   * with display names). The UPLOAD TARGET IS THE USER'S CHOICE: when more
+   * than one target exists (folders + root), the upload must carry an explicit
+   * `directoryId` — restricted multi-folder slots reject uploads without one.
+   */
+  directories: PlaceholderDirectoryDTO[];
+  /**
+   * True for unrestricted slots: the gallery root is also a valid pick source
+   * and upload target (an upload without `directoryId` lands in the root).
+   */
+  includesRoot: boolean;
   /** Designer frame in canvas px; null only for malformed variants. */
   frame: ImageFrameDTO | null;
   /** Stand-in shown when the slot is left empty; absolute store URL, nullable. */
@@ -52,7 +70,8 @@ export interface GalleryImageDTO {
   id: string;
   /** Presigned store URL, loadable directly by the browser. */
   url: string;
-  directoryId: string;
+  /** Null for gallery-root images (unrestricted slots only). */
+  directoryId: string | null;
   directoryName: string | null;
   uploadedAt: string | null;
 }
