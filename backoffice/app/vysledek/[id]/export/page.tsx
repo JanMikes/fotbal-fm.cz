@@ -114,7 +114,9 @@ function SocialExportPageContent({ params }: PageProps) {
 
   // Click-into-preview editing: whether highlight boxes are shown, and which
   // placeholder's floating panel is open.
-  const [highlightMode, setHighlightMode] = useState(true);
+  // Default OFF: show the clean rendered graphic first; the coach opts into the
+  // in-preview editing handles (the flat form below stays the primary editor).
+  const [highlightMode, setHighlightMode] = useState(false);
   const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
 
   // Track object URLs for cleanup
@@ -522,6 +524,7 @@ function SocialExportPageContent({ params }: PageProps) {
                 variant={selectedVariant}
                 previewUrl={previewUrl}
                 isRendering={isRendering}
+                previewPending={dirty && !isRendering && !hasValidationErrors()}
                 highlightMode={highlightMode}
                 onToggleHighlight={handleToggleHighlight}
                 active={activePlaceholder}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Pencil, Loader2 } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
 import FloatingPanel from './FloatingPanel';
@@ -18,6 +18,8 @@ interface PreviewPanelProps {
   variant: TemplateVariantDTO;
   previewUrl: string | null;
   isRendering: boolean;
+  /** A render is queued (debounce window) but the fetch hasn't started yet. */
+  previewPending: boolean;
   // Highlight / click-into-preview editing
   highlightMode: boolean;
   onToggleHighlight: () => void;
@@ -46,6 +48,7 @@ export default function PreviewPanel({
   variant,
   previewUrl,
   isRendering,
+  previewPending,
   highlightMode,
   onToggleHighlight,
   active,
@@ -111,9 +114,17 @@ export default function PreviewPanel({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-text-secondary">
-          Náhled — {variant.dimension} ({variant.width}&times;{variant.height})
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-text-secondary">
+            Náhled — {variant.dimension} ({variant.width}&times;{variant.height})
+          </h3>
+          {(previewPending || isRendering) && (
+            <span className="inline-flex items-center gap-1 text-xs text-text-muted" aria-live="polite">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Aktualizuji…
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={onToggleHighlight}
@@ -125,7 +136,7 @@ export default function PreviewPanel({
           }`}
           title="Upravovat přímo v náhledu"
         >
-          <Sparkles className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" />
           Upravit v náhledu
         </button>
       </div>
@@ -167,7 +178,7 @@ export default function PreviewPanel({
                 <circle cx="9" cy="9" r="2" />
                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
               </svg>
-              <p className="text-sm">Klikněte na Náhled pro zobrazení</p>
+              <p className="text-sm">Náhled se připravuje…</p>
             </div>
           )
         )}
@@ -188,6 +199,7 @@ export default function PreviewPanel({
             anchorRect={anchorRect}
             stageWidth={stageSize.width}
             stageHeight={stageSize.height}
+            label={activeTextInput?.name ?? activeImageInput?.name ?? 'Upravit prvek'}
             onClose={onCloseActive}
           >
             {activeTextInput ? (

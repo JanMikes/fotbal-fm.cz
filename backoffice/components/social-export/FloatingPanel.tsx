@@ -15,6 +15,8 @@ interface FloatingPanelProps {
   /** The stage's current size in display px, used to keep the panel in view. */
   stageWidth: number;
   stageHeight: number;
+  /** Accessible name for the dialog (the placeholder being edited). */
+  label?: string;
   onClose: () => void;
   children: ReactNode;
 }
@@ -37,6 +39,7 @@ export default function FloatingPanel({
   anchorRect,
   stageWidth,
   stageHeight,
+  label,
   onClose,
   children,
 }: FloatingPanelProps) {
@@ -45,8 +48,13 @@ export default function FloatingPanel({
   const reposition = useCallback(() => {
     const panel = panelRef.current;
     if (!panel) return;
+
+    // Keep the panel inside the stage on narrow viewports: cap its width to the
+    // stage and let it scroll if taller than the stage.
+    const panelW = Math.max(220, Math.min(PANEL_WIDTH, stageWidth - 2 * MARGIN));
+    panel.style.width = `${panelW}px`;
+    panel.style.maxHeight = `${Math.max(160, stageHeight - 2 * MARGIN)}px`;
     const panelH = panel.offsetHeight;
-    const panelW = panel.offsetWidth || PANEL_WIDTH;
 
     // Horizontal: align to the box's left edge, clamp within the stage.
     const maxLeft = Math.max(MARGIN, stageWidth - panelW - MARGIN);
@@ -105,14 +113,25 @@ export default function FloatingPanel({
     };
   }, [onClose]);
 
+  // Capture the element that opened the panel (the pencil) and restore focus to
+  // it on close. A layout effect runs before the child's passive autofocus, so
+  // document.activeElement here is still the trigger, not the panel's input.
+  useLayoutEffect(() => {
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      if (trigger && document.contains(trigger)) trigger.focus();
+    };
+  }, []);
+
   return (
     <div
       ref={panelRef}
       role="dialog"
       aria-modal="false"
-      className="pointer-events-auto absolute z-30 rounded-xl border border-border bg-white p-3 shadow-2xl"
-      // Start off-screen until the layout effect positions it (avoids a flash at 0,0).
-      style={{ left: '-9999px', top: '0px', width: `${PANEL_WIDTH}px` }}
+      aria-label={label}
+      className="pointer-events-auto absolute z-30 overflow-y-auto rounded-xl border border-border bg-white p-3 shadow-2xl"
+      // Start off-screen until the layout effect sizes + positions it (avoids a flash).
+      style={{ left: '-9999px', top: '0px' }}
     >
       {children}
     </div>
