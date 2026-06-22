@@ -23,6 +23,11 @@ export interface WboostRawInput {
   description: string | null;
   /** When true the element may be hidden via `{ hide: true }`. */
   hidable: boolean;
+  /**
+   * Designer frame (the textbox bounding box) in canvas px; `null` when the
+   * textbox can't be located on the canvas. May be absent on older payloads.
+   */
+  frame?: WboostRawFrame | null;
 }
 
 /** A rectangle in the variant's canvas pixel space. */

@@ -47,6 +47,7 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     uppercase: false,
     description: null,
     hidable: false,
+    frame: null,
     ...overrides,
   };
 }

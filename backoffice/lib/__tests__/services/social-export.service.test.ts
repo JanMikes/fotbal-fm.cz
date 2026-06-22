@@ -144,6 +144,31 @@ describe('SocialExportService', () => {
       expect(t.categoryName).toBe('Výsledky');
     });
 
+    it('maps a text input frame (and defaults to null when absent)', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              inputs: [
+                makeRawInput({ id: 'with-frame', frame: { x: 10, y: 20, width: 200, height: 80 } }),
+                makeRawInput({ id: 'no-frame' }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const [withFrame, noFrame] = result.data[0].variants[0].inputs;
+      expect(withFrame.frame).toEqual({ x: 10, y: 20, width: 200, height: 80 });
+      expect(noFrame.frame).toBeNull();
+    });
+
     it('thumbnailUrl is null when thumbnails disabled', async () => {
       vi.mocked(getWboostConfig).mockReturnValue({
         apiBase: 'http://wboost.test',

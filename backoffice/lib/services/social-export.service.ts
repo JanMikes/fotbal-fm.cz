@@ -41,6 +41,8 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     uppercase: raw.uppercase,
     description: raw.description,
     hidable: raw.hidable,
+    // Absent on older payloads → null (falls back to the flat form).
+    frame: raw.frame ?? null,
   };
 }
 

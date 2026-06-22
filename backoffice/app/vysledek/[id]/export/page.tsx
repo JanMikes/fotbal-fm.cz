@@ -20,6 +20,7 @@ import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
 import ImageInputList from '@/components/social-export/images/ImageInputList';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
+import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
 import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { extractMatchPrefill, getMatchChips } from '@/lib/social-export/prefill';
 import { buildRenderInputs, InputFieldState, validateInputValue, isEditable } from '@/lib/social-export/field-rules';
@@ -111,6 +112,11 @@ function SocialExportPageContent({ params }: PageProps) {
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(false);
 
+  // Click-into-preview editing: whether highlight boxes are shown, and which
+  // placeholder's floating panel is open.
+  const [highlightMode, setHighlightMode] = useState(true);
+  const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
+
   // Track object URLs for cleanup
   const previewUrlRef = useRef<string | null>(null);
   // Guard against overlapping renders (state updates are async, so a ref is the
@@ -163,6 +169,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // dirty=true so the live preview renders the initial prefilled state.
     setDirty(true);
     setRenderError(null);
+    setActivePlaceholder(null);
     autoPreviewBlockedRef.current = false;
 
     // Revoke previous object URL
@@ -247,6 +254,14 @@ function SocialExportPageContent({ params }: PageProps) {
     },
     []
   );
+
+  const handleToggleHighlight = useCallback(() => {
+    setHighlightMode((on) => {
+      // Closing highlight mode also closes any open floating panel.
+      if (on) setActivePlaceholder(null);
+      return !on;
+    });
+  }, []);
 
   function hasValidationErrors(): boolean {
     if (!selectedVariant) return false;
@@ -507,6 +522,18 @@ function SocialExportPageContent({ params }: PageProps) {
                 variant={selectedVariant}
                 previewUrl={previewUrl}
                 isRendering={isRendering}
+                highlightMode={highlightMode}
+                onToggleHighlight={handleToggleHighlight}
+                active={activePlaceholder}
+                onSelect={setActivePlaceholder}
+                onCloseActive={() => setActivePlaceholder(null)}
+                formState={formState}
+                onFormChange={handleFormChange}
+                chips={chips}
+                imageState={imageState}
+                onImageChange={handleImageChange}
+                matchId={match.id}
+                matchImages={match.images}
               />
             </Card>
           </div>

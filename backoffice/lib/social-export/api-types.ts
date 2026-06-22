@@ -17,6 +17,11 @@ export interface TemplateInputDTO {
   uppercase: boolean;
   description: string | null;
   hidable: boolean;
+  /**
+   * The textbox bounding box in canvas px, used to draw a highlight box over the
+   * preview. `null` when the textbox can't be located — fall back to the flat form.
+   */
+  frame: ImageFrameDTO | null;
 }
 
 /** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
