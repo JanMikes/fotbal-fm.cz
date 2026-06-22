@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Frame, Loader2, Download } from 'lucide-react';
+import { Frame, Loader2, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
@@ -42,6 +42,10 @@ interface PreviewPanelProps {
 
 const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
 
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.25;
+
 /**
  * Full-width preview panel: the rendered PNG IS the editor. Every placeholder
  * shows an always-visible tool cluster floating over the preview:
@@ -79,6 +83,13 @@ export default function PreviewPanel({
   const [stageSize, setStageSize] = useState<{ width: number; height: number } | null>(null);
   // Which image slot's gallery picker is open (image pencil opens it directly).
   const [pickerImageId, setPickerImageId] = useState<string | null>(null);
+  // Preview zoom (1 = 100%, the natural fit). Layout-based: changes the preview's
+  // displayed width so the overlay re-measures and stays aligned (popovers crisp).
+  const [zoom, setZoom] = useState(1);
+  const setZoomClamped = useCallback(
+    (z: number) => setZoom(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * 100) / 100))),
+    []
+  );
 
   const measure = useCallback(() => {
     const el = imgRef.current;
@@ -151,26 +162,68 @@ export default function PreviewPanel({
     ? variant.imageInputs.findIndex((i) => i.id === pickerInput.id)
     : -1;
 
+  // The download CTA — rendered identically above (header) and below the preview.
+  const downloadButton = (
+    <Button variant="accent" size="md" onClick={onDownload} disabled={actionsDisabled}>
+      <Download className="mr-2 h-4 w-4" />
+      Stáhnout PNG
+    </Button>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-text-secondary">
           Náhled — {variant.dimension} ({variant.width}&times;{variant.height})
         </h3>
-        <button
-          type="button"
-          onClick={onToggleHighlight}
-          aria-pressed={highlightMode}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-            highlightMode
-              ? 'border-accent bg-accent text-white'
-              : 'border-border bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary'
-          }`}
-          title="Zobrazit/skrýt rámečky upravitelných oblastí"
-        >
-          <Frame className="h-3.5 w-3.5" />
-          Zvýraznit oblasti
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Zoom controls (default 100%). */}
+          <div className="inline-flex items-center rounded-lg border border-border bg-surface">
+            <button
+              type="button"
+              onClick={() => setZoomClamped(zoom - ZOOM_STEP)}
+              disabled={zoom <= ZOOM_MIN}
+              aria-label="Oddálit"
+              title="Oddálit"
+              className="flex h-8 w-8 items-center justify-center rounded-l-lg text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom(1)}
+              title="Obnovit na 100 %"
+              className="min-w-[3.25rem] px-1 text-center text-xs font-medium tabular-nums text-text-secondary transition-colors hover:text-text-primary"
+            >
+              {Math.round(zoom * 100)} %
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomClamped(zoom + ZOOM_STEP)}
+              disabled={zoom >= ZOOM_MAX}
+              aria-label="Přiblížit"
+              title="Přiblížit"
+              className="flex h-8 w-8 items-center justify-center rounded-r-lg text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onToggleHighlight}
+            aria-pressed={highlightMode}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              highlightMode
+                ? 'border-accent bg-accent text-white'
+                : 'border-border bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary'
+            }`}
+            title="Zobrazit/skrýt rámečky upravitelných oblastí"
+          >
+            <Frame className="h-3.5 w-3.5" />
+            Zvýraznit oblasti
+          </button>
+          {downloadButton}
+        </div>
       </div>
 
       <p className="text-xs text-text-muted">
@@ -185,14 +238,19 @@ export default function PreviewPanel({
           exactly W/H → zero letterbox → img rect == overlay rect.
           maxWidth caps the height (~78vh) while keeping the aspect ratio so a tall
           portrait template stays comfortable on screen. */}
-      <div
-        className="mx-auto w-full overflow-hidden rounded-xl border border-border bg-surface"
-        style={{ maxWidth: `min(100%, calc(78vh * ${variant.width} / ${variant.height}))` }}
-      >
+      {/* Scroll viewport: at 100% the preview fits (no scroll); zooming in grows
+          the block past the column width and scrolls horizontally here. */}
+      <div className="overflow-x-auto">
         <div
-          className="relative flex w-full items-center justify-center"
-          style={{ aspectRatio: `${variant.width}/${variant.height}` }}
+          className="mx-auto overflow-hidden rounded-xl border border-border bg-surface"
+          style={{
+            width: `calc(min(100%, calc(78vh * ${variant.width} / ${variant.height})) * ${zoom})`,
+          }}
         >
+          <div
+            className="relative flex w-full items-center justify-center"
+            style={{ aspectRatio: `${variant.width}/${variant.height}` }}
+          >
           {previewUrl ? (
             <img
               ref={imgRef}
@@ -277,18 +335,14 @@ export default function PreviewPanel({
               <span className="text-sm font-medium text-text-secondary">Generuji náhled…</span>
             </div>
           )}
+          </div>
         </div>
       </div>
 
       {renderError && <Alert variant="error">{renderError}</Alert>}
 
-      {/* Action: the preview is live, so only the download remains. */}
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Button variant="accent" size="md" onClick={onDownload} disabled={actionsDisabled}>
-          <Download className="mr-2 h-4 w-4" />
-          Stáhnout PNG
-        </Button>
-      </div>
+      {/* The same download CTA as the header, centered under the preview. */}
+      <div className="flex justify-center pt-1">{downloadButton}</div>
 
       {/* Image gallery picker — opened directly by an image placeholder's pencil. */}
       {pickerInput && (

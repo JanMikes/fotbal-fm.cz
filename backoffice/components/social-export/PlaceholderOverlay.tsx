@@ -113,11 +113,12 @@ export default function PlaceholderOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0">
-      {/* Layer 1 — boundary boxes (decorative). Hidden slots always show their
-          hatched box so the "won't be exported" state is visible regardless of
-          the highlight toggle. */}
+      {/* Layer 1 — boundary boxes (decorative). Shown only when the highlight
+          toggle is on (or this box is being edited); the hatched fill then marks
+          hidden slots. When highlight is off, no borders at all — hidden state is
+          conveyed solely by the eye icon. */}
       {items.map((item) =>
-        showBorders || item.active || item.hidden ? (
+        showBorders || item.active ? (
           <PlaceholderBox
             key={`box-${item.key}`}
             rect={item.rect}
