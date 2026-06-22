@@ -46,6 +46,11 @@ const richMatch: Match = {
   tournamentName: 'Pohár FAČR',
   season: 2026,
   period: 'podzim',
+  organizingBody: 'OFS Frýdek-Místek',
+  competitionCode: '2025A1A',
+  facrId: '12345',
+  imagesUrl: 'https://example.com/fotky',
+  author: { id: 1, firstName: 'Jan', lastName: 'Novák' },
 };
 
 function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO {
@@ -218,6 +223,15 @@ describe('getMatchChips', () => {
     expect(chips.find((c) => c.key === 'season')?.value).toBe('2026');
     // 'podzim' is capitalized for display.
     expect(chips.find((c) => c.key === 'period')?.value).toBe('Podzim');
+  });
+
+  it('includes organizing-body / FAČR id / competition code / author / gallery link chips', () => {
+    const chips = getMatchChips(richMatch);
+    expect(chips.find((c) => c.key === 'organizing_body')?.value).toBe('OFS Frýdek-Místek');
+    expect(chips.find((c) => c.key === 'facr_id')?.value).toBe('12345');
+    expect(chips.find((c) => c.key === 'competition_code')?.value).toBe('2025A1A');
+    expect(chips.find((c) => c.key === 'author')?.value).toBe('Jan Novák');
+    expect(chips.find((c) => c.key === 'images_url')?.value).toBe('https://example.com/fotky');
   });
 
   it('omits lineup and coach-comment chips when empty (baseMatch)', () => {

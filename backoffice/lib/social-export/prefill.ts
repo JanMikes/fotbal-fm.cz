@@ -34,7 +34,12 @@ export type MatchFieldKey =
   | 'match_report'
   | 'tournament'
   | 'season'
-  | 'period';
+  | 'period'
+  | 'organizing_body'
+  | 'competition_code'
+  | 'facr_id'
+  | 'author'
+  | 'images_url';
 
 /** Display label (Czech) shown on the insert chip for each field. */
 export const FIELD_LABELS: Record<MatchFieldKey, string> = {
@@ -57,6 +62,11 @@ export const FIELD_LABELS: Record<MatchFieldKey, string> = {
   tournament: 'Turnaj',
   season: 'Sezóna',
   period: 'Část sezóny',
+  organizing_body: 'Řídící orgán',
+  competition_code: 'Kód soutěže',
+  facr_id: 'FAČR ID',
+  author: 'Autor',
+  images_url: 'Odkaz na fotky',
 };
 
 /**
@@ -84,6 +94,11 @@ export const FIELD_ALIASES: Record<MatchFieldKey, string[]> = {
   tournament: ['Turnaj', 'Název turnaje'],
   season: ['Sezóna', 'Ročník'],
   period: ['Část sezóny', 'Část', 'Půlsezóna', 'Období'],
+  organizing_body: ['Řídící orgán', 'Pořadatel', 'Svaz'],
+  competition_code: ['Kód soutěže', 'Kód'],
+  facr_id: ['FAČR ID', 'FAČR', 'ID zápasu'],
+  author: ['Autor', 'Zapsal'],
+  images_url: ['Odkaz na fotky', 'Odkaz na fotogalerii', 'Fotogalerie', 'URL fotek'],
 };
 
 /** Order in which chips are presented. */
@@ -107,6 +122,11 @@ const CHIP_ORDER: MatchFieldKey[] = [
   'tournament',
   'season',
   'period',
+  'organizing_body',
+  'competition_code',
+  'facr_id',
+  'author',
+  'images_url',
 ];
 
 /**
@@ -197,6 +217,16 @@ export function getMatchFieldValue(match: Match, key: MatchFieldKey): string {
     case 'period':
       // Strapi stores this lowercase ('podzim'/'jaro'); capitalize for display.
       return match.period ? match.period.charAt(0).toUpperCase() + match.period.slice(1) : '';
+    case 'organizing_body':
+      return match.organizingBody ?? '';
+    case 'competition_code':
+      return match.competitionCode ?? '';
+    case 'facr_id':
+      return match.facrId ?? '';
+    case 'author':
+      return match.author ? `${match.author.firstName} ${match.author.lastName}`.trim() : '';
+    case 'images_url':
+      return match.imagesUrl ?? '';
     default:
       return '';
   }

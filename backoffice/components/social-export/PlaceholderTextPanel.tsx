@@ -100,17 +100,6 @@ export default function PlaceholderTextPanel({
           {input.uppercase && (
             <span className="text-xs text-text-muted">zobrazí se VELKÝMI písmeny</span>
           )}
-          {input.hidable && (
-            <label className="inline-flex items-center gap-1.5 text-xs text-text-muted cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={isHidden}
-                onChange={(e) => onChange({ hidden: e.target.checked })}
-                className="rounded border-border"
-              />
-              Skrýt prvek
-            </label>
-          )}
         </div>
         {input.maxLength != null && (
           <span

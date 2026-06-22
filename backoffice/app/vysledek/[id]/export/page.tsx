@@ -312,13 +312,6 @@ function SocialExportPageContent({ params }: PageProps) {
     }
   }
 
-  async function handlePreview() {
-    if (hasValidationErrors()) return;
-    // Manual "Náhled" forces an immediate render and clears any auto-block.
-    autoPreviewBlockedRef.current = false;
-    await doRender();
-  }
-
   async function handleDownload() {
     if (hasValidationErrors() || !selectedTemplate || !selectedVariant) return;
 
@@ -503,7 +496,6 @@ function SocialExportPageContent({ params }: PageProps) {
               variant={selectedVariant}
               previewUrl={previewUrl}
               isRendering={isRendering}
-              previewPending={dirty && !isRendering && !hasValidationErrors()}
               highlightMode={highlightMode}
               onToggleHighlight={handleToggleHighlight}
               active={activePlaceholder}
@@ -516,7 +508,6 @@ function SocialExportPageContent({ params }: PageProps) {
               onImageChange={handleImageChange}
               matchId={match.id}
               matchImages={match.images}
-              onPreview={handlePreview}
               onDownload={handleDownload}
               actionsDisabled={isRendering || hasValidationErrors()}
               renderError={renderError}

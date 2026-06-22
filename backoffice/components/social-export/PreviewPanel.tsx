@@ -1,16 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Frame, Loader2, Eye, Download } from 'lucide-react';
+import { Frame, Loader2, Download } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
 import FloatingPanel from './FloatingPanel';
 import PlaceholderTextPanel from './PlaceholderTextPanel';
-import PlaceholderImagePanel from './PlaceholderImagePanel';
+import ImagePickerModal from './images/ImagePickerModal';
 import { canvasToDisplay } from '@/lib/social-export/geometry';
-import { defaultImageSlotState, type ImageSlotState } from '@/lib/social-export/field-rules-image';
+import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import type { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
 import type { MatchChip } from '@/lib/social-export/prefill';
@@ -20,8 +19,6 @@ interface PreviewPanelProps {
   variant: TemplateVariantDTO;
   previewUrl: string | null;
   isRendering: boolean;
-  /** A render is queued (debounce window) but the fetch hasn't started yet. */
-  previewPending: boolean;
   // Highlight / click-into-preview editing
   highlightMode: boolean;
   onToggleHighlight: () => void;
@@ -37,19 +34,23 @@ interface PreviewPanelProps {
   onImageChange: (slotId: string, partial: Partial<ImageSlotState>) => void;
   matchId: string | null;
   matchImages: StrapiImage[];
-  // Actions (rendered under the preview)
-  onPreview: () => void;
+  // Action (rendered under the preview)
   onDownload: () => void;
   actionsDisabled: boolean;
   renderError?: string | null;
 }
 
+const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
+
 /**
  * Full-width preview panel: the rendered PNG IS the editor. Every placeholder
- * shows an always-visible tool cluster (pencil + eye) floating over the preview;
- * clicking the pencil opens a floating editing panel anchored to the box. The
- * "Zvýraznit oblasti" toggle only controls the dashed boundary boxes — the icons
- * are always shown. Coordinate mapping is a single scale factor because the
+ * shows an always-visible tool cluster floating over the preview:
+ *  - TEXT: a pencil opens a small floating panel (replace value + insert match
+ *    data) and, when hidable, an eye to show/hide.
+ *  - IMAGE: a pencil opens the gallery picker modal directly (pick / upload) and,
+ *    when hidable, an eye to show/hide — no intermediate popover.
+ * The "Zvýraznit oblasti" toggle only controls the dashed boundary boxes — the
+ * icons are always shown. Coordinate mapping is a single scale factor because the
  * <img> is object-contain inside an aspect-ratio-matched box (no letterboxing):
  *   scale = renderedImgWidth / variant.width.
  */
@@ -57,7 +58,6 @@ export default function PreviewPanel({
   variant,
   previewUrl,
   isRendering,
-  previewPending,
   highlightMode,
   onToggleHighlight,
   active,
@@ -70,7 +70,6 @@ export default function PreviewPanel({
   onImageChange,
   matchId,
   matchImages,
-  onPreview,
   onDownload,
   actionsDisabled,
   renderError,
@@ -78,6 +77,8 @@ export default function PreviewPanel({
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
   const [stageSize, setStageSize] = useState<{ width: number; height: number } | null>(null);
+  // Which image slot's gallery picker is open (image pencil opens it directly).
+  const [pickerImageId, setPickerImageId] = useState<string | null>(null);
 
   const measure = useCallback(() => {
     const el = imgRef.current;
@@ -103,6 +104,20 @@ export default function PreviewPanel({
   // independent of the highlight toggle, which now only gates the dashed boxes.
   const overlayReady = !!previewUrl && stageSize != null && scale > 0;
 
+  // Pencil click: text opens the floating panel; image opens the gallery modal
+  // directly (no intermediate popover).
+  const handleSelect = useCallback(
+    (p: ActivePlaceholder) => {
+      if (p.kind === 'image') {
+        onCloseActive();
+        setPickerImageId(p.id);
+      } else {
+        onSelect(p);
+      }
+    },
+    [onSelect, onCloseActive]
+  );
+
   // Toggle the hidden flag of a placeholder from its on-box eye icon.
   const handleToggleHidden = useCallback(
     (p: ActivePlaceholder) => {
@@ -115,27 +130,25 @@ export default function PreviewPanel({
     [formState, imageState, onFormChange, onImageChange]
   );
 
-  // Resolve the anchor rect for the open panel from the active placeholder's frame.
-  const anchorRect = useMemo(() => {
-    if (!active || !overlayReady) return null;
-    if (active.kind === 'text') {
-      const input = variant.inputs.find((i) => i.id === active.id);
-      return input?.frame ? canvasToDisplay(input.frame, scale) : null;
-    }
-    const slot = variant.imageInputs.find((i) => i.id === active.id);
-    return slot?.frame ? canvasToDisplay(slot.frame, scale) : null;
-  }, [active, overlayReady, variant, scale]);
-
-  // The resolved data for the open panel.
+  // The open text panel (image edits go through the modal, never this panel).
   const activeTextInput =
     active?.kind === 'text' ? variant.inputs.find((i) => i.id === active.id) ?? null : null;
   const activeTextIndex = activeTextInput
     ? variant.inputs.findIndex((i) => i.id === activeTextInput.id)
     : -1;
-  const activeImageInput =
-    active?.kind === 'image' ? variant.imageInputs.find((i) => i.id === active.id) ?? null : null;
-  const activeImageIndex = activeImageInput
-    ? variant.imageInputs.findIndex((i) => i.id === activeImageInput.id)
+
+  // Anchor rect for the open text panel, from its frame.
+  const anchorRect = useMemo(() => {
+    if (!activeTextInput || !overlayReady) return null;
+    return activeTextInput.frame ? canvasToDisplay(activeTextInput.frame, scale) : null;
+  }, [activeTextInput, overlayReady, scale]);
+
+  // The image slot whose picker modal is open.
+  const pickerInput = pickerImageId
+    ? variant.imageInputs.find((i) => i.id === pickerImageId) ?? null
+    : null;
+  const pickerIndex = pickerInput
+    ? variant.imageInputs.findIndex((i) => i.id === pickerInput.id)
     : -1;
 
   return (
@@ -188,28 +201,28 @@ export default function PreviewPanel({
               className="h-full w-full object-contain"
               onLoad={measure}
             />
-          ) : isRendering ? (
-            <LoadingSpinner fullscreen={false} size="md" message="Generování náhledu…" />
           ) : (
-            <div className="flex flex-col items-center gap-2 p-6 text-center text-text-muted">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                <circle cx="9" cy="9" r="2" />
-                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-              </svg>
-              <p className="text-sm">Náhled se připravuje…</p>
-            </div>
+            !isRendering && (
+              <div className="flex flex-col items-center gap-2 p-6 text-center text-text-muted">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                  <circle cx="9" cy="9" r="2" />
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                </svg>
+                <p className="text-sm">Náhled se připravuje…</p>
+              </div>
+            )
           )}
 
           {/* Highlight boxes + tool icons */}
@@ -221,60 +234,47 @@ export default function PreviewPanel({
               stageHeight={stageSize.height}
               showBorders={highlightMode}
               active={active}
-              onSelect={onSelect}
+              onSelect={handleSelect}
               formState={formState}
               imageState={imageState}
               onToggleHidden={handleToggleHidden}
             />
           )}
 
-          {/* Floating editing panel anchored to the active box. Keyed by the
+          {/* Floating editing panel anchored to the active TEXT box. Keyed by the
               active placeholder so switching boxes remounts the body and re-runs
               its focus/select effect. */}
-          {overlayReady && active && anchorRect && stageSize && (
+          {overlayReady && active && activeTextInput && anchorRect && stageSize && (
             <FloatingPanel
               key={`${active.kind}:${active.id}`}
               anchorRect={anchorRect}
               stageWidth={stageSize.width}
               stageHeight={stageSize.height}
-              label={activeTextInput?.name ?? activeImageInput?.name ?? 'Upravit prvek'}
+              label={activeTextInput.name ?? 'Upravit prvek'}
               onClose={onCloseActive}
             >
-              {activeTextInput ? (
-                <PlaceholderTextPanel
-                  input={activeTextInput}
-                  index={activeTextIndex}
-                  state={formState[activeTextInput.id] ?? { value: '', hidden: false }}
-                  chips={chips}
-                  onChange={(partial) => onFormChange(activeTextInput.id, partial)}
-                  onClose={onCloseActive}
-                />
-              ) : activeImageInput ? (
-                <PlaceholderImagePanel
-                  variantId={variant.id}
-                  matchId={matchId}
-                  matchImages={matchImages}
-                  input={activeImageInput}
-                  index={activeImageIndex}
-                  state={imageState[activeImageInput.id] ?? defaultImageSlotState()}
-                  onChange={(partial) => onImageChange(activeImageInput.id, partial)}
-                  onClose={onCloseActive}
-                />
-              ) : null}
+              <PlaceholderTextPanel
+                input={activeTextInput}
+                index={activeTextIndex}
+                state={formState[activeTextInput.id] ?? { value: '', hidden: false }}
+                chips={chips}
+                onChange={(partial) => onFormChange(activeTextInput.id, partial)}
+                onClose={onCloseActive}
+              />
             </FloatingPanel>
           )}
 
-          {/* Single non-blocking status badge in one fixed spot — covers both the
-              queued (debounce) and rendering states so the indicator never jumps
-              between the header and the corner. Only shown once a preview exists;
-              the very first render uses the centered spinner above. */}
-          {(previewPending || isRendering) && previewUrl && (
+          {/* Live-render feedback: gray + blur the whole preview and show a large
+              spinner, so it's obvious the preview is regenerating. Sits below the
+              text popover (z-30) / active tool so editing stays usable mid-render,
+              and is non-blocking. */}
+          {isRendering && (
             <div
-              className="pointer-events-none absolute right-2 top-2 z-40 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-text-secondary shadow-md ring-1 ring-black/5"
+              className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/55 backdrop-blur-[1px] backdrop-grayscale"
               aria-live="polite"
             >
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Aktualizuji…
+              <Loader2 className="h-14 w-14 animate-spin text-accent" />
+              <span className="text-sm font-medium text-text-secondary">Generuji náhled…</span>
             </div>
           )}
         </div>
@@ -282,17 +282,32 @@ export default function PreviewPanel({
 
       {renderError && <Alert variant="error">{renderError}</Alert>}
 
-      {/* Actions: kept directly under the preview */}
+      {/* Action: the preview is live, so only the download remains. */}
       <div className="flex flex-wrap gap-3 pt-1">
-        <Button variant="primary" size="md" onClick={onPreview} disabled={actionsDisabled}>
-          <Eye className="mr-2 h-4 w-4" />
-          Náhled
-        </Button>
         <Button variant="accent" size="md" onClick={onDownload} disabled={actionsDisabled}>
           <Download className="mr-2 h-4 w-4" />
           Stáhnout PNG
         </Button>
       </div>
+
+      {/* Image gallery picker — opened directly by an image placeholder's pencil. */}
+      {pickerInput && (
+        <ImagePickerModal
+          open
+          onClose={() => setPickerImageId(null)}
+          variantId={variant.id}
+          imageInputId={pickerInput.id}
+          slotLabel={resolveImageLabel(pickerInput, pickerIndex)}
+          directories={pickerInput.directories}
+          includesRoot={pickerInput.includesRoot}
+          matchId={matchId}
+          matchImages={matchImages}
+          onPick={(image) => {
+            onImageChange(pickerInput.id, { image: { id: image.id, url: image.url }, ...NEUTRAL });
+            setPickerImageId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
