@@ -29,7 +29,12 @@ export type MatchFieldKey =
   | 'venue'
   | 'round'
   | 'home_scorers'
-  | 'away_scorers';
+  | 'away_scorers'
+  | 'lineup'
+  | 'match_report'
+  | 'tournament'
+  | 'season'
+  | 'period';
 
 /** Display label (Czech) shown on the insert chip for each field. */
 export const FIELD_LABELS: Record<MatchFieldKey, string> = {
@@ -47,6 +52,11 @@ export const FIELD_LABELS: Record<MatchFieldKey, string> = {
   round: 'Kolo',
   home_scorers: 'Střelci domácí',
   away_scorers: 'Střelci hosté',
+  lineup: 'Sestava',
+  match_report: 'Komentář trenéra',
+  tournament: 'Turnaj',
+  season: 'Sezóna',
+  period: 'Část sezóny',
 };
 
 /**
@@ -69,6 +79,11 @@ export const FIELD_ALIASES: Record<MatchFieldKey, string[]> = {
   round: ['Kolo', 'Číslo kola'],
   home_scorers: ['Střelci domácí', 'Střelci domácích'],
   away_scorers: ['Střelci hosté', 'Střelci hostů'],
+  lineup: ['Sestava', 'Nominace', 'Soupiska'],
+  match_report: ['Komentář trenéra', 'Zápis o utkání', 'Komentář', 'Hodnocení trenéra', 'Zápis'],
+  tournament: ['Turnaj', 'Název turnaje'],
+  season: ['Sezóna', 'Ročník'],
+  period: ['Část sezóny', 'Část', 'Půlsezóna', 'Období'],
 };
 
 /** Order in which chips are presented. */
@@ -87,6 +102,11 @@ const CHIP_ORDER: MatchFieldKey[] = [
   'round',
   'home_scorers',
   'away_scorers',
+  'lineup',
+  'match_report',
+  'tournament',
+  'season',
+  'period',
 ];
 
 /**
@@ -166,6 +186,17 @@ export function getMatchFieldValue(match: Match, key: MatchFieldKey): string {
       return match.homeGoalscorers ?? '';
     case 'away_scorers':
       return match.awayGoalscorers ?? '';
+    case 'lineup':
+      return match.lineup ?? '';
+    case 'match_report':
+      return match.matchReport ?? '';
+    case 'tournament':
+      return match.tournamentName ?? '';
+    case 'season':
+      return match.season != null ? String(match.season) : '';
+    case 'period':
+      // Strapi stores this lowercase ('podzim'/'jaro'); capitalize for display.
+      return match.period ? match.period.charAt(0).toUpperCase() + match.period.slice(1) : '';
     default:
       return '';
   }

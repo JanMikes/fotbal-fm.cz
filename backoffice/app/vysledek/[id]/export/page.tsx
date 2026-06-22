@@ -18,7 +18,6 @@ import {
 import TemplateGrid from '@/components/social-export/TemplateGrid';
 import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
-import ImageInputList from '@/components/social-export/images/ImageInputList';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
 import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
@@ -112,11 +111,11 @@ function SocialExportPageContent({ params }: PageProps) {
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(false);
 
-  // Click-into-preview editing: whether highlight boxes are shown, and which
-  // placeholder's floating panel is open.
-  // Default OFF: show the clean rendered graphic first; the coach opts into the
-  // in-preview editing handles (the flat form below stays the primary editor).
-  const [highlightMode, setHighlightMode] = useState(false);
+  // Click-into-preview editing: whether the dashed boundary boxes are shown, and
+  // which placeholder's floating panel is open. The preview IS the editor now —
+  // the tool icons are always visible; this toggle only controls the dashed
+  // boxes, defaulting ON to make the editable areas discoverable.
+  const [highlightMode, setHighlightMode] = useState(true);
   const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
 
   // Track object URLs for cleanup
@@ -258,11 +257,9 @@ function SocialExportPageContent({ params }: PageProps) {
   );
 
   const handleToggleHighlight = useCallback(() => {
-    setHighlightMode((on) => {
-      // Closing highlight mode also closes any open floating panel.
-      if (on) setActivePlaceholder(null);
-      return !on;
-    });
+    // Only flips the dashed boundary boxes; the tool icons and any open editing
+    // panel stay put (editing no longer depends on this toggle).
+    setHighlightMode((on) => !on);
   }, []);
 
   function hasValidationErrors(): boolean {
@@ -387,6 +384,11 @@ function SocialExportPageContent({ params }: PageProps) {
   // True while a deep link / refresh is waiting for templates to load.
   const restoring = !!selectedTemplateId && templatesLoading;
   const chips = match ? getMatchChips(match) : [];
+  // Editable text inputs that can't be drawn as a preview box (no frame) — they
+  // get a small fallback list under the preview so they stay reachable.
+  const unplacedInputs = selectedVariant
+    ? selectedVariant.inputs.filter((input) => isEditable(input) && !input.frame)
+    : [];
 
   // Breadcrumb crumb styling: current step (active), a past step (clickable), or
   // a not-yet-reached step (muted).
@@ -491,55 +493,57 @@ function SocialExportPageContent({ params }: PageProps) {
           </Card>
         )}
 
-        {/* Step 3: Form + Preview two-column layout */}
+        {/* Step 3: Full-width preview — the rendered graphic IS the editor. */}
         {!restoring && step === 3 && selectedTemplate && selectedVariant && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            {/* Left: form */}
-            <Card variant="elevated">
-              <h2 className="text-base font-semibold text-text-primary mb-4">
-                {selectedTemplate.name} — {selectedVariant.dimension}
-              </h2>
-              <ImageInputList
-                variant={selectedVariant}
-                matchId={match.id}
-                matchImages={match.images}
-                state={imageState}
-                onChange={handleImageChange}
-              />
-              <ExportInputForm
-                variant={selectedVariant}
-                chips={chips}
-                state={formState}
-                onChange={handleFormChange}
-                onPreview={handlePreview}
-                onDownload={handleDownload}
-                isRendering={isRendering}
-                renderError={renderError}
-              />
-            </Card>
+          <Card variant="elevated">
+            <h2 className="text-base font-semibold text-text-primary mb-4">
+              {selectedTemplate.name} — {selectedVariant.dimension}
+            </h2>
+            <PreviewPanel
+              variant={selectedVariant}
+              previewUrl={previewUrl}
+              isRendering={isRendering}
+              previewPending={dirty && !isRendering && !hasValidationErrors()}
+              highlightMode={highlightMode}
+              onToggleHighlight={handleToggleHighlight}
+              active={activePlaceholder}
+              onSelect={setActivePlaceholder}
+              onCloseActive={() => setActivePlaceholder(null)}
+              formState={formState}
+              onFormChange={handleFormChange}
+              chips={chips}
+              imageState={imageState}
+              onImageChange={handleImageChange}
+              matchId={match.id}
+              matchImages={match.images}
+              onPreview={handlePreview}
+              onDownload={handleDownload}
+              actionsDisabled={isRendering || hasValidationErrors()}
+              renderError={renderError}
+            />
 
-            {/* Right: preview */}
-            <Card variant="elevated">
-              <PreviewPanel
-                variant={selectedVariant}
-                previewUrl={previewUrl}
-                isRendering={isRendering}
-                previewPending={dirty && !isRendering && !hasValidationErrors()}
-                highlightMode={highlightMode}
-                onToggleHighlight={handleToggleHighlight}
-                active={activePlaceholder}
-                onSelect={setActivePlaceholder}
-                onCloseActive={() => setActivePlaceholder(null)}
-                formState={formState}
-                onFormChange={handleFormChange}
-                chips={chips}
-                imageState={imageState}
-                onImageChange={handleImageChange}
-                matchId={match.id}
-                matchImages={match.images}
-              />
-            </Card>
-          </div>
+            {/* Fallback for any editable text fields that have no position in the
+                preview (no frame) — they can't be drawn as a box, so keep them
+                reachable here. Empty (hidden) for normal templates. */}
+            {unplacedInputs.length > 0 && (
+              <div className="mt-6 border-t border-border pt-4">
+                <h3 className="text-sm font-semibold text-text-secondary">
+                  Pole bez pozice v náhledu
+                </h3>
+                <p className="mb-3 mt-0.5 text-xs text-text-muted">
+                  Tato pole nemají v náhledu vlastní oblast — upravte je zde. Změny se projeví
+                  v exportu stejně jako úpravy přímo v náhledu.
+                </p>
+                <ExportInputForm
+                  variant={{ ...selectedVariant, inputs: unplacedInputs, imageInputs: [] }}
+                  chips={chips}
+                  state={formState}
+                  onChange={handleFormChange}
+                  showActions={false}
+                />
+              </div>
+            )}
+          </Card>
         )}
       </div>
     </div>

@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pencil, Loader2 } from 'lucide-react';
+import { Frame, Loader2, Eye, Download } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import Alert from '@/components/ui/Alert';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
 import FloatingPanel from './FloatingPanel';
@@ -35,12 +37,19 @@ interface PreviewPanelProps {
   onImageChange: (slotId: string, partial: Partial<ImageSlotState>) => void;
   matchId: string | null;
   matchImages: StrapiImage[];
+  // Actions (rendered under the preview)
+  onPreview: () => void;
+  onDownload: () => void;
+  actionsDisabled: boolean;
+  renderError?: string | null;
 }
 
 /**
- * Right-column preview panel: the rendered PNG plus an optional highlight overlay
- * that lets the user click placeholders open and edit them in a floating panel
- * anchored to the box. Coordinate mapping is a single scale factor because the
+ * Full-width preview panel: the rendered PNG IS the editor. Every placeholder
+ * shows an always-visible tool cluster (pencil + eye) floating over the preview;
+ * clicking the pencil opens a floating editing panel anchored to the box. The
+ * "Zvýraznit oblasti" toggle only controls the dashed boundary boxes — the icons
+ * are always shown. Coordinate mapping is a single scale factor because the
  * <img> is object-contain inside an aspect-ratio-matched box (no letterboxing):
  *   scale = renderedImgWidth / variant.width.
  */
@@ -61,6 +70,10 @@ export default function PreviewPanel({
   onImageChange,
   matchId,
   matchImages,
+  onPreview,
+  onDownload,
+  actionsDisabled,
+  renderError,
 }: PreviewPanelProps) {
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
@@ -86,18 +99,32 @@ export default function PreviewPanel({
   }, [measure, previewUrl]);
 
   const scale = stageSize ? stageSize.width / variant.width : 0;
-  const boxesVisible = highlightMode && !!previewUrl && stageSize != null && scale > 0;
+  // The overlay (tool icons) is shown whenever we have a measured preview —
+  // independent of the highlight toggle, which now only gates the dashed boxes.
+  const overlayReady = !!previewUrl && stageSize != null && scale > 0;
+
+  // Toggle the hidden flag of a placeholder from its on-box eye icon.
+  const handleToggleHidden = useCallback(
+    (p: ActivePlaceholder) => {
+      if (p.kind === 'text') {
+        onFormChange(p.id, { hidden: !(formState[p.id]?.hidden ?? false) });
+      } else {
+        onImageChange(p.id, { hidden: !(imageState[p.id]?.hidden ?? false) });
+      }
+    },
+    [formState, imageState, onFormChange, onImageChange]
+  );
 
   // Resolve the anchor rect for the open panel from the active placeholder's frame.
   const anchorRect = useMemo(() => {
-    if (!active || !boxesVisible) return null;
+    if (!active || !overlayReady) return null;
     if (active.kind === 'text') {
       const input = variant.inputs.find((i) => i.id === active.id);
       return input?.frame ? canvasToDisplay(input.frame, scale) : null;
     }
     const slot = variant.imageInputs.find((i) => i.id === active.id);
     return slot?.frame ? canvasToDisplay(slot.frame, scale) : null;
-  }, [active, boxesVisible, variant, scale]);
+  }, [active, overlayReady, variant, scale]);
 
   // The resolved data for the open panel.
   const activeTextInput =
@@ -113,18 +140,10 @@ export default function PreviewPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-text-secondary">
-            Náhled — {variant.dimension} ({variant.width}&times;{variant.height})
-          </h3>
-          {(previewPending || isRendering) && (
-            <span className="inline-flex items-center gap-1 text-xs text-text-muted" aria-live="polite">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Aktualizuji…
-            </span>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-text-secondary">
+          Náhled — {variant.dimension} ({variant.width}&times;{variant.height})
+        </h3>
         <button
           type="button"
           onClick={onToggleHighlight}
@@ -134,34 +153,45 @@ export default function PreviewPanel({
               ? 'border-accent bg-accent text-white'
               : 'border-border bg-surface text-text-secondary hover:bg-surface-hover hover:text-text-primary'
           }`}
-          title="Upravovat přímo v náhledu"
+          title="Zobrazit/skrýt rámečky upravitelných oblastí"
         >
-          <Pencil className="h-3.5 w-3.5" />
-          Upravit v náhledu
+          <Frame className="h-3.5 w-3.5" />
+          Zvýraznit oblasti
         </button>
       </div>
+
+      <p className="text-xs text-text-muted">
+        Klikněte na <span className="font-medium text-text-secondary">tužku</span> u prvku a upravte
+        ho přímo v náhledu. Náhled se aktualizuje automaticky.
+      </p>
 
       {/* Border/rounding live on an OUTER wrapper so the inner aspect-ratio box
           is border-free: with box-sizing:border-box a border would shrink the
           content box off the exact W/H ratio and `object-contain` would letterbox
           the image ~1px, drifting the overlay boxes. Border-free → content box is
-          exactly W/H → zero letterbox → img rect == overlay rect. */}
-      <div className="w-full rounded-xl border border-border bg-surface overflow-hidden">
+          exactly W/H → zero letterbox → img rect == overlay rect.
+          maxWidth caps the height (~78vh) while keeping the aspect ratio so a tall
+          portrait template stays comfortable on screen. */}
       <div
-        className="relative w-full flex items-center justify-center"
-        style={{ aspectRatio: `${variant.width}/${variant.height}` }}
+        className="mx-auto w-full overflow-hidden rounded-xl border border-border bg-surface"
+        style={{ maxWidth: `min(100%, calc(78vh * ${variant.width} / ${variant.height}))` }}
       >
-        {previewUrl ? (
-          <img
-            ref={imgRef}
-            src={previewUrl}
-            alt={`Náhled ${variant.dimension}`}
-            className="w-full h-full object-contain"
-            onLoad={measure}
-          />
-        ) : (
-          !isRendering && (
-            <div className="flex flex-col items-center gap-2 text-text-muted p-6 text-center">
+        <div
+          className="relative flex w-full items-center justify-center"
+          style={{ aspectRatio: `${variant.width}/${variant.height}` }}
+        >
+          {previewUrl ? (
+            <img
+              ref={imgRef}
+              src={previewUrl}
+              alt={`Náhled ${variant.dimension}`}
+              className="h-full w-full object-contain"
+              onLoad={measure}
+            />
+          ) : isRendering ? (
+            <LoadingSpinner fullscreen={false} size="md" message="Generování náhledu…" />
+          ) : (
+            <div className="flex flex-col items-center gap-2 p-6 text-center text-text-muted">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="40"
@@ -180,59 +210,88 @@ export default function PreviewPanel({
               </svg>
               <p className="text-sm">Náhled se připravuje…</p>
             </div>
-          )
-        )}
+          )}
 
-        {/* Highlight boxes */}
-        {boxesVisible && (
-          <PlaceholderOverlay
-            variant={variant}
-            scale={scale}
-            active={active}
-            onSelect={onSelect}
-          />
-        )}
+          {/* Highlight boxes + tool icons */}
+          {overlayReady && stageSize && (
+            <PlaceholderOverlay
+              variant={variant}
+              scale={scale}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              showBorders={highlightMode}
+              active={active}
+              onSelect={onSelect}
+              formState={formState}
+              imageState={imageState}
+              onToggleHidden={handleToggleHidden}
+            />
+          )}
 
-        {/* Floating editing panel anchored to the active box */}
-        {boxesVisible && active && anchorRect && stageSize && (
-          <FloatingPanel
-            anchorRect={anchorRect}
-            stageWidth={stageSize.width}
-            stageHeight={stageSize.height}
-            label={activeTextInput?.name ?? activeImageInput?.name ?? 'Upravit prvek'}
-            onClose={onCloseActive}
-          >
-            {activeTextInput ? (
-              <PlaceholderTextPanel
-                input={activeTextInput}
-                index={activeTextIndex}
-                state={formState[activeTextInput.id] ?? { value: '', hidden: false }}
-                chips={chips}
-                onChange={(partial) => onFormChange(activeTextInput.id, partial)}
-                onClose={onCloseActive}
-              />
-            ) : activeImageInput ? (
-              <PlaceholderImagePanel
-                variantId={variant.id}
-                matchId={matchId}
-                matchImages={matchImages}
-                input={activeImageInput}
-                index={activeImageIndex}
-                state={imageState[activeImageInput.id] ?? defaultImageSlotState()}
-                onChange={(partial) => onImageChange(activeImageInput.id, partial)}
-                onClose={onCloseActive}
-              />
-            ) : null}
-          </FloatingPanel>
-        )}
+          {/* Floating editing panel anchored to the active box. Keyed by the
+              active placeholder so switching boxes remounts the body and re-runs
+              its focus/select effect. */}
+          {overlayReady && active && anchorRect && stageSize && (
+            <FloatingPanel
+              key={`${active.kind}:${active.id}`}
+              anchorRect={anchorRect}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              label={activeTextInput?.name ?? activeImageInput?.name ?? 'Upravit prvek'}
+              onClose={onCloseActive}
+            >
+              {activeTextInput ? (
+                <PlaceholderTextPanel
+                  input={activeTextInput}
+                  index={activeTextIndex}
+                  state={formState[activeTextInput.id] ?? { value: '', hidden: false }}
+                  chips={chips}
+                  onChange={(partial) => onFormChange(activeTextInput.id, partial)}
+                  onClose={onCloseActive}
+                />
+              ) : activeImageInput ? (
+                <PlaceholderImagePanel
+                  variantId={variant.id}
+                  matchId={matchId}
+                  matchImages={matchImages}
+                  input={activeImageInput}
+                  index={activeImageIndex}
+                  state={imageState[activeImageInput.id] ?? defaultImageSlotState()}
+                  onChange={(partial) => onImageChange(activeImageInput.id, partial)}
+                  onClose={onCloseActive}
+                />
+              ) : null}
+            </FloatingPanel>
+          )}
 
-        {/* Rendering overlay */}
-        {isRendering && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-            <LoadingSpinner size="md" message="Generování..." fullscreen={false} />
-          </div>
-        )}
+          {/* Single non-blocking status badge in one fixed spot — covers both the
+              queued (debounce) and rendering states so the indicator never jumps
+              between the header and the corner. Only shown once a preview exists;
+              the very first render uses the centered spinner above. */}
+          {(previewPending || isRendering) && previewUrl && (
+            <div
+              className="pointer-events-none absolute right-2 top-2 z-40 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-text-secondary shadow-md ring-1 ring-black/5"
+              aria-live="polite"
+            >
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Aktualizuji…
+            </div>
+          )}
+        </div>
       </div>
+
+      {renderError && <Alert variant="error">{renderError}</Alert>}
+
+      {/* Actions: kept directly under the preview */}
+      <div className="flex flex-wrap gap-3 pt-1">
+        <Button variant="primary" size="md" onClick={onPreview} disabled={actionsDisabled}>
+          <Eye className="mr-2 h-4 w-4" />
+          Náhled
+        </Button>
+        <Button variant="accent" size="md" onClick={onDownload} disabled={actionsDisabled}>
+          <Download className="mr-2 h-4 w-4" />
+          Stáhnout PNG
+        </Button>
       </div>
     </div>
   );

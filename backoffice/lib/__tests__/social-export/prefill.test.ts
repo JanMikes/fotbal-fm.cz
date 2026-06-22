@@ -38,6 +38,16 @@ const baseMatch: Match = {
   updatedAt: '2026-06-01T10:00:00.000Z',
 };
 
+/** A match with the rich free-text fields populated (lineup, report, tournament…). */
+const richMatch: Match = {
+  ...baseMatch,
+  matchReport: 'Skvělý týmový výkon.',
+  lineup: 'Brankář: Svoboda; Obrana: Novák, Dvořák',
+  tournamentName: 'Pohár FAČR',
+  season: 2026,
+  period: 'podzim',
+};
+
 function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO {
   return {
     id: 'inp-default',
@@ -128,6 +138,24 @@ describe('extractMatchPrefill', () => {
     expect(prefill['i-away']).toBe('SK Soupeř');
     expect(prefill['i-score']).toBe('2 : 1');
   });
+
+  it("maps input named 'Sestava' to the lineup value", () => {
+    const inputs = [makeInput({ id: 'i-lineup', name: 'Sestava' })];
+    const prefill = extractMatchPrefill(richMatch, inputs);
+    expect(prefill['i-lineup']).toBe('Brankář: Svoboda; Obrana: Novák, Dvořák');
+  });
+
+  it("maps input named 'Komentář trenéra' to the match report value", () => {
+    const inputs = [makeInput({ id: 'i-report', name: 'Komentář trenéra' })];
+    const prefill = extractMatchPrefill(richMatch, inputs);
+    expect(prefill['i-report']).toBe('Skvělý týmový výkon.');
+  });
+
+  it("maps alias 'Zápis o utkání' to the match report value", () => {
+    const inputs = [makeInput({ id: 'i-report2', name: 'Zápis o utkání' })];
+    const prefill = extractMatchPrefill(richMatch, inputs);
+    expect(prefill['i-report2']).toBe('Skvělý týmový výkon.');
+  });
 });
 
 // ---------- getMatchChips ----------------------------------------------------
@@ -172,5 +200,29 @@ describe('getMatchChips', () => {
     const chips = getMatchChips(matchWithoutScores);
     const scoreChip = chips.find((c) => c.key === 'score');
     expect(scoreChip).toBeUndefined();
+  });
+
+  it('includes lineup and coach-comment chips when populated', () => {
+    const chips = getMatchChips(richMatch);
+    const lineup = chips.find((c) => c.key === 'lineup');
+    const report = chips.find((c) => c.key === 'match_report');
+    expect(lineup?.label).toBe('Sestava');
+    expect(lineup?.value).toBe('Brankář: Svoboda; Obrana: Novák, Dvořák');
+    expect(report?.label).toBe('Komentář trenéra');
+    expect(report?.value).toBe('Skvělý týmový výkon.');
+  });
+
+  it('includes tournament/season/period chips when populated', () => {
+    const chips = getMatchChips(richMatch);
+    expect(chips.find((c) => c.key === 'tournament')?.value).toBe('Pohár FAČR');
+    expect(chips.find((c) => c.key === 'season')?.value).toBe('2026');
+    // 'podzim' is capitalized for display.
+    expect(chips.find((c) => c.key === 'period')?.value).toBe('Podzim');
+  });
+
+  it('omits lineup and coach-comment chips when empty (baseMatch)', () => {
+    const chips = getMatchChips(baseMatch);
+    expect(chips.find((c) => c.key === 'lineup')).toBeUndefined();
+    expect(chips.find((c) => c.key === 'match_report')).toBeUndefined();
   });
 });

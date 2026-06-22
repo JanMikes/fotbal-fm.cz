@@ -20,9 +20,12 @@ interface ExportInputFormProps {
   chips: MatchChip[];
   state: Record<string, InputFieldState>;
   onChange: (inputId: string, partial: Partial<InputFieldState>) => void;
-  onPreview: () => void;
-  onDownload: () => void;
-  isRendering: boolean;
+  /** When false, the render error + Náhled/Stáhnout actions are not rendered
+   *  (used for the secondary "fields without a preview position" fallback list). */
+  showActions?: boolean;
+  onPreview?: () => void;
+  onDownload?: () => void;
+  isRendering?: boolean;
   renderError?: string | null;
 }
 
@@ -35,9 +38,10 @@ export default function ExportInputForm({
   chips,
   state,
   onChange,
+  showActions = true,
   onPreview,
   onDownload,
-  isRendering,
+  isRendering = false,
   renderError,
 }: ExportInputFormProps) {
   // Check if any editable field has a validation error
@@ -158,34 +162,28 @@ export default function ExportInputForm({
         })}
       </div>
 
-      {/* Render error */}
-      {renderError && (
-        <Alert variant="error" className="mb-4">
-          {renderError}
-        </Alert>
-      )}
+      {showActions && (
+        <>
+          {/* Render error */}
+          {renderError && (
+            <Alert variant="error" className="mb-4">
+              {renderError}
+            </Alert>
+          )}
 
-      {/* Action buttons */}
-      <div className="flex gap-3 pt-2">
-        <Button
-          variant="primary"
-          size="md"
-          onClick={onPreview}
-          disabled={isDisabled}
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          Náhled
-        </Button>
-        <Button
-          variant="accent"
-          size="md"
-          onClick={onDownload}
-          disabled={isDisabled}
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Stáhnout PNG
-        </Button>
-      </div>
+          {/* Action buttons */}
+          <div className="flex gap-3 pt-2">
+            <Button variant="primary" size="md" onClick={onPreview} disabled={isDisabled}>
+              <Eye className="w-4 h-4 mr-2" />
+              Náhled
+            </Button>
+            <Button variant="accent" size="md" onClick={onDownload} disabled={isDisabled}>
+              <Download className="w-4 h-4 mr-2" />
+              Stáhnout PNG
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

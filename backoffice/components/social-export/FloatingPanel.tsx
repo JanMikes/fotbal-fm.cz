@@ -92,17 +92,65 @@ export default function FloatingPanel({
   }, [reposition]);
 
   // Escape closes; outside pointer-down closes (but not clicks inside the panel,
-  // nor inside a portaled modal/menu opened from within it).
+  // nor inside a portaled modal/menu, nor on the always-visible placeholder tool
+  // clusters — those carry `data-pp-tools`). Tab/Shift+Tab are trapped within the
+  // panel so keyboard focus can't silently leak into the page behind it.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        // If a nested overlay (the "vložit" dropdown or the image-picker modal)
+        // is open, let IT consume Escape first — don't also close the panel.
+        const nestedOpen = Array.from(
+          document.querySelectorAll('[role="menu"], [role="dialog"]')
+        ).some((el) => el !== panelRef.current);
+        if (nestedOpen) return;
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      const ae = document.activeElement;
+      // Let an open nested overlay (the "vložit" dropdown or the image-picker
+      // modal) manage its own focus — but not the panel itself (also role=dialog).
+      if (ae instanceof Element) {
+        const overlay = ae.closest('[role="menu"], [role="dialog"]');
+        if (overlay && overlay !== panel && !panel.contains(overlay)) return;
+      }
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el === ae || el.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const activeInPanel = ae instanceof Node && panel.contains(ae);
+      if (!activeInPanel) {
+        // Focus escaped the panel — pull it back in.
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+        return;
+      }
+      if (e.shiftKey && ae === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && ae === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
     function onPointerDown(e: PointerEvent) {
       const target = e.target as Node;
       if (panelRef.current?.contains(target)) return;
       // Ignore clicks inside any portaled overlay (modal/dropdown) opened from
-      // the panel — those live outside the panel DOM subtree.
-      if (target instanceof Element && target.closest('[role="dialog"],[role="menu"]')) return;
+      // the panel, and on the placeholder tool icons — those live outside the
+      // panel DOM subtree but must not dismiss it.
+      if (
+        target instanceof Element &&
+        target.closest('[role="dialog"],[role="menu"],[data-pp-tools]')
+      )
+        return;
       onClose();
     }
     document.addEventListener('keydown', onKey);

@@ -32,8 +32,8 @@ interface PlaceholderImagePanelProps {
 const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
 
 /**
- * Floating panel body for editing one IMAGE placeholder. A compact mirror of
- * ImageSlotCard: a live FrameEditor preview, the existing pick/upload modal, a
+ * Floating panel body for editing one IMAGE placeholder. A compact image slot
+ * editor: a live FrameEditor preview, the existing pick/upload modal, a
  * hide toggle (when hidable), and the move/zoom/rotate controls the slot allows.
  * Writes into the SAME image-slot state, so the debounced auto-render stays in sync.
  */
@@ -199,7 +199,7 @@ export default function PlaceholderImagePanel({
 }
 
 // ---------------------------------------------------------------------------
-// Slider row (compact copy of the one in ImageSlotCard)
+// Slider row (compact image positioning control)
 // ---------------------------------------------------------------------------
 
 function SliderRow({
