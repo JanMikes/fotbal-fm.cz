@@ -3,7 +3,7 @@
 import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Calendar, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Alert from '@/components/ui/Alert';
@@ -11,9 +11,12 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import {
   useSocialExportTemplates,
+  useSavedExportStates,
+  saveExportState,
   renderVariant,
   downloadBlob,
   sanitizeFilename,
+  type SaveExportStatePayload,
 } from '@/hooks/api/use-social-export';
 import TemplateGrid from '@/components/social-export/TemplateGrid';
 import VariantChooser from '@/components/social-export/VariantChooser';
@@ -28,6 +31,7 @@ import {
   defaultImageSlotState,
   type ImageSlotState,
 } from '@/lib/social-export/field-rules-image';
+import { applySavedState, type SavedExportStateDTO } from '@/lib/social-export/saved-state';
 import { Match } from '@/types/match';
 
 interface PageProps {
@@ -85,6 +89,15 @@ function SocialExportPageContent({ params }: PageProps) {
   // Templates
   const { templates, isLoading: templatesLoading, error: templatesError } = useSocialExportTemplates();
 
+  // Globally saved editor states for this match (one per variant), written
+  // after every change so an accidental refresh doesn't lose work. A fetch
+  // error degrades to "nothing saved" — the editor still seeds from prefill.
+  const {
+    states: savedStates,
+    isLoading: savedStatesLoading,
+    mutate: mutateSavedStates,
+  } = useSavedExportStates(user ? id : null);
+
   // Wizard selection lives in the URL (?sablona=&varianta=) so it survives a
   // refresh and is deep-linkable. Derive the selected objects from the params.
   const selectedTemplateId = searchParams.get('sablona');
@@ -99,6 +112,15 @@ function SocialExportPageContent({ params }: PageProps) {
     [selectedTemplate, selectedVariantId]
   );
 
+  const savedByVariant = useMemo(
+    () => new Map(savedStates.map((s) => [s.variantId, s])),
+    [savedStates]
+  );
+  const savedVariantIds = useMemo(
+    () => new Set(savedStates.map((s) => s.variantId)),
+    [savedStates]
+  );
+
   // Form state (keyed by input id)
   const [formState, setFormState] = useState<FormState>({});
   // Image-slot state (keyed by imageInput id)
@@ -110,6 +132,10 @@ function SocialExportPageContent({ params }: PageProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(false);
+
+  // Autosave status shown next to the editor title. 'saved' also means a
+  // previously saved state was restored when the variant loaded.
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Click-into-preview editing: whether the dashed boundary boxes are shown, and
   // which placeholder's floating panel is open. The preview IS the editor now —
@@ -126,6 +152,15 @@ function SocialExportPageContent({ params }: PageProps) {
   // Set when a debounced auto-preview render fails, to stop it retrying the same
   // failing input state in a loop. Cleared on the next edit or a manual "Náhled".
   const autoPreviewBlockedRef = useRef(false);
+  // True while there are edits the autosave hasn't persisted yet — gates every
+  // save path, so seeding/prefill alone never creates a saved record.
+  const hasUnsavedRef = useRef(false);
+  // Latest savable payload, kept in a ref so the unload/navigation flush sees
+  // the current state without re-subscribing listeners on every keystroke.
+  const latestSaveRef = useRef<SaveExportStatePayload | null>(null);
+  // "matchId:variantId" the editor was last seeded for — stops the saved-states
+  // cache refresh from re-seeding over the user's in-progress edits.
+  const seededKeyRef = useRef<string | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -157,14 +192,64 @@ function SocialExportPageContent({ params }: PageProps) {
     fetchMatch();
   }, [user, id]);
 
-  // When a variant is chosen, seed the form state with match prefill
+  // Fire-and-forget save of edits the debounced autosave hasn't sent yet.
+  // keepalive lets the PUT finish even while the document unloads (the
+  // accidental-refresh case this persistence exists for). The local SWR cache
+  // is updated optimistically so re-entering the variant seeds from the
+  // flushed state without waiting for the server round-trip.
+  const flushPendingSave = useCallback(() => {
+    if (!hasUnsavedRef.current) return;
+    const payload = latestSaveRef.current;
+    if (!payload) return;
+    hasUnsavedRef.current = false;
+
+    void mutateSavedStates(
+      (prev) => {
+        const dto: SavedExportStateDTO = {
+          variantId: payload.variantId,
+          templateId: payload.templateId,
+          state: payload.state,
+          updatedAt: new Date().toISOString(),
+        };
+        return [...(prev ?? []).filter((s) => s.variantId !== dto.variantId), dto];
+      },
+      { revalidate: false }
+    );
+    void saveExportState(payload, { keepalive: true });
+  }, [mutateSavedStates]);
+
+  // When a variant is chosen, seed the form state with match prefill, overlaid
+  // with the globally saved state for this (match, variant) if there is one.
   useEffect(() => {
-    if (!selectedVariant || !match) return;
+    const seedKey = selectedVariant ? `${id}:${selectedVariant.id}` : null;
+
+    // Variant switched or editor left: flush pending edits of the previous
+    // variant before its snapshot is replaced.
+    if (seededKeyRef.current !== seedKey) {
+      flushPendingSave();
+    }
+
+    if (!selectedVariant) {
+      seededKeyRef.current = null;
+      return;
+    }
+    if (!match || savedStatesLoading) return;
+    if (seededKeyRef.current === seedKey) return;
+    seededKeyRef.current = seedKey;
 
     // Auto-advance if template has exactly one variant (already handled in handleSelectTemplate)
     const prefill = extractMatchPrefill(match, selectedVariant.inputs);
-    setFormState(initFormState(selectedVariant, prefill));
-    setImageState(initImageState(selectedVariant));
+    const saved = savedByVariant.get(selectedVariant.id);
+    const { formState: seededForm, imageState: seededImages, restored } = applySavedState(
+      selectedVariant,
+      initFormState(selectedVariant, prefill),
+      initImageState(selectedVariant),
+      saved?.state
+    );
+    setFormState(seededForm);
+    setImageState(seededImages);
+    setSaveStatus(restored ? 'saved' : 'idle');
+    hasUnsavedRef.current = false;
     setPreviewUrl(null);
     setPreviewBlob(null);
     // dirty=true so the live preview renders the initial prefilled state.
@@ -178,7 +263,47 @@ function SocialExportPageContent({ params }: PageProps) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
     }
-  }, [selectedVariant, match]);
+  }, [selectedVariant, match, id, savedStatesLoading, savedByVariant, flushPendingSave]);
+
+  // Snapshot the latest savable payload for the debounced autosave and the
+  // unload flush. Runs after the seeding effect, and only once the current
+  // variant has actually been seeded, so a stale form is never snapshotted.
+  useEffect(() => {
+    latestSaveRef.current =
+      selectedTemplate &&
+      selectedVariant &&
+      seededKeyRef.current === `${id}:${selectedVariant.id}`
+        ? {
+            matchId: id,
+            templateId: selectedTemplate.id,
+            variantId: selectedVariant.id,
+            state: { formState, imageState },
+          }
+        : null;
+  });
+
+  // Autosave: persist 800ms after the form settles. The saved state is global
+  // (all users share one record per match+variant), so a refresh — accidental
+  // or not — restores the last edits.
+  useEffect(() => {
+    if (!hasUnsavedRef.current) return;
+    const timer = setTimeout(() => {
+      void doSave();
+    }, 800);
+    return () => clearTimeout(timer);
+    // doSave is recreated each render; depending on it would reset the debounce.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState, imageState]);
+
+  // Flush pending edits when the page unloads (refresh, tab close) or the
+  // component unmounts (SPA navigation back to the match page).
+  useEffect(() => {
+    window.addEventListener('pagehide', flushPendingSave);
+    return () => {
+      window.removeEventListener('pagehide', flushPendingSave);
+      flushPendingSave();
+    };
+  }, [flushPendingSave]);
 
   // Live preview: debounced auto-render 1s after the form settles. Skips while a
   // render is in flight, while inputs are invalid, or after a failed auto-render
@@ -237,6 +362,7 @@ function SocialExportPageContent({ params }: PageProps) {
         [inputId]: { ...(prev[inputId] ?? { value: '', hidden: false }), ...partial },
       }));
       setDirty(true);
+      hasUnsavedRef.current = true;
       // A fresh edit re-enables the debounced live preview.
       autoPreviewBlockedRef.current = false;
     },
@@ -250,6 +376,7 @@ function SocialExportPageContent({ params }: PageProps) {
         [slotId]: { ...(prev[slotId] ?? defaultImageSlotState()), ...partial },
       }));
       setDirty(true);
+      hasUnsavedRef.current = true;
       // A fresh edit re-enables the debounced live preview.
       autoPreviewBlockedRef.current = false;
     },
@@ -269,6 +396,29 @@ function SocialExportPageContent({ params }: PageProps) {
       const value = formState[input.id]?.value ?? '';
       return validateInputValue(input, value) !== null;
     });
+  }
+
+  async function doSave(): Promise<void> {
+    const payload = latestSaveRef.current;
+    if (!payload) return;
+
+    setSaveStatus('saving');
+    hasUnsavedRef.current = false;
+
+    const result = await saveExportState(payload);
+    if (result.error || !result.state) {
+      // Mark unsaved again so the next edit (or the unload flush) retries.
+      hasUnsavedRef.current = true;
+      setSaveStatus('error');
+      return;
+    }
+
+    setSaveStatus('saved');
+    const saved = result.state;
+    void mutateSavedStates(
+      (prev) => [...(prev ?? []).filter((s) => s.variantId !== saved.variantId), saved],
+      { revalidate: false }
+    );
   }
 
   async function doRender(opts?: { auto?: boolean }): Promise<Blob | null> {
@@ -374,8 +524,9 @@ function SocialExportPageContent({ params }: PageProps) {
   // ---------------------------------------------------------------------------
 
   const step: 1 | 2 | 3 = selectedVariant ? 3 : selectedTemplate ? 2 : 1;
-  // True while a deep link / refresh is waiting for templates to load.
-  const restoring = !!selectedTemplateId && templatesLoading;
+  // True while a deep link / refresh is waiting for templates or the saved
+  // editor states to load (the editor must not seed before both are in).
+  const restoring = !!selectedTemplateId && (templatesLoading || savedStatesLoading);
   const chips = match ? getMatchChips(match) : [];
   // Editable text inputs that can't be drawn as a preview box (no frame) — they
   // get a small fallback list under the preview so they stay reachable.
@@ -470,7 +621,11 @@ function SocialExportPageContent({ params }: PageProps) {
               <Alert variant="info">Žádné šablony nejsou k dispozici.</Alert>
             )}
             {!templatesLoading && !templatesError && templates.length > 0 && (
-              <TemplateGrid templates={templates} onSelect={handleSelectTemplate} />
+              <TemplateGrid
+                templates={templates}
+                onSelect={handleSelectTemplate}
+                savedVariantIds={savedVariantIds}
+              />
             )}
           </Card>
         )}
@@ -482,6 +637,7 @@ function SocialExportPageContent({ params }: PageProps) {
               template={selectedTemplate}
               onSelect={handleSelectVariant}
               onBack={handleBackToTemplates}
+              savedVariantIds={savedVariantIds}
             />
           </Card>
         )}
@@ -489,9 +645,12 @@ function SocialExportPageContent({ params }: PageProps) {
         {/* Step 3: Full-width preview — the rendered graphic IS the editor. */}
         {!restoring && step === 3 && selectedTemplate && selectedVariant && (
           <Card variant="elevated">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              {selectedTemplate.name} — {selectedVariant.dimension}
-            </h2>
+            <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <h2 className="text-base font-semibold text-text-primary">
+                {selectedTemplate.name} — {selectedVariant.dimension}
+              </h2>
+              <SaveStatusBadge status={saveStatus} />
+            </div>
             <PreviewPanel
               variant={selectedVariant}
               previewUrl={previewUrl}
@@ -538,5 +697,38 @@ function SocialExportPageContent({ params }: PageProps) {
         )}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Autosave status badge ("Uloženo" = a saved state exists for this variant)
+// ---------------------------------------------------------------------------
+
+function SaveStatusBadge({ status }: { status: 'idle' | 'saving' | 'saved' | 'error' }) {
+  if (status === 'idle') return null;
+
+  if (status === 'saving') {
+    return (
+      <span role="status" className="inline-flex items-center gap-1.5 text-xs text-text-muted">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        Ukládám…
+      </span>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <span role="status" className="inline-flex items-center gap-1.5 text-xs text-danger-text">
+        <AlertCircle className="w-3.5 h-3.5" />
+        Uložení selhalo — zkusíme to při další změně
+      </span>
+    );
+  }
+
+  return (
+    <span role="status" className="inline-flex items-center gap-1.5 text-xs text-success-text">
+      <CheckCircle2 className="w-3.5 h-3.5" />
+      Uloženo
+    </span>
   );
 }

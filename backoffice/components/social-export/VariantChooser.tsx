@@ -3,18 +3,21 @@
 import { ArrowLeft, ImageIcon } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
+import SavedBadge from './SavedBadge';
 
 interface VariantChooserProps {
   template: TemplateDTO;
   onSelect: (variant: TemplateVariantDTO) => void;
   onBack: () => void;
+  /** Variant ids that have a saved editing state for the current match. */
+  savedVariantIds?: ReadonlySet<string>;
 }
 
 /**
  * Variant selection screen — shows all variants for a chosen template
  * as preview cards with aspect-ratio boxes.
  */
-export default function VariantChooser({ template, onSelect, onBack }: VariantChooserProps) {
+export default function VariantChooser({ template, onSelect, onBack, savedVariantIds }: VariantChooserProps) {
   return (
     <div>
       {/* Header */}
@@ -42,7 +45,7 @@ export default function VariantChooser({ template, onSelect, onBack }: VariantCh
           >
             {/* Aspect-ratio preview box */}
             <div
-              className="w-full bg-surface-hover flex items-center justify-center overflow-hidden"
+              className="relative w-full bg-surface-hover flex items-center justify-center overflow-hidden"
               style={{ aspectRatio: `${variant.width}/${variant.height}` }}
             >
               {variant.thumbnailUrl ? (
@@ -51,6 +54,9 @@ export default function VariantChooser({ template, onSelect, onBack }: VariantCh
                 <div className="flex items-center justify-center w-full h-full text-text-muted">
                   <ImageIcon className="w-8 h-8" strokeWidth={1.2} />
                 </div>
+              )}
+              {savedVariantIds?.has(variant.id) && (
+                <SavedBadge className="absolute top-1.5 right-1.5" />
               )}
             </div>
 

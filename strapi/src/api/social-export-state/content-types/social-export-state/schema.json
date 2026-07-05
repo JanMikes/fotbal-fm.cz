@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "social_export_states",
+  "info": {
+    "singularName": "social-export-state",
+    "pluralName": "social-export-states",
+    "displayName": "Social Export State",
+    "description": "Saved editing state for social-network exports, one record per match + template variant (shared by all users)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "matchId": {
+      "type": "string",
+      "required": true
+    },
+    "templateId": {
+      "type": "string",
+      "required": true
+    },
+    "variantId": {
+      "type": "string",
+      "required": true
+    },
+    "state": {
+      "type": "json",
+      "required": true
+    }
+  }
+}

@@ -4,7 +4,7 @@
  * Hooks and utilities for the social-export feature.
  */
 
-import useSWR from 'swr';
+import useSWR, { KeyedMutator } from 'swr';
 import {
   SOCIAL_EXPORT_API_BASE,
   TemplateDTO,
@@ -12,6 +12,7 @@ import {
   RenderImageValue,
   GalleryImageDTO,
 } from '@/lib/social-export/api-types';
+import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
 
 // ---------------------------------------------------------------------------
 // Fetcher helper for SWR
@@ -46,6 +47,70 @@ export function useSocialExportTemplates(): {
     isLoading,
     error: error ? error.message : null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Saved editor state (global, per match + variant)
+// ---------------------------------------------------------------------------
+
+async function fetchSavedStates(url: string): Promise<SavedExportStateDTO[]> {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.error || 'Nepodařilo se načíst uložený stav');
+  }
+  return json.data.states as SavedExportStateDTO[];
+}
+
+/**
+ * All saved export states for a match (one per variant). Pass null to skip
+ * fetching (e.g. while the user is not authenticated yet). A fetch error
+ * degrades to "no saved states" so the editor still works from the prefill.
+ */
+export function useSavedExportStates(matchId: string | null): {
+  states: SavedExportStateDTO[];
+  isLoading: boolean;
+  mutate: KeyedMutator<SavedExportStateDTO[]>;
+} {
+  const { data, isLoading, mutate } = useSWR<SavedExportStateDTO[], Error>(
+    matchId ? `${SOCIAL_EXPORT_API_BASE}/state?matchId=${encodeURIComponent(matchId)}` : null,
+    fetchSavedStates,
+    { revalidateOnFocus: false }
+  );
+
+  return { states: data ?? [], isLoading, mutate };
+}
+
+export interface SaveExportStatePayload {
+  matchId: string;
+  templateId: string;
+  variantId: string;
+  state: SavedExportState;
+}
+
+/**
+ * PUT the current editor state. `keepalive` lets the request finish even when
+ * the page is being unloaded (the accidental-refresh case).
+ */
+export async function saveExportState(
+  payload: SaveExportStatePayload,
+  opts?: { keepalive?: boolean }
+): Promise<{ state?: SavedExportStateDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/state`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: opts?.keepalive ?? false,
+    });
+    const json = await res.json();
+    if (!json.success) {
+      return { error: json.error || 'Uložení se nezdařilo' };
+    }
+    return { state: json.data.state as SavedExportStateDTO };
+  } catch {
+    return { error: 'Uložení se nezdařilo — síťová chyba' };
+  }
 }
 
 // ---------------------------------------------------------------------------

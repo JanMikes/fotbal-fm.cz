@@ -20,6 +20,7 @@ export { MatchRepository } from './match.repository';
 export { EventRepository } from './event.repository';
 export { TournamentRepository } from './tournament.repository';
 export { CommentRepository, type CommentableEntity } from './comment.repository';
+export { SocialExportStateRepository } from './social-export-state.repository';
 export { CategoryRepository } from './category.repository';
 export {
   UserRepository,

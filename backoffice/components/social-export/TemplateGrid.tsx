@@ -2,10 +2,13 @@
 
 import { ImageIcon } from 'lucide-react';
 import { TemplateDTO } from '@/lib/social-export/api-types';
+import SavedBadge from './SavedBadge';
 
 interface TemplateGridProps {
   templates: TemplateDTO[];
   onSelect: (template: TemplateDTO) => void;
+  /** Variant ids that have a saved editing state for the current match. */
+  savedVariantIds?: ReadonlySet<string>;
 }
 
 // Group templates by categoryName, with null grouped as "Ostatní"
@@ -43,7 +46,7 @@ function groupTemplates(templates: TemplateDTO[]): Array<{ category: string; ite
  * Responsive grid of template cards, grouped by category.
  * Templates with no variants are shown as disabled.
  */
-export default function TemplateGrid({ templates, onSelect }: TemplateGridProps) {
+export default function TemplateGrid({ templates, onSelect, savedVariantIds }: TemplateGridProps) {
   const groups = groupTemplates(templates);
 
   return (
@@ -58,6 +61,7 @@ export default function TemplateGrid({ templates, onSelect }: TemplateGridProps)
               const hasVariants = template.variants.length > 0;
               const thumbUrl = template.variants[0]?.thumbnailUrl ?? null;
               const dimensionList = template.variants.map((v) => v.dimension).join(', ');
+              const hasSavedState = template.variants.some((v) => savedVariantIds?.has(v.id));
 
               return (
                 <button
@@ -87,6 +91,7 @@ export default function TemplateGrid({ templates, onSelect }: TemplateGridProps)
                         </span>
                       </div>
                     )}
+                    {hasSavedState && <SavedBadge className="absolute top-1.5 right-1.5" />}
                   </div>
 
                   {/* Card body */}

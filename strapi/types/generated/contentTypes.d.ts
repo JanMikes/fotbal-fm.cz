@@ -1231,6 +1231,39 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSocialExportStateSocialExportState
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'social_export_states';
+  info: {
+    description: 'Saved editing state for social-network exports, one record per match + template variant (shared by all users)';
+    displayName: 'Social Export State';
+    pluralName: 'social-export-states';
+    singularName: 'social-export-state';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::social-export-state.social-export-state'
+    > &
+      Schema.Attribute.Private;
+    matchId: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    state: Schema.Attribute.JSON & Schema.Attribute.Required;
+    templateId: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    variantId: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
   collectionName: 'standings';
   info: {
@@ -1896,6 +1929,7 @@ declare module '@strapi/strapi' {
       'api::partner.partner': ApiPartnerPartner;
       'api::player-highlight.player-highlight': ApiPlayerHighlightPlayerHighlight;
       'api::player.player': ApiPlayerPlayer;
+      'api::social-export-state.social-export-state': ApiSocialExportStateSocialExportState;
       'api::standing.standing': ApiStandingStanding;
       'api::team.team': ApiTeamTeam;
       'api::tournament.tournament': ApiTournamentTournament;
