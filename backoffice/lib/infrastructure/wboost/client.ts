@@ -20,7 +20,21 @@ import type { RenderInputValue, RenderImageValue } from '@/lib/social-export/api
 // Error message map (Czech)
 // --------------------------------------------------------------------------
 
-function mapStatusToMessage(status: number): string {
+/**
+ * Structured error body of a WBoost 400 (currently only `container_overflow`:
+ * a container's filled texts don't fit its max height even after reflow).
+ */
+export interface WboostErrorBody {
+  error?: string;
+  code?: string;
+  containerId?: string | null;
+  overflowPx?: number;
+}
+
+function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
+  if (status === 400 && body?.code === 'container_overflow') {
+    return 'Texty se nevejdou do vymezené oblasti šablony — zkraťte zvýrazněná pole';
+  }
   switch (status) {
     case 400:
       return 'Neplatný požadavek nebo hodnota je příliš dlouhá';
@@ -246,12 +260,21 @@ export class WboostClient {
     };
   }
 
-  private assertOk(res: Response): Response {
+  private async assertOk(res: Response): Promise<Response> {
     if (!res.ok) {
-      const message = mapStatusToMessage(res.status);
+      // WBoost 400s can carry a STRUCTURED body (e.g. container_overflow with
+      // the offending containerId + overflowPx) — read it so the UI can point
+      // the user at the right fields instead of a generic message. Best
+      // effort: a non-JSON body simply yields no details.
+      let body: WboostErrorBody | undefined;
+      try {
+        body = (await res.json()) as WboostErrorBody;
+      } catch {
+        body = undefined;
+      }
+      const message = mapStatusToMessage(res.status, body);
       const code = mapStatusToErrorCode(res.status);
-      const err = new AppError(message, code, res.status);
-      throw err;
+      throw new AppError(message, code, res.status, body);
     }
     return res;
   }

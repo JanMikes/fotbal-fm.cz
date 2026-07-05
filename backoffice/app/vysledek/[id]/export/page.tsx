@@ -23,7 +23,9 @@ import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
-import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
+import { TemplateDTO, TemplateVariantDTO,
+  RenderErrorDetails,
+} from '@/lib/social-export/api-types';
 import { extractMatchPrefill, getMatchChips } from '@/lib/social-export/prefill';
 import { buildRenderInputs, InputFieldState, validateInputValue, isEditable } from '@/lib/social-export/field-rules';
 import {
@@ -129,6 +131,9 @@ function SocialExportPageContent({ params }: PageProps) {
   // Render state
   const [isRendering, setIsRendering] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
+  // Structured details of the last failed render (container_overflow → the
+  // offending container's id, used to highlight its fields in the overlay).
+  const [renderErrorDetails, setRenderErrorDetails] = useState<RenderErrorDetails | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -255,6 +260,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // dirty=true so the live preview renders the initial prefilled state.
     setDirty(true);
     setRenderError(null);
+    setRenderErrorDetails(null);
     setActivePlaceholder(null);
     autoPreviewBlockedRef.current = false;
 
@@ -430,6 +436,7 @@ function SocialExportPageContent({ params }: PageProps) {
     isRenderingRef.current = true;
     setIsRendering(true);
     setRenderError(null);
+    setRenderErrorDetails(null);
 
     try {
       const payload = buildRenderInputs(selectedVariant.inputs, formState);
@@ -438,6 +445,7 @@ function SocialExportPageContent({ params }: PageProps) {
 
       if (result.error) {
         setRenderError(result.error);
+        setRenderErrorDetails(result.errorDetails ?? null);
         // Stop the debounced preview from retrying the same failing state.
         if (opts?.auto) autoPreviewBlockedRef.current = true;
         return null;
@@ -670,6 +678,11 @@ function SocialExportPageContent({ params }: PageProps) {
               onDownload={handleDownload}
               actionsDisabled={isRendering || hasValidationErrors()}
               renderError={renderError}
+              overflowContainerId={
+                renderErrorDetails?.code === 'container_overflow'
+                  ? (renderErrorDetails.containerId ?? null)
+                  : null
+              }
             />
 
             {/* Fallback for any editable text fields that have no position in the

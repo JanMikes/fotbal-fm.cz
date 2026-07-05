@@ -20,8 +20,47 @@ export interface TemplateInputDTO {
   /**
    * The textbox bounding box in canvas px, used to draw a highlight box over the
    * preview. `null` when the textbox can't be located — fall back to the flat form.
+   * For container members this is the DESIGNED position — the rendered PNG may
+   * shift the text vertically per the fill (see `TemplateContainerDTO`).
    */
   frame: ImageFrameDTO | null;
+  /** Container this input reflows inside (`TemplateVariantDTO.containers`), or null. */
+  containerId: string | null;
+  /** Fabric text metrics for client-side re-measuring; null when unavailable. */
+  textStyle: TextStyleDTO | null;
+}
+
+/** Fabric text metrics of one text input (wrap width = `frame.width`). */
+export interface TextStyleDTO {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  charSpacing: number;
+}
+
+/**
+ * A "smart text area": its member inputs reflow vertically at render time —
+ * longer text pushes the members below it down, hidden members collapse, and
+ * the flow must fit `maxHeight` px from `y` downward (canvas px), otherwise
+ * the render fails with a `container_overflow` 400 (see `RenderErrorDetails`).
+ */
+export interface TemplateContainerDTO {
+  id: string;
+  maxHeight: number;
+  /** Container top = designed top of the first member (canvas px). */
+  y: number;
+  /** Member input UUIDs in flow order (top → bottom). */
+  memberInputIds: string[];
+}
+
+/**
+ * Structured details of a failed render, forwarded from the WBoost 400 body.
+ * `code === 'container_overflow'` → point the user at the container's inputs.
+ */
+export interface RenderErrorDetails {
+  code?: string;
+  containerId?: string | null;
+  overflowPx?: number;
 }
 
 /** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
@@ -99,6 +138,8 @@ export interface TemplateVariantDTO {
   inputs: TemplateInputDTO[];
   /** Image placeholder slots (empty when the variant has none). */
   imageInputs: ImageInputDTO[];
+  /** Containers ("smart text areas"); empty when the variant has none. */
+  containers: TemplateContainerDTO[];
 }
 
 /** A social-network template, grouped/sorted-ready for display. */

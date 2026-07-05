@@ -26,8 +26,44 @@ export interface WboostRawInput {
   /**
    * Designer frame (the textbox bounding box) in canvas px; `null` when the
    * textbox can't be located on the canvas. May be absent on older payloads.
+   * For container members this is the DESIGNED position — the render may move
+   * the box vertically per the fill (see `WboostRawContainer`).
    */
   frame?: WboostRawFrame | null;
+  /**
+   * Id of the container (see `WboostRawVariant.containers`) this input reflows
+   * inside, or null for an independent input. May be absent on older payloads.
+   */
+  containerId?: string | null;
+  /**
+   * Fabric text metrics of the box (wrap width = `frame.width`) — only needed
+   * to re-measure wrapped text height client-side. May be absent on older payloads.
+   */
+  textStyle?: WboostRawTextStyle | null;
+}
+
+/** Fabric text metrics of one text input. */
+export interface WboostRawTextStyle {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  charSpacing: number;
+}
+
+/**
+ * A "smart text area": its member inputs reflow vertically at render time —
+ * longer text pushes the members below it down, hidden members collapse, and
+ * the flow is bounded by `maxHeight` px measured from `y` downward (canvas
+ * px). An export whose container content can't fit responds 400 with
+ * `code: "container_overflow"`.
+ */
+export interface WboostRawContainer {
+  id: string;
+  maxHeight: number;
+  /** Container top = designed top of the first member (canvas px). */
+  y: number;
+  /** Member input UUIDs in flow order (top → bottom). */
+  memberInputIds: string[];
 }
 
 /** A rectangle in the variant's canvas pixel space. */
@@ -102,6 +138,8 @@ export interface WboostRawVariant {
   inputs: WboostRawInput[];
   /** Image placeholder slots. Empty when the variant has none; may be absent on older payloads. */
   imageInputs?: WboostRawImageInput[];
+  /** Containers ("smart text areas"). May be absent on older payloads. */
+  containers?: WboostRawContainer[];
 }
 
 /**

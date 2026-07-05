@@ -53,7 +53,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     const { error } = result;
     switch (error.statusCode) {
       case 400:
-        return ApiErrors.badRequest(error.message);
+        // Forward the structured WBoost details (e.g. container_overflow with
+        // the offending containerId) so the page can highlight the fields.
+        return ApiErrors.badRequest(error.message, error.details);
       case 403:
         return ApiErrors.forbidden(error.message);
       case 404:

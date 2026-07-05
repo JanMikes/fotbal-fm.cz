@@ -11,6 +11,7 @@ import {
   RenderInputValue,
   RenderImageValue,
   GalleryImageDTO,
+  RenderErrorDetails,
 } from '@/lib/social-export/api-types';
 import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
 
@@ -122,7 +123,7 @@ export async function renderVariant(
   variantId: string,
   inputs: Record<string, RenderInputValue>,
   images?: Record<string, RenderImageValue>
-): Promise<{ blob?: Blob; error?: string }> {
+): Promise<{ blob?: Blob; error?: string; errorDetails?: RenderErrorDetails }> {
   try {
     const body =
       images && Object.keys(images).length > 0
@@ -142,10 +143,15 @@ export async function renderVariant(
       }
     }
 
-    // Non-image response — try to parse JSON error
+    // Non-image response — try to parse JSON error (incl. the structured
+    // details a container_overflow 400 carries: code, containerId, overflowPx).
     try {
       const json = await res.json();
-      return { error: json.error || 'Generování selhalo' };
+      const details =
+        json && typeof json.details === 'object' && json.details !== null
+          ? (json.details as RenderErrorDetails)
+          : undefined;
+      return { error: json.error || 'Generování selhalo', errorDetails: details };
     } catch {
       return { error: 'Generování selhalo' };
     }

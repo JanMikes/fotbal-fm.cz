@@ -169,6 +169,63 @@ describe('SocialExportService', () => {
       expect(noFrame.frame).toBeNull();
     });
 
+    it('maps containers + per-input containerId/textStyle (and defaults when absent)', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              inputs: [
+                makeRawInput({
+                  id: 'member-1',
+                  containerId: 'cont-1',
+                  textStyle: { fontFamily: 'Rubik (Rubik Bold)', fontSize: 24, lineHeight: 1.4, charSpacing: 0 },
+                }),
+                makeRawInput({ id: 'independent' }),
+              ],
+              containers: [
+                { id: 'cont-1', maxHeight: 200, y: 60, memberInputIds: ['member-1', 'member-2'] },
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const variant = result.data[0].variants[0];
+      expect(variant.containers).toEqual([
+        { id: 'cont-1', maxHeight: 200, y: 60, memberInputIds: ['member-1', 'member-2'] },
+      ]);
+
+      const [member, independent] = variant.inputs;
+      expect(member.containerId).toBe('cont-1');
+      expect(member.textStyle).toEqual({
+        fontFamily: 'Rubik (Rubik Bold)',
+        fontSize: 24,
+        lineHeight: 1.4,
+        charSpacing: 0,
+      });
+      // Older payloads without the fields -> safe defaults.
+      expect(independent.containerId).toBeNull();
+      expect(independent.textStyle).toBeNull();
+    });
+
+    it('defaults containers to [] when the variant has none', async () => {
+      const rawTemplates = [makeRawTemplate()];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data[0].variants[0].containers).toEqual([]);
+    });
+
     it('thumbnailUrl is null when thumbnails disabled', async () => {
       vi.mocked(getWboostConfig).mockReturnValue({
         apiBase: 'http://wboost.test',

@@ -5,7 +5,7 @@ import PlaceholderTools from './PlaceholderTools';
 import { resolveInputLabel, isEditable, type InputFieldState } from '@/lib/social-export/field-rules';
 import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import { canvasToDisplay, type DisplayRect } from '@/lib/social-export/geometry';
-import type { TemplateVariantDTO } from '@/lib/social-export/api-types';
+import type { TemplateVariantDTO, TemplateContainerDTO } from '@/lib/social-export/api-types';
 
 /** Identifies which kind of placeholder a box belongs to. */
 export type ActivePlaceholder =
@@ -27,6 +27,11 @@ interface PlaceholderOverlayProps {
   formState: Record<string, InputFieldState>;
   imageState: Record<string, ImageSlotState>;
   onToggleHidden: (placeholder: ActivePlaceholder) => void;
+  /**
+   * Container whose filled texts overflowed on the last render
+   * (`container_overflow` 400): its zone + member boxes go red.
+   */
+  overflowContainerId?: string | null;
 }
 
 interface OverlayItem {
@@ -39,11 +44,38 @@ interface OverlayItem {
   hidable: boolean;
   hidden: boolean;
   active: boolean;
+  /** Member of the container that overflowed on the last render. */
+  error?: boolean;
 }
 
 const TOOL = 30; // button diameter (px), matches PlaceholderTools
 const TOOL_GAP = 4;
 const EDGE = 2;
+const ZONE_PAD = 4; // container zone horizontal padding around member frames (canvas px)
+
+/**
+ * A container's zone rect in display px: from its `y` down `maxHeight`,
+ * horizontally spanning its members' designed frames. Null when no member
+ * frame can be resolved (nothing to draw).
+ */
+function containerZoneRect(
+  container: TemplateContainerDTO,
+  variant: TemplateVariantDTO,
+  scale: number
+): DisplayRect | null {
+  const memberFrames = container.memberInputIds
+    .map((id) => variant.inputs.find((input) => input.id === id)?.frame)
+    .filter((frame): frame is NonNullable<typeof frame> => frame != null);
+  if (memberFrames.length === 0) return null;
+
+  const left = Math.min(...memberFrames.map((f) => f.x)) - ZONE_PAD;
+  const right = Math.max(...memberFrames.map((f) => f.x + f.width)) + ZONE_PAD;
+
+  return canvasToDisplay(
+    { x: left, y: container.y, width: right - left, height: container.maxHeight },
+    scale
+  );
+}
 
 /** Position the tool cluster glued to the box's top-right, above when there's room. */
 function clusterPosition(item: OverlayItem, stageWidth: number, stageHeight: number) {
@@ -78,6 +110,7 @@ export default function PlaceholderOverlay({
   formState,
   imageState,
   onToggleHidden,
+  overflowContainerId = null,
 }: PlaceholderOverlayProps) {
   const items: OverlayItem[] = [];
 
@@ -93,6 +126,7 @@ export default function PlaceholderOverlay({
       hidable: input.hidable,
       hidden: formState[input.id]?.hidden ?? false,
       active: active?.kind === 'text' && active.id === input.id,
+      error: overflowContainerId != null && input.containerId === overflowContainerId,
     });
   });
 
@@ -113,18 +147,46 @@ export default function PlaceholderOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0">
+      {/* Layer 0 — container zones ("smart text areas"): member texts reflow
+          within them at render time, so the zone marks where the flow may
+          extend. Drawn with the highlight toggle; forced (red) when the last
+          render failed with that container's overflow. */}
+      {variant.containers.map((container) => {
+        const isOverflowing = overflowContainerId === container.id;
+        if (!showBorders && !isOverflowing) return null;
+        const rect = containerZoneRect(container, variant, scale);
+        if (!rect) return null;
+        return (
+          <div
+            key={`zone-${container.id}`}
+            className={`pointer-events-none absolute rounded border border-dashed ${
+              isOverflowing ? 'border-danger bg-danger/5' : 'border-info/60 bg-info/5'
+            }`}
+            style={{
+              left: `${rect.left}px`,
+              top: `${rect.top}px`,
+              width: `${rect.width}px`,
+              height: `${rect.height}px`,
+            }}
+            aria-hidden="true"
+          />
+        );
+      })}
+
       {/* Layer 1 — boundary boxes (decorative). Shown only when the highlight
           toggle is on (or this box is being edited); the hatched fill then marks
           hidden slots. When highlight is off, no borders at all — hidden state is
-          conveyed solely by the eye icon. */}
+          conveyed solely by the eye icon. Overflowing container members are
+          always shown, in the error treatment. */}
       {items.map((item) =>
-        showBorders || item.active ? (
+        showBorders || item.active || item.error ? (
           <PlaceholderBox
             key={`box-${item.key}`}
             rect={item.rect}
             active={item.active}
             readOnly={!item.editable}
             hidden={item.hidden}
+            error={item.error}
           />
         ) : null
       )}

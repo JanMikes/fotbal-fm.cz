@@ -43,6 +43,8 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     hidable: raw.hidable,
     // Absent on older payloads → null (falls back to the flat form).
     frame: raw.frame ?? null,
+    containerId: raw.containerId ?? null,
+    textStyle: raw.textStyle ?? null,
   };
 }
 
@@ -93,6 +95,13 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
     hasDefaultPreview: raw.previewImageUrl != null,
     inputs: raw.inputs.map(mapInput),
     imageInputs: (raw.imageInputs ?? []).map(mapImageInput),
+    // Absent on older payloads → no containers.
+    containers: (raw.containers ?? []).map((container) => ({
+      id: container.id,
+      maxHeight: container.maxHeight,
+      y: container.y,
+      memberInputIds: container.memberInputIds,
+    })),
   };
 }
 

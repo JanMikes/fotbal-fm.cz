@@ -236,6 +236,30 @@ describe('WboostClient', () => {
       }
     });
 
+    it('carries the structured container_overflow body as AppError.details with a specific message', async () => {
+      const body = {
+        error: 'Container content overflows its max height. Shorten the texts of its inputs.',
+        code: 'container_overflow',
+        containerId: 'cont-1',
+        overflowPx: 37.5,
+      };
+      mockFetch.mockResolvedValueOnce(mockJsonResponse(body, 400));
+
+      const tm = makeFakeTokenManager();
+      const client = new WboostClient(CFG, tm as never);
+
+      try {
+        await client.renderVariant('v1', { inp1: 'too long' });
+        expect.unreachable('should have thrown');
+      } catch (e) {
+        expect(e).toBeInstanceOf(AppError);
+        const ae = e as InstanceType<typeof AppError>;
+        expect(ae.statusCode).toBe(400);
+        expect(ae.message).toContain('nevejdou do vymezené oblasti');
+        expect(ae.details).toEqual(body);
+      }
+    });
+
     it('builds URLs from apiBase, not hardcoded hosts', async () => {
       mockFetch.mockResolvedValueOnce(mockJsonResponse([], 200));
 

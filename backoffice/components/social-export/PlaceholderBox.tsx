@@ -12,6 +12,8 @@ interface PlaceholderBoxProps {
   readOnly?: boolean;
   /** Hidden slots: hatched "won't appear in the export" treatment. */
   hidden?: boolean;
+  /** Member of a container whose texts overflowed on the last render: red. */
+  error?: boolean;
 }
 
 const DUAL_OUTLINE = '0 0 0 1px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.5)';
@@ -34,14 +36,17 @@ export default function PlaceholderBox({
   active,
   readOnly = false,
   hidden = false,
+  error = false,
 }: PlaceholderBoxProps) {
-  const borderColor = hidden
-    ? 'border-text-muted'
-    : readOnly
-      ? 'border-text-muted/60'
-      : active
-        ? 'border-accent'
-        : 'border-accent/80';
+  const borderColor = error
+    ? 'border-danger'
+    : hidden
+      ? 'border-text-muted'
+      : readOnly
+        ? 'border-text-muted/60'
+        : active
+          ? 'border-accent'
+          : 'border-accent/80';
 
   const style: CSSProperties = {
     left: `${rect.left}px`,

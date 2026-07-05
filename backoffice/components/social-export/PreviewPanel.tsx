@@ -38,6 +38,8 @@ interface PreviewPanelProps {
   onDownload: () => void;
   actionsDisabled: boolean;
   renderError?: string | null;
+  /** Container whose filled texts overflowed on the last render (highlights its fields). */
+  overflowContainerId?: string | null;
 }
 
 const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
@@ -77,6 +79,7 @@ export default function PreviewPanel({
   onDownload,
   actionsDisabled,
   renderError,
+  overflowContainerId = null,
 }: PreviewPanelProps) {
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
@@ -296,6 +299,7 @@ export default function PreviewPanel({
               formState={formState}
               imageState={imageState}
               onToggleHidden={handleToggleHidden}
+              overflowContainerId={overflowContainerId}
             />
           )}
 
