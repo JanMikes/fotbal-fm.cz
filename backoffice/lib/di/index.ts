@@ -11,6 +11,7 @@ export {
   getTournamentRepository,
   getCommentRepository,
   getUserRepository,
+  getNewsArticleRepository,
 
   // User-authenticated repository factories
   createUserMatchRepository,

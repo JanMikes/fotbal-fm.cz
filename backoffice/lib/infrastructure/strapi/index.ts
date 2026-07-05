@@ -25,6 +25,7 @@ export type {
   StrapiRawEvent,
   StrapiRawTournament,
   StrapiRawTournamentPlayer,
+  StrapiRawNewsArticle,
   StrapiRawComment,
   StrapiRawUser,
   UploadResult,

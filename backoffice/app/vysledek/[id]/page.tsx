@@ -6,7 +6,7 @@ import { Match } from '@/types/match';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, Edit, ImageDown } from 'lucide-react';
+import { ArrowLeft, Calendar, Edit, ImageDown, Newspaper } from 'lucide-react';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
@@ -97,6 +97,12 @@ export default function MatchResultDetailPage({ params }: PageProps) {
             </Button>
           </Link>
           <div className="flex gap-2">
+            <Link href={`/vysledek/${match.id}/aktualita`}>
+              <Button variant="accent" size="sm">
+                <Newspaper className="w-4 h-4 mr-2" />
+                Napsat aktualitu
+              </Button>
+            </Link>
             <Link href={`/vysledek/${match.id}/export`}>
               <Button variant="accent" size="sm">
                 <ImageDown className="w-4 h-4 mr-2" />

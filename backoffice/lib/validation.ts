@@ -255,6 +255,30 @@ export const tournamentApiSchema = z.object({
   players: z.array(tournamentPlayerSchema).optional(),
 });
 
+// News article schemas
+export const newsArticleSchema = z.object({
+  title: z.string().min(1, 'Titulek je povinný'),
+  description: z.string().min(1, 'Obsah aktuality je povinný'),
+  date: z.string().min(1, 'Datum publikace je povinné'),
+  time: z.string().optional(),
+  video: z.string().url('Neplatná URL adresa').optional().or(z.literal('')),
+  categoryIds: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
+});
+
+export const newsArticleApiSchema = z.object({
+  title: z.string().min(1, 'Titulek je povinný'),
+  description: z.string().min(1, 'Obsah aktuality je povinný'),
+  date: z.string().min(1, 'Datum publikace je povinné'),
+  video: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string().url('Neplatná URL adresa').optional()
+  ),
+  categories: z.array(z.string()).min(1, 'Vyberte alespoň jednu kategorii'),
+  mainPhotoId: z.number().int().positive().optional(),
+  galleryIds: z.array(z.number().int().positive()).optional(),
+  fileIds: z.array(z.number().int().positive()).optional(),
+});
+
 // Comment schemas
 export const commentSchema = z.object({
   content: z.string().min(1, 'Komentář je povinný').max(2000, 'Komentář může mít maximálně 2000 znaků'),
@@ -280,3 +304,4 @@ export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export type InlineMatchFormData = z.infer<typeof inlineMatchSchema>;
 export type TournamentPlayerFormData = z.infer<typeof tournamentPlayerSchema>;
 export type CommentFormData = z.infer<typeof commentSchema>;
+export type NewsArticleFormData = z.infer<typeof newsArticleSchema>;

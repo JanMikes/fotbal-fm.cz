@@ -42,3 +42,9 @@ export {
   CommentService,
   type CreateCommentData,
 } from './comment.service';
+
+// News Article Service
+export {
+  NewsArticleService,
+  type NewsArticleWithUploads,
+} from './news-article.service';

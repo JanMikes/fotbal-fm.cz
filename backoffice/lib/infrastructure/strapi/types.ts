@@ -184,6 +184,26 @@ export interface StrapiRawTournament {
 }
 
 /**
+ * Raw news article from Strapi
+ */
+export interface StrapiRawNewsArticle {
+  id: number;
+  documentId: string;
+  title: string;
+  slug?: string | null;
+  date?: string | null;
+  description?: string | null;
+  video?: string | null;
+  mainPhoto?: StrapiRawMedia | null;
+  gallery?: StrapiRawMedia[] | null;
+  files?: StrapiRawMedia[] | null;
+  categories?: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
+  author?: StrapiRawUserInfo | { data?: StrapiRawUserInfo | null } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Raw comment from Strapi
  */
 export interface StrapiRawComment {

@@ -47,3 +47,6 @@ export {
 
 // Categories
 export { useCategories } from './use-categories';
+
+// News articles
+export { useCreateNewsArticle } from './use-news-articles';

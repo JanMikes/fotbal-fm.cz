@@ -6,7 +6,7 @@ import { Tournament } from '@/types/tournament';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, MapPin, Edit, Trophy, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Edit, Trophy, Plus, Newspaper } from 'lucide-react';
 import MatchResultCard from '@/components/MatchResultCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
@@ -114,12 +114,20 @@ export default function TournamentDetailPage({ params }: PageProps) {
               Zpět na turnaje
             </Button>
           </Link>
-          <Link href={`/upravit-turnaj/${tournament.id}`}>
-            <Button variant="secondary" size="sm">
-              <Edit className="w-4 h-4 mr-2" />
-              Upravit
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/turnaj/${tournament.id}/aktualita`}>
+              <Button variant="accent" size="sm">
+                <Newspaper className="w-4 h-4 mr-2" />
+                Napsat aktualitu
+              </Button>
+            </Link>
+            <Link href={`/upravit-turnaj/${tournament.id}`}>
+              <Button variant="secondary" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Upravit
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {showNetworkWarning && (

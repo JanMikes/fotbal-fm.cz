@@ -50,3 +50,9 @@ export {
   mapUser,
   safeMapUser,
 } from './user';
+
+export {
+  mapNewsArticle,
+  mapNewsArticles,
+  safeMapNewsArticle,
+} from './news-article';

@@ -12,6 +12,7 @@ import {
   TournamentRepository,
   CommentRepository,
   UserRepository,
+  NewsArticleRepository,
 } from '@/lib/repositories';
 
 // =============================================================================
@@ -24,6 +25,7 @@ let eventRepository: EventRepository | null = null;
 let tournamentRepository: TournamentRepository | null = null;
 let commentRepository: CommentRepository | null = null;
 let userRepository: UserRepository | null = null;
+let newsArticleRepository: NewsArticleRepository | null = null;
 
 /**
  * Get the team repository (singleton)
@@ -83,6 +85,18 @@ export function getUserRepository(): UserRepository {
     userRepository = new UserRepository(getStrapiClient());
   }
   return userRepository;
+}
+
+/**
+ * Get the news article repository (singleton).
+ * Uses the service API token: article creation is not tied to
+ * per-user Strapi permissions, authorship is stored via the author relation.
+ */
+export function getNewsArticleRepository(): NewsArticleRepository {
+  if (!newsArticleRepository) {
+    newsArticleRepository = new NewsArticleRepository(getStrapiClient());
+  }
+  return newsArticleRepository;
 }
 
 // =============================================================================
@@ -187,4 +201,5 @@ export function resetContainer(): void {
   tournamentRepository = null;
   commentRepository = null;
   userRepository = null;
+  newsArticleRepository = null;
 }
