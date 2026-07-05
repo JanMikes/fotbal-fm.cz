@@ -28,6 +28,48 @@ export interface TemplateInputDTO {
   containerId: string | null;
   /** Fabric text metrics for client-side re-measuring; null when unavailable. */
   textStyle: TextStyleDTO | null;
+  /**
+   * True → the user may FORMAT parts of the text (font face / color /
+   * underline): render the rich editor and send the value as `{ runs }`.
+   * The pickable fonts + swatches live in `TemplateVariantDTO.richTextOptions`.
+   */
+  richText: boolean;
+}
+
+/**
+ * One styled segment of a rich-text value. Null style = inherit the designed
+ * style. The concatenation of run texts is the plain-text projection
+ * (`maxLength` counts it). Run text must not contain line breaks.
+ */
+export interface RichRunDTO {
+  text: string;
+  /** Must be one of `richTextOptions.fonts[].family`; null = designed font. */
+  fontFamily: string | null;
+  /** Lowercase `#rrggbb`, or null = designed color. Any well-formed hex is accepted. */
+  color: string | null;
+  underline: boolean;
+}
+
+/**
+ * One pickable font face for the rich editor. Faces are standalone families
+ * ("Rubik (Rubik Bold)") — bold/italic toggles switch `family`; group by
+ * `fontName` and map B/I via `weight`/`style` (best-effort metadata).
+ */
+export interface RichTextFontOptionDTO {
+  family: string;
+  fontName: string;
+  faceName: string;
+  weight: number;
+  style: string;
+  /** Same-origin proxy path serving the font file (for @font-face preview). */
+  url: string;
+}
+
+/** Fonts whitelist + brand color swatches for a variant's rich-text inputs. */
+export interface RichTextOptionsDTO {
+  fonts: RichTextFontOptionDTO[];
+  /** Suggested brand swatches (primary first), lowercase `#rrggbb`. NOT a whitelist. */
+  colors: string[];
 }
 
 /** Fabric text metrics of one text input (wrap width = `frame.width`). */
@@ -140,6 +182,8 @@ export interface TemplateVariantDTO {
   imageInputs: ImageInputDTO[];
   /** Containers ("smart text areas"); empty when the variant has none. */
   containers: TemplateContainerDTO[];
+  /** Fonts + swatches for rich-text inputs; null unless some input has `richText: true`. */
+  richTextOptions: RichTextOptionsDTO | null;
 }
 
 /** A social-network template, grouped/sorted-ready for display. */
@@ -158,10 +202,27 @@ export interface TemplatesResponse {
 }
 
 /**
- * A single render input value: a plain string sets the text, or an object form
- * `{ value?, hide? }`. `hide` is only honored for inputs with `hidable: true`.
+ * Response body of `GET /api/social-export/fonts` (wrapped in apiSuccess):
+ * EVERY project font face (same shape as `richTextOptions.fonts`, which only
+ * lists a variant's rich whitelist). `family` is the exact Fabric string that
+ * `inputs[].textStyle.fontFamily` carries; `url` is the same-origin font
+ * proxy. Loaded once per session by `useWboostFonts` so client-side text
+ * measurement wraps with the real glyph metrics.
  */
-export type RenderInputValue = string | { value?: string; hide?: boolean };
+export interface ProjectFontsResponse {
+  fonts: RichTextFontOptionDTO[];
+}
+
+/**
+ * A single render input value: a plain string sets the text, an object form
+ * `{ value?, hide? }`, or — only for inputs with `richText: true` — the rich
+ * form `{ runs, hide? }`. `hide` is only honored for inputs with
+ * `hidable: true`; `runs` and `value` are mutually exclusive.
+ */
+export type RenderInputValue =
+  | string
+  | { value?: string; hide?: boolean }
+  | { runs: RichRunDTO[]; hide?: boolean };
 
 /**
  * A single render image value: a plain gallery image id (centered + contained),

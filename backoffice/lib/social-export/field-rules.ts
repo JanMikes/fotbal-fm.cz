@@ -14,8 +14,10 @@
 
 import type {
   RenderInputValue,
+  RichRunDTO,
   TemplateInputDTO,
 } from './api-types';
+import { isStyled } from './rich-text';
 
 /** Resolve the field label: name, else description, else a generic "Text N". */
 export function resolveInputLabel(input: TemplateInputDTO, index: number): string {
@@ -47,9 +49,20 @@ export function validateInputValue(
 
 /** Per-input editable form state. */
 export interface InputFieldState {
+  /**
+   * The PLAIN text projection — always maintained, even for rich inputs
+   * (counters, validation, prefill and old clients all read it). Invariant
+   * for rich values: `plainText(runs) === value`.
+   */
   value: string;
   /** Whether the user toggled "hide this element" (only meaningful if hidable). */
   hidden: boolean;
+  /**
+   * Styled runs for `richText: true` inputs, or null/absent when the value is
+   * unstyled (plain string is then sent — today's wire shape). Never set for
+   * non-rich inputs.
+   */
+  runs?: RichRunDTO[] | null;
 }
 
 /**
@@ -77,9 +90,21 @@ export function buildRenderInputs(
 
     const value = fieldState.value ?? '';
     const hidden = input.hidable && fieldState.hidden;
+    // Rich runs are sent ONLY for richText inputs (the API 400s otherwise)
+    // and only when actually styled — unstyled values keep the plain shape.
+    const runs = input.richText && isStyled(fieldState.runs) ? fieldState.runs : null;
 
     if (hidden) {
-      payload[input.id] = value ? { value, hide: true } : { hide: true };
+      if (runs) {
+        payload[input.id] = { runs, hide: true };
+      } else {
+        payload[input.id] = value ? { value, hide: true } : { hide: true };
+      }
+      continue;
+    }
+
+    if (runs) {
+      payload[input.id] = { runs };
       continue;
     }
 

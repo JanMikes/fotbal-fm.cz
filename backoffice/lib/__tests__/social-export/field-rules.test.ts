@@ -21,6 +21,7 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     frame: null,
     containerId: null,
     textStyle: null,
+    richText: false,
     ...overrides,
   };
 }

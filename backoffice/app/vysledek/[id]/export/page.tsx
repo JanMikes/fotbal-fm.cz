@@ -34,6 +34,8 @@ import {
   type ImageSlotState,
 } from '@/lib/social-export/field-rules-image';
 import { applySavedState, type SavedExportStateDTO } from '@/lib/social-export/saved-state';
+import { computeTextLayout } from '@/lib/social-export/text-layout';
+import { useWboostFonts } from '@/lib/social-export/use-wboost-fonts';
 import { Match } from '@/types/match';
 
 interface PageProps {
@@ -148,6 +150,23 @@ function SocialExportPageContent({ params }: PageProps) {
   // boxes, defaulting ON to make the editable areas discoverable.
   const [highlightMode, setHighlightMode] = useState(true);
   const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
+
+  // Load the real WBoost fonts into document.fonts so the live box measurement
+  // wraps like the render (fallback faces give approximate wrap points).
+  const { fontsReady } = useWboostFonts();
+
+  // Live text-box frames + predicted container overflow. fontsReady is a
+  // legitimate extra dependency: the same inputs measure differently once the
+  // real fonts land in document.fonts.
+  const textLayout = useMemo(
+    () => (selectedVariant ? computeTextLayout(selectedVariant, formState) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedVariant, formState, fontsReady]
+  );
+
+  // The overflow pre-check (red zone + blocked download BEFORE the render
+  // 400s) is trustworthy only with the real fonts loaded.
+  const predictedOverflow = fontsReady ? textLayout?.overflows[0] ?? null : null;
 
   // Track object URLs for cleanup
   const previewUrlRef = useRef<string | null>(null);
@@ -676,13 +695,21 @@ function SocialExportPageContent({ params }: PageProps) {
               matchId={match.id}
               matchImages={match.images}
               onDownload={handleDownload}
-              actionsDisabled={isRendering || hasValidationErrors()}
+              actionsDisabled={isRendering || hasValidationErrors() || predictedOverflow != null}
               renderError={renderError}
               overflowContainerId={
                 renderErrorDetails?.code === 'container_overflow'
                   ? (renderErrorDetails.containerId ?? null)
+                  : predictedOverflow?.containerId ?? null
+              }
+              overflowWarning={
+                predictedOverflow && !renderError
+                  ? `Texty se nevejdou do vymezené oblasti (přesah ${Math.ceil(
+                      predictedOverflow.overflowPx
+                    )} px). Zkraťte prosím zvýrazněné texty.`
                   : null
               }
+              textFrames={textLayout?.frames ?? {}}
             />
 
             {/* Fallback for any editable text fields that have no position in the

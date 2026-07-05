@@ -3,9 +3,10 @@
 import { Eye, Download } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/FormField';
-import Input from '@/components/ui/Input';
+import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import Alert from '@/components/ui/Alert';
 import FieldInsertMenu from './FieldInsertMenu';
+import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { MatchChip } from '@/lib/social-export/prefill';
 import {
@@ -54,6 +55,7 @@ export default function ExportInputForm({
   const isDisabled = isRendering || hasValidationErrors;
 
   // Set a field to a chosen match-data value (replace), respecting maxLength.
+  // Inserted match data is always PLAIN — clear any rich formatting.
   function handleInsert(inputId: string, value: string) {
     const input = variant.inputs.find((i) => i.id === inputId);
     if (!input) return;
@@ -63,7 +65,7 @@ export default function ExportInputForm({
       next = next.slice(0, input.maxLength);
     }
 
-    onChange(inputId, { value: next });
+    onChange(inputId, { value: next, runs: null });
   }
 
   return (
@@ -113,15 +115,25 @@ export default function ExportInputForm({
             >
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <Input
-                    value={value}
-                    disabled={isHidden}
-                    maxLength={input.maxLength ?? undefined}
-                    onChange={(e) => onChange(input.id, { value: e.target.value })}
-                    error={validationError}
-                    style={input.uppercase ? { textTransform: 'uppercase' } : undefined}
-                    placeholder={label}
-                  />
+                  {input.richText && variant.richTextOptions ? (
+                    <RichTextEditor
+                      input={input}
+                      options={variant.richTextOptions}
+                      state={fieldState}
+                      disabled={isHidden}
+                      onChange={(partial) => onChange(input.id, partial)}
+                    />
+                  ) : (
+                    <AutoGrowTextarea
+                      value={value}
+                      disabled={isHidden}
+                      maxLength={input.maxLength ?? undefined}
+                      onChange={(e) => onChange(input.id, { value: e.target.value })}
+                      error={validationError}
+                      style={input.uppercase ? { textTransform: 'uppercase' } : undefined}
+                      placeholder={label}
+                    />
+                  )}
                 </div>
                 {chips.length > 0 && (
                   <FieldInsertMenu

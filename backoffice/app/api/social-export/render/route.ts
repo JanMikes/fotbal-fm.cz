@@ -3,10 +3,31 @@ import { z } from 'zod/v4';
 import { withAuth, ApiErrors, apiError, apiBinary, addApiBreadcrumb } from '@/lib/api';
 import { getSocialExportService } from '@/lib/services/social-export.service';
 
+const richRunSchema = z
+  .object({
+    text: z.string(),
+    fontFamily: z.string().nullable().optional(),
+    color: z.string().nullable().optional(),
+    underline: z.boolean().optional(),
+  })
+  // Normalize to the full RichRunDTO shape (WBoost treats absent = null).
+  .transform((run) => ({
+    text: run.text,
+    fontFamily: run.fontFamily ?? null,
+    color: run.color ?? null,
+    underline: run.underline === true,
+  }));
+
 const renderInputValueSchema = z.union([
   z.string(),
   z.object({
     value: z.string().optional(),
+    hide: z.boolean().optional(),
+  }),
+  // Rich text — only valid for inputs with richText: true (WBoost enforces
+  // that and answers a structured 400 we forward as-is).
+  z.object({
+    runs: z.array(richRunSchema),
     hide: z.boolean().optional(),
   }),
 ]);

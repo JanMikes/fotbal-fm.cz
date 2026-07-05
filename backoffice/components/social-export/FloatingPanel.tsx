@@ -21,7 +21,7 @@ interface FloatingPanelProps {
   children: ReactNode;
 }
 
-const PANEL_WIDTH = 300;
+const PANEL_WIDTH = 360;
 const GAP = 12;
 const MARGIN = 8;
 

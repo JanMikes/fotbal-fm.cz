@@ -10,7 +10,7 @@ import PlaceholderTextPanel from './PlaceholderTextPanel';
 import ImagePickerModal from './images/ImagePickerModal';
 import { canvasToDisplay } from '@/lib/social-export/geometry';
 import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
-import type { TemplateVariantDTO } from '@/lib/social-export/api-types';
+import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
 import type { MatchChip } from '@/lib/social-export/prefill';
 import type { StrapiImage } from '@/types/match';
@@ -40,6 +40,14 @@ interface PreviewPanelProps {
   renderError?: string | null;
   /** Container whose filled texts overflowed on the last render (highlights its fields). */
   overflowContainerId?: string | null;
+  /** Predicted-overflow warning (shown before the render would 400), or null. */
+  overflowWarning?: string | null;
+  /**
+   * Live text-box frames (canvas px) from `computeTextLayout` — measured
+   * heights + container reflow. Inputs missing from the map fall back to
+   * their designed frames.
+   */
+  textFrames: Record<string, ImageFrameDTO>;
 }
 
 const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
@@ -80,6 +88,8 @@ export default function PreviewPanel({
   actionsDisabled,
   renderError,
   overflowContainerId = null,
+  overflowWarning = null,
+  textFrames,
 }: PreviewPanelProps) {
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
@@ -151,11 +161,12 @@ export default function PreviewPanel({
     ? variant.inputs.findIndex((i) => i.id === activeTextInput.id)
     : -1;
 
-  // Anchor rect for the open text panel, from its frame.
+  // Anchor rect for the open text panel, from its live frame.
   const anchorRect = useMemo(() => {
     if (!activeTextInput || !overlayReady) return null;
-    return activeTextInput.frame ? canvasToDisplay(activeTextInput.frame, scale) : null;
-  }, [activeTextInput, overlayReady, scale]);
+    const frame = textFrames[activeTextInput.id] ?? activeTextInput.frame;
+    return frame ? canvasToDisplay(frame, scale) : null;
+  }, [activeTextInput, overlayReady, scale, textFrames]);
 
   // The image slot whose picker modal is open.
   const pickerInput = pickerImageId
@@ -300,6 +311,7 @@ export default function PreviewPanel({
               imageState={imageState}
               onToggleHidden={handleToggleHidden}
               overflowContainerId={overflowContainerId}
+              textFrames={textFrames}
             />
           )}
 
@@ -320,6 +332,7 @@ export default function PreviewPanel({
                 index={activeTextIndex}
                 state={formState[activeTextInput.id] ?? { value: '', hidden: false }}
                 chips={chips}
+                richTextOptions={variant.richTextOptions}
                 onChange={(partial) => onFormChange(activeTextInput.id, partial)}
                 onClose={onCloseActive}
               />
@@ -343,6 +356,7 @@ export default function PreviewPanel({
         </div>
       </div>
 
+      {overflowWarning && <Alert variant="warning">{overflowWarning}</Alert>}
       {renderError && <Alert variant="error">{renderError}</Alert>}
 
       {/* The same download CTA as the header, centered under the preview. */}

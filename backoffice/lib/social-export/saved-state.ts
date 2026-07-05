@@ -9,6 +9,7 @@
 
 import type { TemplateVariantDTO } from './api-types';
 import type { InputFieldState } from './field-rules';
+import { normalizeRuns, plainText, isStyled } from './rich-text';
 import {
   type ImageSlotState,
   defaultImageSlotState,
@@ -61,7 +62,20 @@ export function applySavedState(
   for (const input of variant.inputs) {
     const field = saved.formState?.[input.id];
     if (field && typeof field.value === 'string' && typeof field.hidden === 'boolean') {
-      formState[input.id] = { value: field.value, hidden: field.hidden };
+      // Restore rich runs only when they are shape-valid, the input still
+      // allows rich text (the admin may have unchecked it since the save) and
+      // the plain projection matches `value` — otherwise drop the runs and
+      // keep the plain text (self-healing against stale/hand-edited records;
+      // an old client reading this record simply ignores `runs`).
+      const runs =
+        input.richText && field.runs != null ? normalizeRuns(field.runs) : null;
+      const runsValid = runs !== null && isStyled(runs) && plainText(runs) === field.value;
+
+      formState[input.id] = {
+        value: field.value,
+        hidden: field.hidden,
+        ...(runsValid ? { runs } : {}),
+      };
     }
   }
 

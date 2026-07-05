@@ -40,7 +40,39 @@ export interface WboostRawInput {
    * to re-measure wrapped text height client-side. May be absent on older payloads.
    */
   textStyle?: WboostRawTextStyle | null;
+  /**
+   * True → the export accepts a rich `{ runs }` value for this input (font
+   * face / color / underline). May be absent on older payloads.
+   */
+  richText?: boolean;
 }
+
+/** One pickable font face for rich-text inputs (faces are standalone families). */
+export interface WboostRawRichTextFontOption {
+  /** The exact fontFamily string a rich run must carry. */
+  family: string;
+  fontName: string;
+  faceName: string;
+  weight: number;
+  style: string;
+  /** Absolute store URL of the font file (host may be `localhost` in dev — proxy it). */
+  url: string;
+}
+
+/** Fonts whitelist + brand color swatches for a variant's rich-text inputs. */
+export interface WboostRawRichTextOptions {
+  fonts: WboostRawRichTextFontOption[];
+  /** Lowercase `#rrggbb`, primary brand colors first. Suggestions, not a whitelist. */
+  colors: string[];
+}
+
+/**
+ * One project font face from `GET /api/projects/{projectId}/fonts` — the same
+ * shape as the rich-text option, but covering EVERY uploaded face of the
+ * project (fonts for client-side text measurement, not just rich whitelists).
+ * The endpoint may be absent on older API deploys (404).
+ */
+export type WboostRawProjectFont = WboostRawRichTextFontOption;
 
 /** Fabric text metrics of one text input. */
 export interface WboostRawTextStyle {
@@ -140,6 +172,11 @@ export interface WboostRawVariant {
   imageInputs?: WboostRawImageInput[];
   /** Containers ("smart text areas"). May be absent on older payloads. */
   containers?: WboostRawContainer[];
+  /**
+   * Fonts + swatches for rich-text inputs. Null/absent unless some input has
+   * `richText: true`.
+   */
+  richTextOptions?: WboostRawRichTextOptions | null;
 }
 
 /**

@@ -13,7 +13,7 @@ import * as Sentry from '@sentry/nextjs';
 import { AppError, ErrorCode, NetworkError } from '@/lib/core/errors';
 import { getWboostConfig, WboostConfig } from '@/lib/config';
 import { getWboostTokenManager, WboostTokenManager } from './token-manager';
-import type { WboostRawTemplate, WboostRawGalleryImage } from './types';
+import type { WboostRawTemplate, WboostRawGalleryImage, WboostRawProjectFont } from './types';
 import type { RenderInputValue, RenderImageValue } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
@@ -98,6 +98,38 @@ export class WboostClient {
     } catch {
       throw new AppError(
         'WBoost templates endpoint vrátil neplatný JSON',
+        ErrorCode.INTERNAL_ERROR,
+        502
+      );
+    }
+  }
+
+  /**
+   * List the project's font faces (`family` = the exact Fabric string that
+   * `inputs[].textStyle.fontFamily` and rich runs carry). Older API deploys
+   * don't have this endpoint (404) — callers fall back to the per-variant
+   * `richTextOptions.fonts`.
+   */
+  async listProjectFonts(): Promise<WboostRawProjectFont[]> {
+    const url = `${this.config.apiBase}/api/projects/${this.config.projectId}/fonts`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: 'Fetching project fonts',
+      level: 'info',
+      data: { projectId: this.config.projectId },
+    });
+
+    const res = await this.authedFetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    try {
+      return (await res.json()) as WboostRawProjectFont[];
+    } catch {
+      throw new AppError(
+        'WBoost fonts endpoint vrátil neplatný JSON',
         ErrorCode.INTERNAL_ERROR,
         502
       );

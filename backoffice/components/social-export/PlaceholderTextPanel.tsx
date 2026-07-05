@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
-import Input from '@/components/ui/Input';
+import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import FieldInsertMenu from './FieldInsertMenu';
-import type { TemplateInputDTO } from '@/lib/social-export/api-types';
+import RichTextEditor from './RichTextEditor';
+import type { RichTextOptionsDTO, TemplateInputDTO } from '@/lib/social-export/api-types';
 import type { MatchChip } from '@/lib/social-export/prefill';
 import {
   resolveInputLabel,
@@ -18,6 +19,8 @@ interface PlaceholderTextPanelProps {
   index: number;
   state: InputFieldState;
   chips: MatchChip[];
+  /** Fonts + swatches for rich-text inputs (variant.richTextOptions). */
+  richTextOptions?: RichTextOptionsDTO | null;
   onChange: (partial: Partial<InputFieldState>) => void;
   onClose: () => void;
 }
@@ -33,28 +36,32 @@ export default function PlaceholderTextPanel({
   index,
   state,
   chips,
+  richTextOptions,
   onChange,
   onClose,
 }: PlaceholderTextPanelProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const label = resolveInputLabel(input, index);
   const value = state.value;
   const isHidden = state.hidden;
   const validationError = validateInputValue(input, value) ?? undefined;
+  const isRich = input.richText && richTextOptions != null;
 
-  // Focus the value input on open for keyboard-first editing.
+  // Focus the value input on open for keyboard-first editing (the rich editor
+  // focuses itself via autoFocus).
   useEffect(() => {
     inputRef.current?.focus();
     inputRef.current?.select();
   }, []);
 
   // Set the field to a chosen match-data value (replace), respecting maxLength.
+  // Inserted match data is always PLAIN — clear any rich formatting.
   function handleInsert(insertValue: string) {
     let next = insertValue;
     if (input.maxLength != null && next.length > input.maxLength) {
       next = next.slice(0, input.maxLength);
     }
-    onChange({ value: next });
+    onChange({ value: next, runs: null });
   }
 
   return (
@@ -78,16 +85,27 @@ export default function PlaceholderTextPanel({
 
       <div className="flex items-start gap-2">
         <div className="flex-1">
-          <Input
-            ref={inputRef}
-            value={value}
-            disabled={isHidden}
-            maxLength={input.maxLength ?? undefined}
-            onChange={(e) => onChange({ value: e.target.value })}
-            error={validationError}
-            style={input.uppercase ? { textTransform: 'uppercase' } : undefined}
-            placeholder={label}
-          />
+          {isRich && richTextOptions ? (
+            <RichTextEditor
+              input={input}
+              options={richTextOptions}
+              state={state}
+              disabled={isHidden}
+              autoFocus
+              onChange={onChange}
+            />
+          ) : (
+            <AutoGrowTextarea
+              ref={inputRef}
+              value={value}
+              disabled={isHidden}
+              maxLength={input.maxLength ?? undefined}
+              onChange={(e) => onChange({ value: e.target.value })}
+              error={validationError}
+              style={input.uppercase ? { textTransform: 'uppercase' } : undefined}
+              placeholder={label}
+            />
+          )}
         </div>
         {chips.length > 0 && (
           <FieldInsertMenu chips={chips} disabled={isHidden} onSelect={handleInsert} />

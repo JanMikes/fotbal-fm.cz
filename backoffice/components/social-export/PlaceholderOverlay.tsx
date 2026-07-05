@@ -5,7 +5,11 @@ import PlaceholderTools from './PlaceholderTools';
 import { resolveInputLabel, isEditable, type InputFieldState } from '@/lib/social-export/field-rules';
 import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import { canvasToDisplay, type DisplayRect } from '@/lib/social-export/geometry';
-import type { TemplateVariantDTO, TemplateContainerDTO } from '@/lib/social-export/api-types';
+import type {
+  TemplateVariantDTO,
+  TemplateContainerDTO,
+  ImageFrameDTO,
+} from '@/lib/social-export/api-types';
 
 /** Identifies which kind of placeholder a box belongs to. */
 export type ActivePlaceholder =
@@ -32,6 +36,12 @@ interface PlaceholderOverlayProps {
    * (`container_overflow` 400): its zone + member boxes go red.
    */
   overflowContainerId?: string | null;
+  /**
+   * Live text-box frames (canvas px) computed from the typed values
+   * (`computeTextFrames`): measured heights + container reflow. Falls back to
+   * the designed frames for inputs missing from the map.
+   */
+  textFrames?: Record<string, ImageFrameDTO>;
 }
 
 interface OverlayItem {
@@ -111,6 +121,7 @@ export default function PlaceholderOverlay({
   imageState,
   onToggleHidden,
   overflowContainerId = null,
+  textFrames,
 }: PlaceholderOverlayProps) {
   const items: OverlayItem[] = [];
 
@@ -120,7 +131,7 @@ export default function PlaceholderOverlay({
       key: `text-${input.id}`,
       kind: 'text',
       id: input.id,
-      rect: canvasToDisplay(input.frame, scale),
+      rect: canvasToDisplay(textFrames?.[input.id] ?? input.frame, scale),
       label: resolveInputLabel(input, index),
       editable: isEditable(input),
       hidable: input.hidable,
