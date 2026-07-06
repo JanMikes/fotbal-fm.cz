@@ -145,6 +145,19 @@ export class MatchRepository implements RepositoryWithUploads<
    * Find matches with minimal populate for dashboard/calendar views.
    */
   async findAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Match[]> {
+    if (options?.limit) {
+      const result = await this.client.findMany<StrapiRawMatch>(
+        CONTENT_TYPE,
+        {
+          populate: SUMMARY_POPULATE,
+          sort: 'matchDate:desc',
+          pagination: { limit: options.limit },
+          filters: options.filters,
+        }
+      );
+      return mapMatches(result.data);
+    }
+
     const allMatches: StrapiRawMatch[] = [];
     let page = 1;
     const pageSize = 100;

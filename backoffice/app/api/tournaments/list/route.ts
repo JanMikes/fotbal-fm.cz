@@ -4,6 +4,8 @@ import {
   apiSuccess,
   ApiErrors,
   addApiBreadcrumb,
+  parseListParams,
+  combineFilters,
 } from '@/lib/api';
 import { TournamentService } from '@/lib/services';
 
@@ -12,22 +14,38 @@ export const GET = withAuth(async (
   { jwt }
 ) => {
   const { searchParams } = new URL(request.url);
-  const category = searchParams.get('category');
+  const { page, pageSize, search, category } = parseListParams(searchParams);
 
-  addApiBreadcrumb('Listing tournaments', { category });
+  addApiBreadcrumb('Listing tournaments', { category, search, page, pageSize });
 
   const service = TournamentService.forUser(jwt);
 
-  const filters: Record<string, unknown> = {};
+  const conditions: Record<string, unknown>[] = [];
   if (category) {
-    filters.categories = { documentId: { $eq: category } };
+    conditions.push({ categories: { documentId: { $eq: category } } });
+  }
+  if (search) {
+    conditions.push({
+      $or: [
+        { name: { $containsi: search } },
+        { location: { $containsi: search } },
+        { description: { $containsi: search } },
+      ],
+    });
   }
 
-  const result = await service.getAll(undefined, Object.keys(filters).length > 0 ? filters : undefined);
+  const result = await service.getPaginated({
+    page,
+    pageSize,
+    filters: combineFilters(conditions),
+  });
 
   if (!result.success) {
     return ApiErrors.serverError(result.error.message);
   }
 
-  return apiSuccess({ tournaments: result.data });
+  return apiSuccess({
+    tournaments: result.data.data,
+    pagination: result.data.pagination,
+  });
 });

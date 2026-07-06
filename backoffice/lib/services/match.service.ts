@@ -5,7 +5,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Match, CreateMatchRequest } from '@/types/match';
-import { MatchRepository, UploadResults } from '@/lib/repositories';
+import { MatchRepository, UploadResults, PaginatedResult, UserFilterOptions } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserMatchRepository } from '@/lib/di';
@@ -141,11 +141,34 @@ export class MatchService {
   }
 
   /**
+   * Get a single page of matches with optional filters and sort
+   */
+  async getPaginated(options: UserFilterOptions): Promise<Result<PaginatedResult<Match>, AppError>> {
+    try {
+      const result = await this.repository.findPaginated(options);
+      return ok(result);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'MatchService', method: 'getPaginated' },
+        extra: { options },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání zápasů',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Get all matches with minimal data for dashboard/calendar
    */
-  async getAllSummary(limit?: number): Promise<Result<Match[], AppError>> {
+  async getAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Result<Match[], AppError>> {
     try {
-      const matches = await this.repository.findAllSummary({ limit });
+      const matches = await this.repository.findAllSummary(options);
       return ok(matches);
     } catch (error) {
       Sentry.captureException(error, {

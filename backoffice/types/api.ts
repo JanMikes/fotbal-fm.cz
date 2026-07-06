@@ -66,6 +66,14 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
+// Pagination metadata returned by paginated list endpoints
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  pageCount: number;
+  total: number;
+}
+
 export interface AuthResponse {
   success: boolean;
   user?: User;

@@ -5,7 +5,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Event, CreateEventRequest } from '@/types/event';
-import { EventRepository, UploadResults } from '@/lib/repositories';
+import { EventRepository, UploadResults, PaginatedResult, UserFilterOptions } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserEventRepository } from '@/lib/di';
@@ -141,11 +141,34 @@ export class EventService {
   }
 
   /**
+   * Get a single page of events with optional filters and sort
+   */
+  async getPaginated(options: UserFilterOptions): Promise<Result<PaginatedResult<Event>, AppError>> {
+    try {
+      const result = await this.repository.findPaginated(options);
+      return ok(result);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'EventService', method: 'getPaginated' },
+        extra: { options },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání událostí',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Get all events with minimal data for dashboard/calendar
    */
-  async getAllSummary(limit?: number): Promise<Result<Event[], AppError>> {
+  async getAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Result<Event[], AppError>> {
     try {
-      const events = await this.repository.findAllSummary({ limit });
+      const events = await this.repository.findAllSummary(options);
       return ok(events);
     } catch (error) {
       Sentry.captureException(error, {

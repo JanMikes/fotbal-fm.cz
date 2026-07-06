@@ -5,7 +5,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Tournament, CreateTournamentRequest } from '@/types/tournament';
-import { TournamentRepository, UploadResults } from '@/lib/repositories';
+import { TournamentRepository, UploadResults, PaginatedResult, UserFilterOptions } from '@/lib/repositories';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, NotFoundError, ErrorCode } from '@/lib/core/errors';
 import { createUserTournamentRepository } from '@/lib/di';
@@ -138,11 +138,34 @@ export class TournamentService {
   }
 
   /**
+   * Get a single page of tournaments with optional filters and sort
+   */
+  async getPaginated(options: UserFilterOptions): Promise<Result<PaginatedResult<Tournament>, AppError>> {
+    try {
+      const result = await this.repository.findPaginated(options);
+      return ok(result);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { service: 'TournamentService', method: 'getPaginated' },
+        extra: { options },
+      });
+
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(new AppError(
+        'Chyba při načítání turnajů',
+        ErrorCode.STRAPI_ERROR
+      ));
+    }
+  }
+
+  /**
    * Get all tournaments with minimal data for dashboard/calendar
    */
-  async getAllSummary(limit?: number): Promise<Result<Tournament[], AppError>> {
+  async getAllSummary(options?: { limit?: number; filters?: Record<string, unknown> }): Promise<Result<Tournament[], AppError>> {
     try {
-      const tournaments = await this.repository.findAllSummary({ limit });
+      const tournaments = await this.repository.findAllSummary(options);
       return ok(tournaments);
     } catch (error) {
       Sentry.captureException(error, {

@@ -16,6 +16,9 @@ interface DashboardCalendarProps {
   matches: Match[];
   tournaments: Tournament[];
   events: Event[];
+  currentMonth: Date;
+  onMonthChange: (month: Date) => void;
+  loading?: boolean;
 }
 
 interface CalendarItem {
@@ -32,8 +35,10 @@ export default function DashboardCalendar({
   matches,
   tournaments,
   events,
+  currentMonth,
+  onMonthChange,
+  loading = false,
 }: DashboardCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   // Build indicators map for calendar dots
@@ -206,13 +211,15 @@ export default function DashboardCalendar({
         </div>
       </div>
 
-      <Calendar
-        currentMonth={currentMonth}
-        selectedDate={selectedDate}
-        onMonthChange={setCurrentMonth}
-        onDayClick={setSelectedDate}
-        indicators={indicators}
-      />
+      <div className={`transition-opacity duration-200 ${loading ? 'opacity-60' : ''}`}>
+        <Calendar
+          currentMonth={currentMonth}
+          selectedDate={selectedDate}
+          onMonthChange={onMonthChange}
+          onDayClick={setSelectedDate}
+          indicators={indicators}
+        />
+      </div>
 
       {/* Selected day items */}
       {selectedDate && (

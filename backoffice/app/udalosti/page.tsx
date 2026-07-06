@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, Suspense, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Event } from '@/types/event';
+import { PaginationMeta } from '@/types/api';
 import EventCard from '@/components/EventCard';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
@@ -11,49 +12,112 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Alert from '@/components/ui/Alert';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import CategoryFilter from '@/components/ui/CategoryFilter';
+import SearchInput from '@/components/ui/SearchInput';
+import Pagination from '@/components/ui/Pagination';
+
+const PAGE_SIZE = 10;
 
 function EventsPageContent() {
   const { user, loading: userLoading } = useRequireAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const [events, setEvents] = useState<Event[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
   const showSuccess = searchParams.get('success') === 'true';
 
-  const fetchEvents = useCallback(async (category: string) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (category) {
-        params.set('category', category);
-      }
-      const response = await fetch(`/api/events/list?${params.toString()}`);
-      const data = await response.json();
+  const selectedCategory = searchParams.get('category') ?? '';
+  const search = searchParams.get('search') ?? '';
+  const parsedPage = Number.parseInt(searchParams.get('page') ?? '1', 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-      if (!data.success) {
-        throw new Error(data.error || 'Nepodařilo se načíst události');
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value) {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
       }
-
-      setEvents(data.data.events);
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Nepodařilo se načíst události');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
 
   useEffect(() => {
     if (!user) return;
-    fetchEvents(selectedCategory);
-  }, [user, selectedCategory, fetchEvents]);
+    let cancelled = false;
+
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const params = new URLSearchParams({
+          page: String(page),
+          pageSize: String(PAGE_SIZE),
+        });
+        if (selectedCategory) {
+          params.set('category', selectedCategory);
+        }
+        if (search) {
+          params.set('search', search);
+        }
+
+        const response = await fetch(`/api/events/list?${params.toString()}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Nepodařilo se načíst události');
+        }
+        if (cancelled) return;
+
+        setEvents(data.data.events);
+        setPagination(data.data.pagination ?? null);
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Nepodařilo se načíst události');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchEvents();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, selectedCategory, search, page]);
+
+  // If filters narrowed the results below the current page, jump back to page 1
+  useEffect(() => {
+    if (pagination && pagination.pageCount > 0 && page > pagination.pageCount) {
+      updateParams({ page: null });
+    }
+  }, [pagination, page, updateParams]);
 
   const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+    updateParams({ category: categoryId || null, page: null });
+  };
+
+  const handleSearchChange = (value: string) => {
+    updateParams({ search: value || null, page: null });
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    updateParams({ page: nextPage > 1 ? String(nextPage) : null });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (userLoading) {
@@ -85,10 +149,16 @@ function EventsPageContent() {
           </Link>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
           <CategoryFilter
             value={selectedCategory}
             onChange={handleCategoryChange}
+          />
+          <SearchInput
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Hledat podle názvu…"
+            className="max-w-md"
           />
         </div>
 
@@ -112,27 +182,45 @@ function EventsPageContent() {
               <CalendarDays className="w-10 h-10 text-text-muted" />
             </div>
             <h2 className="text-2xl font-semibold text-text-primary mb-2">
-              {selectedCategory ? 'Žádné události v této kategorii' : 'Zatím žádné události'}
+              {search
+                ? 'Žádné události neodpovídají hledání'
+                : selectedCategory
+                  ? 'Žádné události v této kategorii'
+                  : 'Zatím žádné události'}
             </h2>
             <p className="text-text-secondary mb-6">
-              Začněte vytvořením první události
+              {search
+                ? 'Zkuste upravit hledaný výraz nebo filtry'
+                : 'Začněte vytvořením první události'}
             </p>
-            <Link href="/nova-udalost">
-              <Button variant="primary" size="lg">
-                <Plus className="w-5 h-5 mr-2" />
-                Přidat první událost
-              </Button>
-            </Link>
+            {!search && (
+              <Link href="/nova-udalost">
+                <Button variant="primary" size="lg">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Přidat první událost
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="space-y-6">
-            {events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
+          <>
+            <div className="space-y-6">
+              {events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                />
+              ))}
+            </div>
+            {pagination && (
+              <Pagination
+                page={pagination.page}
+                pageCount={pagination.pageCount}
+                total={pagination.total}
+                onPageChange={handlePageChange}
               />
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { useUser } from '@/contexts/UserContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -17,33 +18,73 @@ interface DashboardData {
   events: Event[];
 }
 
+const EMPTY_DATA: DashboardData = { matches: [], tournaments: [], events: [] };
+
 export default function DashboardPage() {
   const { user, loading: userLoading } = useUser();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(() => new Date());
+  const [calendar, setCalendar] = useState<DashboardData>(EMPTY_DATA);
+  const [recent, setRecent] = useState<DashboardData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const recentLoadedRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
 
     const fetchData = async () => {
-      try {
-        const res = await fetch('/api/dashboard/summary');
-        const json = await res.json();
+      const initial = !recentLoadedRef.current;
+      if (initial) {
+        setLoading(true);
+      } else {
+        setCalendarLoading(true);
+      }
 
-        setData({
+      try {
+        // Fetch one month on each side so days from adjacent months shown
+        // in the grid (and range spillovers) have their indicators
+        const params = new URLSearchParams({
+          from: format(startOfMonth(subMonths(currentMonth, 1)), 'yyyy-MM-dd'),
+          to: format(endOfMonth(addMonths(currentMonth, 1)), 'yyyy-MM-dd'),
+        });
+        if (initial) {
+          params.set('recent', 'true');
+        }
+
+        const res = await fetch(`/api/dashboard/summary?${params.toString()}`);
+        const json = await res.json();
+        if (cancelled) return;
+
+        setCalendar({
           matches: json.data?.matches || [],
           tournaments: json.data?.tournaments || [],
           events: json.data?.events || [],
         });
+
+        if (json.data?.recent) {
+          recentLoadedRef.current = true;
+          setRecent({
+            matches: json.data.recent.matches || [],
+            tournaments: json.data.recent.tournaments || [],
+            events: json.data.recent.events || [],
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setCalendarLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, currentMonth]);
 
   if (userLoading) {
     return <LoadingSpinner />;
@@ -95,11 +136,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Calendar Section */}
-        {!loading && data && (
+        {!loading && (
           <DashboardCalendar
-            matches={data.matches}
-            tournaments={data.tournaments}
-            events={data.events}
+            matches={calendar.matches}
+            tournaments={calendar.tournaments}
+            events={calendar.events}
+            currentMonth={currentMonth}
+            onMonthChange={setCurrentMonth}
+            loading={calendarLoading}
           />
         )}
 
@@ -123,11 +167,11 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               </div>
-              {data?.matches.length === 0 ? (
+              {recent.matches.length === 0 ? (
                 <p className="text-text-muted text-sm">Žádné výsledky</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.matches.slice(0, 3).map((mr) => (
+                  {recent.matches.map((mr) => (
                     <Link key={mr.id} href={`/vysledek/${mr.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <div className="flex items-center justify-between mb-2">
@@ -182,11 +226,11 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               </div>
-              {data?.tournaments.length === 0 ? (
+              {recent.tournaments.length === 0 ? (
                 <p className="text-text-muted text-sm">Žádné turnaje</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.tournaments.slice(0, 3).map((t) => (
+                  {recent.tournaments.map((t) => (
                     <Link key={t.id} href={`/turnaj/${t.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
@@ -220,11 +264,11 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               </div>
-              {data?.events.length === 0 ? (
+              {recent.events.length === 0 ? (
                 <p className="text-text-muted text-sm">Žádné události</p>
               ) : (
                 <div className="space-y-4">
-                  {data?.events.slice(0, 3).map((e) => (
+                  {recent.events.map((e) => (
                     <Link key={e.id} href={`/udalost/${e.id}`} className="block">
                       <div className="p-3 bg-surface-elevated rounded-lg hover:bg-surface-hover transition-colors border border-border">
                         <p className="text-sm font-medium text-text-primary truncate">
