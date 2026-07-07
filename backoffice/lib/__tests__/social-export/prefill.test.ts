@@ -66,6 +66,7 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     containerId: null,
     textStyle: null,
     richText: false,
+    layerIndex: null,
     ...overrides,
   };
 }

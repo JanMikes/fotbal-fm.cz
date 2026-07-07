@@ -23,6 +23,7 @@ function makeImageInput(overrides: Partial<ImageInputDTO> = {}): ImageInputDTO {
     includesRoot: false,
     frame: { x: 0, y: 0, width: 400, height: 300 },
     defaultImageUrl: null,
+    layerIndex: null,
     ...overrides,
   };
 }

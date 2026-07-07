@@ -45,6 +45,14 @@ export interface WboostRawInput {
    * face / color / underline). May be absent on older payloads.
    */
   richText?: boolean;
+  /**
+   * Stacking position of the input's object on the variant canvas (0 =
+   * backmost, higher = painted on top). Shares ONE index space with
+   * `imageInputs[].layerIndex`; values may have gaps (decorative objects
+   * occupy positions too). Null when the object can't be located; may be
+   * absent on older payloads.
+   */
+  layerIndex?: number | null;
 }
 
 /** One pickable font face for rich-text inputs (faces are standalone families). */
@@ -151,6 +159,12 @@ export interface WboostRawImageInput {
   frame: WboostRawFrame | null;
   /** Stand-in shown if the slot is left empty. Absolute URL at the store host; nullable. */
   defaultImageUrl: string | null;
+  /**
+   * Stacking position of the slot's object on the variant canvas — one index
+   * space with `inputs[].layerIndex` (see there). Null when the object can't
+   * be located; may be absent on older payloads.
+   */
+  layerIndex?: number | null;
 }
 
 /** One renderable variant (a specific dimension/ratio) of a template. */

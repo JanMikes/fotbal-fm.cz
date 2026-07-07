@@ -48,6 +48,8 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     containerId: raw.containerId ?? null,
     textStyle: raw.textStyle ?? null,
     richText: raw.richText ?? false,
+    // Absent on older payloads → null (the layers panel sinks it to the end).
+    layerIndex: raw.layerIndex ?? null,
   };
 }
 
@@ -67,6 +69,8 @@ function mapImageInput(raw: WboostRawImageInput): ImageInputDTO {
     // Presigned store URL, loadable directly by the browser (not behind the
     // OAuth firewall, unlike the variant thumbnail endpoint).
     defaultImageUrl: raw.defaultImageUrl,
+    // Absent on older payloads → null (the layers panel sinks it to the end).
+    layerIndex: raw.layerIndex ?? null,
   };
 }
 

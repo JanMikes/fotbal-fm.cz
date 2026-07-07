@@ -34,6 +34,13 @@ export interface TemplateInputDTO {
    * The pickable fonts + swatches live in `TemplateVariantDTO.richTextOptions`.
    */
   richText: boolean;
+  /**
+   * Stacking position on the variant canvas (0 = backmost, higher = on top).
+   * One index space with `ImageInputDTO.layerIndex` — sort both lists together
+   * by it (descending = topmost first) to build the layers panel. Values may
+   * have gaps; null when the object can't be located (or on older API deploys).
+   */
+  layerIndex: number | null;
 }
 
 /**
@@ -148,6 +155,11 @@ export interface ImageInputDTO {
   frame: ImageFrameDTO | null;
   /** Stand-in shown when the slot is left empty; absolute store URL, nullable. */
   defaultImageUrl: string | null;
+  /**
+   * Stacking position on the variant canvas — one index space with
+   * `TemplateInputDTO.layerIndex` (see there). Null when unavailable.
+   */
+  layerIndex: number | null;
 }
 
 /** A pickable gallery image for an image slot (from the list/upload endpoints). */

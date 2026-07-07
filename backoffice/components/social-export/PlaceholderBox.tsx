@@ -8,6 +8,8 @@ interface PlaceholderBoxProps {
   rect: DisplayRect;
   /** Whether this box's editing panel is currently open. */
   active: boolean;
+  /** Whether the box's row is hovered in the layers panel: active-like emphasis. */
+  hovered?: boolean;
   /** Locked text inputs: muted, never-editable treatment. */
   readOnly?: boolean;
   /** Hidden slots: hatched "won't appear in the export" treatment. */
@@ -34,17 +36,19 @@ const HATCH =
 export default function PlaceholderBox({
   rect,
   active,
+  hovered = false,
   readOnly = false,
   hidden = false,
   error = false,
 }: PlaceholderBoxProps) {
+  const emphasized = active || hovered;
   const borderColor = error
     ? 'border-danger'
     : hidden
       ? 'border-text-muted'
       : readOnly
         ? 'border-text-muted/60'
-        : active
+        : emphasized
           ? 'border-accent'
           : 'border-accent/80';
 
@@ -60,7 +64,7 @@ export default function PlaceholderBox({
   return (
     <div
       className={`pointer-events-none absolute rounded-sm border-2 transition-colors ${
-        active && !hidden ? 'border-solid bg-accent/10' : 'border-dashed'
+        emphasized && !hidden ? 'border-solid bg-accent/10' : 'border-dashed'
       } ${borderColor}`}
       style={style}
       aria-hidden="true"

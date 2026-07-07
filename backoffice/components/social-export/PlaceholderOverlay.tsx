@@ -42,6 +42,11 @@ interface PlaceholderOverlayProps {
    * the designed frames for inputs missing from the map.
    */
   textFrames?: Record<string, ImageFrameDTO>;
+  /**
+   * Placeholder hovered in the layers panel — its box is drawn highlighted
+   * regardless of the border toggle (a pointing gesture, not a hint).
+   */
+  hovered?: ActivePlaceholder | null;
 }
 
 interface OverlayItem {
@@ -54,6 +59,8 @@ interface OverlayItem {
   hidable: boolean;
   hidden: boolean;
   active: boolean;
+  /** Hovered in the layers panel. */
+  hovered: boolean;
   /** Member of the container that overflowed on the last render. */
   error?: boolean;
 }
@@ -122,6 +129,7 @@ export default function PlaceholderOverlay({
   onToggleHidden,
   overflowContainerId = null,
   textFrames,
+  hovered = null,
 }: PlaceholderOverlayProps) {
   const items: OverlayItem[] = [];
 
@@ -137,6 +145,7 @@ export default function PlaceholderOverlay({
       hidable: input.hidable,
       hidden: formState[input.id]?.hidden ?? false,
       active: active?.kind === 'text' && active.id === input.id,
+      hovered: hovered?.kind === 'text' && hovered.id === input.id,
       error: overflowContainerId != null && input.containerId === overflowContainerId,
     });
   });
@@ -153,6 +162,7 @@ export default function PlaceholderOverlay({
       hidable: input.hidable,
       hidden: imageState[input.id]?.hidden ?? false,
       active: active?.kind === 'image' && active.id === input.id,
+      hovered: hovered?.kind === 'image' && hovered.id === input.id,
     });
   });
 
@@ -190,11 +200,12 @@ export default function PlaceholderOverlay({
           conveyed solely by the eye icon. Overflowing container members are
           always shown, in the error treatment. */}
       {items.map((item) =>
-        showBorders || item.active || item.error ? (
+        showBorders || item.active || item.hovered || item.error ? (
           <PlaceholderBox
             key={`box-${item.key}`}
             rect={item.rect}
             active={item.active}
+            hovered={item.hovered}
             readOnly={!item.editable}
             hidden={item.hidden}
             error={item.error}

@@ -8,7 +8,9 @@ import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay
 import FloatingPanel from './FloatingPanel';
 import PlaceholderTextPanel from './PlaceholderTextPanel';
 import ImagePickerModal from './images/ImagePickerModal';
+import LayersPanel from './LayersPanel';
 import { canvasToDisplay } from '@/lib/social-export/geometry';
+import { buildLayerRows } from '@/lib/social-export/layers';
 import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
@@ -96,6 +98,8 @@ export default function PreviewPanel({
   const [stageSize, setStageSize] = useState<{ width: number; height: number } | null>(null);
   // Which image slot's gallery picker is open (image pencil opens it directly).
   const [pickerImageId, setPickerImageId] = useState<string | null>(null);
+  // Placeholder hovered in the layers panel — its box highlights on the preview.
+  const [hovered, setHovered] = useState<ActivePlaceholder | null>(null);
   // Preview zoom (1 = 100%, the natural fit). Layout-based: changes the preview's
   // displayed width so the overlay re-measures and stays aligned (popovers crisp).
   const [zoom, setZoom] = useState(1);
@@ -152,6 +156,12 @@ export default function PreviewPanel({
       }
     },
     [formState, imageState, onFormChange, onImageChange]
+  );
+
+  // Layers panel rows: every placeholder in canvas stacking order, topmost first.
+  const layerRows = useMemo(
+    () => buildLayerRows(variant, formState, imageState),
+    [variant, formState, imageState]
   );
 
   // The open text panel (image edits go through the modal, never this panel).
@@ -253,8 +263,11 @@ export default function PreviewPanel({
           maxWidth caps the height (~78vh) while keeping the aspect ratio so a tall
           portrait template stays comfortable on screen. */}
       {/* Scroll viewport: at 100% the preview fits (no scroll); zooming in grows
-          the block past the column width and scrolls horizontally here. */}
-      <div className="overflow-x-auto">
+          the block past the column width and scrolls horizontally here. The
+          layers panel sits beside the viewport on large screens, under it on
+          small ones. */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <div className="min-w-0 flex-1 overflow-x-auto">
         <div
           className="mx-auto overflow-hidden rounded-xl border border-border bg-surface"
           style={{
@@ -312,6 +325,7 @@ export default function PreviewPanel({
               onToggleHidden={handleToggleHidden}
               overflowContainerId={overflowContainerId}
               textFrames={textFrames}
+              hovered={hovered}
             />
           )}
 
@@ -354,6 +368,17 @@ export default function PreviewPanel({
           )}
           </div>
         </div>
+      </div>
+
+      {/* Photoshop-style layers list — hover highlights the zone, click opens
+          the same editor the zone's pencil opens, eye mirrors the hide toggle. */}
+      <LayersPanel
+        rows={layerRows}
+        active={active}
+        onSelect={handleSelect}
+        onToggleHidden={handleToggleHidden}
+        onHover={setHovered}
+      />
       </div>
 
       {overflowWarning && <Alert variant="warning">{overflowWarning}</Alert>}
