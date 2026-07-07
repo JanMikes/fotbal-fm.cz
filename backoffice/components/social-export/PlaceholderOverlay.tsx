@@ -55,6 +55,8 @@ interface OverlayItem {
   id: string;
   rect: DisplayRect;
   label: string;
+  /** Horizontal anchor of the name tag, following the text alignment. */
+  align: 'left' | 'center' | 'right';
   editable: boolean;
   hidable: boolean;
   hidden: boolean;
@@ -135,12 +137,14 @@ export default function PlaceholderOverlay({
 
   variant.inputs.forEach((input, index) => {
     if (!input.frame) return;
+    const rawAlign = input.textStyle?.textAlign;
     items.push({
       key: `text-${input.id}`,
       kind: 'text',
       id: input.id,
       rect: canvasToDisplay(textFrames?.[input.id] ?? input.frame, scale),
       label: resolveInputLabel(input, index),
+      align: rawAlign === 'center' || rawAlign === 'right' ? rawAlign : 'left',
       editable: isEditable(input),
       hidable: input.hidable,
       hidden: formState[input.id]?.hidden ?? false,
@@ -158,6 +162,7 @@ export default function PlaceholderOverlay({
       id: input.id,
       rect: canvasToDisplay(input.frame, scale),
       label: resolveImageLabel(input, index),
+      align: 'left',
       editable: true,
       hidable: input.hidable,
       hidden: imageState[input.id]?.hidden ?? false,
@@ -209,6 +214,8 @@ export default function PlaceholderOverlay({
             readOnly={!item.editable}
             hidden={item.hidden}
             error={item.error}
+            label={item.label}
+            align={item.align}
           />
         ) : null
       )}

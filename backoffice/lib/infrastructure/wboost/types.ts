@@ -88,6 +88,8 @@ export interface WboostRawTextStyle {
   fontSize: number;
   lineHeight: number;
   charSpacing: number;
+  /** Horizontal alignment (left|center|right|justify); absent on older API deploys. */
+  textAlign?: string;
 }
 
 /**

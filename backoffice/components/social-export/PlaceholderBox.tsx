@@ -16,6 +16,10 @@ interface PlaceholderBoxProps {
   hidden?: boolean;
   /** Member of a container whose texts overflowed on the last render: red. */
   error?: boolean;
+  /** Field name shown as a small tag inside the box (top edge). */
+  label?: string;
+  /** Horizontal anchor of the name tag, following the text alignment. */
+  align?: 'left' | 'center' | 'right';
 }
 
 const DUAL_OUTLINE = '0 0 0 1px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.5)';
@@ -33,6 +37,13 @@ const HATCH =
  * over arbitrary artwork. Hidden slots get a hatched fill so the "will be removed
  * from the export" state reads at a glance, even before the debounced re-render.
  */
+// Name-tag horizontal anchor within the box, matching the text alignment.
+const TAG_ALIGN: Record<'left' | 'center' | 'right', string> = {
+  left: 'left-0 rounded-br-sm',
+  center: 'left-1/2 -translate-x-1/2 rounded-b-sm',
+  right: 'right-0 rounded-bl-sm',
+};
+
 export default function PlaceholderBox({
   rect,
   active,
@@ -40,6 +51,8 @@ export default function PlaceholderBox({
   readOnly = false,
   hidden = false,
   error = false,
+  label,
+  align = 'left',
 }: PlaceholderBoxProps) {
   const emphasized = active || hovered;
   const borderColor = error
@@ -51,6 +64,13 @@ export default function PlaceholderBox({
         : emphasized
           ? 'border-accent'
           : 'border-accent/80';
+
+  // Name tag colour follows the border treatment so the two read as one signal.
+  const tagColor = error
+    ? 'bg-danger'
+    : hidden || readOnly
+      ? 'bg-text-muted'
+      : 'bg-accent';
 
   const style: CSSProperties = {
     left: `${rect.left}px`,
@@ -68,6 +88,14 @@ export default function PlaceholderBox({
       } ${borderColor}`}
       style={style}
       aria-hidden="true"
-    />
+    >
+      {label ? (
+        <span
+          className={`pointer-events-none absolute top-0 max-w-full truncate px-1 py-px text-[11px] font-semibold leading-tight text-white ${tagColor} ${TAG_ALIGN[align]}`}
+        >
+          {label}
+        </span>
+      ) : null}
+    </div>
   );
 }
