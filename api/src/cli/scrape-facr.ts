@@ -7,6 +7,7 @@
  *
  * Usage:
  *   docker compose exec api npx tsx src/cli/scrape-facr.ts
+ *   docker compose exec api npx tsx src/cli/scrape-facr.ts --season 2025
  *
  * Environment variables:
  *   FACR_EMAIL    - FAČR IS login email
@@ -29,9 +30,14 @@ import {
   scrapeStandings,
   scrapePlayers,
   parseMatchRows,
+  FACR_CLUBS,
+  type FacrCompetition,
+  type FacrMatch,
   type FacrPlayer,
+  type FacrStanding,
   type XlsxRow,
 } from '../lib/facr.js';
+import { parseSeasonArg } from '../lib/cli-args.js';
 
 const DATA_DIR = path.join(__dirname, '../../data');
 const PHOTOS_DIR = path.join(DATA_DIR, 'photos');
@@ -86,40 +92,79 @@ async function main() {
 
   ensureDirs();
 
-  // 1. Scrape competitions
+  const seasonYear = parseSeasonArg(process.argv);
+
+  // 1. Scrape competitions (all club subjects)
   console.log('\n=== Scraping tournaments ===');
-  const tournaments = await scrapeCompetitions(email, password);
+  const tournaments: FacrCompetition[] = [];
+  const seenTournamentIds = new Set<string>();
+  for (const club of FACR_CLUBS) {
+    const clubCompetitions = await scrapeCompetitions(email, password, seasonYear, club);
+    for (const comp of clubCompetitions) {
+      if (comp.facrId && seenTournamentIds.has(comp.facrId)) continue;
+      if (comp.facrId) seenTournamentIds.add(comp.facrId);
+      tournaments.push(comp);
+    }
+  }
   fs.writeFileSync(
     path.join(DATA_DIR, 'tournaments.json'),
     JSON.stringify(tournaments, null, 2),
   );
   console.log(`Saved ${tournaments.length} tournaments to data/tournaments.json`);
 
-  // 2. Scrape matches (Excel → parsed JSON)
+  // 2. Scrape matches (Excel → parsed JSON, all club subjects)
   console.log('\n=== Scraping matches ===');
-  const xlsxBuffer = await scrapeMatchesXlsx(email, password);
-  const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
-  const sheetName = workbook.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]) as XlsxRow[];
-  const matches = parseMatchRows(rows);
+  const matches: FacrMatch[] = [];
+  const seenMatchIds = new Set<string>();
+  for (const club of FACR_CLUBS) {
+    const xlsxBuffer = await scrapeMatchesXlsx(email, password, seasonYear, club);
+    const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]) as XlsxRow[];
+    const clubMatches = parseMatchRows(rows);
+    console.log(`Parsed ${clubMatches.length} matches for ${club.name}`);
+    for (const match of clubMatches) {
+      if (seenMatchIds.has(match.facrId)) continue;
+      seenMatchIds.add(match.facrId);
+      matches.push(match);
+    }
+  }
   fs.writeFileSync(
     path.join(DATA_DIR, 'matches.json'),
     JSON.stringify(matches, null, 2),
   );
   console.log(`Saved ${matches.length} matches to data/matches.json`);
 
-  // 3. Scrape standings
+  // 3. Scrape standings (all club subjects)
   console.log('\n=== Scraping standings ===');
-  const standings = await scrapeStandings(email, password);
+  const standings: FacrStanding[] = [];
+  const seenStandingUuids = new Set<string>();
+  for (const club of FACR_CLUBS) {
+    const clubStandings = await scrapeStandings(email, password, seasonYear, club);
+    for (const standing of clubStandings) {
+      if (standing.facrUuid && seenStandingUuids.has(standing.facrUuid)) continue;
+      if (standing.facrUuid) seenStandingUuids.add(standing.facrUuid);
+      standings.push(standing);
+    }
+  }
   fs.writeFileSync(
     path.join(DATA_DIR, 'standings.json'),
     JSON.stringify(standings, null, 2),
   );
   console.log(`Saved ${standings.length} competition standings to data/standings.json`);
 
-  // 4. Scrape players + download photos
+  // 4. Scrape players + download photos (all club subjects)
   console.log('\n=== Scraping players ===');
-  const players = await scrapePlayers(email, password);
+  const players: FacrPlayer[] = [];
+  const seenPlayerIds = new Set<string>();
+  for (const club of FACR_CLUBS) {
+    const clubPlayers = await scrapePlayers(email, password, club);
+    for (const player of clubPlayers) {
+      if (seenPlayerIds.has(player.facrId)) continue;
+      seenPlayerIds.add(player.facrId);
+      players.push(player);
+    }
+  }
 
   // Download photos
   console.log(`\nDownloading photos for ${players.length} players...`);

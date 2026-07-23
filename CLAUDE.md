@@ -157,6 +157,10 @@ docker compose up --build
 
 All sync scripts require `FACR_EMAIL` and `FACR_PASSWORD` env vars (set in `compose.override.yaml`).
 
+**Seasons:** FAČR syncs scrape the *current* season by default (the pre-selected "Ročník" in FAČR IS; season 2026 = 2026/2027). Pass `--season 2025` to any FAČR sync/scrape script to target a specific season. Season is stored as the start year on tournaments, matches and standings. Standings sync only deletes stale rows within the competitions+seasons it scraped, so past-season tables are preserved.
+
+**Club subjects:** FAČR syncs scrape *all* club subjects listed in `FACR_CLUBS` (`api/src/lib/facr.ts`) and merge the results — currently FK Frýdek-Místek z.s. (8020091, youth) and FK Frýdek-Místek 1921 a.s. (8020601, Muži A/B since 2026/27). To add a subject, look up its internal id via `https://is.fotbal.cz/public/services/public-client.aspx?type=oddil&typ=1&query=<club number>` and append it to `FACR_CLUBS`.
+
 **Step 1: Sync tournaments (competitions) from FAČR**
 ```bash
 docker compose exec api npx tsx src/cli/sync-tournaments.ts

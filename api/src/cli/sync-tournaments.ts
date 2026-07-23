@@ -5,6 +5,7 @@
  * Usage:
  *   docker compose exec api npx tsx src/cli/sync-tournaments.ts
  *   docker compose exec api npx tsx src/cli/sync-tournaments.ts --from-file
+ *   docker compose exec api npx tsx src/cli/sync-tournaments.ts --season 2025
  *
  * Environment variables:
  *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
@@ -15,7 +16,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { scrapeCompetitions, type FacrCompetition } from '../lib/facr.js';
+import { scrapeCompetitions, FACR_CLUBS, type FacrCompetition } from '../lib/facr.js';
+import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 
 interface StrapiCategoryCode {
@@ -59,8 +61,19 @@ async function main() {
       process.exit(1);
     }
 
-    // 1. Scrape competitions from FAČR
-    scraped = await scrapeCompetitions(email, password);
+    // 1. Scrape competitions from FAČR for every club subject
+    //    (current season unless --season given)
+    const seasonYear = parseSeasonArg(process.argv);
+    scraped = [];
+    const seenFacrIds = new Set<string>();
+    for (const club of FACR_CLUBS) {
+      const clubCompetitions = await scrapeCompetitions(email, password, seasonYear, club);
+      for (const comp of clubCompetitions) {
+        if (comp.facrId && seenFacrIds.has(comp.facrId)) continue;
+        if (comp.facrId) seenFacrIds.add(comp.facrId);
+        scraped.push(comp);
+      }
+    }
 
     // Save to file so production deployments use fresh data
     const dataFilePath = path.join(__dirname, '../../data/tournaments.json');

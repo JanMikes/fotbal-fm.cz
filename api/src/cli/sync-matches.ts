@@ -7,6 +7,7 @@
  * Usage:
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --from-file
+ *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --season 2025
  *
  * Environment variables:
  *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
@@ -18,7 +19,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as XLSX from 'xlsx';
-import { scrapeMatchesXlsx, parseMatchRows, type FacrMatch, type XlsxRow } from '../lib/facr.js';
+import { scrapeMatchesXlsx, parseMatchRows, FACR_CLUBS, type FacrMatch, type XlsxRow } from '../lib/facr.js';
+import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 
 interface StrapiCategoryCode {
@@ -68,18 +70,25 @@ async function main() {
       process.exit(1);
     }
 
-    // 1. Download Excel from FAČR
-    const xlsxBuffer = await scrapeMatchesXlsx(email, password);
-
-    // 2. Parse Excel
-    console.log('\nParsing Excel...');
-    const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]) as XlsxRow[];
-    console.log(`Parsed ${rows.length} rows from sheet "${sheetName}"`);
-
-    parsedMatches = parseMatchRows(rows);
-    console.log(`Parsed ${parsedMatches.length} valid matches`);
+    // 1+2. Download and parse Excel from FAČR for every club subject
+    //      (current season unless --season given)
+    const seasonYear = parseSeasonArg(process.argv);
+    parsedMatches = [];
+    const seenFacrIds = new Set<string>();
+    for (const club of FACR_CLUBS) {
+      const xlsxBuffer = await scrapeMatchesXlsx(email, password, seasonYear, club);
+      const workbook = XLSX.read(xlsxBuffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]) as XlsxRow[];
+      const clubMatches = parseMatchRows(rows);
+      console.log(`Parsed ${clubMatches.length} valid matches for ${club.name} (${rows.length} rows)`);
+      for (const match of clubMatches) {
+        if (seenFacrIds.has(match.facrId)) continue;
+        seenFacrIds.add(match.facrId);
+        parsedMatches.push(match);
+      }
+    }
+    console.log(`Parsed ${parsedMatches.length} valid matches total`);
 
     // Save to file so production deployments use fresh data
     const dataFilePath = path.join(__dirname, '../../data/matches.json');

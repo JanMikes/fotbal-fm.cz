@@ -15,7 +15,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { scrapePlayers, type FacrPlayer } from '../lib/facr.js';
+import { scrapePlayers, FACR_CLUBS, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
@@ -136,7 +136,18 @@ async function main() {
     }
 
     // 1. Scrape players from FAČR
-    scraped = await scrapePlayers(email, password);
+    // Scrape players from every club subject (Muži A/B are registered
+    // under FK Frýdek-Místek 1921 a.s., the rest under z.s.)
+    scraped = [];
+    const seenFacrIds = new Set<string>();
+    for (const club of FACR_CLUBS) {
+      const clubPlayers = await scrapePlayers(email, password, club);
+      for (const player of clubPlayers) {
+        if (seenFacrIds.has(player.facrId)) continue;
+        seenFacrIds.add(player.facrId);
+        scraped.push(player);
+      }
+    }
 
     // Save to file so production deployments use fresh data
     const dataFilePath = path.join(__dirname, '../../data/players.json');

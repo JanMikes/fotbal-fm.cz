@@ -18,8 +18,26 @@
  */
 
 const FACR_BASE = 'https://is.fotbal.cz';
-const CLUB_NUMBER = '8020091';
-const CLUB_INTERNAL_ID = '2521';
+
+export interface FacrClub {
+  /** Public club number (číslo klubu) */
+  number: string;
+  /** FAČR internal id, from services/public-client.aspx?type=oddil&typ=1&query=<number> */
+  internalId: string;
+  name: string;
+}
+
+/**
+ * Club subjects to scrape. Muži B (and potentially more teams over time)
+ * play under the separate FK Frýdek-Místek 1921 a.s. subject; the z.s.
+ * subject covers the remaining categories.
+ */
+export const FACR_CLUBS: FacrClub[] = [
+  { number: '8020091', internalId: '2521', name: 'FK Frýdek-Místek z.s.' },
+  { number: '8020601', internalId: '30870', name: 'FK Frýdek-Místek 1921 a.s.' },
+];
+
+export const DEFAULT_CLUB = FACR_CLUBS[0];
 
 export interface FacrCompetition {
   facrId: string;
@@ -100,6 +118,62 @@ export function extractFormField(html: string, fieldName: string): string {
   );
   const match = html.match(regex);
   return match ? (match[1] ?? match[2] ?? '') : '';
+}
+
+export interface RocnikOption {
+  value: string;
+  text: string;
+  selected: boolean;
+}
+
+/**
+ * Parse the "Ročník" (season) dropdown options from a FAČR search page.
+ * The option value is an internal FAČR id (e.g. 19), the text is the
+ * season start year (e.g. "2026" for season 2026/2027).
+ */
+export function parseRocnikOptions(html: string): RocnikOption[] {
+  const selectMatch = html.match(
+    /<select[^>]*name="ctl00\$MainContent\$listSearchRocnik"[^>]*>([\s\S]*?)<\/select>/i,
+  );
+  if (!selectMatch) return [];
+
+  const options: RocnikOption[] = [];
+  const optionRegex = /<option[^>]*value="([^"]*)"[^>]*>([^<]*)<\/option>/gi;
+  let m;
+  while ((m = optionRegex.exec(selectMatch[1])) !== null) {
+    options.push({
+      value: m[1],
+      text: m[2].trim(),
+      selected: /selected/i.test(m[0]),
+    });
+  }
+  return options;
+}
+
+/**
+ * Resolve the FAČR internal ročník dropdown value for a season start year.
+ * Without seasonYear, returns the dropdown's pre-selected option — FAČR
+ * selects the current season by default. The value→year mapping is irregular
+ * (19→2026, 18→2025, 16→2024, …) so it must be read from the page.
+ */
+export function resolveRocnikValue(html: string, seasonYear?: number): string {
+  const options = parseRocnikOptions(html);
+  if (options.length === 0) {
+    throw new Error('Failed to parse FAČR ročník (season) dropdown');
+  }
+
+  if (seasonYear !== undefined) {
+    const match = options.find((o) => o.text === String(seasonYear));
+    if (!match) {
+      throw new Error(
+        `Season ${seasonYear} not found in FAČR ročník dropdown (available: ${options.map((o) => o.text).join(', ')})`,
+      );
+    }
+    return match.value;
+  }
+
+  const selected = options.find((o) => o.selected) ?? options[0];
+  return selected.value;
 }
 
 interface FacrSession {
@@ -218,11 +292,14 @@ function parseCompetitionsTable(html: string): FacrCompetition[] {
 }
 
 /**
- * Login to FAČR IS and scrape competitions for FK Frýdek-Místek.
+ * Login to FAČR IS and scrape competitions for one club subject.
+ * Without seasonYear, scrapes the current season (FAČR's default selection).
  */
 export async function scrapeCompetitions(
   email: string,
   password: string,
+  seasonYear?: number,
+  club: FacrClub = DEFAULT_CLUB,
 ): Promise<FacrCompetition[]> {
   const { accessToken, jar } = await facrLogin(email, password);
 
@@ -246,8 +323,10 @@ export async function scrapeCompetitions(
     throw new Error('Failed to extract __VIEWSTATE from competitions page');
   }
 
+  const rocnik = resolveRocnikValue(pageHtml, seasonYear);
+
   // Step 4: POST search with club number
-  console.log('[FAČR] Step 4: Searching competitions...');
+  console.log(`[FAČR] Step 4: Searching competitions for ${club.name} (ročník ${rocnik}${seasonYear ? ` = ${seasonYear}` : ' = current'})...`);
   const formData = new URLSearchParams({
     __EVENTTARGET: 'ctl00$MainContent$btnSearch',
     __EVENTARGUMENT: '',
@@ -260,12 +339,12 @@ export async function scrapeCompetitions(
     'ctl00$MainContent$bxOrgJednotka$txtNazevOrgJednotky': '',
     'ctl00$MainContent$bxOrgJednotka$hidIdOrgJednotky': '',
     'ctl00$MainContent$bxOrgJednotka$txtOrgJednotkyParam': '',
-    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
-    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
-    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
-    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': club.number,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': club.name,
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': club.internalId,
+    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': club.internalId,
     'ctl00$MainContent$txtSearchNazev': '',
-    'ctl00$MainContent$listSearchRocnik': '18',
+    'ctl00$MainContent$listSearchRocnik': rocnik,
     'ctl00$MainContent$txtSearchKod': '',
     'ctl00$MainContent$txtSearchCislo': '',
   });
@@ -356,9 +435,11 @@ function parseStandingsTable(html: string): FacrStandingRow[] {
 export async function scrapeStandings(
   email: string,
   password: string,
+  seasonYear?: number,
+  club: FacrClub = DEFAULT_CLUB,
 ): Promise<FacrStanding[]> {
   // 1. Scrape competitions to get UUIDs
-  const competitions = await scrapeCompetitions(email, password);
+  const competitions = await scrapeCompetitions(email, password, seasonYear, club);
   console.log(`[FAČR] Scraping standings for ${competitions.length} competitions...`);
 
   // Re-login to get fresh session (scrapeCompetitions creates its own)
@@ -418,12 +499,16 @@ function formatCzechDate(date: Date): string {
 }
 
 /**
- * Get the start date of the current football season (1st July).
- * Season 2025/2026 starts on 01.07.2025.
+ * Get the season start date (1st July) as a Czech-formatted string.
+ * Season 2025/2026 starts on 01.07.2025. Without seasonYear, uses the
+ * current season (July–June window around today).
  */
-function getSeasonStartDate(): string {
-  const now = new Date();
-  const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+export function getSeasonStartDate(seasonYear?: number): string {
+  let year = seasonYear;
+  if (year === undefined) {
+    const now = new Date();
+    year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  }
   return formatCzechDate(new Date(year, 6, 1)); // July 1
 }
 
@@ -550,6 +635,8 @@ export function parseMatchRows(rows: XlsxRow[]): FacrMatch[] {
 export async function scrapeMatchesXlsx(
   email: string,
   password: string,
+  seasonYear?: number,
+  club: FacrClub = DEFAULT_CLUB,
 ): Promise<Buffer> {
   const { accessToken, jar } = await facrLogin(email, password);
 
@@ -573,11 +660,13 @@ export async function scrapeMatchesXlsx(
     throw new Error('Failed to extract __VIEWSTATE from matches page');
   }
 
+  const rocnik = resolveRocnikValue(pageHtml, seasonYear);
+
   // Step 4: POST search to load results (required before export)
   // Explicitly set txtDatumOd to season start — the FAČR form pre-fills it
   // with today's date, which would exclude past matches with updated scores.
-  const seasonStart = getSeasonStartDate();
-  console.log(`[FAČR] Step 4: Searching matches (from ${seasonStart})...`);
+  const seasonStart = getSeasonStartDate(seasonYear);
+  console.log(`[FAČR] Step 4: Searching matches for ${club.name} (ročník ${rocnik}, from ${seasonStart})...`);
   const searchFormData = new URLSearchParams({
     __EVENTTARGET: 'ctl00$MainContent$btnSearch',
     __EVENTARGUMENT: '',
@@ -589,15 +678,15 @@ export async function scrapeMatchesXlsx(
     'ctl00$MainContent$listSearchDruhSouteze': '0',
     'ctl00$MainContent$txtSearchSoutezNazev': '',
     'ctl00$MainContent$txtSearchSoutezCislo': '',
-    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
-    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
-    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': club.number,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': club.name,
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': club.internalId,
     'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
     'ctl00$MainContent$listOddilTyp': '0',
     'ctl00$MainContent$txtDatumOd': seasonStart,
     'ctl00$MainContent$txtDatumDo': '',
     'ctl00$MainContent$txtSearchHriste': '',
-    'ctl00$MainContent$listSearchRocnik': '18',
+    'ctl00$MainContent$listSearchRocnik': rocnik,
     'ctl00$MainContent$txtSearchCislo': '',
     'ctl00$MainContent$txtSearchkolo': '',
     'ctl00$MainContent$listZapasZahajen': '0',
@@ -642,15 +731,15 @@ export async function scrapeMatchesXlsx(
     'ctl00$MainContent$listSearchDruhSouteze': '0',
     'ctl00$MainContent$txtSearchSoutezNazev': '',
     'ctl00$MainContent$txtSearchSoutezCislo': '',
-    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
-    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
-    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': club.number,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': club.name,
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': club.internalId,
     'ctl00$MainContent$OddilBoxClenem$hidTypSportu': '1',
     'ctl00$MainContent$listOddilTyp': '0',
     'ctl00$MainContent$txtDatumOd': seasonStart,
     'ctl00$MainContent$txtDatumDo': '',
     'ctl00$MainContent$txtSearchHriste': '',
-    'ctl00$MainContent$listSearchRocnik': '18',
+    'ctl00$MainContent$listSearchRocnik': rocnik,
     'ctl00$MainContent$txtSearchCislo': '',
     'ctl00$MainContent$txtSearchkolo': '',
     'ctl00$MainContent$listZapasZahajen': '0',
@@ -834,6 +923,7 @@ async function scrapePlayerDetail(
 export async function scrapePlayers(
   email: string,
   password: string,
+  club: FacrClub = DEFAULT_CLUB,
 ): Promise<FacrPlayer[]> {
   const { accessToken, jar } = await facrLogin(email, password);
 
@@ -865,10 +955,10 @@ export async function scrapePlayers(
     __VIEWSTATE: viewState,
     __VIEWSTATEGENERATOR: viewStateGenerator,
     'ctl00$TopMenu$listChangeSport': '1',
-    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': CLUB_NUMBER,
-    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': 'FK Frýdek-Místek z.s.',
-    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': CLUB_INTERNAL_ID,
-    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': CLUB_INTERNAL_ID,
+    'ctl00$MainContent$OddilBoxClenem$txtCisloKlubu': club.number,
+    'ctl00$MainContent$OddilBoxClenem$txtNazevKlubu': club.name,
+    'ctl00$MainContent$OddilBoxClenem$hidIdKlubu': club.internalId,
+    'ctl00$MainContent$OddilBoxClenem$hidTypSportu': club.internalId,
     'ctl00$MainContent$txtSearchJmeno': '',
     'ctl00$MainContent$txtSearchPrijmeni': '',
     'ctl00$MainContent$txtSearchRodneCislo': '',

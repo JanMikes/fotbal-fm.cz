@@ -8,6 +8,7 @@
  * Usage:
  *   docker compose exec api npx tsx src/cli/sync-standings.ts
  *   docker compose exec api npx tsx src/cli/sync-standings.ts --from-file
+ *   docker compose exec api npx tsx src/cli/sync-standings.ts --season 2025
  *
  * Environment variables:
  *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
@@ -18,7 +19,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { scrapeStandings, type FacrStanding } from '../lib/facr.js';
+import { scrapeStandings, FACR_CLUBS, type FacrStanding } from '../lib/facr.js';
+import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
 
 interface StrapiCategoryCode {
@@ -70,8 +72,19 @@ async function main() {
       process.exit(1);
     }
 
-    // 1. Scrape standings from FAČR
-    scraped = await scrapeStandings(email, password);
+    // 1. Scrape standings from FAČR for every club subject
+    //    (current season unless --season given)
+    const seasonYear = parseSeasonArg(process.argv);
+    scraped = [];
+    const seenUuids = new Set<string>();
+    for (const club of FACR_CLUBS) {
+      const clubStandings = await scrapeStandings(email, password, seasonYear, club);
+      for (const standing of clubStandings) {
+        if (standing.facrUuid && seenUuids.has(standing.facrUuid)) continue;
+        if (standing.facrUuid) seenUuids.add(standing.facrUuid);
+        scraped.push(standing);
+      }
+    }
 
     // Save to file so production deployments use fresh data
     const dataFilePath = path.join(__dirname, '../../data/standings.json');
@@ -229,10 +242,16 @@ async function main() {
     }
   }
 
-  // 7. Delete stale standings (positions that no longer exist)
+  // 7. Delete stale standings (positions that no longer exist), but only
+  //    within competitions+seasons covered by this scrape — standings of
+  //    other seasons must survive so past-season tables stay on the web.
+  const scrapedCompSeasons = new Set(
+    scraped.map((s) => `${s.competitionCode}:${s.season}`),
+  );
   let deleted = 0;
   for (const [key, docId] of existingStandings) {
-    if (!processedKeys.has(key)) {
+    const compSeason = key.substring(0, key.lastIndexOf(':'));
+    if (scrapedCompSeasons.has(compSeason) && !processedKeys.has(key)) {
       await strapiDelete(`/standings/${docId}`);
       deleted++;
     }
