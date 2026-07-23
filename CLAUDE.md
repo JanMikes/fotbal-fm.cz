@@ -213,7 +213,9 @@ docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
 
 ### Web Cache
 
-The web app caches all Strapi data in Redis (24h TTL, key prefix `fotbalfm:`). Every sync script flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it). The Strapi webhook "Clear cache" → `http://web:3000/api/cache/clear` exists but is **disabled** by choice — sync-end flushing is the preferred invalidation. Consequence: content edited in Strapi admin/backoffice (news articles, pages) appears on the web only after cache expiry (max 24h), a sync run, or a manual flush via `POST /api/cache/clear` with header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`. Re-enable the webhook in Strapi admin (Settings → Webhooks) if immediate admin-edit invalidation is wanted. Note: Strapi loads webhook config at startup — restart strapi after changing it directly in the DB.
+The web app caches all Strapi data in Redis (24h TTL, key prefix `fotbalfm:`). Invalidation is two-fold:
+1. The Strapi webhook "Clear cache" → `http://web:3000/api/cache/clear` (header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`) fires on every entry create/update/delete, so content edited in Strapi admin or backoffice shows on the web immediately. Note: Strapi loads webhook config at startup — restart strapi after changing the webhook directly in the DB.
+2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs.
 
 ## Configuration Notes
 
