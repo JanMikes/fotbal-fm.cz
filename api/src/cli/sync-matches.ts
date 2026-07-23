@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 import { scrapeMatchesXlsx, parseMatchRows, FACR_CLUBS, type FacrMatch, type XlsxRow } from '../lib/facr.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
+import { flushWebCache } from '../lib/cache-flush.js';
 
 interface StrapiCategoryCode {
   id: number;
@@ -304,6 +305,8 @@ async function main() {
   if (uniqueWithout.length > 0) {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
+
+  await flushWebCache();
 }
 
 main().catch((err) => {

@@ -17,6 +17,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { scrapePlayers, FACR_CLUBS, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
+import { flushWebCache } from '../lib/cache-flush.js';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
@@ -246,6 +247,8 @@ async function main() {
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
   console.log(`  Photos:   ${photosUploaded}`);
+
+  await flushWebCache();
 }
 
 main().catch((err) => {

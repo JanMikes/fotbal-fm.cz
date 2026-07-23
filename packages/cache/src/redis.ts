@@ -8,6 +8,21 @@ function isServer(): boolean {
   return typeof window === 'undefined';
 }
 
+/**
+ * Close the shared client so short-lived processes (CLI sync scripts)
+ * can exit instead of hanging on the open connection.
+ */
+export async function closeRedisClient(): Promise<void> {
+  if (!redisClient) return;
+  const client = redisClient;
+  redisClient = null;
+  try {
+    await client.quit();
+  } catch {
+    client.disconnect();
+  }
+}
+
 export async function getRedisClient(): Promise<RedisClient | null> {
   if (!isServer()) return null;
 

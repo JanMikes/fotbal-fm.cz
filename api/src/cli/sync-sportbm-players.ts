@@ -28,6 +28,7 @@ import {
   type SportbmPlayer,
 } from '../lib/sportbm.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
+import { flushWebCache } from '../lib/cache-flush.js';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
@@ -406,6 +407,8 @@ async function main() {
     console.log(`  Photos uploaded: ${photosUploaded}`);
   }
 
+
+  await flushWebCache();
 }
 
 main().catch((err) => {

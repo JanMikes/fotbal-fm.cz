@@ -6,12 +6,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/strapi-client/package.json ./packages/strapi-client/
 COPY packages/form/package.json ./packages/form/
+COPY packages/cache/package.json ./packages/cache/
 COPY api/package.json ./api/
 
 # Create stubs for other workspace members
 RUN mkdir -p backoffice && echo '{"name":"@fotbal-fm/backoffice","version":"0.1.0","private":true}' > backoffice/package.json \
- && mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json \
- && mkdir -p packages/cache && echo '{"name":"@fotbal-fm/cache","version":"0.1.0","private":true}' > packages/cache/package.json
+ && mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json
 
 # Remove lockfile to avoid npm optional dependency bug (https://github.com/npm/cli/issues/4828)
 # where platform-specific bindings are skipped when lockfile was generated on a different OS

@@ -22,6 +22,7 @@ import * as path from 'path';
 import { scrapeStandings, FACR_CLUBS, type FacrStanding } from '../lib/facr.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
+import { flushWebCache } from '../lib/cache-flush.js';
 
 interface StrapiCategoryCode {
   id: number;
@@ -263,6 +264,8 @@ async function main() {
   console.log(`  Updated:  ${updated}`);
   console.log(`  Deleted:  ${deleted}`);
   console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
+
+  await flushWebCache();
 }
 
 main().catch((err) => {
