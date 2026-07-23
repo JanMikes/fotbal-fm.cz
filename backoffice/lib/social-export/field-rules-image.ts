@@ -7,9 +7,12 @@
  *  - bind by `id` (UUID), never by `name`
  *  - omit a slot entirely → its `defaultImageUrl` stand-in renders
  *  - `hide` honored only when `hidable: true`
- *  - `scale` (≠1) needs allowResize; `offsetX/Y` (≠0) need allowMove; `rotation`
+ *  - `scale` (≠1) needs allowResize; the pan (≠0) needs allowMove; `rotation`
  *    (≠0) needs allowRotate — sending a disallowed non-default → 400, so we never
  *    emit one
+ *  - the pan goes as `offsetXRatio`/`offsetYRatio` (a fraction of the slot's
+ *    frame), the portable form: the same value means the same crop in every
+ *    variant of the template, whose frames differ
  *  - a picture with no placement is sent as the SHORTHAND string (image id)
  */
 
@@ -32,9 +35,15 @@ export interface ImageSlotState {
   image: { id: string; url: string } | null;
   /** Multiplier on the object-contain fit (1.0 = exactly contain). */
   scale: number;
-  /** Pan from the frame centre, in canvas px. */
-  offsetX: number;
-  offsetY: number;
+  /**
+   * Pan from the frame centre as a FRACTION of the frame's width / height
+   * (0.25 = a quarter of the frame to the right / down), never canvas px: the
+   * same placeholder has a different frame in every variant, so the fraction is
+   * what keeps one crop intent when the user switches dimension — and it is the
+   * form WBoost's export API takes (`offsetXRatio` / `offsetYRatio`).
+   */
+  offsetXRatio: number;
+  offsetYRatio: number;
   /** Rotation in degrees. */
   rotation: number;
   /** Whether the user toggled "hide this slot" (only meaningful if hidable). */
@@ -43,7 +52,7 @@ export interface ImageSlotState {
 
 /** The neutral state for a freshly-seen slot: stand-in, centered, contained. */
 export function defaultImageSlotState(): ImageSlotState {
-  return { image: null, scale: 1, offsetX: 0, offsetY: 0, rotation: 0, hidden: false };
+  return { image: null, scale: 1, offsetXRatio: 0, offsetYRatio: 0, rotation: 0, hidden: false };
 }
 
 /** Resolve the slot label: name, else description, else a generic "Obrázek N". */
@@ -90,8 +99,8 @@ export function buildRenderImages(
     const obj: {
       imageId: string;
       scale?: number;
-      offsetX?: number;
-      offsetY?: number;
+      offsetXRatio?: number;
+      offsetYRatio?: number;
       rotation?: number;
     } = { imageId: s.image.id };
 
@@ -100,10 +109,12 @@ export function buildRenderImages(
       if (scale !== 1) obj.scale = scale;
     }
     if (slot.allowMove) {
-      const offsetX = round(s.offsetX);
-      const offsetY = round(s.offsetY);
-      if (offsetX !== 0) obj.offsetX = offsetX;
-      if (offsetY !== 0) obj.offsetY = offsetY;
+      // Sent as fractions of the frame — WBoost resolves them against this
+      // variant's own frame, so the value stays right in every dimension.
+      const offsetXRatio = round(s.offsetXRatio, 4);
+      const offsetYRatio = round(s.offsetYRatio, 4);
+      if (offsetXRatio !== 0) obj.offsetXRatio = offsetXRatio;
+      if (offsetYRatio !== 0) obj.offsetYRatio = offsetYRatio;
     }
     if (slot.allowRotate) {
       const rotation = round(s.rotation);

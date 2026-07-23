@@ -8,11 +8,16 @@ const inputFieldStateSchema = z.object({
   hidden: z.boolean(),
 });
 
+// The pan is stored as a fraction of the slot's frame. `offsetX`/`offsetY` are
+// the pre-portable px form: still accepted so a client mid-deploy can save, and
+// converted on read (applySavedState) against the slot's frame.
 const imageSlotStateSchema = z.object({
   image: z.object({ id: z.string(), url: z.string() }).nullable(),
   scale: z.number(),
-  offsetX: z.number(),
-  offsetY: z.number(),
+  offsetXRatio: z.number().optional(),
+  offsetYRatio: z.number().optional(),
+  offsetX: z.number().optional(),
+  offsetY: z.number().optional(),
   rotation: z.number(),
   hidden: z.boolean(),
 });

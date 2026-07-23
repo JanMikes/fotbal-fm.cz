@@ -1,5 +1,6 @@
 'use client';
 
+import ImagePlacementGhost from './ImagePlacementGhost';
 import PlaceholderBox from './PlaceholderBox';
 import PlaceholderTools from './PlaceholderTools';
 import { resolveInputLabel, isEditable, type InputFieldState } from '@/lib/social-export/field-rules';
@@ -31,6 +32,13 @@ interface PlaceholderOverlayProps {
   formState: Record<string, InputFieldState>;
   imageState: Record<string, ImageSlotState>;
   onToggleHidden: (placeholder: ActivePlaceholder) => void;
+  /** Placement edits from dragging / zooming a picture on the preview. */
+  onImageChange: (slotId: string, partial: Partial<ImageSlotState>) => void;
+  /**
+   * The preview currently on screen. A new one means the server has caught up
+   * with the placement, so the drag stand-ins step aside for it.
+   */
+  previewUrl?: string | null;
   /**
    * Container whose filled texts overflowed on the last render
    * (`container_overflow` 400): its zone + member boxes go red.
@@ -127,6 +135,8 @@ export default function PlaceholderOverlay({
   formState,
   imageState,
   onToggleHidden,
+  onImageChange,
+  previewUrl = null,
   overflowContainerId = null,
   textFrames,
   hovered = null,
@@ -213,6 +223,29 @@ export default function PlaceholderOverlay({
           />
         ) : null
       )}
+
+      {/* Layer 1.5 — the draggable pictures. Above the decorative boxes (so a
+          neighbour's border never eats the grab area) but below the tool
+          clusters, which must stay clickable over a picture. */}
+      {variant.imageInputs.map((input, index) => {
+        const state = imageState[input.id];
+        if (!input.frame || !state?.image || state.hidden) return null;
+
+        return (
+          <ImagePlacementGhost
+            key={`ghost-${input.id}`}
+            input={input}
+            frame={input.frame}
+            rect={canvasToDisplay(input.frame, scale)}
+            scale={scale}
+            state={state}
+            label={resolveImageLabel(input, index)}
+            previewUrl={previewUrl}
+            onChange={(partial) => onImageChange(input.id, partial)}
+            onSelect={() => onSelect({ kind: 'image', id: input.id })}
+          />
+        );
+      })}
 
       {/* Layer 2 — interactive tools, always on top. */}
       {items.map((item) => {

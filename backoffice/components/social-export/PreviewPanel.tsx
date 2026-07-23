@@ -6,12 +6,19 @@ import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
 import FloatingPanel from './FloatingPanel';
+import PlaceholderImagePanel from './PlaceholderImagePanel';
 import PlaceholderTextPanel from './PlaceholderTextPanel';
 import ImagePickerModal from './images/ImagePickerModal';
 import LayersPanel from './LayersPanel';
 import { canvasToDisplay } from '@/lib/social-export/geometry';
 import { buildLayerRows } from '@/lib/social-export/layers';
-import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
+import {
+  defaultImageSlotState,
+  hasAdjustments,
+  resolveImageLabel,
+  type ImageSlotState,
+} from '@/lib/social-export/field-rules-image';
+import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
 import type { MatchChip } from '@/lib/social-export/prefill';
@@ -52,7 +59,7 @@ interface PreviewPanelProps {
   textFrames: Record<string, ImageFrameDTO>;
 }
 
-const NEUTRAL = { scale: 1, offsetX: 0, offsetY: 0, rotation: 0 };
+const NEUTRAL = NEUTRAL_PLACEMENT;
 
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 3;
@@ -132,18 +139,28 @@ export default function PreviewPanel({
   // independent of the highlight toggle, which now only gates the dashed boxes.
   const overlayReady = !!previewUrl && stageSize != null && scale > 0;
 
-  // Pencil click: text opens the floating panel; image opens the gallery modal
-  // directly (no intermediate popover).
+  // Pencil / picture click. An EMPTY slot (or one the designer locked down) has
+  // nothing to place, so it goes straight to the gallery — the fastest path to
+  // the thing the user came for. A filled, adjustable slot opens its placement
+  // panel, from which "Vyměnit obrázek" still reaches the gallery.
   const handleSelect = useCallback(
     (p: ActivePlaceholder) => {
-      if (p.kind === 'image') {
+      if (p.kind === 'text') {
+        onSelect(p);
+        return;
+      }
+
+      const input = variant.imageInputs.find((i) => i.id === p.id);
+      const filled = imageState[p.id]?.image != null;
+
+      if (input && filled && hasAdjustments(input)) {
+        onSelect(p);
+      } else {
         onCloseActive();
         setPickerImageId(p.id);
-      } else {
-        onSelect(p);
       }
     },
-    [onSelect, onCloseActive]
+    [onSelect, onCloseActive, variant.imageInputs, imageState]
   );
 
   // Toggle the hidden flag of a placeholder from its on-box eye icon.
@@ -164,9 +181,15 @@ export default function PreviewPanel({
     [variant, formState, imageState]
   );
 
-  // The open text panel (image edits go through the modal, never this panel).
+  // The open text panel.
   const activeTextInput =
     active?.kind === 'text' ? variant.inputs.find((i) => i.id === active.id) ?? null : null;
+  // The open IMAGE placement panel (only ever opened for a filled, adjustable slot).
+  const activeImageInput =
+    active?.kind === 'image' ? variant.imageInputs.find((i) => i.id === active.id) ?? null : null;
+  const activeImageIndex = activeImageInput
+    ? variant.imageInputs.findIndex((i) => i.id === activeImageInput.id)
+    : -1;
   const activeTextIndex = activeTextInput
     ? variant.inputs.findIndex((i) => i.id === activeTextInput.id)
     : -1;
@@ -177,6 +200,12 @@ export default function PreviewPanel({
     const frame = textFrames[activeTextInput.id] ?? activeTextInput.frame;
     return frame ? canvasToDisplay(frame, scale) : null;
   }, [activeTextInput, overlayReady, scale, textFrames]);
+
+  // Anchor rect for the open image placement panel (the slot's designed frame).
+  const imageAnchorRect = useMemo(() => {
+    if (!activeImageInput?.frame || !overlayReady) return null;
+    return canvasToDisplay(activeImageInput.frame, scale);
+  }, [activeImageInput, overlayReady, scale]);
 
   // The image slot whose picker modal is open.
   const pickerInput = pickerImageId
@@ -323,6 +352,8 @@ export default function PreviewPanel({
               formState={formState}
               imageState={imageState}
               onToggleHidden={handleToggleHidden}
+              onImageChange={onImageChange}
+              previewUrl={previewUrl}
               overflowContainerId={overflowContainerId}
               textFrames={textFrames}
               hovered={hovered}
@@ -348,6 +379,31 @@ export default function PreviewPanel({
                 chips={chips}
                 richTextOptions={variant.richTextOptions}
                 onChange={(partial) => onFormChange(activeTextInput.id, partial)}
+                onClose={onCloseActive}
+              />
+            </FloatingPanel>
+          )}
+
+          {/* Floating placement panel anchored to the active IMAGE box: the
+              precise counterpart to dragging the picture on the preview. */}
+          {overlayReady && active && activeImageInput && imageAnchorRect && stageSize && (
+            <FloatingPanel
+              key={`${active.kind}:${active.id}`}
+              anchorRect={imageAnchorRect}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              label={resolveImageLabel(activeImageInput, activeImageIndex)}
+              onClose={onCloseActive}
+            >
+              <PlaceholderImagePanel
+                input={activeImageInput}
+                state={imageState[activeImageInput.id] ?? defaultImageSlotState()}
+                label={resolveImageLabel(activeImageInput, activeImageIndex)}
+                onChange={(partial) => onImageChange(activeImageInput.id, partial)}
+                onReplace={() => {
+                  onCloseActive();
+                  setPickerImageId(activeImageInput.id);
+                }}
                 onClose={onCloseActive}
               />
             </FloatingPanel>

@@ -120,7 +120,7 @@ describe('buildLayerRows', () => {
     const rows = buildLayerRows(
       variant,
       { t1: { value: '', hidden: true } },
-      { i1: { image: null, scale: 1, offsetX: 0, offsetY: 0, rotation: 0, hidden: true } }
+      { i1: { image: null, scale: 1, offsetXRatio: 0, offsetYRatio: 0, rotation: 0, hidden: true } }
     );
 
     expect(rows.find((r) => r.id === 't1')).toMatchObject({ hidable: true, hidden: true });

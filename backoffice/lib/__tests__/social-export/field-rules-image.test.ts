@@ -78,10 +78,14 @@ describe('buildRenderImages', () => {
     expect(payload['s']).toEqual({ imageId: 'img-9', scale: 1.4 });
   });
 
-  it('includes offsetX/offsetY only when allowMove and !== 0', () => {
+  it('sends the pan as frame fractions, only when allowMove and !== 0', () => {
     const inputs = [makeImageInput({ id: 's', allowMove: true })];
-    const payload = buildRenderImages(inputs, { s: makeSlotState({ image: IMG, offsetX: 20, offsetY: -10 }) });
-    expect(payload['s']).toEqual({ imageId: 'img-9', offsetX: 20, offsetY: -10 });
+    const payload = buildRenderImages(inputs, {
+      s: makeSlotState({ image: IMG, offsetXRatio: 0.2, offsetYRatio: -0.1 }),
+    });
+    // The portable form: WBoost resolves it against THIS variant's frame, so the
+    // same value keeps the crop when the user switches dimension.
+    expect(payload['s']).toEqual({ imageId: 'img-9', offsetXRatio: 0.2, offsetYRatio: -0.1 });
   });
 
   it('includes rotation only when allowRotate and !== 0', () => {
@@ -94,17 +98,29 @@ describe('buildRenderImages', () => {
     // State has placement values, but the slot allows none of them.
     const inputs = [makeImageInput({ id: 's' })];
     const payload = buildRenderImages(inputs, {
-      s: makeSlotState({ image: IMG, scale: 2, offsetX: 50, offsetY: 50, rotation: 30 }),
+      s: makeSlotState({ image: IMG, scale: 2, offsetXRatio: 0.5, offsetYRatio: 0.5, rotation: 30 }),
     });
     expect(payload['s']).toBe('img-9');
   });
 
-  it('rounds noisy values (scale 3dp, offsets/rotation integer)', () => {
+  it('rounds noisy values (scale 3dp, pan 4dp, rotation integer)', () => {
     const inputs = [makeImageInput({ id: 's', allowMove: true, allowResize: true, allowRotate: true })];
     const payload = buildRenderImages(inputs, {
-      s: makeSlotState({ image: IMG, scale: 1.23456, offsetX: 19.7, offsetY: -10.2, rotation: 7.6 }),
+      s: makeSlotState({
+        image: IMG,
+        scale: 1.23456,
+        offsetXRatio: 0.197531,
+        offsetYRatio: -0.102469,
+        rotation: 7.6,
+      }),
     });
-    expect(payload['s']).toEqual({ imageId: 'img-9', scale: 1.235, offsetX: 20, offsetY: -10, rotation: 8 });
+    expect(payload['s']).toEqual({
+      imageId: 'img-9',
+      scale: 1.235,
+      offsetXRatio: 0.1975,
+      offsetYRatio: -0.1025,
+      rotation: 8,
+    });
   });
 
   it('emits { hide: true } for a hidden hidable slot (ignores image)', () => {
@@ -122,8 +138,8 @@ describe('buildRenderImages', () => {
   it('combines allowed placement params into one object', () => {
     const inputs = [makeImageInput({ id: 's', allowMove: true, allowResize: true, allowRotate: true })];
     const payload = buildRenderImages(inputs, {
-      s: makeSlotState({ image: IMG, scale: 1.5, offsetX: 10, offsetY: 0, rotation: 45 }),
+      s: makeSlotState({ image: IMG, scale: 1.5, offsetXRatio: 0.1, offsetYRatio: 0, rotation: 45 }),
     });
-    expect(payload['s']).toEqual({ imageId: 'img-9', scale: 1.5, offsetX: 10, rotation: 45 });
+    expect(payload['s']).toEqual({ imageId: 'img-9', scale: 1.5, offsetXRatio: 0.1, rotation: 45 });
   });
 });

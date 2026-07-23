@@ -7,7 +7,7 @@
  * Client-safe (types + pure merge helpers only).
  */
 
-import type { TemplateVariantDTO } from './api-types';
+import type { ImageFrameDTO, TemplateVariantDTO } from './api-types';
 import type { InputFieldState } from './field-rules';
 import { normalizeRuns, plainText, isStyled } from './rich-text';
 import {
@@ -19,11 +19,25 @@ import {
   IMAGE_ROTATION_MIN,
   IMAGE_ROTATION_MAX,
 } from './field-rules-image';
+import { ratioFromOffset } from './image-placement';
+
+/**
+ * An image slot AS PERSISTED. The pan is stored as a fraction of the frame, but
+ * records written before that carry it in canvas px (`offsetX`/`offsetY`), and a
+ * record can always be older than the code reading it — so both forms are
+ * tolerated here and normalised by {@link applySavedState}.
+ */
+export type StoredImageSlotState = Omit<ImageSlotState, 'offsetXRatio' | 'offsetYRatio'> & {
+  offsetXRatio?: number;
+  offsetYRatio?: number;
+  offsetX?: number;
+  offsetY?: number;
+};
 
 /** The JSON blob persisted per (match, variant). */
 export interface SavedExportState {
   formState: Record<string, InputFieldState>;
-  imageState: Record<string, ImageSlotState>;
+  imageState: Record<string, StoredImageSlotState>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */
@@ -83,14 +97,23 @@ export function applySavedState(
   for (const slot of variant.imageInputs) {
     const slotState = saved.imageState?.[slot.id];
     if (slotState) {
-      imageState[slot.id] = sanitizeSlotState(slotState);
+      imageState[slot.id] = sanitizeSlotState(slotState, slot.frame);
     }
   }
 
   return { formState, imageState, restored: true };
 }
 
-function sanitizeSlotState(raw: ImageSlotState): ImageSlotState {
+/**
+ * Records written before the pan became frame-relative carry `offsetX`/`offsetY`
+ * in canvas px. They are converted here against the slot's frame — the same
+ * conversion the drag does — so an old save reopens on the crop it was made on
+ * instead of silently snapping back to centre.
+ */
+function sanitizeSlotState(
+  raw: StoredImageSlotState,
+  frame: ImageFrameDTO | null
+): ImageSlotState {
   const base = defaultImageSlotState();
 
   const image =
@@ -98,13 +121,26 @@ function sanitizeSlotState(raw: ImageSlotState): ImageSlotState {
       ? { id: raw.image.id, url: raw.image.url }
       : null;
 
+  const pan = (
+    ratio: unknown,
+    pixels: unknown,
+    frameSize: number | undefined,
+    fallback: number
+  ): number => {
+    if (typeof ratio === 'number' && Number.isFinite(ratio)) return ratio;
+    if (typeof pixels === 'number' && Number.isFinite(pixels) && frameSize) {
+      return ratioFromOffset(pixels, frameSize);
+    }
+    return fallback;
+  };
+
   return {
     image,
     scale: Number.isFinite(raw.scale)
       ? clamp(raw.scale, IMAGE_SCALE_MIN, IMAGE_SCALE_MAX)
       : base.scale,
-    offsetX: Number.isFinite(raw.offsetX) ? raw.offsetX : base.offsetX,
-    offsetY: Number.isFinite(raw.offsetY) ? raw.offsetY : base.offsetY,
+    offsetXRatio: pan(raw.offsetXRatio, raw.offsetX, frame?.width, base.offsetXRatio),
+    offsetYRatio: pan(raw.offsetYRatio, raw.offsetY, frame?.height, base.offsetYRatio),
     rotation: Number.isFinite(raw.rotation)
       ? clamp(raw.rotation, IMAGE_ROTATION_MIN, IMAGE_ROTATION_MAX)
       : base.rotation,

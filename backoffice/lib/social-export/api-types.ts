@@ -249,8 +249,12 @@ export type RenderImageValue =
   | {
       imageId?: string;
       scale?: number;
+      /** Pan in canvas px (single-variant form; we send the ratio instead). */
       offsetX?: number;
       offsetY?: number;
+      /** Pan as a fraction of the slot's frame — portable across variants. */
+      offsetXRatio?: number;
+      offsetYRatio?: number;
       rotation?: number;
       hide?: boolean;
     };

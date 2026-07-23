@@ -39,6 +39,8 @@ const renderImageValueSchema = z.union([
     scale: z.number().optional(),
     offsetX: z.number().optional(),
     offsetY: z.number().optional(),
+    offsetXRatio: z.number().optional(),
+    offsetYRatio: z.number().optional(),
     rotation: z.number().optional(),
     hide: z.boolean().optional(),
   }),
