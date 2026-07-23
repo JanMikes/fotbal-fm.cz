@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Trophy, Target, Users, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import type { PlayerHighlight, Standing } from '@/lib/types';
 import TeamLogo from '../ui/TeamLogo';
 import SectionHeader from '../ui/SectionHeader';
+import FilterSelect from '../ui/FilterSelect';
+import { formatSeason } from '@/lib/season';
 
 const MAX_VISIBLE_ROWS = 8;
 
@@ -49,31 +51,80 @@ interface StatisticsProps {
   playerCount: number;
 }
 
+function isOurTeamRow(row: Standing): boolean {
+  return row.teamName.toLowerCase().includes('frýdek');
+}
+
+interface CompetitionGroup {
+  code: string;
+  tournamentName: string | null;
+  rows: Standing[];
+  hasOurTeam: boolean;
+}
+
 export default function Statistics({ standings, playerHighlights, playerCount }: StatisticsProps) {
   const [showAll, setShowAll] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(0);
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
 
-  if (standings.length === 0) return null;
+  // Seasons with standings data, newest first. Default = newest with data.
+  const seasons = useMemo(() => {
+    const unique = new Set(standings.map((s) => s.season));
+    return [...unique].sort((a, b) => b - a);
+  }, [standings]);
 
-  const ourTeam = standings.find((s) =>
-    s.teamName.toLowerCase().includes('frýdek')
-  );
+  const activeSeason = selectedSeason !== null && seasons.includes(selectedSeason)
+    ? selectedSeason
+    : seasons[0] ?? null;
 
-  if (!ourTeam) return null;
+  // A category can have several competitions per season (e.g. main league +
+  // nadstavba) — group rows by competition so tables don't interleave.
+  const groups = useMemo<CompetitionGroup[]>(() => {
+    const byCode = new Map<string, Standing[]>();
+    for (const row of standings) {
+      if (row.season !== activeSeason) continue;
+      const rows = byCode.get(row.competitionCode) ?? [];
+      rows.push(row);
+      byCode.set(row.competitionCode, rows);
+    }
+    return [...byCode.entries()]
+      .map(([code, rows]) => ({
+        code,
+        tournamentName: rows[0]?.tournamentName ?? null,
+        rows: [...rows].sort((a, b) => a.position - b.position),
+        hasOurTeam: rows.some(isOurTeamRow),
+      }))
+      .sort((a, b) => {
+        if (a.hasOurTeam !== b.hasOurTeam) return a.hasOurTeam ? -1 : 1;
+        return b.rows.length - a.rows.length;
+      });
+  }, [standings, activeSeason]);
 
-  const tournamentName = ourTeam.tournamentName;
+  const activeGroup = groups.find((g) => g.code === selectedCode) ?? groups[0];
+  // Stats cards always describe our team's primary competition of the season
+  const primaryGroup = groups.find((g) => g.hasOurTeam);
+  const ourTeam = primaryGroup?.rows.find(isOurTeamRow);
 
-  const ourTeamIndex = standings.indexOf(ourTeam);
-  const needsTruncation = standings.length > MAX_VISIBLE_ROWS;
+  if (standings.length === 0 || activeSeason === null) return null;
+  if (!activeGroup || !ourTeam) return null;
+
+  const tournamentName = primaryGroup?.tournamentName ?? null;
+  const tableRows = activeGroup.rows;
+
+  const ourTeamIndex = tableRows.findIndex(isOurTeamRow);
+  const needsTruncation = tableRows.length > MAX_VISIBLE_ROWS;
 
   let visibleStandings: Standing[];
   if (showAll || !needsTruncation) {
-    visibleStandings = standings;
-  } else if (ourTeamIndex < MAX_VISIBLE_ROWS) {
-    visibleStandings = standings.slice(0, MAX_VISIBLE_ROWS);
+    visibleStandings = tableRows;
+  } else if (ourTeamIndex < 0 || ourTeamIndex < MAX_VISIBLE_ROWS) {
+    visibleStandings = tableRows.slice(0, MAX_VISIBLE_ROWS);
   } else {
-    visibleStandings = [...standings.slice(0, MAX_VISIBLE_ROWS - 1), ourTeam];
+    visibleStandings = [...tableRows.slice(0, MAX_VISIBLE_ROWS - 1), tableRows[ourTeamIndex]];
   }
+
+  const seasonLabel = `v sezóně ${formatSeason(activeSeason)}`;
 
   const seasonStats = [
     {
@@ -87,13 +138,13 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
       label: 'Odehraných zápasů',
       value: ourTeam.matchesPlayed,
       icon: Target,
-      description: 'v aktuální sezóně',
+      description: seasonLabel,
     },
     {
       label: 'Vstřelených gólů',
       value: ourTeam.goalsFor,
       icon: TrendingUp,
-      description: 'v aktuální sezóně',
+      description: seasonLabel,
     },
     {
       label: 'Hráčů v kádru',
@@ -128,8 +179,22 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
             Sezóna v číslech
           </h2>
           <p className="text-body-lg text-primary/60 max-w-xl mx-auto">
-            Aktuální statistiky v {tournamentName ?? 'soutěži'}
+            Statistiky v {tournamentName ?? 'soutěži'} {seasonLabel}
           </p>
+          {seasons.length > 1 && (
+            <div className="mt-6 flex justify-center">
+              <FilterSelect
+                label="Sezóna"
+                value={String(activeSeason)}
+                options={seasons.map((s) => ({ value: String(s), label: formatSeason(s) }))}
+                onChange={(value) => {
+                  setSelectedSeason(Number(value));
+                  setSelectedCode(null);
+                  setShowAll(false);
+                }}
+              />
+            </div>
+          )}
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
@@ -258,10 +323,24 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
             transition={{ duration: 0.5, delay: 0.2 }}
             className={!currentHighlight ? 'lg:col-span-2' : ''}
           >
-            <SectionHeader
-              title={tournamentName ?? 'Tabulka'}
-              icon={Trophy}
-            />
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <SectionHeader
+                title={activeGroup.tournamentName ?? 'Tabulka'}
+                icon={Trophy}
+              />
+              {groups.length > 1 && (
+                <FilterSelect
+                  label="Soutěž"
+                  value={activeGroup.code}
+                  options={groups.map((g) => ({ value: g.code, label: g.tournamentName ?? g.code }))}
+                  onChange={(value) => {
+                    setSelectedCode(value);
+                    setShowAll(false);
+                  }}
+                  className="shrink-0"
+                />
+              )}
+            </div>
 
             <div className="bg-primary overflow-hidden">
               <table className="w-full text-sm">

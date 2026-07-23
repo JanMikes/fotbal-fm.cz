@@ -30,6 +30,7 @@ export function mapMatch(raw: StrapiRawMatch): Match {
     round: raw.round,
     competitionName: raw.competitionName ?? '',
     tournamentName: raw.tournament?.name ?? null,
+    season: raw.season,
     status: hasScore ? 'finished' : 'upcoming',
   };
 }

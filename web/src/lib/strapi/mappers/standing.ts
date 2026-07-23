@@ -15,5 +15,7 @@ export function mapStanding(raw: StrapiRawStanding): Standing {
     goalsAgainst: raw.goalsAgainst,
     points: raw.points,
     tournamentName: raw.tournament?.name ?? null,
+    competitionCode: raw.competitionCode,
+    season: raw.season,
   };
 }

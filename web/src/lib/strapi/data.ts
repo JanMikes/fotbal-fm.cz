@@ -46,8 +46,12 @@ import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
 import { cacheGetOrSet } from '@fotbal-fm/cache';
+import { currentSeasonStartYear, seasonDateRange } from '@/lib/season';
 
 const TTL = 24 * 60 * 60; // 24 hours
+
+/** Substring identifying our club's teams (FK Frýdek-Místek, Frýdek-Místek B, …). */
+const CLUB_NAME_FRAGMENT = 'Frýdek';
 
 function today(): string {
   return new Date().toISOString().split('T')[0];
@@ -311,6 +315,86 @@ export async function getAllMatchesByCategory(categorySlug: string): Promise<Mat
       sort: 'matchDate:desc',
     });
     return data.map(mapMatch);
+  }, TTL);
+}
+
+export interface ClubMatchesFilter {
+  categorySlug?: string;
+  season: number;
+  homeAway?: 'home' | 'away';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ClubMatchesResult {
+  matches: Match[];
+  total: number;
+  pageCount: number;
+}
+
+/**
+ * Club-wide match listing for the "Kdy hrajeme" page: all categories,
+ * filterable by category, home/away and season. Matches without the synced
+ * season field (manually created) fall back to the season's date window.
+ */
+export async function getClubMatches(filter: ClubMatchesFilter): Promise<ClubMatchesResult> {
+  const { categorySlug, season, homeAway, page = 1, pageSize = 20 } = filter;
+  const cacheKey = `club-matches:${categorySlug ?? 'all'}:${season}:${homeAway ?? 'all'}:p${page}:s${pageSize}`;
+  return cacheGetOrSet(cacheKey, async () => {
+    const client = getStrapiClient();
+    const [seasonFrom, seasonTo] = seasonDateRange(season);
+    const filters: Record<string, unknown> = {
+      $or: [
+        { season: { $eq: season } },
+        { season: { $null: true }, matchDate: { $gte: seasonFrom, $lte: seasonTo } },
+      ],
+    };
+    if (categorySlug) {
+      filters.categories = { slug: { $eq: categorySlug } };
+    }
+    if (homeAway === 'home') {
+      filters.homeTeam = { name: { $containsi: CLUB_NAME_FRAGMENT } };
+    } else if (homeAway === 'away') {
+      filters.awayTeam = { name: { $containsi: CLUB_NAME_FRAGMENT } };
+    }
+
+    const { data, total } = await client.findMany<StrapiRawMatch>('matches', {
+      filters,
+      populate: {
+        tournament: { fields: ['name'] },
+        homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+        awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
+      },
+      sort: 'matchDate:asc',
+      pagination: { page, pageSize },
+    });
+
+    return {
+      matches: data.map(mapMatch),
+      total,
+      pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    };
+  }, TTL);
+}
+
+/**
+ * Seasons available across synced data (from tournaments), newest first.
+ * Always includes the current season.
+ */
+export async function getAvailableSeasons(): Promise<number[]> {
+  return cacheGetOrSet('seasons:available', async () => {
+    const client = getStrapiClient();
+    const { data } = await client.findMany<{ id: number; season: number | null }>('tournaments', {
+      fields: ['season'],
+      filters: { season: { $notNull: true } },
+      pagination: { pageSize: 100 },
+    });
+    const seasons = new Set<number>();
+    for (const t of data) {
+      if (t.season) seasons.add(t.season);
+    }
+    seasons.add(currentSeasonStartYear());
+    return [...seasons].sort((a, b) => b - a);
   }, TTL);
 }
 

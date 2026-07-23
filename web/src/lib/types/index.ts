@@ -62,6 +62,8 @@ export interface Standing {
   goalsAgainst: number;
   points: number;
   tournamentName: string | null;
+  competitionCode: string;
+  season: number;
 }
 
 export interface CategoryHeroData {
@@ -95,6 +97,7 @@ export interface Match {
   round: number | null;
   competitionName: string;
   tournamentName: string | null;
+  season: number | null;
   status: 'upcoming' | 'finished';
 }
 

@@ -32,6 +32,8 @@ const {
   getPartners,
   getPartnerBySlug,
   getStandingsByCategory,
+  getClubMatches,
+  getAvailableSeasons,
 } = await import('../../../lib/strapi/data');
 
 describe('data layer', () => {
@@ -557,6 +559,8 @@ describe('data layer', () => {
       expect(result[0].position).toBe(1);
       expect(result[0].points).toBe(25);
       expect(result[0].tournamentName).toBe('Divize E');
+      expect(result[0].season).toBe(2025);
+      expect(result[0].competitionCode).toBe('A1A');
     });
 
     it('handles null team relation gracefully', async () => {
@@ -591,6 +595,68 @@ describe('data layer', () => {
       const callArgs = mockFindMany.mock.calls[0][1];
       expect(callArgs.populate).toHaveProperty('team');
       expect(callArgs.populate).toHaveProperty('tournament');
+    });
+  });
+
+  describe('getClubMatches', () => {
+    it('filters by season field or date window for manual matches', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getClubMatches({ season: 2026 });
+
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.filters.$or).toEqual([
+        { season: { $eq: 2026 } },
+        { season: { $null: true }, matchDate: { $gte: '2026-07-01', $lte: '2027-06-30' } },
+      ]);
+      expect(callArgs.filters).not.toHaveProperty('categories');
+      expect(callArgs.filters).not.toHaveProperty('homeTeam');
+      expect(callArgs.pagination).toEqual({ page: 1, pageSize: 20 });
+    });
+
+    it('applies category and home filters', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getClubMatches({ season: 2025, categorySlug: 'muzi-a', homeAway: 'home', page: 2 });
+
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.filters.categories).toEqual({ slug: { $eq: 'muzi-a' } });
+      expect(callArgs.filters.homeTeam).toEqual({ name: { $containsi: 'Frýdek' } });
+      expect(callArgs.filters).not.toHaveProperty('awayTeam');
+      expect(callArgs.pagination).toEqual({ page: 2, pageSize: 20 });
+    });
+
+    it('applies away filter and computes pagination from total', async () => {
+      mockFindMany.mockResolvedValueOnce({ data: [], total: 42 });
+
+      const result = await getClubMatches({ season: 2025, homeAway: 'away' });
+
+      const callArgs = mockFindMany.mock.calls[0][1];
+      expect(callArgs.filters.awayTeam).toEqual({ name: { $containsi: 'Frýdek' } });
+      expect(result.total).toBe(42);
+      expect(result.pageCount).toBe(3);
+    });
+  });
+
+  describe('getAvailableSeasons', () => {
+    it('returns unique seasons newest first including the current season', async () => {
+      mockFindMany.mockResolvedValueOnce({
+        data: [
+          { id: 1, season: 2025 },
+          { id: 2, season: 2025 },
+          { id: 3, season: 2024 },
+        ],
+        total: 3,
+      });
+
+      const result = await getAvailableSeasons();
+
+      const now = new Date();
+      const currentSeason = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+      expect(result[0]).toBe(Math.max(2025, currentSeason));
+      expect(result).toContain(2025);
+      expect(result).toContain(2024);
+      expect(result).toEqual([...result].sort((a, b) => b - a));
     });
   });
 });
