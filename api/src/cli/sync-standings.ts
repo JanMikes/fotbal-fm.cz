@@ -20,6 +20,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { scrapeStandings, FACR_CLUBS, type FacrStanding } from '../lib/facr.js';
+import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
 import { flushWebCache } from '../lib/cache-flush.js';
@@ -93,6 +94,15 @@ async function main() {
     fs.writeFileSync(dataFilePath, JSON.stringify(scraped, null, 2));
     console.log(`Saved standings to ${dataFilePath}`);
   }
+
+  // FAČR names our club differently per competition — unify to the canonical name
+  scraped = scraped.map((standing) => ({
+    ...standing,
+    rows: standing.rows.map((row) => ({
+      ...row,
+      teamName: normalizeClubTeamName(row.teamName),
+    })),
+  }));
 
   // 2. Load category-code mappings from Strapi
   const categoryCodesRes = await strapiGet<StrapiCategoryCode>(
