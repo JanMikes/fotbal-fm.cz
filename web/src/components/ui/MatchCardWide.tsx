@@ -34,8 +34,13 @@ export default function MatchCardWide({ match, className }: MatchCardWideProps) 
         className
       )}
     >
-      {/* Left panel - round & date */}
+      {/* Left panel - category, round & date */}
       <div className="flex flex-col items-center justify-center bg-primary py-4 w-[120px] sm:w-[150px] shrink-0">
+        {match.categoryName && (
+          <span className="text-accent-light text-[11px] font-bold uppercase tracking-wider text-center leading-tight px-2 mb-2">
+            {match.categoryName}
+          </span>
+        )}
         {match.round && (
           <span className="text-white font-semibold text-sm mb-2">
             {match.round}. kolo

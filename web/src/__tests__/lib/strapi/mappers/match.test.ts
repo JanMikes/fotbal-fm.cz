@@ -85,4 +85,16 @@ describe('mapMatch', () => {
     }));
     expect(result.tournamentName).toBe('Zimní turnaj');
   });
+
+  it('maps first category name when populated', () => {
+    const result = mapMatch(makeRawMatch({
+      categories: [{ id: 1, documentId: 'cat-1', name: 'Muži A' }],
+    }));
+    expect(result.categoryName).toBe('Muži A');
+  });
+
+  it('defaults categoryName to null when categories not populated', () => {
+    const result = mapMatch(makeRawMatch());
+    expect(result.categoryName).toBeNull();
+  });
 });

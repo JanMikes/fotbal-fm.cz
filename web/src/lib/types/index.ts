@@ -97,6 +97,8 @@ export interface Match {
   round: number | null;
   competitionName: string;
   tournamentName: string | null;
+  /** Category name; only populated by queries that span categories (Kdy hrajeme). */
+  categoryName: string | null;
   season: number | null;
   status: 'upcoming' | 'finished';
 }

@@ -362,6 +362,7 @@ export async function getClubMatches(filter: ClubMatchesFilter): Promise<ClubMat
       filters,
       populate: {
         tournament: { fields: ['name'] },
+        categories: { fields: ['name'] },
         homeTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
         awayTeam: { fields: ['name'], populate: { logo: { fields: ['url', 'alternativeText', 'width', 'height'] } } },
       },
