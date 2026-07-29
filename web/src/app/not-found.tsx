@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Stránka nenalezena | FK Frýdek-Místek',
+  description: 'Požadovaná stránka neexistuje nebo byla přesunuta.',
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (

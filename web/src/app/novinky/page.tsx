@@ -1,14 +1,24 @@
+import type { Metadata } from 'next';
 import { getAllNewsArticles, getNewsArticleTypes, getCategories } from '@/lib/strapi/data';
 import { Breadcrumb, NewsCard } from '@/components/ui';
 import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
+import { pageMetadata } from '@/lib/seo';
 
 interface NovinkyPageProps {
   searchParams: Promise<{ stranka?: string; typ?: string; kategorie?: string }>;
 }
 
 const PAGE_SIZE = 12;
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Novinky',
+  description:
+    'Všechny novinky FK Frýdek-Místek na jednom místě — reporty ze zápasů, rozhovory, ' +
+    'informace o vstupenkách a permanentkách i dění v klubu. Filtrujte podle kategorie a typu.',
+  path: '/novinky',
+});
 
 export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));

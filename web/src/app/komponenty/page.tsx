@@ -1,10 +1,14 @@
+import type { Metadata } from 'next';
 import KomponentyContent from './KomponentyContent';
 import SidebarShowcase from './SidebarShowcase';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Komponenty | FK Frýdek-Místek',
-  description: 'Showcase all dynamic zone components',
-};
+export const metadata: Metadata = pageMetadata({
+  title: 'Komponenty',
+  description: 'Interní přehled dynamických komponent webu FK Frýdek-Místek.',
+  path: '/komponenty',
+  noIndex: true,
+});
 
 export default function KomponentyPage() {
   return (

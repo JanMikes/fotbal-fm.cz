@@ -4,6 +4,7 @@ import { PlayerDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
 import { getPlayerByCategoryAndSlug, getCategoryBySlug } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
+import { pageMetadata, toDescription } from '@/lib/seo';
 
 interface PlayerPageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -11,20 +12,45 @@ interface PlayerPageProps {
 
 export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
   const { category: categorySlug, slug } = await params;
-  const player = await getPlayerByCategoryAndSlug(categorySlug, slug);
+  const [player, category] = await Promise.all([
+    getPlayerByCategoryAndSlug(categorySlug, slug),
+    getCategoryBySlug(categorySlug),
+  ]);
+  const path = `/kategorie/${categorySlug}/hrac/${slug}`;
 
   if (!player) {
-    return { title: 'Hráč nenalezen | FK Frýdek-Místek' };
+    return pageMetadata({
+      title: 'Stránka nenalezena',
+      description: 'Požadovaný profil neexistuje nebo byl přesunut.',
+      path,
+      noIndex: true,
+    });
   }
 
-  return {
-    title: `${player.name} | FK Frýdek-Místek`,
-    description: player.bio || `Profil hráče ${player.name} - FK Frýdek-Místek`,
-    openGraph: {
-      title: player.name,
-      images: player.photo ? [{ url: toPublicUrl(player.photo.url) }] : undefined,
-    },
-  };
+  const categoryName = category?.name ?? categorySlug;
+  const isStaff = player.type === 'realizační tým';
+  const role = isStaff
+    ? player.positionText || 'člen realizačního týmu'
+    : [player.positionText || player.position, player.number ? `číslo ${player.number}` : null]
+        .filter(Boolean)
+        .join(', ');
+
+  const fallback = [
+    `${player.name} —`,
+    role ? `${role},` : null,
+    `${categoryName} FK Frýdek-Místek.`,
+    isStaff ? 'Profil člena realizačního týmu.' : 'Profil hráče, statistiky a odehrané zápasy.',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return pageMetadata({
+    title: player.name,
+    description: toDescription(player.bio, fallback),
+    path,
+    image: player.photo ? toPublicUrl(player.photo.url) : null,
+    type: 'profile',
+  });
 }
 
 export default async function PlayerPage({ params }: PlayerPageProps) {

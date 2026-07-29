@@ -1,5 +1,12 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCategoryGroups } from '@/lib/strapi/data';
+import { SITE_DESCRIPTION } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: '/' },
+};
 
 export default async function Home() {
   const categoryGroups = await getCategoryGroups();

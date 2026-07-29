@@ -2,11 +2,15 @@ import type { Metadata } from 'next';
 import { Breadcrumb } from '@/components/ui';
 import KdyHrajemeContent, { type HomeAwayFilter } from '@/components/sections/KdyHrajemeContent';
 import { getAvailableSeasons, getCategories, getClubMatches, type ClubMatchesResult } from '@/lib/strapi/data';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Kdy hrajeme | FK Frýdek-Místek',
-  description: 'Přehled zápasů všech kategorií FK Frýdek-Místek — filtrujte podle kategorie, domácích a venkovních zápasů a ročníku.',
-};
+export const metadata: Metadata = pageMetadata({
+  title: 'Kdy hrajeme',
+  description:
+    'Program zápasů všech kategorií FK Frýdek-Místek na jednom místě — filtrujte podle ' +
+    'kategorie, domácích a venkovních zápasů i ročníku.',
+  path: '/kdy-hrajeme',
+});
 
 const PAGE_SIZE = 20;
 

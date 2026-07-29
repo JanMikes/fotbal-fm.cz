@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { Header, Footer } from '@/components/layout';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { getCategoryGroups, getFooter, getNavigation, getNavigationPages } from '@/lib/strapi/data';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 import './globals.css';
 
 const GA_ID = 'G-5P268SSMFT';
@@ -15,33 +16,36 @@ const montserrat = Montserrat({
   weight: ['400', '500', '600', '700', '800', '900'],
 });
 
+const SITE_TITLE = `${SITE_NAME} | Oficiální web fotbalového klubu`;
+
 export const metadata: Metadata = {
-  title: 'FK Frýdek-Místek | Oficiální web fotbalového klubu',
-  description:
-    'Oficiální webové stránky fotbalového klubu FK Frýdek-Místek. Novinky, zápasy, tým a vše o klubu.',
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   keywords: [
     'FK Frýdek-Místek',
+    'Fotbal Frýdek-Místek',
+    'Válcovny',
+    'Lipina',
     'fotbal',
     'MSFL',
     'Frýdek-Místek',
     'fotbalový klub',
     'moravskoslezská fotbalová liga',
   ],
-  authors: [{ name: 'FK Frýdek-Místek' }],
+  authors: [{ name: SITE_NAME }],
   openGraph: {
     type: 'website',
     locale: 'cs_CZ',
-    url: 'https://fkfm.cz',
-    siteName: 'FK Frýdek-Místek',
-    title: 'FK Frýdek-Místek | Oficiální web fotbalového klubu',
-    description:
-      'Oficiální webové stránky fotbalového klubu FK Frýdek-Místek. Novinky, zápasy, tým a vše o klubu.',
+    url: '/',
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FK Frýdek-Místek | Oficiální web fotbalového klubu',
-    description:
-      'Oficiální webové stránky fotbalového klubu FK Frýdek-Místek. Novinky, zápasy, tým a vše o klubu.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,

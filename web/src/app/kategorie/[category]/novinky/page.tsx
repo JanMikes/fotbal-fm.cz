@@ -1,8 +1,10 @@
+import type { Metadata } from 'next';
 import { getNewsArticlesByCategory, getCategoryBySlug, getNewsArticleTypes } from '@/lib/strapi/data';
 import { Breadcrumb, NewsCard } from '@/components/ui';
 import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
+import { pageMetadata } from '@/lib/seo';
 
 interface NovinkyPageProps {
   params: Promise<{ category: string }>;
@@ -10,6 +12,20 @@ interface NovinkyPageProps {
 }
 
 const PAGE_SIZE = 12;
+
+export async function generateMetadata({ params }: NovinkyPageProps): Promise<Metadata> {
+  const { category: categorySlug } = await params;
+  const category = await getCategoryBySlug(categorySlug);
+  const name = category?.name ?? categorySlug;
+
+  return pageMetadata({
+    title: `Novinky — ${name}`,
+    description:
+      `Aktuality kategorie ${name} FK Frýdek-Místek — reporty ze zápasů, rozhovory, ` +
+      `pozvánky na utkání a dění kolem týmu.`,
+    path: `/kategorie/${categorySlug}/novinky`,
+  });
+}
 
 export default async function NovinkyPage({ params, searchParams }: NovinkyPageProps) {
   const { category: categorySlug } = await params;

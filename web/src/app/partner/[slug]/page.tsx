@@ -4,7 +4,9 @@ import Image from 'next/image';
 import { SidePanel } from '@/components/layout';
 import { Breadcrumb } from '@/components/ui';
 import { getPartnerBySlug } from '@/lib/strapi/data';
+import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
+import { pageMetadata, toDescription } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -15,13 +17,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const partner = await getPartnerBySlug(slug);
 
   if (!partner) {
-    return { title: 'Partner nenalezen | FK Frýdek-Místek' };
+    return pageMetadata({
+      title: 'Stránka nenalezena',
+      description: 'Požadovaný partner neexistuje nebo byl přesunut.',
+      path: `/partner/${slug}`,
+      noIndex: true,
+    });
   }
 
-  return {
-    title: `${partner.name} | Partneři | FK Frýdek-Místek`,
-    description: partner.description || undefined,
-  };
+  return pageMetadata({
+    title: `${partner.name} — Partneři`,
+    description: toDescription(
+      partner.description,
+      `${partner.name} je partnerem FK Frýdek-Místek. Přečtěte si více o partnerovi a jeho podpoře klubu.`,
+    ),
+    path: `/partner/${slug}`,
+    image: partner.logo ? toPublicUrl(partner.logo.url) : null,
+  });
 }
 
 export default async function PartnerDetailPage({ params }: PageProps) {

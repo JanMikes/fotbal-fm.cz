@@ -1,7 +1,10 @@
+import type { Metadata } from 'next';
 import { Hero, Matches, Statistics, CategorySwitcher } from '@/components/sections';
 import { NewsList, TeamSection } from '@/components/sections';
+import { pageMetadata } from '@/lib/seo';
 import {
   getAllMatchesByCategory,
+  getCategoryBySlug,
   getCategoryGroupByCategorySlug,
   getCategoryWithHeroBySlug,
   getFinishedMatches,
@@ -16,6 +19,20 @@ import {
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
+}
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { category: categorySlug } = await params;
+  const category = await getCategoryBySlug(categorySlug);
+  const name = category?.name ?? categorySlug;
+
+  return pageMetadata({
+    title: name,
+    description:
+      `${name} FK Frýdek-Místek (Válcovny, Lipina) — soupiska hráčů a realizačního týmu, ` +
+      `program zápasů, výsledky, tabulka soutěže a novinky kategorie.`,
+    path: `/kategorie/${categorySlug}`,
+  });
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

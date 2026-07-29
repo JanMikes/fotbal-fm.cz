@@ -4,6 +4,7 @@ import { SidePanel } from '@/components/layout';
 import { Breadcrumb } from '@/components/ui';
 import { getPageBySlug } from '@/lib/strapi/data';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
+import { pageMetadata, toDescription } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -14,13 +15,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const page = await getPageBySlug(slug);
 
   if (!page) {
-    return { title: 'Stránka nenalezena | FK Frýdek-Místek' };
+    return pageMetadata({
+      title: 'Stránka nenalezena',
+      description: 'Požadovaná stránka neexistuje nebo byla přesunuta.',
+      path: `/${slug}`,
+      noIndex: true,
+    });
   }
 
-  return {
-    title: `${page.title} | FK Frýdek-Místek`,
-    description: page.metaDescription || undefined,
-  };
+  return pageMetadata({
+    title: page.title,
+    description: toDescription(
+      page.metaDescription,
+      `${page.title} — oficiální web FK Frýdek-Místek (Válcovny, Lipina).`,
+    ),
+    path: `/${slug}`,
+  });
 }
 
 export default async function CmsPage({ params }: PageProps) {

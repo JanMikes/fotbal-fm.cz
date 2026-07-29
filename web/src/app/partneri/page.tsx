@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
 import { getPartners } from '@/lib/strapi/data';
 import { Breadcrumb, PartnerCard } from '@/components/ui';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Partneři | FK Frýdek-Místek',
-};
+export const metadata: Metadata = pageMetadata({
+  title: 'Partneři',
+  description:
+    'Partneři a sponzoři FK Frýdek-Místek. Firmy a instituce, které podporují fotbal ve ' +
+    'Frýdku-Místku od mládežnických kategorií až po A-tým.',
+  path: '/partneri',
+});
 
 export default async function PartneriPage() {
   const partners = await getPartners();

@@ -4,6 +4,7 @@ import { ArticleDetail } from '@/components/sections';
 import { Breadcrumb } from '@/components/ui';
 import { getNewsArticleBySlug, getSidebarArticles } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
+import { pageMetadata, toDescription } from '@/lib/seo';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -14,22 +15,24 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const article = await getNewsArticleBySlug(slug);
 
   if (!article) {
-    return { title: 'Článek nenalezen | FK Frýdek-Místek' };
+    return pageMetadata({
+      title: 'Stránka nenalezena',
+      description: 'Požadovaný článek neexistuje nebo byl přesunut.',
+      path: `/novinky/clanek/${slug}`,
+      noIndex: true,
+    });
   }
 
-  const description = article.description
-    ? article.description.replace(/<[^>]*>/g, '').slice(0, 160)
-    : undefined;
-
-  return {
-    title: `${article.title} | FK Frýdek-Místek`,
-    description,
-    openGraph: {
-      title: article.title,
-      description,
-      images: article.mainPhoto ? [{ url: toPublicUrl(article.mainPhoto.url) }] : undefined,
-    },
-  };
+  return pageMetadata({
+    title: article.title,
+    description: toDescription(
+      article.description,
+      `${article.title} — novinky z FK Frýdek-Místek.`,
+    ),
+    path: `/novinky/clanek/${slug}`,
+    image: article.mainPhoto ? toPublicUrl(article.mainPhoto.url) : null,
+    type: 'article',
+  });
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
