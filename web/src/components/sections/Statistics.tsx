@@ -9,6 +9,7 @@ import TeamLogo from '../ui/TeamLogo';
 import SectionHeader from '../ui/SectionHeader';
 import FilterSelect from '../ui/FilterSelect';
 import { formatSeason } from '@/lib/season';
+import { isCupCompetition } from '@/lib/competition';
 
 const MAX_VISIBLE_ROWS = 8;
 
@@ -60,6 +61,7 @@ interface CompetitionGroup {
   tournamentName: string | null;
   rows: Standing[];
   hasOurTeam: boolean;
+  isCup: boolean;
 }
 
 export default function Statistics({ standings, playerHighlights, playerCount }: StatisticsProps) {
@@ -94,9 +96,13 @@ export default function Statistics({ standings, playerHighlights, playerCount }:
         tournamentName: rows[0]?.tournamentName ?? null,
         rows: [...rows].sort((a, b) => a.position - b.position),
         hasOurTeam: rows.some(isOurTeamRow),
+        isCup: isCupCompetition(code, rows[0]?.tournamentName ?? null),
       }))
       .sort((a, b) => {
         if (a.hasOurTeam !== b.hasOurTeam) return a.hasOurTeam ? -1 : 1;
+        // League before cup: a 62-team cup round would otherwise outrank the
+        // league table on row count, especially early in the season.
+        if (a.isCup !== b.isCup) return a.isCup ? 1 : -1;
         return b.rows.length - a.rows.length;
       });
   }, [standings, activeSeason]);
