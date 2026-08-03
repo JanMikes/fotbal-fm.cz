@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   containScale,
+  coverScale,
+  coverGhostStyle,
   ghostStyle,
   offsetFromRatio,
   panFromDrag,
@@ -21,6 +23,44 @@ describe('containScale', () => {
 
   it('never returns a non-positive scale for a degenerate size', () => {
     expect(containScale(FRAME, { width: 0, height: 0 })).toBeGreaterThan(0);
+  });
+});
+
+describe('coverScale', () => {
+  it('is the LEAST scale that covers the frame (Math.max of the two ratios)', () => {
+    // 800×400 in a 400×300 frame: width fits at 0.5, height needs 0.75 → 0.75.
+    expect(coverScale(FRAME, { width: 800, height: 400 })).toBe(0.75);
+    // 300×1200: height fits at 0.25, width needs 4/3 → 4/3.
+    expect(coverScale(FRAME, { width: 300, height: 1200 })).toBeCloseTo(4 / 3);
+  });
+
+  it('never returns a non-positive scale for a degenerate size', () => {
+    expect(coverScale(FRAME, { width: 0, height: 0 })).toBeGreaterThan(0);
+  });
+});
+
+describe('coverGhostStyle (background slots)', () => {
+  it('cover-fits anchored top-left — overflow crops away bottom-right', () => {
+    // 800×400 in a 400×300 frame → cover 0.75 → 600×300 drawn from (0,0); the
+    // 200 px of overflow hang off the RIGHT edge (clipped by the frame box).
+    const style = coverGhostStyle(FRAME, { width: 800, height: 400 }, 1);
+
+    expect(style).toEqual({
+      width: '600px',
+      height: '300px',
+      left: '0px',
+      top: '0px',
+      transform: 'none',
+    });
+  });
+
+  it('scales everything by the display factor, anchor staying at the corner', () => {
+    const style = coverGhostStyle(FRAME, { width: 800, height: 400 }, 0.5);
+
+    expect(style.width).toBe('300px');
+    expect(style.height).toBe('150px');
+    expect(style.left).toBe('0px');
+    expect(style.top).toBe('0px');
   });
 });
 

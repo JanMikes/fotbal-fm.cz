@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   NEUTRAL_PLACEMENT,
+  coverGhostStyle,
   ghostStyle,
   panFromDrag,
   type Placement,
@@ -11,6 +12,7 @@ import {
   IMAGE_SCALE_MAX,
   IMAGE_SCALE_MIN,
   clamp,
+  hasAdjustments,
   type ImageSlotState,
 } from '@/lib/social-export/field-rules-image';
 import type { DisplayRect } from '@/lib/social-export/geometry';
@@ -66,6 +68,11 @@ export default function ImagePlacementGhost({
   onChange,
   onSelect,
 }: ImagePlacementGhostProps) {
+  // A background slot never pans/zooms — its fill is a deterministic top-left
+  // cover fit. The API guarantees its allow* flags are false; guarded anyway.
+  const canMove = input.allowMove && !input.isBackground;
+  const canResize = input.allowResize && !input.isBackground;
+
   const boxRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{
     pointerId: number;
@@ -142,7 +149,7 @@ export default function ImagePlacementGhost({
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const drag = dragRef.current;
-      if (!drag || drag.pointerId !== event.pointerId || !input.allowMove) return;
+      if (!drag || drag.pointerId !== event.pointerId || !canMove) return;
 
       const deltaX = event.clientX - drag.startX;
       const deltaY = event.clientY - drag.startY;
@@ -160,7 +167,7 @@ export default function ImagePlacementGhost({
         offsetYRatio: drag.baseY + pan.offsetYRatio,
       });
     },
-    [frame, scale, input.allowMove, onChange, startPlacing]
+    [frame, scale, canMove, onChange, startPlacing]
   );
 
   const handlePointerUp = useCallback(
@@ -177,7 +184,7 @@ export default function ImagePlacementGhost({
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
-      if (!input.allowResize) return;
+      if (!canResize) return;
 
       event.preventDefault();
       startPlacing();
@@ -190,7 +197,7 @@ export default function ImagePlacementGhost({
         scale: clamp(placement.scale + direction * step, IMAGE_SCALE_MIN, IMAGE_SCALE_MAX),
       });
     },
-    [input.allowResize, onChange, placement.scale, startPlacing]
+    [canResize, onChange, placement.scale, startPlacing]
   );
 
   // Wheel must be a non-passive native listener: React's onWheel is passive, so
@@ -213,7 +220,7 @@ export default function ImagePlacementGhost({
       };
       const delta = deltas[event.key];
 
-      if (delta && input.allowMove) {
+      if (delta && canMove) {
         event.preventDefault();
         startPlacing();
         onChange({
@@ -228,20 +235,27 @@ export default function ImagePlacementGhost({
         onSelect();
       }
     },
-    [input.allowMove, onChange, onSelect, placement.offsetXRatio, placement.offsetYRatio, startPlacing]
+    [canMove, onChange, onSelect, placement.offsetXRatio, placement.offsetYRatio, startPlacing]
   );
 
   if (!url || !natural) return null;
 
-  const adjustable = input.allowMove || input.allowResize || input.allowRotate;
-  const cursor = input.allowMove ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer';
+  // Background slots offer no gestures (hasAdjustments is false for them even
+  // if a payload carried a stray allow* flag) and their stand-in is drawn with
+  // WBoost's deterministic background math: COVER fit anchored top-left — not
+  // the centered contain fit regular slots use.
+  const adjustable = hasAdjustments(input);
+  const cursor = canMove ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer';
+  const imgStyle = input.isBackground
+    ? coverGhostStyle(frame, natural, scale)
+    : ghostStyle(frame, natural, placement, scale);
 
   return (
     <div
       ref={boxRef}
       role="application"
       tabIndex={0}
-      aria-label={`${label} — umístění obrázku${input.allowMove ? ' (táhněte myší, šipky posunou)' : ''}${input.allowResize ? ', kolečkem přiblížíte' : ''}`}
+      aria-label={`${label} — umístění obrázku${canMove ? ' (táhněte myší, šipky posunou)' : ''}${canResize ? ', kolečkem přiblížíte' : ''}`}
       title={adjustable ? 'Táhněte obrázkem, kolečkem přiblížíte' : label}
       className={`pointer-events-auto absolute overflow-hidden rounded-sm outline-none ring-accent focus-visible:ring-2 ${cursor} ${
         placing ? 'bg-white ring-2' : ''
@@ -264,7 +278,7 @@ export default function ImagePlacementGhost({
         alt=""
         draggable={false}
         className={`pointer-events-none absolute max-w-none select-none ${placing ? 'opacity-100' : 'opacity-0'}`}
-        style={ghostStyle(frame, natural, placement, scale)}
+        style={imgStyle}
       />
     </div>
   );

@@ -53,6 +53,15 @@ export function containScale(frame: ImageFrameDTO, natural: NaturalSize): number
   return contain > 0 ? contain : 1;
 }
 
+/** The object-cover base scale: the least scale at which the picture covers the frame. */
+export function coverScale(frame: ImageFrameDTO, natural: NaturalSize): number {
+  const width = natural.width > 0 ? natural.width : 1;
+  const height = natural.height > 0 ? natural.height : 1;
+  const cover = Math.max(frame.width / width, frame.height / height);
+
+  return cover > 0 ? cover : 1;
+}
+
 /** Resolve a pan expressed as a fraction of a frame edge into canvas px. */
 export function offsetFromRatio(ratio: number, frameSize: number): number {
   return ratio * frameSize;
@@ -83,6 +92,28 @@ export function ghostStyle(
     left: `${centerX * scale}px`,
     top: `${centerY * scale}px`,
     transform: `translate(-50%, -50%) rotate(${placement.rotation}deg)`,
+  };
+}
+
+/**
+ * Inline CSS for a BACKGROUND slot's stand-in `<img>`: WBoost's deterministic
+ * background fill is a COVER fit anchored TOP-LEFT (overflow crops away
+ * bottom-right) — no pan, zoom or rotation, so no `Placement` is taken. Same
+ * style shape as {@link ghostStyle} so the two are drop-in interchangeable.
+ */
+export function coverGhostStyle(
+  frame: ImageFrameDTO,
+  natural: NaturalSize,
+  scale: number
+): { width: string; height: string; left: string; top: string; transform: string } {
+  const finalScale = coverScale(frame, natural);
+
+  return {
+    width: `${(natural.width > 0 ? natural.width : 1) * finalScale * scale}px`,
+    height: `${(natural.height > 0 ? natural.height : 1) * finalScale * scale}px`,
+    left: '0px',
+    top: '0px',
+    transform: 'none',
   };
 }
 

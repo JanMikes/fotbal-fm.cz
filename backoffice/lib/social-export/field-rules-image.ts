@@ -14,6 +14,8 @@
  *    frame), the portable form: the same value means the same crop in every
  *    variant of the template, whose frames differ
  *  - a picture with no placement is sent as the SHORTHAND string (image id)
+ *  - a BACKGROUND slot (`isBackground: true`) accepts NO transform at all —
+ *    always the shorthand id (or `{ hide: true }` when hidable)
  */
 
 import type { ImageInputDTO, RenderImageValue } from './api-types';
@@ -55,17 +57,26 @@ export function defaultImageSlotState(): ImageSlotState {
   return { image: null, scale: 1, offsetXRatio: 0, offsetYRatio: 0, rotation: 0, hidden: false };
 }
 
-/** Resolve the slot label: name, else description, else a generic "Obrázek N". */
+/**
+ * Resolve the slot label: name, else description, else a generic fallback —
+ * "Pozadí" for the background slot (mirrors WBoost's own fill page), "Obrázek N"
+ * otherwise.
+ */
 export function resolveImageLabel(input: ImageInputDTO, index: number): string {
   const name = input.name?.trim();
   if (name) return name;
   const description = input.description?.trim();
   if (description) return description;
-  return `Obrázek ${index + 1}`;
+  return input.isBackground ? 'Pozadí' : `Obrázek ${index + 1}`;
 }
 
-/** Whether the slot offers any positioning control (move / zoom / rotate). */
+/**
+ * Whether the slot offers any positioning control (move / zoom / rotate).
+ * Background slots never do — their fill is a deterministic top-left cover fit
+ * (the API guarantees the allow* flags are false; guarded here regardless).
+ */
 export function hasAdjustments(input: ImageInputDTO): boolean {
+  if (input.isBackground) return false;
   return input.allowMove || input.allowResize || input.allowRotate;
 }
 
@@ -95,6 +106,14 @@ export function buildRenderImages(
     }
 
     if (!s.image) continue; // no picture → omit → stand-in renders
+
+    // BACKGROUND slot: the fill is deterministic (top-left cover fit) and the
+    // export rejects ANY transform — always the shorthand, even if a saved
+    // state (or a buggy allow* payload) carries placement values.
+    if (slot.isBackground) {
+      payload[slot.id] = s.image.id;
+      continue;
+    }
 
     const obj: {
       imageId: string;

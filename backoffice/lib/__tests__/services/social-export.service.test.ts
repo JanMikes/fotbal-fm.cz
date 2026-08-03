@@ -368,8 +368,41 @@ describe('SocialExportService', () => {
       expect(slot.defaultImageUrl).toBe('http://store/standin.png');
       expect(slot.directories).toEqual([{ id: 'dir-1', name: 'Fotky' }]);
       expect(slot.includesRoot).toBe(false);
+      // The helper omits isBackground (like an older API payload) → false.
+      expect(slot.isBackground).toBe(false);
       // allowedDirectoryIds is intentionally not exposed to the client DTO
       expect(slot).not.toHaveProperty('allowedDirectoryIds');
+    });
+
+    it('passes isBackground through when the API sends it', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              imageInputs: [
+                makeRawImageInput({
+                  id: 'bg',
+                  isBackground: true,
+                  allowMove: false,
+                  allowResize: false,
+                  allowRotate: false,
+                }),
+                makeRawImageInput({ id: 'regular', isBackground: false }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const [bg, regular] = result.data[0].variants[0].imageInputs;
+      expect(bg.isBackground).toBe(true);
+      expect(regular.isBackground).toBe(false);
     });
 
     it('defaults the upload-target fields when an older payload omits them', async () => {

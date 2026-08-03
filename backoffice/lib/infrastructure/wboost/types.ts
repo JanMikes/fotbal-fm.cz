@@ -167,6 +167,15 @@ export interface WboostRawImageInput {
    * be located; may be absent on older payloads.
    */
   layerIndex?: number | null;
+  /**
+   * True = this slot is the variant's BACKGROUND layer: `frame` is the full
+   * canvas rect, the picture is COVER-fitted over it anchored top-left
+   * (overflow crops bottom-right), and NO transform is accepted — the `allow*`
+   * flags are always false; the export payload must be the shorthand image id
+   * or `{ imageId }` (plus `{ hide: true }` when hidable). May be absent on
+   * older payloads (→ false).
+   */
+  isBackground?: boolean;
 }
 
 /** One renderable variant (a specific dimension/ratio) of a template. */

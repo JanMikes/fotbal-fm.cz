@@ -162,6 +162,15 @@ export interface ImageInputDTO {
    * `TemplateInputDTO.layerIndex` (see there). Null when unavailable.
    */
   layerIndex: number | null;
+  /**
+   * True = the variant's BACKGROUND layer. `frame` is the full canvas rect and
+   * the fill is deterministic: COVER-fit (`max(frame.width / naturalWidth,
+   * frame.height / naturalHeight)`) anchored TOP-LEFT — NOT the centered
+   * object-contain math regular slots use. No transform is ever accepted
+   * (`allow*` are always false): send the shorthand image id / `{ imageId }`
+   * only, plus `{ hide: true }` when `hidable`. False on older API payloads.
+   */
+  isBackground: boolean;
 }
 
 /** A pickable gallery image for an image slot (from the list/upload endpoints). */
@@ -242,7 +251,9 @@ export type RenderInputValue =
  * A single render image value: a plain gallery image id (centered + contained),
  * or an object with placement. `scale`/`offsetX`/`offsetY`/`rotation` are only
  * accepted when the slot's matching `allow*` flag is true; `hide` only when
- * `hidable`. Build it with `buildRenderImages` so disallowed params are never sent.
+ * `hidable`. Background slots (`isBackground: true`) accept NO transform at all —
+ * only the shorthand id / `{ imageId }` / `{ hide }`. Build it with
+ * `buildRenderImages` so disallowed params are never sent.
  */
 export type RenderImageValue =
   | string

@@ -71,6 +71,8 @@ function mapImageInput(raw: WboostRawImageInput): ImageInputDTO {
     defaultImageUrl: raw.defaultImageUrl,
     // Absent on older payloads → null (the layers panel sinks it to the end).
     layerIndex: raw.layerIndex ?? null,
+    // Absent on older payloads → a regular (contain-fit) slot.
+    isBackground: raw.isBackground ?? false,
   };
 }
 

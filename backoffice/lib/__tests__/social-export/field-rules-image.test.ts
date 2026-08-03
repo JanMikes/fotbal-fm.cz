@@ -24,6 +24,7 @@ function makeImageInput(overrides: Partial<ImageInputDTO> = {}): ImageInputDTO {
     frame: { x: 0, y: 0, width: 400, height: 300 },
     defaultImageUrl: null,
     layerIndex: null,
+    isBackground: false,
     ...overrides,
   };
 }
@@ -42,6 +43,14 @@ describe('resolveImageLabel', () => {
     expect(resolveImageLabel(makeImageInput({ name: '  ', description: 'Popis' }), 0)).toBe('Popis');
     expect(resolveImageLabel(makeImageInput({ name: null, description: null }), 2)).toBe('Obrázek 3');
   });
+
+  it('falls back to "Pozadí" for an unnamed background slot (mirrors WBoost)', () => {
+    expect(
+      resolveImageLabel(makeImageInput({ name: null, description: null, isBackground: true }), 0)
+    ).toBe('Pozadí');
+    // An explicit name still wins.
+    expect(resolveImageLabel(makeImageInput({ name: 'Foto', isBackground: true }), 0)).toBe('Foto');
+  });
 });
 
 describe('hasAdjustments', () => {
@@ -50,6 +59,15 @@ describe('hasAdjustments', () => {
     expect(hasAdjustments(makeImageInput({ allowResize: true }))).toBe(true);
     expect(hasAdjustments(makeImageInput({ allowMove: true }))).toBe(true);
     expect(hasAdjustments(makeImageInput({ allowRotate: true }))).toBe(true);
+  });
+
+  it('is always false for a background slot (even against a stray allow* flag)', () => {
+    expect(hasAdjustments(makeImageInput({ isBackground: true }))).toBe(false);
+    expect(
+      hasAdjustments(
+        makeImageInput({ isBackground: true, allowMove: true, allowResize: true, allowRotate: true })
+      )
+    ).toBe(false);
   });
 });
 
@@ -133,6 +151,37 @@ describe('buildRenderImages', () => {
     const inputs = [makeImageInput({ id: 's', hidable: false })];
     const payload = buildRenderImages(inputs, { s: makeSlotState({ image: IMG, hidden: true }) });
     expect(payload['s']).toBe('img-9');
+  });
+
+  it('BACKGROUND slot: always the shorthand id — no transform even when state carries one', () => {
+    // A stale saved state may carry placement values (and a buggy payload may
+    // even carry allow* flags); the export rejects any transform for a
+    // background slot, so only the shorthand may ever be sent.
+    const inputs = [
+      makeImageInput({
+        id: 'bg',
+        isBackground: true,
+        allowMove: true,
+        allowResize: true,
+        allowRotate: true,
+      }),
+    ];
+    const payload = buildRenderImages(inputs, {
+      bg: makeSlotState({ image: IMG, scale: 2, offsetXRatio: 0.5, offsetYRatio: -0.3, rotation: 45 }),
+    });
+    expect(payload['bg']).toBe('img-9');
+  });
+
+  it('BACKGROUND slot: { hide: true } still works when hidable', () => {
+    const inputs = [makeImageInput({ id: 'bg', isBackground: true, hidable: true })];
+    const payload = buildRenderImages(inputs, { bg: makeSlotState({ image: IMG, hidden: true }) });
+    expect(payload['bg']).toEqual({ hide: true });
+  });
+
+  it('BACKGROUND slot: omitted when no image chosen (keeps the designed background)', () => {
+    const inputs = [makeImageInput({ id: 'bg', isBackground: true })];
+    const payload = buildRenderImages(inputs, { bg: makeSlotState() });
+    expect(payload).not.toHaveProperty('bg');
   });
 
   it('combines allowed placement params into one object', () => {

@@ -40,6 +40,7 @@ function makeImageInput(overrides: Partial<ImageInputDTO> = {}): ImageInputDTO {
     frame: { x: 0, y: 0, width: 400, height: 300 },
     defaultImageUrl: null,
     layerIndex: null,
+    isBackground: false,
     ...overrides,
   };
 }
@@ -101,7 +102,16 @@ describe('buildLayerRows', () => {
         makeInput({ id: 't1', name: null, description: null, layerIndex: 1 }),
         makeInput({ id: 't2', name: 'Nadpis', layerIndex: 0 }),
       ],
-      imageInputs: [makeImageInput({ id: 'i1', name: null, description: null, layerIndex: 2 })],
+      imageInputs: [
+        makeImageInput({ id: 'i1', name: null, description: null, layerIndex: 2 }),
+        makeImageInput({
+          id: 'i-bg',
+          name: null,
+          description: null,
+          isBackground: true,
+          layerIndex: 3,
+        }),
+      ],
     });
 
     const rows = buildLayerRows(variant, {}, {});
@@ -109,6 +119,8 @@ describe('buildLayerRows', () => {
     expect(rows.find((r) => r.id === 't1')?.label).toBe('Text 1');
     expect(rows.find((r) => r.id === 't2')?.label).toBe('Nadpis');
     expect(rows.find((r) => r.id === 'i1')?.label).toBe('Obrázek 1');
+    // Background slots mirror WBoost's fallback label.
+    expect(rows.find((r) => r.id === 'i-bg')?.label).toBe('Pozadí');
   });
 
   it('reflects hidden state from form/image state and hidable flags', () => {
