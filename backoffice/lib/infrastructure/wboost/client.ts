@@ -79,7 +79,7 @@ export class WboostClient {
   // ---------- Public methods -----------------------------------------------
 
   async listTemplates(): Promise<WboostRawTemplate[]> {
-    const url = `${this.config.apiBase}/api/projects/${this.config.projectId}/social-network-templates`;
+    const url = `${this.config.apiBase}/api/projects/${this.config.projectId}/templates`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',
@@ -141,7 +141,7 @@ export class WboostClient {
     inputs: Record<string, RenderInputValue>,
     images?: Record<string, RenderImageValue>
   ): Promise<Uint8Array> {
-    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/export`;
+    const url = `${this.config.apiBase}/api/template-variants/${variantId}/export`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',
@@ -169,7 +169,7 @@ export class WboostClient {
     variantId: string,
     imageInputId: string
   ): Promise<WboostRawGalleryImage[]> {
-    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/placeholders/${imageInputId}/images`;
+    const url = `${this.config.apiBase}/api/template-variants/${variantId}/placeholders/${imageInputId}/images`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',
@@ -206,7 +206,7 @@ export class WboostClient {
     filename: string,
     directoryId?: string
   ): Promise<WboostRawGalleryImage> {
-    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/placeholders/${imageInputId}/images`;
+    const url = `${this.config.apiBase}/api/template-variants/${variantId}/placeholders/${imageInputId}/images`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',
@@ -235,7 +235,7 @@ export class WboostClient {
   async fetchThumbnail(
     variantId: string
   ): Promise<{ body: Uint8Array; contentType: string }> {
-    const url = `${this.config.apiBase}/api/social-network-template-variants/${variantId}/thumbnail`;
+    const url = `${this.config.apiBase}/api/template-variants/${variantId}/thumbnail`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',

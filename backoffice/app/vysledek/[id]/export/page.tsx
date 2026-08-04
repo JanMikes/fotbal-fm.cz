@@ -500,7 +500,10 @@ function SocialExportPageContent({ params }: PageProps) {
       if (!blob) return; // render failed — error already set
     }
 
-    const filename = `${sanitizeFilename(selectedTemplate.name)}-${selectedVariant.dimension.replace(':', 'x')}.png`;
+    // Ratio dimensions ('1:1') become '1x1' (sanitize is then a no-op, so
+    // existing filenames are unchanged); size-label dimensions of non-social
+    // variants ('210 × 297 mm') have no ':' and are sanitized to '210-297-mm'.
+    const filename = `${sanitizeFilename(selectedTemplate.name)}-${sanitizeFilename(selectedVariant.dimension.replace(':', 'x'))}.png`;
     downloadBlob(blob, filename);
   }
 

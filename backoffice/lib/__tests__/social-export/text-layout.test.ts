@@ -40,6 +40,7 @@ function makeVariant(overrides: Partial<TemplateVariantDTO> = {}): TemplateVaria
     dimension: '1:1',
     width: 1080,
     height: 1080,
+    preset: null,
     thumbnailUrl: null,
     hasDefaultPreview: false,
     inputs: [],

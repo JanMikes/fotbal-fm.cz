@@ -100,6 +100,8 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
     dimension: raw.dimension,
     width: raw.width,
     height: raw.height,
+    // Absent on older payloads → null (same as print / free-form variants).
+    preset: raw.preset ?? null,
     thumbnailUrl,
     hasDefaultPreview: raw.previewImageUrl != null,
     inputs: raw.inputs.map(mapInput),

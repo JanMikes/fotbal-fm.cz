@@ -182,10 +182,25 @@ export interface WboostRawImageInput {
 export interface WboostRawVariant {
   /** UUID — used to build the preview/export URL. Unique per variant. */
   id: string;
-  /** Label for the variant chooser, e.g. "1:1", "9:16", "4:5". */
+  /**
+   * Label for the variant chooser: a ratio like "1:1" / "9:16" / "4:5" for
+   * social formats, or a human size label like "210 × 297 mm" for print /
+   * free-form variants (post template-modules merge).
+   */
   dimension: string;
   width: number;
   height: number;
+  /**
+   * '1:1' | '4:5' | '9:16' when the variant is a social format, null for
+   * print / free-form sizes. May be absent on older payloads.
+   */
+  preset?: string | null;
+  /** Designer unit ('px' | 'mm' | 'cm'). May be absent on older payloads. */
+  unit?: string;
+  /** Width in `unit` units. May be absent on older payloads. */
+  unitWidth?: number;
+  /** Height in `unit` units. May be absent on older payloads. */
+  unitHeight?: number;
   /** Nullable cached DEFAULT render (zero user input). Absolute URL at the store host. */
   previewImageUrl: string | null;
   /** Thumbnail / background. Absolute URL at the store host (localhost:19000). */

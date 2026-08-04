@@ -188,9 +188,18 @@ export interface GalleryImageDTO {
 /** One renderable variant (dimension/ratio) of a template. */
 export interface TemplateVariantDTO {
   id: string;
+  /**
+   * Display label: a ratio ("1:1") for social formats, a human size label
+   * ("210 × 297 mm") for print / free-form variants.
+   */
   dimension: string;
   width: number;
   height: number;
+  /**
+   * '1:1' | '4:5' | '9:16' when the variant is a social format, null for
+   * print / free-form sizes (or on older API deploys).
+   */
+  preset: string | null;
   /**
    * Same-origin proxy path for the variant thumbnail, or null if thumbnails are
    * disabled. Points at `GET /api/social-export/thumbnail?variantId=<id>`, which

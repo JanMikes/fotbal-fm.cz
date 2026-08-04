@@ -72,7 +72,7 @@ describe('WboostClient', () => {
       expect(mockFetch).toHaveBeenCalledOnce();
 
       const [url, init] = mockFetch.mock.calls[0];
-      expect(url).toBe('http://wboost.test/api/projects/proj1/social-network-templates');
+      expect(url).toBe('http://wboost.test/api/projects/proj1/templates');
       expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer my-token');
     });
   });
@@ -90,7 +90,7 @@ describe('WboostClient', () => {
       expect(result).toBeInstanceOf(Uint8Array);
 
       const [url, init] = mockFetch.mock.calls[0];
-      expect(url).toBe('http://wboost.test/api/social-network-template-variants/v1/export');
+      expect(url).toBe('http://wboost.test/api/template-variants/v1/export');
       expect(init.method).toBe('POST');
       expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json');
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { inp1: 'hello' } });
@@ -128,7 +128,7 @@ describe('WboostClient', () => {
       expect(result).toEqual(images);
       const [url, init] = mockFetch.mock.calls[0];
       expect(url).toBe(
-        'http://wboost.test/api/social-network-template-variants/v1/placeholders/slot-1/images'
+        'http://wboost.test/api/template-variants/v1/placeholders/slot-1/images'
       );
       expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer tok');
     });
@@ -146,7 +146,7 @@ describe('WboostClient', () => {
 
       const [url, init] = mockFetch.mock.calls[0];
       expect(url).toBe(
-        'http://wboost.test/api/social-network-template-variants/v1/placeholders/slot-1/images'
+        'http://wboost.test/api/template-variants/v1/placeholders/slot-1/images'
       );
       expect(init.method).toBe('POST');
       expect(init.body).toBeInstanceOf(FormData);
@@ -172,7 +172,7 @@ describe('WboostClient', () => {
       expect(result.contentType).toBe('image/png');
 
       const [url] = mockFetch.mock.calls[0];
-      expect(url).toBe('http://wboost.test/api/social-network-template-variants/v2/thumbnail');
+      expect(url).toBe('http://wboost.test/api/template-variants/v2/thumbnail');
     });
   });
 
