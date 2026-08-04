@@ -90,18 +90,32 @@ export interface TextStyleDTO {
 }
 
 /**
- * A "smart text area": its member inputs reflow vertically at render time —
- * longer text pushes the members below it down, hidden members collapse, and
- * the flow must fit `maxHeight` px from `y` downward (canvas px), otherwise
- * the render fails with a `container_overflow` 400 (see `RenderErrorDetails`).
+ * A "smart text area": its members reflow vertically at render time — longer
+ * text pushes the flow items below it down, hidden members collapse, and the
+ * flow of a TOP-LEVEL container must fit `maxHeight` px from `y` downward
+ * (canvas px), otherwise the render fails with a `container_overflow` 400
+ * (see `RenderErrorDetails`; `containerId` is always the top-level id).
+ *
+ * Containers can NEST (2026-08 rework): a child in `memberContainerIds` flows
+ * inside its parent as one block and grows freely — `nested: true` containers
+ * do not enforce their own maxHeight. A non-null `gap` replaces the designed
+ * spacing between consecutive flow items with a uniform value. Containers may
+ * also hold decorative images server-side (not exposed here), so the client
+ * mirror is approximate for those — the server render stays authoritative.
  */
 export interface TemplateContainerDTO {
   id: string;
   maxHeight: number;
-  /** Container top = designed top of the first member (canvas px). */
+  /** Container top = highest designed member in its tree (canvas px). */
   y: number;
-  /** Member input UUIDs in flow order (top → bottom). */
+  /** FILLABLE member input UUIDs in flow order (top → bottom). */
   memberInputIds: string[];
+  /** Nested child container ids (absent/empty on flat containers). */
+  memberContainerIds?: string[];
+  /** Non-null → uniform px spacing between flow items; null/absent = designed gaps. */
+  gap?: number | null;
+  /** True → flows inside a parent; its own maxHeight is NOT enforced. */
+  nested?: boolean;
 }
 
 /**

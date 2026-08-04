@@ -112,6 +112,10 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
       maxHeight: container.maxHeight,
       y: container.y,
       memberInputIds: container.memberInputIds,
+      // Absent on pre-nesting API deploys → flat container, designed gaps.
+      memberContainerIds: container.memberContainerIds ?? [],
+      gap: container.gap ?? null,
+      nested: container.nested ?? false,
     })),
     // Rich-text toolbar data. Font file URLs point at the store host (may be
     // `localhost` in dev) → rewrite to the same-origin font proxy so the

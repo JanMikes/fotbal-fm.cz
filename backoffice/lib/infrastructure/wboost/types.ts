@@ -102,10 +102,16 @@ export interface WboostRawTextStyle {
 export interface WboostRawContainer {
   id: string;
   maxHeight: number;
-  /** Container top = designed top of the first member (canvas px). */
+  /** Container top = highest designed member in its tree (canvas px). */
   y: number;
-  /** Member input UUIDs in flow order (top → bottom). */
+  /** Fillable member input UUIDs in flow order (top → bottom). */
   memberInputIds: string[];
+  /** Nested child container ids; absent on pre-nesting API deploys. */
+  memberContainerIds?: string[];
+  /** Uniform flow spacing (px) or null = designed gaps; absent on older deploys. */
+  gap?: number | null;
+  /** True → nested inside a parent (its own maxHeight is not enforced). */
+  nested?: boolean;
 }
 
 /** A rectangle in the variant's canvas pixel space. */

@@ -275,6 +275,64 @@ describe('computeTextFrames', () => {
     // Height still re-measured, but no reflow happens (y untouched).
     expect(frames['m1']).toEqual(frame(0, 100, 200, 160));
   });
+
+  it('applies a uniform gap instead of the designed gaps when set', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'm1', containerId: 'c', frame: frame(0, 100, 200, 40), textStyle: STYLE }),
+        makeInput({ id: 'm2', containerId: 'c', frame: frame(0, 200, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'c', maxHeight: 300, y: 100, memberInputIds: ['m1', 'm2'], gap: 8 },
+      ],
+    });
+    const frames = computeTextFrames(
+      variant,
+      { m1: { value: '', hidden: false }, m2: { value: '', hidden: false } },
+      measureByLength
+    );
+    // Designed gap 60 is replaced by the uniform 8: m2 sits at 100+40+8.
+    expect(frames['m2']).toEqual(frame(0, 148, 200, 30));
+  });
+
+  it('nested: child growth pushes the sibling section, overflow reports the root', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'h1', containerId: 's1', frame: frame(0, 10, 200, 20), textStyle: STYLE }),
+        makeInput({ id: 't1', containerId: 's1', frame: frame(0, 40, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'h2', containerId: 's2', frame: frame(0, 120, 200, 20), textStyle: STYLE }),
+        makeInput({ id: 't2', containerId: 's2', frame: frame(0, 150, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        // Child maxHeight is tiny on purpose: nested bounds are NOT enforced.
+        { id: 's1', maxHeight: 10, y: 10, memberInputIds: ['h1', 't1'], nested: true },
+        { id: 's2', maxHeight: 70, y: 120, memberInputIds: ['h2', 't2'], nested: true },
+        {
+          id: 'p',
+          maxHeight: 200,
+          y: 10,
+          memberInputIds: [],
+          memberContainerIds: ['s1', 's2'],
+        },
+      ],
+    });
+    // t1 measures 9 chars × 10 = 90 (designed 30, +60) → section 1 bottom
+    // 40+90=130; designed inter-section gap 120−70=50 → section 2 at 180.
+    const layout = computeTextLayout(
+      variant,
+      {
+        h1: { value: '', hidden: false },
+        t1: { value: 'ninechars', hidden: false },
+        h2: { value: '', hidden: false },
+        t2: { value: '', hidden: false },
+      },
+      measureByLength
+    );
+    expect(layout.frames['h2']).toEqual(frame(0, 180, 200, 20));
+    expect(layout.frames['t2']).toEqual(frame(0, 210, 200, 30));
+    // Content bottom 240 > 10+200 → overflow 30 on the ROOT (children never).
+    expect(layout.overflows).toEqual([{ containerId: 'p', overflowPx: 30 }]);
+  });
 });
 
 // ---------- rich runs -----------------------------------------------------------

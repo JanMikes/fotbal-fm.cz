@@ -79,16 +79,41 @@ const EDGE = 2;
 const ZONE_PAD = 4; // container zone horizontal padding around member frames (canvas px)
 
 /**
+ * The container ids of the tree rooted at `rootId` (the root + every
+ * descendant reachable through `memberContainerIds`). The overflow 400 always
+ * reports the TOP-LEVEL container, so highlighting must cover the whole tree.
+ */
+function containerTreeIds(variant: TemplateVariantDTO, rootId: string): Set<string> {
+  const byId = new Map(variant.containers.map((c) => [c.id, c]));
+  const ids = new Set<string>();
+  const walk = (id: string) => {
+    if (ids.has(id)) return;
+    ids.add(id);
+    for (const childId of byId.get(id)?.memberContainerIds ?? []) {
+      if (byId.has(childId)) walk(childId);
+    }
+  };
+  if (byId.has(rootId)) walk(rootId);
+  return ids;
+}
+
+/**
  * A container's zone rect in display px: from its `y` down `maxHeight`,
- * horizontally spanning its members' designed frames. Null when no member
- * frame can be resolved (nothing to draw).
+ * horizontally spanning the designed frames of its whole TREE (direct members
+ * plus nested children's members). Null when no frame can be resolved
+ * (nothing to draw). Only drawn for top-level containers — a nested one has
+ * no bound of its own.
  */
 function containerZoneRect(
   container: TemplateContainerDTO,
   variant: TemplateVariantDTO,
   scale: number
 ): DisplayRect | null {
-  const memberFrames = container.memberInputIds
+  const memberFrames = [...containerTreeIds(variant, container.id)]
+    .flatMap((containerId) => {
+      const entry = variant.containers.find((c) => c.id === containerId);
+      return entry ? entry.memberInputIds : [];
+    })
     .map((id) => variant.inputs.find((input) => input.id === id)?.frame)
     .filter((frame): frame is NonNullable<typeof frame> => frame != null);
   if (memberFrames.length === 0) return null;
@@ -143,6 +168,11 @@ export default function PlaceholderOverlay({
 }: PlaceholderOverlayProps) {
   const items: OverlayItem[] = [];
 
+  // The overflow 400 reports the TOP-LEVEL container — members of its whole
+  // nested tree share the blame highlight.
+  const overflowTree =
+    overflowContainerId != null ? containerTreeIds(variant, overflowContainerId) : null;
+
   variant.inputs.forEach((input, index) => {
     if (!input.frame) return;
     items.push({
@@ -156,7 +186,7 @@ export default function PlaceholderOverlay({
       hidden: formState[input.id]?.hidden ?? false,
       active: active?.kind === 'text' && active.id === input.id,
       hovered: hovered?.kind === 'text' && hovered.id === input.id,
-      error: overflowContainerId != null && input.containerId === overflowContainerId,
+      error: overflowTree != null && input.containerId != null && overflowTree.has(input.containerId),
     });
   });
 
@@ -183,6 +213,9 @@ export default function PlaceholderOverlay({
           extend. Drawn with the highlight toggle; forced (red) when the last
           render failed with that container's overflow. */}
       {variant.containers.map((container) => {
+        // Nested containers have no bound of their own — only top-level zones
+        // are meaningful to draw.
+        if (container.nested === true) return null;
         const isOverflowing = overflowContainerId === container.id;
         if (!showBorders && !isOverflowing) return null;
         const rect = containerZoneRect(container, variant, scale);

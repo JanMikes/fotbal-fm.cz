@@ -30,6 +30,7 @@
 
 import type {
   ImageFrameDTO,
+  TemplateContainerDTO,
   TemplateInputDTO,
   TemplateVariantDTO,
   TextStyleDTO,
@@ -412,34 +413,147 @@ export function computeTextLayout(
     frames[input.id] = { ...input.frame, height };
   }
 
-  for (const container of variant.containers) {
-    const memberIds = container.memberInputIds.filter((id) => frames[id] != null);
-    if (memberIds.length < 2) continue;
+  // Container reflow — tree-aware since the WBoost nesting rework: a child
+  // container flows inside its parent as ONE block and grows freely; only a
+  // TOP-LEVEL container's maxHeight gates overflow (and the render 400 always
+  // reports the top-level id). Uniform `gap` replaces the designed spacing of
+  // that container. Decorative image members are not exposed by the API, so a
+  // container using them mirrors approximately — the render is authoritative.
+  interface FlowItem {
+    kind: 'text' | 'container';
+    id: string;
+    designedTop: number;
+    designedHeight: number;
+    extTop?: number | null;
+    height?: number;
+    hidden?: boolean;
+  }
+  interface FlowNode {
+    container: TemplateContainerDTO;
+    items: FlowItem[];
+    gaps: number[];
+    anchorTop: number;
+    contentBottom: number;
+  }
 
-    const designed = memberIds.map((id) => {
-      const frame = inputById.get(id)!.frame!;
-      return { designedTop: frame.y, designedHeight: frame.height };
-    });
-    const gaps = computeGaps(designed);
-    const members = memberIds.map((id, i) => {
-      const input = inputById.get(id)!;
-      return {
-        designedTop: designed[i].designedTop,
-        actualHeight: frames[id].height,
-        hidden: input.hidable && (state[id]?.hidden ?? false),
-      };
-    });
-    const layout = computeLayout(members, container.maxHeight, gaps);
+  const containerById = new Map(variant.containers.map((c) => [c.id, c]));
+  const claimed = new Set<string>();
+  for (const c of variant.containers) {
+    for (const childId of c.memberContainerIds ?? []) {
+      if (childId !== c.id && containerById.has(childId)) claimed.add(childId);
+    }
+  }
 
-    memberIds.forEach((id, i) => {
-      const top = layout.tops[i];
-      if (top !== null) {
-        frames[id] = { ...frames[id], y: top };
+  const nodes = new Map<string, FlowNode>();
+  const buildNode = (container: TemplateContainerDTO, visiting: Set<string>): FlowNode | null => {
+    if (visiting.has(container.id)) return null; // cycle guard
+    visiting.add(container.id);
+
+    const items: FlowItem[] = [];
+    for (const id of container.memberInputIds) {
+      const frame = inputById.get(id)?.frame;
+      if (frame && frames[id] != null) {
+        items.push({ kind: 'text', id, designedTop: frame.y, designedHeight: frame.height });
+      }
+    }
+    for (const childId of container.memberContainerIds ?? []) {
+      const child = childId !== container.id ? containerById.get(childId) : undefined;
+      if (!child) continue;
+      const childNode = buildNode(child, visiting);
+      if (!childNode) continue;
+      const bottom = Math.max(...childNode.items.map((i) => i.designedTop + i.designedHeight));
+      items.push({
+        kind: 'container',
+        id: childId,
+        designedTop: childNode.anchorTop,
+        designedHeight: bottom - childNode.anchorTop,
+      });
+    }
+    visiting.delete(container.id);
+    if (items.length === 0) return null;
+
+    items.sort((a, b) => a.designedTop - b.designedTop);
+    const node: FlowNode = {
+      container,
+      items,
+      gaps: items.slice(1).map((item, i) => item.designedTop - (items[i].designedTop + items[i].designedHeight)),
+      anchorTop: items[0].designedTop,
+      contentBottom: items[0].designedTop,
+    };
+    nodes.set(container.id, node);
+    return node;
+  };
+
+  const measureNode = (node: FlowNode): { height: number; hidden: boolean } => {
+    let previousBottom: number | null = null;
+    node.items.forEach((item, i) => {
+      if (item.kind === 'container') {
+        const child = nodes.get(item.id)!;
+        const measured = measureNode(child);
+        item.height = measured.height;
+        item.hidden = measured.hidden;
       } else {
-        const nextVisibleTop = layout.tops.slice(i + 1).find((t) => t !== null);
-        frames[id] = {
-          ...frames[id],
-          y: nextVisibleTop ?? layout.contentBottom,
+        const input = inputById.get(item.id)!;
+        item.height = frames[item.id].height;
+        item.hidden = input.hidable && (state[item.id]?.hidden ?? false);
+      }
+      if (item.hidden) {
+        item.extTop = null;
+        return;
+      }
+      const gap =
+        typeof node.container.gap === 'number' ? node.container.gap : (node.gaps[i - 1] ?? 0);
+      item.extTop = previousBottom === null ? node.anchorTop : previousBottom + gap;
+      previousBottom = item.extTop + (item.height ?? 0);
+    });
+    node.contentBottom = previousBottom ?? node.anchorTop;
+    return {
+      height: node.contentBottom - node.anchorTop,
+      hidden: node.items.every((item) => item.hidden),
+    };
+  };
+
+  /** Final text tops across the tree, in flow order (null = hidden). */
+  const commitNode = (node: FlowNode, delta: number, out: { id: string; top: number | null }[]) => {
+    for (const item of node.items) {
+      if (item.hidden || item.extTop == null) {
+        if (item.kind === 'text') out.push({ id: item.id, top: null });
+        else commitHiddenNode(nodes.get(item.id)!, out);
+        continue;
+      }
+      if (item.kind === 'container') {
+        const child = nodes.get(item.id)!;
+        commitNode(child, item.extTop + delta - child.anchorTop, out);
+      } else {
+        out.push({ id: item.id, top: item.extTop + delta });
+      }
+    }
+  };
+  const commitHiddenNode = (node: FlowNode, out: { id: string; top: number | null }[]) => {
+    for (const item of node.items) {
+      if (item.kind === 'text') out.push({ id: item.id, top: null });
+      else commitHiddenNode(nodes.get(item.id)!, out);
+    }
+  };
+
+  for (const container of variant.containers) {
+    if (claimed.has(container.id) || container.nested === true) continue;
+    const node = buildNode(container, new Set());
+    if (!node) continue;
+
+    measureNode(node);
+    const flow: { id: string; top: number | null }[] = [];
+    commitNode(node, 0, flow);
+
+    flow.forEach((entry, i) => {
+      if (!frames[entry.id]) return;
+      if (entry.top !== null) {
+        frames[entry.id] = { ...frames[entry.id], y: entry.top };
+      } else {
+        const nextVisible = flow.slice(i + 1).find((e) => e.top !== null);
+        frames[entry.id] = {
+          ...frames[entry.id],
+          y: nextVisible?.top ?? node.contentBottom,
           height: 0,
         };
       }
@@ -447,10 +561,11 @@ export function computeTextLayout(
 
     // Mirror the render's rounding (template_variant_render.html.twig) and its
     // 0.5px tolerance used by the WBoost fill overlay.
-    if (layout.overflowPx > 0.5) {
+    const overflowPx = node.contentBottom - (node.anchorTop + container.maxHeight);
+    if (overflowPx > 0.5) {
       overflows.push({
         containerId: container.id,
-        overflowPx: Math.round(layout.overflowPx * 100) / 100,
+        overflowPx: Math.round(overflowPx * 100) / 100,
       });
     }
   }
