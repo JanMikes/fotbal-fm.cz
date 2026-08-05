@@ -198,7 +198,17 @@ describe('SocialExportService', () => {
 
       const variant = result.data[0].variants[0];
       expect(variant.containers).toEqual([
-        { id: 'cont-1', maxHeight: 200, y: 60, memberInputIds: ['member-1', 'member-2'] },
+        {
+          id: 'cont-1',
+          maxHeight: 200,
+          y: 60,
+          memberInputIds: ['member-1', 'member-2'],
+          // Nesting-rework fields, defaulted for pre-nesting API payloads.
+          memberContainerIds: [],
+          gap: null,
+          spaceAfter: null,
+          nested: false,
+        },
       ]);
 
       const [member, independent] = variant.inputs;
