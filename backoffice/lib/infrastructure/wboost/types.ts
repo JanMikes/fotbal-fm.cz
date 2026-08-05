@@ -53,6 +53,35 @@ export interface WboostRawInput {
    * absent on older payloads.
    */
   layerIndex?: number | null;
+  /**
+   * True → the rich envelope may carry per-line list types
+   * (`lines: ["p","ul","ol",...]`) and the export renders the value as a
+   * block stack. May be absent on older payloads.
+   */
+  lists?: boolean;
+  /** Resolved list styling; present exactly when `lists` is true. */
+  listStyle?: WboostRawListStyle | null;
+  /**
+   * "Vzorový text" — the admin's default fill the render falls back to when
+   * the input is OMITTED from the export payload (an explicit "" suppresses
+   * it). Same wire format the export accepts (plain string or the
+   * `{"runs","lines"}` envelope). May be absent on older payloads.
+   */
+  sampleValue?: string | null;
+}
+
+/**
+ * RESOLVED list styling of a lists-enabled rich input (defaults already
+ * derived server-side — never re-derive). Distances are canvas px in the
+ * input's `frame` space; `bulletImageUrl` is non-null only for
+ * `bullet: "image"` (numbered items always render their ordinal).
+ */
+export interface WboostRawListStyle {
+  bullet: 'disc' | 'dash' | 'check' | 'image';
+  bulletImageUrl: string | null;
+  indent: number;
+  itemSpacing: number;
+  blockSpacing: number;
 }
 
 /** One pickable font face for rich-text inputs (faces are standalone families). */

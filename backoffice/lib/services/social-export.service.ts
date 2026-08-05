@@ -48,6 +48,10 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     containerId: raw.containerId ?? null,
     textStyle: raw.textStyle ?? null,
     richText: raw.richText ?? false,
+    // Lists + sample: absent on pre-lists payloads → disabled/none.
+    lists: raw.lists ?? false,
+    listStyle: raw.listStyle ?? null,
+    sampleValue: raw.sampleValue ?? null,
     // Absent on older payloads → null (the layers panel sinks it to the end).
     layerIndex: raw.layerIndex ?? null,
   };

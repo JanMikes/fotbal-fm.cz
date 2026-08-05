@@ -169,6 +169,54 @@ describe('SocialExportService', () => {
       expect(noFrame.frame).toBeNull();
     });
 
+    it('maps lists + listStyle + sampleValue (and defaults on pre-lists payloads)', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              inputs: [
+                makeRawInput({
+                  id: 'with-lists',
+                  richText: true,
+                  lists: true,
+                  listStyle: {
+                    bullet: 'image',
+                    bulletImageUrl: 'http://store/check.png',
+                    indent: 60,
+                    itemSpacing: 4,
+                    blockSpacing: 23.2,
+                  },
+                  sampleValue: '{"runs":[{"text":"Intro\nItem"}],"lines":["p","ul"]}',
+                }),
+                makeRawInput({ id: 'pre-lists' }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const [withLists, preLists] = result.data[0].variants[0].inputs;
+      expect(withLists.lists).toBe(true);
+      expect(withLists.listStyle).toEqual({
+        bullet: 'image',
+        bulletImageUrl: 'http://store/check.png',
+        indent: 60,
+        itemSpacing: 4,
+        blockSpacing: 23.2,
+      });
+      expect(withLists.sampleValue).toBe('{"runs":[{"text":"Intro\nItem"}],"lines":["p","ul"]}');
+      // Pre-lists payloads (fields absent) default to disabled/none.
+      expect(preLists.lists).toBe(false);
+      expect(preLists.listStyle).toBeNull();
+      expect(preLists.sampleValue).toBeNull();
+    });
+
     it('maps containers + per-input containerId/textStyle (and defaults when absent)', async () => {
       const rawTemplates = [
         makeRawTemplate({

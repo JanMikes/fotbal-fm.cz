@@ -9,6 +9,15 @@
  */
 
 /** A placeholder input, as exposed to the form. Bind by `id`, never by `name`. */
+/** Resolved list styling (canvas px, defaults derived server-side). */
+export interface ListStyleDTO {
+  bullet: 'disc' | 'dash' | 'check' | 'image';
+  bulletImageUrl: string | null;
+  indent: number;
+  itemSpacing: number;
+  blockSpacing: number;
+}
+
 export interface TemplateInputDTO {
   id: string;
   name: string | null;
@@ -34,6 +43,24 @@ export interface TemplateInputDTO {
    * The pickable fonts + swatches live in `TemplateVariantDTO.richTextOptions`.
    */
   richText: boolean;
+  /**
+   * True → the rich envelope may also carry per-line list types
+   * (`lines: ["p","ul","ol",...]`) and the export lays the value out as a
+   * block stack (paragraphs + bulleted/numbered items). The list-editing UI
+   * is not built here yet — untouched inputs still render their lists via
+   * the server-side sample fallback, and editing a rich value simply sends
+   * runs without lines (renders without list structure).
+   */
+  lists: boolean;
+  /** Resolved bullet + spacing geometry; non-null exactly when `lists`. */
+  listStyle: ListStyleDTO | null;
+  /**
+   * "Vzorový text" — the admin's default fill. The render uses it whenever
+   * the export payload OMITS this input (buildRenderInputs omits empty
+   * untouched fields, so samples apply automatically); an explicit "" would
+   * suppress it. Same wire format the export accepts.
+   */
+  sampleValue: string | null;
   /**
    * Stacking position on the variant canvas (0 = backmost, higher = on top).
    * One index space with `ImageInputDTO.layerIndex` — sort both lists together
