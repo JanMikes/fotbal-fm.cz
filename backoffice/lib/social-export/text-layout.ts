@@ -434,6 +434,12 @@ export function computeTextLayout(
     gaps: number[];
     anchorTop: number;
     contentBottom: number;
+    /** Horizontal designed extent of the tree — sibling push only couples
+     *  roots whose x-ranges overlap (columns never interact). */
+    extLeft: number;
+    extRight: number;
+    /** Sibling collision-push offset resolved over the measured roots. */
+    rootDelta: number;
   }
 
   const containerById = new Map(variant.containers.map((c) => [c.id, c]));
@@ -450,10 +456,14 @@ export function computeTextLayout(
     visiting.add(container.id);
 
     const items: FlowItem[] = [];
+    let extLeft = Infinity;
+    let extRight = -Infinity;
     for (const id of container.memberInputIds) {
       const frame = inputById.get(id)?.frame;
       if (frame && frames[id] != null) {
         items.push({ kind: 'text', id, designedTop: frame.y, designedHeight: frame.height });
+        extLeft = Math.min(extLeft, frame.x);
+        extRight = Math.max(extRight, frame.x + frame.width);
       }
     }
     for (const childId of container.memberContainerIds ?? []) {
@@ -468,6 +478,8 @@ export function computeTextLayout(
         designedTop: childNode.anchorTop,
         designedHeight: bottom - childNode.anchorTop,
       });
+      extLeft = Math.min(extLeft, childNode.extLeft);
+      extRight = Math.max(extRight, childNode.extRight);
     }
     visiting.delete(container.id);
     if (items.length === 0) return null;
@@ -479,6 +491,9 @@ export function computeTextLayout(
       gaps: items.slice(1).map((item, i) => item.designedTop - (items[i].designedTop + items[i].designedHeight)),
       anchorTop: items[0].designedTop,
       contentBottom: items[0].designedTop,
+      extLeft,
+      extRight,
+      rootDelta: 0,
     };
     nodes.set(container.id, node);
     return node;
@@ -501,8 +516,16 @@ export function computeTextLayout(
         item.extTop = null;
         return;
       }
-      const gap =
+      let gap =
         typeof node.container.gap === 'number' ? node.container.gap : (node.gaps[i - 1] ?? 0);
+      // A nested child's spaceAfter floors the parent-flow gap after it.
+      const previousItem = node.items[i - 1];
+      if (previousItem?.kind === 'container') {
+        const previousChild = containerById.get(previousItem.id);
+        if (typeof previousChild?.spaceAfter === 'number') {
+          gap = Math.max(gap, previousChild.spaceAfter);
+        }
+      }
       item.extTop = previousBottom === null ? node.anchorTop : previousBottom + gap;
       previousBottom = item.extTop + (item.height ?? 0);
     });
@@ -536,14 +559,42 @@ export function computeTextLayout(
     }
   };
 
+  const rootNodes: FlowNode[] = [];
   for (const container of variant.containers) {
     if (claimed.has(container.id) || container.nested === true) continue;
     const node = buildNode(container, new Set());
-    if (!node) continue;
+    if (node) {
+      measureNode(node);
+      rootNodes.push(node);
+    }
+  }
 
-    measureNode(node);
+  // Sibling collision-push: top-level containers never overlap. Walked in
+  // designed-top order, a root whose content would run into a lower,
+  // horizontally-overlapping root pushes it down by the excess (chained;
+  // whitespace absorbs growth first, no pull-up), keeping the pusher's
+  // spaceAfter clearance — also enforced as a minimum at designed positions.
+  const placed: FlowNode[] = [];
+  [...rootNodes]
+    .sort((a, b) => a.anchorTop - b.anchorTop)
+    .forEach((node) => {
+      let delta = 0;
+      placed.forEach((other) => {
+        const xOverlap =
+          Math.min(other.extRight, node.extRight) - Math.max(other.extLeft, node.extLeft);
+        if (!(xOverlap > 0)) return;
+        const clearance =
+          typeof other.container.spaceAfter === 'number' ? other.container.spaceAfter : 0;
+        delta = Math.max(delta, other.contentBottom + other.rootDelta + clearance - node.anchorTop);
+      });
+      node.rootDelta = Math.max(0, delta);
+      placed.push(node);
+    });
+
+  for (const node of rootNodes) {
+    const delta = node.rootDelta;
     const flow: { id: string; top: number | null }[] = [];
-    commitNode(node, 0, flow);
+    commitNode(node, delta, flow);
 
     flow.forEach((entry, i) => {
       if (!frames[entry.id]) return;
@@ -553,18 +604,26 @@ export function computeTextLayout(
         const nextVisible = flow.slice(i + 1).find((e) => e.top !== null);
         frames[entry.id] = {
           ...frames[entry.id],
-          y: nextVisible?.top ?? node.contentBottom,
+          y: nextVisible?.top ?? node.contentBottom + delta,
           height: 0,
         };
       }
     });
 
-    // Mirror the render's rounding (template_variant_render.html.twig) and its
-    // 0.5px tolerance used by the WBoost fill overlay.
-    const overflowPx = node.contentBottom - (node.anchorTop + container.maxHeight);
+    // Overflow = own maxHeight excess, or content ending below the canvas
+    // bottom minus spaceAfter (a pushed section falling off the page).
+    // Mirror the render's rounding (template_variant_render.html.twig) and
+    // its 0.5px tolerance used by the WBoost fill overlay.
+    const finalBottom = node.contentBottom + delta;
+    const clearance =
+      typeof node.container.spaceAfter === 'number' ? node.container.spaceAfter : 0;
+    const overflowPx = Math.max(
+      finalBottom - (node.anchorTop + delta + node.container.maxHeight),
+      finalBottom - (variant.height - clearance)
+    );
     if (overflowPx > 0.5) {
       overflows.push({
-        containerId: container.id,
+        containerId: node.container.id,
         overflowPx: Math.round(overflowPx * 100) / 100,
       });
     }

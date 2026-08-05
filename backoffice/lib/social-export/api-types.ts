@@ -114,6 +114,12 @@ export interface TemplateContainerDTO {
   memberContainerIds?: string[];
   /** Non-null → uniform px spacing between flow items; null/absent = designed gaps. */
   gap?: number | null;
+  /**
+   * Guaranteed clearance below the container (canvas px): the landing
+   * distance when it collision-pushes the container under it, and its margin
+   * against the canvas bottom. Null/absent = 0.
+   */
+  spaceAfter?: number | null;
   /** True → flows inside a parent; its own maxHeight is NOT enforced. */
   nested?: boolean;
 }

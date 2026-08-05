@@ -115,6 +115,7 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
       // Absent on pre-nesting API deploys → flat container, designed gaps.
       memberContainerIds: container.memberContainerIds ?? [],
       gap: container.gap ?? null,
+      spaceAfter: container.spaceAfter ?? null,
       nested: container.nested ?? false,
     })),
     // Rich-text toolbar data. Font file URLs point at the store host (may be

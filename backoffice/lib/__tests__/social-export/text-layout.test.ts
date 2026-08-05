@@ -333,6 +333,84 @@ describe('computeTextFrames', () => {
     // Content bottom 240 > 10+200 → overflow 30 on the ROOT (children never).
     expect(layout.overflows).toEqual([{ containerId: 'p', overflowPx: 30 }]);
   });
+
+  it('sibling push: a growing top-level container pushes the one below it', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'a', containerId: 'S1', frame: frame(0, 0, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'b', containerId: 'S2', frame: frame(0, 100, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'S1', maxHeight: 500, y: 0, memberInputIds: ['a'] },
+        { id: 'S2', maxHeight: 500, y: 100, memberInputIds: ['b'] },
+      ],
+    });
+    // a measures 4×10=40 → bottom 40 < 100 → whitespace absorbs, no move.
+    let frames = computeTextFrames(
+      variant,
+      { a: { value: 'four', hidden: false }, b: { value: '', hidden: false } },
+      measureByLength
+    );
+    expect(frames['b'].y).toBe(100);
+
+    // a measures 15×10=150 → bottom 150 > 100 → b pushed to 150 (contact).
+    frames = computeTextFrames(
+      variant,
+      { a: { value: 'fifteen chars!!', hidden: false }, b: { value: '', hidden: false } },
+      measureByLength
+    );
+    expect(frames['b'].y).toBe(150);
+  });
+
+  it('sibling push honors spaceAfter and side-by-side columns never interact', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'a', containerId: 'S1', frame: frame(0, 0, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'b', containerId: 'S2', frame: frame(0, 100, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'c', containerId: 'COL', frame: frame(500, 20, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'S1', maxHeight: 500, y: 0, memberInputIds: ['a'], spaceAfter: 25 },
+        { id: 'S2', maxHeight: 500, y: 100, memberInputIds: ['b'] },
+        { id: 'COL', maxHeight: 500, y: 20, memberInputIds: ['c'] }, // x-disjoint column
+      ],
+    });
+    const frames = computeTextFrames(
+      variant,
+      {
+        a: { value: 'fifteen chars!!', hidden: false },
+        b: { value: '', hidden: false },
+        c: { value: '', hidden: false },
+      },
+      measureByLength
+    );
+    // b lands at S1 bottom (150) + spaceAfter 25.
+    expect(frames['b'].y).toBe(175);
+    // The disjoint column is untouched.
+    expect(frames['c'].y).toBe(20);
+  });
+
+  it('reports canvas-bottom overflow on the container pushed off the page', () => {
+    const variant = makeVariant({
+      height: 300,
+      inputs: [
+        makeInput({ id: 'a', containerId: 'S1', frame: frame(0, 0, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'b', containerId: 'S2', frame: frame(0, 200, 200, 60), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'S1', maxHeight: 500, y: 0, memberInputIds: ['a'] },
+        { id: 'S2', maxHeight: 500, y: 200, memberInputIds: ['b'], spaceAfter: 20 },
+      ],
+    });
+    // a measures 25×10=250 → S2 pushed to 250; its content ends at 310, the
+    // limit is 300−20=280 → overflow 30 reported on S2.
+    const layout = computeTextLayout(
+      variant,
+      { a: { value: 'x'.repeat(25), hidden: false }, b: { value: '', hidden: false } },
+      measureByLength
+    );
+    expect(layout.overflows).toEqual([{ containerId: 'S2', overflowPx: 30 }]);
+  });
 });
 
 // ---------- rich runs -----------------------------------------------------------

@@ -110,6 +110,8 @@ export interface WboostRawContainer {
   memberContainerIds?: string[];
   /** Uniform flow spacing (px) or null = designed gaps; absent on older deploys. */
   gap?: number | null;
+  /** Guaranteed clearance below (push landing + canvas-bottom margin); null = 0. */
+  spaceAfter?: number | null;
   /** True → nested inside a parent (its own maxHeight is not enforced). */
   nested?: boolean;
 }
