@@ -67,6 +67,17 @@ export interface WboostRawInput {
    */
   listCheckboxes?: boolean;
   /**
+   * Non-null → this input is a DEDICATED checklist component: render a
+   * fixed per-item editor (row = checkbox + text) honoring the capability
+   * flags instead of a free WYSIWYG. May be absent on older payloads.
+   */
+  checklist?: {
+    toggle: boolean;
+    editText: boolean;
+    addItems: boolean;
+    removeItems: boolean;
+  } | null;
+  /**
    * "Vzorový text" — the admin's default fill the render falls back to when
    * the input is OMITTED from the export payload (an explicit "" suppresses
    * it). Same wire format the export accepts (plain string or the

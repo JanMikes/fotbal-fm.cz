@@ -25,6 +25,14 @@ export interface ListStyleDTO {
   checkboxCheckedImageUrl: string | null;
 }
 
+/** Capabilities of a dedicated checklist component input. */
+export interface ChecklistCapabilitiesDTO {
+  toggle: boolean;
+  editText: boolean;
+  addItems: boolean;
+  removeItems: boolean;
+}
+
 export interface TemplateInputDTO {
   id: string;
   name: string | null;
@@ -68,6 +76,16 @@ export interface TemplateInputDTO {
    * not built here yet — sample-driven checklists render server-side.
    */
   listCheckboxes: boolean;
+  /**
+   * Non-null → DEDICATED checklist component: the intended UI is a fixed
+   * per-item editor (checkbox + text per row) honoring these capability
+   * flags — `toggle` (check/uncheck), `editText`, `addItems`,
+   * `removeItems`. The wire format is the ordinary checkbox-list envelope.
+   * With all four flags false the server ignores overrides (read-only).
+   * Editing UI not built here yet — sample-driven checklists render
+   * server-side.
+   */
+  checklist: ChecklistCapabilitiesDTO | null;
   /**
    * "Vzorový text" — the admin's default fill. The render uses it whenever
    * the export payload OMITS this input (buildRenderInputs omits empty

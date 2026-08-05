@@ -260,6 +260,37 @@ describe('SocialExportService', () => {
       expect(checklist.listStyle?.checkboxCheckedImageUrl).toBe('http://store/box-checked.png');
     });
 
+    it('maps checklist component capabilities (and null when absent)', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              inputs: [
+                makeRawInput({
+                  id: 'component',
+                  richText: true,
+                  lists: true,
+                  listCheckboxes: true,
+                  checklist: { toggle: true, editText: false, addItems: true, removeItems: false },
+                }),
+                makeRawInput({ id: 'plain' }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const [component, plain] = result.data[0].variants[0].inputs;
+      expect(component.checklist).toEqual({ toggle: true, editText: false, addItems: true, removeItems: false });
+      expect(plain.checklist).toBeNull();
+    });
+
     it('maps containers + per-input containerId/textStyle (and defaults when absent)', async () => {
       const rawTemplates = [
         makeRawTemplate({

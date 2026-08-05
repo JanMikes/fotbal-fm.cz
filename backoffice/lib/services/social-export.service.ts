@@ -59,6 +59,7 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
         }
       : null,
     listCheckboxes: raw.listCheckboxes ?? false,
+    checklist: raw.checklist ?? null,
     sampleValue: raw.sampleValue ?? null,
     // Absent on older payloads → null (the layers panel sinks it to the end).
     layerIndex: raw.layerIndex ?? null,

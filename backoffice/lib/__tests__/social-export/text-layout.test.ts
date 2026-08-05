@@ -32,6 +32,7 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     lists: false,
     listStyle: null,
     listCheckboxes: false,
+    checklist: null,
     sampleValue: null,
     layerIndex: null,
     ...overrides,
