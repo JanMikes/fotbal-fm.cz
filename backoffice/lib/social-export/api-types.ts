@@ -16,6 +16,13 @@ export interface ListStyleDTO {
   indent: number;
   itemSpacing: number;
   blockSpacing: number;
+  /**
+   * Checkbox state art for 'cb'/'cbx' items; null = the default drawn
+   * checkbox (rounded square in the item's text color, checked adds a
+   * white check mark).
+   */
+  checkboxImageUrl: string | null;
+  checkboxCheckedImageUrl: string | null;
 }
 
 export interface TemplateInputDTO {
@@ -54,6 +61,13 @@ export interface TemplateInputDTO {
   lists: boolean;
   /** Resolved bullet + spacing geometry; non-null exactly when `lists`. */
   listStyle: ListStyleDTO | null;
+  /**
+   * True (implies `lists`) → the envelope's `lines` may also carry checkbox
+   * item types ('cb' unchecked / 'cbx' checked; 400
+   * `checkbox_lists_not_allowed` otherwise). Like `lists`, the editing UI is
+   * not built here yet — sample-driven checklists render server-side.
+   */
+  listCheckboxes: boolean;
   /**
    * "Vzorový text" — the admin's default fill. The render uses it whenever
    * the export payload OMITS this input (buildRenderInputs omits empty

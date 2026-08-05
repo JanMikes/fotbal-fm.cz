@@ -50,7 +50,15 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     richText: raw.richText ?? false,
     // Lists + sample: absent on pre-lists payloads → disabled/none.
     lists: raw.lists ?? false,
-    listStyle: raw.listStyle ?? null,
+    listStyle: raw.listStyle
+      ? {
+          ...raw.listStyle,
+          // Absent before checkbox lists shipped → default drawn checkbox.
+          checkboxImageUrl: raw.listStyle.checkboxImageUrl ?? null,
+          checkboxCheckedImageUrl: raw.listStyle.checkboxCheckedImageUrl ?? null,
+        }
+      : null,
+    listCheckboxes: raw.listCheckboxes ?? false,
     sampleValue: raw.sampleValue ?? null,
     // Absent on older payloads → null (the layers panel sinks it to the end).
     layerIndex: raw.layerIndex ?? null,

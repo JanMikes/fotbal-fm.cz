@@ -209,12 +209,55 @@ describe('SocialExportService', () => {
         indent: 60,
         itemSpacing: 4,
         blockSpacing: 23.2,
+        // Absent on the raw payload → default drawn checkbox (null).
+        checkboxImageUrl: null,
+        checkboxCheckedImageUrl: null,
       });
       expect(withLists.sampleValue).toBe('{"runs":[{"text":"Intro\nItem"}],"lines":["p","ul"]}');
       // Pre-lists payloads (fields absent) default to disabled/none.
       expect(preLists.lists).toBe(false);
       expect(preLists.listStyle).toBeNull();
+      expect(preLists.listCheckboxes).toBe(false);
       expect(preLists.sampleValue).toBeNull();
+    });
+
+    it('maps listCheckboxes + checkbox state image URLs', async () => {
+      const rawTemplates = [
+        makeRawTemplate({
+          variants: [
+            makeRawVariant({
+              inputs: [
+                makeRawInput({
+                  id: 'checklist',
+                  richText: true,
+                  lists: true,
+                  listCheckboxes: true,
+                  listStyle: {
+                    bullet: 'disc',
+                    bulletImageUrl: null,
+                    indent: 60,
+                    itemSpacing: 4,
+                    blockSpacing: 23.2,
+                    checkboxImageUrl: 'http://store/box.png',
+                    checkboxCheckedImageUrl: 'http://store/box-checked.png',
+                  },
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const [checklist] = result.data[0].variants[0].inputs;
+      expect(checklist.listCheckboxes).toBe(true);
+      expect(checklist.listStyle?.checkboxImageUrl).toBe('http://store/box.png');
+      expect(checklist.listStyle?.checkboxCheckedImageUrl).toBe('http://store/box-checked.png');
     });
 
     it('maps containers + per-input containerId/textStyle (and defaults when absent)', async () => {

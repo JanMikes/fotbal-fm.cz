@@ -62,6 +62,11 @@ export interface WboostRawInput {
   /** Resolved list styling; present exactly when `lists` is true. */
   listStyle?: WboostRawListStyle | null;
   /**
+   * True (implies `lists`) → `lines` may also carry checkbox item types
+   * ('cb' unchecked / 'cbx' checked). May be absent on older payloads.
+   */
+  listCheckboxes?: boolean;
+  /**
    * "Vzorový text" — the admin's default fill the render falls back to when
    * the input is OMITTED from the export payload (an explicit "" suppresses
    * it). Same wire format the export accepts (plain string or the
@@ -82,6 +87,13 @@ export interface WboostRawListStyle {
   indent: number;
   itemSpacing: number;
   blockSpacing: number;
+  /**
+   * Checkbox state art for 'cb'/'cbx' items (inputs with `listCheckboxes`);
+   * null = the default drawn checkbox (rounded square in the item's text
+   * color, checked with a white check). May be absent on older payloads.
+   */
+  checkboxImageUrl?: string | null;
+  checkboxCheckedImageUrl?: string | null;
 }
 
 /** One pickable font face for rich-text inputs (faces are standalone families). */
