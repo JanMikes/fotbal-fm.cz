@@ -12,6 +12,7 @@ function mockResponse(data: unknown, ok = true, status = 200) {
     status,
     statusText: ok ? 'OK' : 'Error',
     json: () => Promise.resolve(data),
+    text: () => Promise.resolve(data === undefined ? '' : JSON.stringify(data)),
   };
 }
 
@@ -130,6 +131,14 @@ describe('strapi client', () => {
       const [, options] = mockFetch.mock.calls[0];
       expect(options.method).toBe('DELETE');
       expect(options.headers['Authorization']).toBe('Bearer admin-jwt');
+    });
+
+    it('handles 204 No Content, which is what Strapi 5 actually returns', async () => {
+      // Regression: parsing an empty body as JSON threw "Unexpected end of
+      // JSON input" and aborted the whole sync on the first successful delete.
+      mockFetch.mockResolvedValueOnce(mockResponse(undefined, true, 204));
+
+      await expect(strapiDelete('/matches/abc')).resolves.toBeUndefined();
     });
 
     it('throws on error', async () => {

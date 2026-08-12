@@ -176,5 +176,8 @@ export async function strapiDelete<T>(
     throw new Error(JSON.stringify(error));
   }
 
-  return res.json() as Promise<T>;
+  // Strapi 5 answers a successful DELETE with 204 No Content — parsing that as
+  // JSON throws "Unexpected end of JSON input" on an otherwise fine delete.
+  const body = await res.text();
+  return (body ? JSON.parse(body) : undefined) as T;
 }

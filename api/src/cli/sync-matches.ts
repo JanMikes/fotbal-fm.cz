@@ -8,6 +8,9 @@
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --from-file
  *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --season 2025
+ *   docker compose exec -T api npx tsx src/cli/sync-matches.ts --no-prune
+ *
+ * Matches FAČR no longer lists are deleted (see step 8); --no-prune keeps them.
  *
  * Environment variables:
  *   FACR_EMAIL    - FAČR IS login email (not needed with --from-file)
@@ -22,7 +25,7 @@ import * as XLSX from 'xlsx';
 import { scrapeMatchesXlsx, parseMatchRows, FACR_CLUBS, type FacrMatch, type XlsxRow } from '../lib/facr.js';
 import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
-import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
+import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
 import { flushWebCache } from '../lib/cache-flush.js';
 
 interface StrapiCategoryCode {
@@ -41,6 +44,46 @@ interface StrapiMatch {
   facrId: string | null;
 }
 
+/** Fields loaded alongside a match so the prune pass can judge it. */
+interface ExistingMatchExtras {
+  season?: number | null;
+  matchDate?: string | null;
+  competitionName?: string | null;
+  competitionCode?: string | null;
+  homeGoalscorers?: string | null;
+  awayGoalscorers?: string | null;
+  matchReport?: string | null;
+  lineup?: string | null;
+  imagesUrl?: string | null;
+  homeTeam?: { documentId: string; name?: string } | null;
+  awayTeam?: { documentId: string; name?: string } | null;
+  images?: unknown[] | null;
+  files?: unknown[] | null;
+}
+
+interface PruneCandidate {
+  documentId: string;
+  season: number | null;
+  hasUserContent: boolean;
+  label: string;
+}
+
+/**
+ * True when someone has put their own work into this match — a report, a
+ * lineup, goalscorers, photos. Those are never deleted by the prune, even if
+ * FAČR has dropped the fixture; they are reported for a human to decide on.
+ */
+function hasUserContent(match: ExistingMatchExtras): boolean {
+  const text = [
+    match.homeGoalscorers, match.awayGoalscorers,
+    match.matchReport, match.lineup, match.imagesUrl,
+  ];
+  if (text.some((value) => typeof value === 'string' && value.trim() !== '')) {
+    return true;
+  }
+  return (match.images?.length ?? 0) > 0 || (match.files?.length ?? 0) > 0;
+}
+
 interface StrapiTournament {
   id: number;
   documentId: string;
@@ -56,6 +99,7 @@ interface StrapiTeam {
 
 async function main() {
   const fromFile = process.argv.includes('--from-file');
+  const noPrune = process.argv.includes('--no-prune');
 
   let parsedMatches: FacrMatch[];
   if (fromFile) {
@@ -190,16 +234,23 @@ async function main() {
   const existingByFacrId = new Map<string, string>();
   // Composite key: "homeTeamDocId:awayTeamDocId:matchDate" -> documentId
   const existingByCompositeKey = new Map<string, string>();
+  // FAČR-sourced rows, for the prune pass in step 8.
+  const pruneCandidates = new Map<string, PruneCandidate>();
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
-    const res = await strapiGet<StrapiMatch & { homeTeam?: { documentId: string } | null; awayTeam?: { documentId: string } | null; matchDate?: string | null }>(
+    const res = await strapiGet<StrapiMatch & ExistingMatchExtras>(
       '/matches',
       {
-        fields: ['facrId', 'matchDate'],
+        fields: [
+          'facrId', 'matchDate', 'season', 'competitionName', 'competitionCode',
+          'homeGoalscorers', 'awayGoalscorers', 'matchReport', 'lineup', 'imagesUrl',
+        ],
         populate: {
-          homeTeam: { fields: ['documentId'] },
-          awayTeam: { fields: ['documentId'] },
+          homeTeam: { fields: ['documentId', 'name'] },
+          awayTeam: { fields: ['documentId', 'name'] },
+          images: { fields: ['id'] },
+          files: { fields: ['id'] },
         },
         pagination: { pageSize: 100, page },
       },
@@ -207,6 +258,13 @@ async function main() {
     for (const mr of res.data) {
       if (mr.facrId) {
         existingByFacrId.set(mr.facrId, mr.documentId);
+        pruneCandidates.set(mr.facrId, {
+          documentId: mr.documentId,
+          season: mr.season ?? null,
+          hasUserContent: hasUserContent(mr),
+          label: `${mr.matchDate ?? '????-??-??'} ${mr.homeTeam?.name ?? '?'} vs ${mr.awayTeam?.name ?? '?'}`
+            + ` [${mr.competitionCode ?? '???'}] ${mr.facrId}`,
+        });
       } else if (mr.homeTeam?.documentId && mr.awayTeam?.documentId && mr.matchDate) {
         // Only index manually-created matches (no facrId) for composite key fallback
         const key = `${mr.homeTeam.documentId}:${mr.awayTeam.documentId}:${mr.matchDate}`;
@@ -300,6 +358,40 @@ async function main() {
     }
   }
 
+  // 8. Prune matches FAČR no longer lists.
+  //    Scoped to rows that came from FAČR (facrId set) in the seasons this run
+  //    actually scraped — never manual matches. Scoping by competition code
+  //    instead would miss the case this exists for: FAČR withdrew the whole G1F
+  //    competition in Aug 2026 and its 44 fixtures stayed on the public site.
+  //    The export covers every club subject from the season start, so a
+  //    FAČR-sourced row for a scraped season that is absent from it is stale.
+  let deleted = 0;
+  const keptWithContent: string[] = [];
+  if (fromFile) {
+    console.log('\nSkipping prune: --from-file data can be an out-of-date snapshot');
+  } else if (parsedMatches.length === 0) {
+    console.log('\nSkipping prune: scrape returned no matches');
+  } else if (noPrune) {
+    console.log('\nSkipping prune: --no-prune');
+  } else {
+    const scrapedSeasons = new Set(
+      parsedMatches.map((m) => m.season).filter((s): s is number => s !== null),
+    );
+    const scrapedFacrIds = new Set(parsedMatches.map((m) => m.facrId));
+
+    for (const [facrId, candidate] of pruneCandidates) {
+      if (scrapedFacrIds.has(facrId)) continue;
+      if (candidate.season === null || !scrapedSeasons.has(candidate.season)) continue;
+      if (candidate.hasUserContent) {
+        keptWithContent.push(candidate.label);
+        continue;
+      }
+      await strapiDelete(`/matches/${candidate.documentId}`);
+      console.log(`  Pruned ${candidate.label}`);
+      deleted++;
+    }
+  }
+
   const uniqueWithout = [...new Set(withoutCategory)];
 
   console.log(`\nSync complete:`);
@@ -307,6 +399,13 @@ async function main() {
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
   console.log(`  Merged:   ${merged} (linked manual matches to FAČR data)`);
+  console.log(`  Deleted:  ${deleted} (no longer listed by FAČR)`);
+  if (keptWithContent.length > 0) {
+    console.log(`  Kept ${keptWithContent.length} dropped by FAČR but holding your own content — review by hand:`);
+    for (const label of keptWithContent) {
+      console.log(`    ${label}`);
+    }
+  }
   console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
   console.log(`  Linked to tournament: ${linkedToTournament}`);
   console.log(`  Matched:  ${parsedMatches.length - uniqueWithout.length} with category`);
