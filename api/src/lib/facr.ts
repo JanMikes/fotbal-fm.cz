@@ -875,6 +875,26 @@ function parseCzechDate(dateStr: string): string {
 }
 
 /**
+ * Extract the player photo URL from the detail page's background-image CSS.
+ *
+ * Takes the path FAČR actually serves rather than assuming one. The endpoint
+ * lives at /public/get-foto.aspx; hardcoding /public/hraci/ made every photo
+ * 404 silently, so resolve whatever the markup says against the base URL.
+ */
+export function parsePhotoUrl(html: string): string | null {
+  // Anchor on a real URL start: the markup entity-encodes its quotes
+  // (url(&#39;/public/…&#39;)), so an unanchored match happily begins after the
+  // "&" and yields "/#39;/public/…".
+  const match = html.match(/((?:https?:\/\/|\/)[^"'()\s&]*get-foto\.aspx\?PublishId=[a-f0-9-]+)/i);
+  if (!match) return null;
+  try {
+    return new URL(match[1], FACR_BASE).toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Scrape a single player's detail page for full data.
  */
 async function scrapePlayerDetail(
@@ -907,12 +927,7 @@ async function scrapePlayerDetail(
   // Check for AKTIVNÍ badge
   const isActive = /AKTIVN[ÍI]/i.test(html);
 
-  // Extract photo URL from background-image CSS
-  let photoUrl: string | null = null;
-  const photoMatch = html.match(/get-foto\.aspx\?PublishId=([a-f0-9-]+)/i);
-  if (photoMatch) {
-    photoUrl = `${FACR_BASE}/public/hraci/get-foto.aspx?PublishId=${photoMatch[1]}`;
-  }
+  const photoUrl = parsePhotoUrl(html);
 
   return { dateOfBirth, nationality, isActive, photoUrl };
 }
@@ -920,11 +935,21 @@ async function scrapePlayerDetail(
 /**
  * Login to FAČR IS and scrape players for FK Frýdek-Místek.
  */
+export interface ScrapedPlayers {
+  players: FacrPlayer[];
+  /**
+   * Cookie header for follow-up requests against the same session. Photo
+   * downloads need it — get-foto.aspx redirects anonymous callers to the
+   * public homepage instead of serving the image.
+   */
+  cookie: string;
+}
+
 export async function scrapePlayers(
   email: string,
   password: string,
   club: FacrClub = DEFAULT_CLUB,
-): Promise<FacrPlayer[]> {
+): Promise<ScrapedPlayers> {
   const { accessToken, jar } = await facrLogin(email, password);
 
   // Step 3: GET player list page to get ViewState
@@ -1069,5 +1094,5 @@ export async function scrapePlayers(
   }
 
   console.log(`[FAČR] Scraped ${players.length} players with details`);
-  return players;
+  return { players, cookie: `access_token=${accessToken}; ${jar.toString()}` };
 }

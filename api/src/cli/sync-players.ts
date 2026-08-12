@@ -39,9 +39,11 @@ interface FilePlayer extends FacrPlayer {
  * Download a photo from FAČR and upload it to Strapi media library.
  * Returns the Strapi media ID.
  */
-async function uploadPhotoFromUrl(photoUrl: string, playerName: string): Promise<number | null> {
+async function uploadPhotoFromUrl(photoUrl: string, playerName: string, cookie: string): Promise<number | null> {
   try {
-    const res = await fetch(photoUrl);
+    // The FAČR session cookie is required: without it get-foto.aspx redirects
+    // to the public homepage and we would upload an HTML page as the photo.
+    const res = await fetch(photoUrl, { headers: { Cookie: cookie } });
     if (!res.ok) {
       console.warn(`  Failed to download photo for ${playerName}: ${res.status}`);
       return null;
@@ -75,12 +77,37 @@ async function uploadPhotoFromFile(photoFilename: string, playerName: string): P
 }
 
 /**
+ * Detect the image type from magic bytes. Returns null for anything that is
+ * not an image we recognise.
+ */
+function detectImageType(buffer: Buffer): { mime: string; ext: string } | null {
+  const hex = buffer.subarray(0, 4).toString('hex');
+  if (hex.startsWith('ffd8ff')) return { mime: 'image/jpeg', ext: 'jpg' };
+  if (hex === '89504e47') return { mime: 'image/png', ext: 'png' };
+  if (hex.startsWith('474946')) return { mime: 'image/gif', ext: 'gif' };
+  if (buffer.subarray(0, 4).toString('ascii') === 'RIFF'
+    && buffer.subarray(8, 12).toString('ascii') === 'WEBP') {
+    return { mime: 'image/webp', ext: 'webp' };
+  }
+  return null;
+}
+
+/**
  * Upload a photo buffer to Strapi media library.
  * Returns the Strapi media ID.
  */
 async function uploadPhotoBuffer(buffer: Buffer, playerName: string): Promise<number | null> {
   try {
-    const blob = new Blob([buffer], { type: 'image/jpeg' });
+    // Sniff the real type: FA\u010cR serves PNGs labelled image/jpeg, and a session
+    // that has expired yields an HTML page \u2014 neither should land in the media
+    // library as "<name>.jpg".
+    const kind = detectImageType(buffer);
+    if (!kind) {
+      console.warn(`  Skipped photo for ${playerName}: not an image (${buffer.length} bytes)`);
+      return null;
+    }
+
+    const blob = new Blob([buffer], { type: kind.mime });
 
     const safeName = playerName
       .normalize('NFD')
@@ -89,7 +116,7 @@ async function uploadPhotoBuffer(buffer: Buffer, playerName: string): Promise<nu
       .toLowerCase();
 
     const formData = new FormData();
-    formData.append('files', blob, `${safeName}.jpg`);
+    formData.append('files', blob, `${safeName}.${kind.ext}`);
 
     const headers: Record<string, string> = {};
     if (STRAPI_API_TOKEN) {
@@ -121,6 +148,8 @@ async function main() {
 
   let scraped: FacrPlayer[];
   let filePlayers: FilePlayer[] | null = null;
+  // Session cookie from the last scrape, needed to download photos.
+  let facrCookie = '';
   if (fromFile) {
     const filePath = path.join(__dirname, '../../data/players.json');
     const raw = fs.readFileSync(filePath, 'utf-8');
@@ -142,7 +171,8 @@ async function main() {
     scraped = [];
     const seenFacrIds = new Set<string>();
     for (const club of FACR_CLUBS) {
-      const clubPlayers = await scrapePlayers(email, password, club);
+      const { players: clubPlayers, cookie } = await scrapePlayers(email, password, club);
+      facrCookie = cookie;
       for (const player of clubPlayers) {
         if (seenFacrIds.has(player.facrId)) continue;
         seenFacrIds.add(player.facrId);
@@ -211,7 +241,7 @@ async function main() {
       } else if (!fromFile && player.photoUrl) {
         // Only fetch from FAČR URL when scraping live (not from file),
         // as production can't reach is.fotbal.cz
-        photoId = await uploadPhotoFromUrl(player.photoUrl, player.name);
+        photoId = await uploadPhotoFromUrl(player.photoUrl, player.name, facrCookie);
       }
       if (photoId) photosUploaded++;
     }

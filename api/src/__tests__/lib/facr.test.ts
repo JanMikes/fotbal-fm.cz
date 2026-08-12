@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseRocnikOptions, resolveRocnikValue, getSeasonStartDate } from '../../lib/facr.js';
+import { parseRocnikOptions, resolveRocnikValue, getSeasonStartDate, parsePhotoUrl } from '../../lib/facr.js';
 import { parseSeasonArg } from '../../lib/cli-args.js';
 
 const ROCNIK_HTML = `
@@ -71,5 +71,35 @@ describe('parseSeasonArg', () => {
   it('throws on invalid values', () => {
     expect(() => parseSeasonArg(['node', 'script.ts', '--season', 'abc'])).toThrow(/Invalid/);
     expect(() => parseSeasonArg(['node', 'script.ts', '--season'])).toThrow(/Invalid/);
+  });
+});
+
+describe('parsePhotoUrl', () => {
+  // Exactly as FAČR renders it on the player detail page (entity-encoded quotes).
+  const DETAIL_HTML = `
+<div id="MainContent_OsobaDetailMenu_overviewProfileImg" class="overview__profile"
+     style="background-image:url(&#39;/public/get-foto.aspx?PublishId=a4c6a491-84fd-4eec-a86e-5abe4fe272df&#39;)">
+</div>
+`;
+
+  it('resolves the path FAČR serves, not an assumed one', () => {
+    // Regression: /public/hraci/get-foto.aspx 404s for every player.
+    expect(parsePhotoUrl(DETAIL_HTML)).toBe(
+      'https://is.fotbal.cz/public/get-foto.aspx?PublishId=a4c6a491-84fd-4eec-a86e-5abe4fe272df',
+    );
+  });
+
+  it('follows the markup if the endpoint moves again', () => {
+    const moved = `<div style="background-image:url('/public/osoby/get-foto.aspx?PublishId=abc123')"></div>`;
+    expect(parsePhotoUrl(moved)).toBe('https://is.fotbal.cz/public/osoby/get-foto.aspx?PublishId=abc123');
+  });
+
+  it('accepts an absolute URL', () => {
+    const absolute = `<img src="https://is.fotbal.cz/public/get-foto.aspx?PublishId=deadbeef">`;
+    expect(parsePhotoUrl(absolute)).toBe('https://is.fotbal.cz/public/get-foto.aspx?PublishId=deadbeef');
+  });
+
+  it('returns null when the player has no photo', () => {
+    expect(parsePhotoUrl('<div class="overview__profile"></div>')).toBeNull();
   });
 });

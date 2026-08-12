@@ -55,7 +55,7 @@ function sanitizeFilename(name: string): string {
     .toLowerCase();
 }
 
-async function downloadPhoto(player: FacrPlayer): Promise<string | null> {
+async function downloadPhoto(player: FacrPlayer, cookie: string): Promise<string | null> {
   if (!player.photoUrl) return null;
 
   const filename = `${sanitizeFilename(player.name)}.jpg`;
@@ -67,12 +67,18 @@ async function downloadPhoto(player: FacrPlayer): Promise<string | null> {
   }
 
   try {
-    const res = await fetch(player.photoUrl);
+    // Needs the FAČR session cookie — anonymous callers get redirected to the
+    // public homepage, which would be written to disk as a .jpg.
+    const res = await fetch(player.photoUrl, { headers: { Cookie: cookie } });
     if (!res.ok) {
       console.warn(`  Failed to download photo for ${player.name}: ${res.status}`);
       return null;
     }
     const buffer = Buffer.from(await res.arrayBuffer());
+    if (!buffer.subarray(0, 4).toString('hex').match(/^(ffd8ff|89504e47|474946)/)) {
+      console.warn(`  Skipped photo for ${player.name}: not an image (${buffer.length} bytes)`);
+      return null;
+    }
     fs.writeFileSync(filepath, buffer);
     return filename;
   } catch (err) {
@@ -157,8 +163,10 @@ async function main() {
   console.log('\n=== Scraping players ===');
   const players: FacrPlayer[] = [];
   const seenPlayerIds = new Set<string>();
+  let facrCookie = '';
   for (const club of FACR_CLUBS) {
-    const clubPlayers = await scrapePlayers(email, password, club);
+    const { players: clubPlayers, cookie } = await scrapePlayers(email, password, club);
+    facrCookie = cookie;
     for (const player of clubPlayers) {
       if (seenPlayerIds.has(player.facrId)) continue;
       seenPlayerIds.add(player.facrId);
@@ -172,7 +180,7 @@ async function main() {
   let photosDownloaded = 0;
 
   for (const player of players) {
-    const photoFilename = await downloadPhoto(player);
+    const photoFilename = await downloadPhoto(player, facrCookie);
     if (photoFilename) photosDownloaded++;
 
     playersWithPhotos.push({
