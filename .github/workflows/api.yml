@@ -1,8 +1,19 @@
+# API — test on PRs + pushes; on push to main build+push the image and deploy to
+# lily via the shared TheDevs-cz/ci ship workflow (D23 webhook — the box PULLS;
+# this repo holds no SSH key, only a per-app HMAC secret).
+#
+# ONE HOOK, FIVE WORKFLOWS: all five *.yml callers pass the SAME `app: fotbal-fm`
+# because on lily the five images land in ONE compose project sharing one
+# Postgres, one Redis and one uploads volume. The path filters keep the builds
+# independent; the box's deploy.sh rolls only the services whose image changed.
+#
+# The old post-deploy `sync-facr` job (root-SSH, ran the --from-file syncs when
+# api/data/ changed) now lives in the box's deploy.sh: it hashes /app/api/data
+# in the deployed image and runs the same four syncs when the hash changed.
 name: API
 
 permissions:
     contents: read
-    deployments: write
     packages: write
 
 on:
@@ -23,7 +34,7 @@ on:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
     test:
@@ -44,91 +55,17 @@ jobs:
             -   name: Run tests
                 run: npx vitest run --project api --project strapi-client
 
-    docker-image:
-        runs-on: ubuntu-latest
-        needs:
-            - test
-        if: github.event_name != 'pull_request'
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v6
-
-            -   name: Docker meta
-                id: meta
-                uses: docker/metadata-action@v5
-                with:
-                    images: |
-                        ghcr.io/janmikes/fotbal-fm.cz-api
-                    tags: |
-                        type=ref,event=branch
-                        type=ref,event=pr
-
-            -   name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
-
-            -   name: Login to GHCR
-                uses: docker/login-action@v3
-                with:
-                    registry: ghcr.io
-                    username: ${{ github.repository_owner }}
-                    password: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Build and push API
-                uses: docker/build-push-action@v6
-                with:
-                    context: .
-                    file: ./api/Dockerfile
-                    push: true
-                    tags: ${{ steps.meta.outputs.tags }}
-                    labels: ${{ steps.meta.outputs.labels }}
-                    provenance: false
-                    sbom: false
-                    cache-from: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-api:cache
-                    cache-to: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-api:cache,mode=max,oci-mediatypes=true,compression=zstd,force-compression=true,ignore-error=true
-
-    deploy:
-        runs-on: ubuntu-latest
-        needs:
-            - docker-image
-        steps:
-            - name: executing remote ssh commands using ssh key
-              uses: appleboy/ssh-action@v1
-              with:
-                host: fotbal-fm.thedevs.cz
-                username: ${{ secrets.DEPLOY_USERNAME }}
-                key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-                script: cd /deployment/fotbal-fm-web && ./deploy-api.sh
-
-    sync-facr:
-        runs-on: ubuntu-latest
-        needs:
-            - deploy
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v6
-                with:
-                    fetch-depth: 2
-
-            -   name: Check if data files changed
-                id: changes
-                run: |
-                    if git diff --name-only HEAD~1 HEAD | grep -q '^api/data/'; then
-                      echo "data_changed=true" >> $GITHUB_OUTPUT
-                    else
-                      echo "data_changed=false" >> $GITHUB_OUTPUT
-                    fi
-
-            -   name: Sync FAČR data to Strapi
-                if: steps.changes.outputs.data_changed == 'true'
-                uses: appleboy/ssh-action@v1
-                with:
-                    host: fotbal-fm.thedevs.cz
-                    username: ${{ secrets.DEPLOY_USERNAME }}
-                    key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-                    command_timeout: 10m
-                    script: |
-                        cd /deployment/fotbal-fm-web
-                        docker compose exec -T api npx tsx src/cli/sync-tournaments.ts --from-file
-                        docker compose exec -T api npx tsx src/cli/sync-matches.ts --from-file
-                        docker compose exec -T api npx tsx src/cli/sync-standings.ts --from-file
-                        docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
+    ship:
+        needs: test
+        if: github.event_name == 'push'
+        uses: TheDevs-cz/ci/.github/workflows/_ship.yml@v1
+        secrets:
+            # Passed EXPLICITLY: `secrets: inherit` cannot cross repo owners.
+            DEPLOY_WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+        with:
+            app: fotbal-fm                          # hook id == /srv/<app> == compose project
+            image: ghcr.io/janmikes/fotbal-fm.cz-api
+            context: .
+            dockerfile: api/Dockerfile
+            deploy_host: lily.srv.thedevs.cz
+            await_deploy: false                     # no commit-status token for this repo yet

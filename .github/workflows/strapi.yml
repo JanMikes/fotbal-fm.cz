@@ -1,10 +1,10 @@
-# https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
-
+# Strapi — on push to main build+push the CMS image and deploy to lily via the
+# shared TheDevs-cz/ci ship workflow (D23 webhook). Same hook as the other four
+# callers (`app: fotbal-fm`) — see api.yml.
 name: Strapi
 
 permissions:
     contents: read
-    deployments: write
     packages: write
 
 on:
@@ -17,59 +17,16 @@ on:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+    cancel-in-progress: false
 
 jobs:
-    docker-image:
-        runs-on: ubuntu-latest
-        steps:
-            -   name: Checkout
-                uses: actions/checkout@v6
-
-            -   name: Docker meta
-                id: meta
-                uses: docker/metadata-action@v5
-                with:
-                    # list of Docker images to use as base name for tags
-                    images: |
-                        ghcr.io/janmikes/fotbal-fm.cz-strapi
-                    # generate Docker tags based on the following events/attributes
-                    tags: |
-                        type=ref,event=branch
-                        type=ref,event=pr
-
-            -   name: Set up Docker Buildx
-                uses: docker/setup-buildx-action@v3
-
-            -   name: Login to GHCR
-                if: github.event_name != 'pull_request'
-                uses: docker/login-action@v3
-                with:
-                    registry: ghcr.io
-                    username: ${{ github.repository_owner }}
-                    password: ${{ secrets.GITHUB_TOKEN }}
-
-            -   name: Build and push Strapi
-                uses: docker/build-push-action@v6
-                with:
-                    context: ./strapi
-                    push: ${{ github.event_name != 'pull_request' }}
-                    tags: ${{ steps.meta.outputs.tags }}
-                    labels: ${{ steps.meta.outputs.labels }}
-                    provenance: false
-                    sbom: false
-                    cache-from: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-strapi:cache
-                    cache-to: type=registry,ref=ghcr.io/janmikes/fotbal-fm.cz-strapi:cache,mode=max,oci-mediatypes=true,compression=zstd,force-compression=true,ignore-error=true
-
-    deploy:
-        runs-on: ubuntu-latest
-        needs:
-            - docker-image
-        steps:
-            - name: executing remote ssh commands using ssh key
-              uses: appleboy/ssh-action@v1
-              with:
-                host: fotbal-fm.thedevs.cz
-                username: ${{ secrets.DEPLOY_USERNAME }}
-                key: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-                script: cd /deployment/fotbal-fm-web && ./deploy-strapi.sh
+    ship:
+        uses: TheDevs-cz/ci/.github/workflows/_ship.yml@v1
+        secrets:
+            DEPLOY_WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+        with:
+            app: fotbal-fm
+            image: ghcr.io/janmikes/fotbal-fm.cz-strapi
+            context: ./strapi
+            deploy_host: lily.srv.thedevs.cz
+            await_deploy: false

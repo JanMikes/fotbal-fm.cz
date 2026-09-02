@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:22-alpine AS deps
 
 WORKDIR /app
@@ -34,12 +35,15 @@ WORKDIR /app/backoffice
 
 ENV NODE_ENV=production
 
-ARG SENTRY_AUTH_TOKEN
 ARG APP_VERSION
 ENV SENTRY_RELEASE="${APP_VERSION}"
 
+# SENTRY_AUTH_TOKEN arrives as a BuildKit SECRET mount (exposed to this RUN only,
+# never baked into a layer or the image history). CI passes it through the shared
+# TheDevs-cz/ci workflow's BUILD_SECRETS input.
 RUN --mount=type=cache,target=/app/backoffice/.next/cache \
-    SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN npx next build --webpack
+    --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
+    npx next build --webpack
 
 # ---
 
