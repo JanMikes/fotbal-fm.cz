@@ -3,20 +3,19 @@ FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Copy only package files for dependency installation
+# Copy the root manifests + EVERY workspace package.json (npm ci needs the whole
+# workspace tree to match package-lock.json)
 COPY package.json package-lock.json ./
-COPY packages/strapi-client/package.json ./packages/strapi-client/
+COPY api/package.json ./api/
 COPY backoffice/package.json ./backoffice/
+COPY web/package.json ./web/
+COPY packages/cache/package.json ./packages/cache/
+COPY packages/form/package.json ./packages/form/
+COPY packages/strapi-client/package.json ./packages/strapi-client/
 
-# Create stubs for other workspace members
-RUN mkdir -p web && echo '{"name":"@fotbal-fm/web","version":"0.1.0","private":true}' > web/package.json \
- && mkdir -p api && echo '{"name":"@fotbal-fm/api","version":"0.1.0","private":true}' > api/package.json \
- && mkdir -p packages/form && echo '{"name":"@fotbal-fm/form","version":"0.1.0","private":true}' > packages/form/package.json \
- && mkdir -p packages/cache && echo '{"name":"@fotbal-fm/cache","version":"0.1.0","private":true}' > packages/cache/package.json
-
-# Remove lockfile to avoid npm optional dependency bug (https://github.com/npm/cli/issues/4828)
-# where platform-specific bindings are skipped when lockfile was generated on a different OS
-RUN --mount=type=cache,target=/root/.npm rm package-lock.json && npm install
+# Install strictly from the lockfile so every build is reproducible. The lockfile
+# records the native bindings for every platform (incl. Alpine/musl x64+arm64).
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # ---
 
