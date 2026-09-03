@@ -63,6 +63,12 @@ export interface InputFieldState {
    * non-rich inputs.
    */
   runs?: RichRunDTO[] | null;
+  /**
+   * The whole-text FONT choice for inputs with `fontOptions` — one of
+   * `fontOptions[].family`, or null/absent for the designed font. Never sent
+   * for inputs without `fontOptions` (the API 400s otherwise).
+   */
+  fontFamily?: string | null;
 }
 
 /**
@@ -93,18 +99,32 @@ export function buildRenderInputs(
     // Rich runs are sent ONLY for richText inputs (the API 400s otherwise)
     // and only when actually styled — unstyled values keep the plain shape.
     const runs = input.richText && isStyled(fieldState.runs) ? fieldState.runs : null;
+    // The font choice is sent ONLY for inputs that offer it, and only for a
+    // pick inside the offer (a stale pick from a saved state is dropped).
+    const fontFamily =
+      fieldState.fontFamily && input.fontOptions?.some((font) => font.family === fieldState.fontFamily)
+        ? fieldState.fontFamily
+        : null;
+    const font = fontFamily ? { fontFamily } : {};
 
     if (hidden) {
       if (runs) {
-        payload[input.id] = { runs, hide: true };
+        payload[input.id] = { runs, hide: true, ...font };
       } else {
-        payload[input.id] = value ? { value, hide: true } : { hide: true };
+        payload[input.id] = value ? { value, hide: true, ...font } : { hide: true, ...font };
       }
       continue;
     }
 
     if (runs) {
-      payload[input.id] = { runs };
+      payload[input.id] = { runs, ...font };
+      continue;
+    }
+
+    if (fontFamily) {
+      // A font pick is a fill even with the default text: the server keeps
+      // the sample/designed text and re-renders it in the picked face.
+      payload[input.id] = value ? { value, fontFamily } : { fontFamily };
       continue;
     }
 

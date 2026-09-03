@@ -48,6 +48,18 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
     containerId: raw.containerId ?? null,
     textStyle: raw.textStyle ?? null,
     richText: raw.richText ?? false,
+    // Font choice: absent on pre-choice payloads → no switch. Font file URLs
+    // go through the same-origin proxy (see richTextOptions below).
+    fontOptions: raw.fontOptions
+      ? raw.fontOptions.map((font) => ({
+          family: font.family,
+          fontName: font.fontName,
+          faceName: font.faceName,
+          weight: font.weight,
+          style: font.style,
+          url: fontProxyPath(font.family),
+        }))
+      : null,
     // Lists + sample: absent on pre-lists payloads → disabled/none.
     lists: raw.lists ?? false,
     listStyle: raw.listStyle

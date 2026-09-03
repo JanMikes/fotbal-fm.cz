@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import FieldInsertMenu from './FieldInsertMenu';
+import FontChoiceSelect from './FontChoiceSelect';
 import RichTextEditor from './RichTextEditor';
 import type { RichTextOptionsDTO, TemplateInputDTO } from '@/lib/social-export/api-types';
 import type { MatchChip } from '@/lib/social-export/prefill';
@@ -83,12 +84,24 @@ export default function PlaceholderTextPanel({
         <p className="mb-2 text-xs text-text-muted">{input.description}</p>
       )}
 
+      {/* Font choice (plain inputs the designer opened up): a whole-text
+          switch, sent as the value's `fontFamily`. Rich inputs switch faces
+          inside the editor instead (its menu is the per-input fontOptions). */}
+      {!isRich && input.fontOptions && (
+        <FontChoiceSelect
+          options={input.fontOptions}
+          value={state.fontFamily}
+          disabled={isHidden}
+          onChange={(fontFamily) => onChange({ fontFamily })}
+        />
+      )}
+
       <div className="flex items-start gap-2">
         <div className="flex-1">
           {isRich && richTextOptions ? (
             <RichTextEditor
               input={input}
-              options={richTextOptions}
+              options={input.fontOptions ? { ...richTextOptions, fonts: input.fontOptions } : richTextOptions}
               state={state}
               disabled={isHidden}
               autoFocus

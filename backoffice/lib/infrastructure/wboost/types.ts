@@ -78,6 +78,13 @@ export interface WboostRawInput {
     removeItems: boolean;
   } | null;
   /**
+   * The faces THIS input may be filled in (designed font first): non-null →
+   * the user may switch fonts — the per-input whitelist for a rich run's
+   * `fontFamily` and for the value-level `fontFamily`. Null = no choice.
+   * May be absent on older payloads.
+   */
+  fontOptions?: WboostRawRichTextFontOption[] | null;
+  /**
    * "Vzorový text" — the admin's default fill the render falls back to when
    * the input is OMITTED from the export payload (an explicit "" suppresses
    * it). Same wire format the export accepts (plain string or the

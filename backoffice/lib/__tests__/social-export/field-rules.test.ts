@@ -28,8 +28,14 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     checklist: null,
     sampleValue: null,
     layerIndex: null,
+    fontOptions: null,
     ...overrides,
   };
+}
+
+function fontOption(family: string) {
+  const [fontName, faceName] = family.replace(/\)$/, '').split(' (');
+  return { family, fontName, faceName, weight: 400, style: 'normal', url: `/fonts/${faceName}` };
 }
 
 function makeState(overrides: Partial<InputFieldState> = {}): InputFieldState {
@@ -91,6 +97,37 @@ describe('validateInputValue', () => {
 // ---------- buildRenderInputs ------------------------------------------------
 
 describe('buildRenderInputs', () => {
+  it('sends the font choice only for inputs that offer it and only inside the offer', () => {
+    const offering = makeInput({
+      id: 'font',
+      fontOptions: [fontOption('Rubik (Rubik Regular)'), fontOption('Rubik (Rubik Bold)')],
+    });
+    const plain = makeInput({ id: 'plain' });
+    const state: Record<string, InputFieldState> = {
+      font: makeState({ value: 'Sale', fontFamily: 'Rubik (Rubik Bold)' }),
+      plain: makeState({ value: 'x', fontFamily: 'Rubik (Rubik Bold)' }),
+    };
+
+    const payload = buildRenderInputs([offering, plain], state);
+    expect(payload['font']).toEqual({ value: 'Sale', fontFamily: 'Rubik (Rubik Bold)' });
+    // No fontOptions → the stale pick is dropped, plain shape survives.
+    expect(payload['plain']).toBe('x');
+
+    // A pick outside the offer is dropped; a pick with the default text is
+    // still a fill (the server re-renders the designed/sample text in it).
+    expect(
+      buildRenderInputs([offering], { font: makeState({ value: 'Sale', fontFamily: 'Comic (Comic Sans)' }) })['font']
+    ).toBe('Sale');
+    expect(
+      buildRenderInputs([offering], { font: makeState({ value: '', fontFamily: 'Rubik (Rubik Bold)' }) })['font']
+    ).toEqual({ fontFamily: 'Rubik (Rubik Bold)' });
+    expect(
+      buildRenderInputs([makeInput({ id: 'font', hidable: true, fontOptions: offering.fontOptions })], {
+        font: makeState({ value: '', hidden: true, fontFamily: 'Rubik (Rubik Bold)' }),
+      })['font']
+    ).toEqual({ hide: true, fontFamily: 'Rubik (Rubik Bold)' });
+  });
+
   it('skips locked inputs', () => {
     const inputs = [makeInput({ id: 'locked', name: 'Locked', locked: true })];
     const state: Record<string, InputFieldState> = {

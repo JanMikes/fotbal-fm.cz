@@ -6,6 +6,7 @@ import FormField from '@/components/ui/FormField';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import Alert from '@/components/ui/Alert';
 import FieldInsertMenu from './FieldInsertMenu';
+import FontChoiceSelect from './FontChoiceSelect';
 import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { MatchChip } from '@/lib/social-export/prefill';
@@ -113,12 +114,22 @@ export default function ExportInputForm({
               hint={hintText}
               error={validationError}
             >
+              {/* Font choice for plain inputs the designer opened up; rich
+                  inputs get the per-input faces as their editor menu. */}
+              {!(input.richText && variant.richTextOptions) && input.fontOptions && (
+                <FontChoiceSelect
+                  options={input.fontOptions}
+                  value={fieldState.fontFamily}
+                  disabled={isHidden}
+                  onChange={(fontFamily) => onChange(input.id, { fontFamily })}
+                />
+              )}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
                   {input.richText && variant.richTextOptions ? (
                     <RichTextEditor
                       input={input}
-                      options={variant.richTextOptions}
+                      options={input.fontOptions ? { ...variant.richTextOptions, fonts: input.fontOptions } : variant.richTextOptions}
                       state={fieldState}
                       disabled={isHidden}
                       onChange={(partial) => onChange(input.id, partial)}

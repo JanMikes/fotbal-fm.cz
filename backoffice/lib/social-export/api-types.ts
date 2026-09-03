@@ -55,9 +55,19 @@ export interface TemplateInputDTO {
   /**
    * True → the user may FORMAT parts of the text (font face / color /
    * underline): render the rich editor and send the value as `{ runs }`.
-   * The pickable fonts + swatches live in `TemplateVariantDTO.richTextOptions`.
+   * The swatches live in `TemplateVariantDTO.richTextOptions`; the FACES the
+   * editor may offer are this input's `fontOptions`.
    */
   richText: boolean;
+  /**
+   * Font choice: the faces this input may be filled in, designed font FIRST
+   * (`textStyle.fontFamily`), then what the designer opened up. Non-null →
+   * the user may switch: a plain input gets a font select (send the pick as
+   * the value's `fontFamily`), a rich input uses it as the WYSIWYG's face
+   * menu (the per-input whitelist for the runs' `fontFamily`). Null → no
+   * choice, the designed font renders. Font URLs are same-origin proxy paths.
+   */
+  fontOptions: RichTextFontOptionDTO[] | null;
   /**
    * True → the rich envelope may also carry per-line list types
    * (`lines: ["p","ul","ol",...]`) and the export lays the value out as a
@@ -326,14 +336,16 @@ export interface ProjectFontsResponse {
 
 /**
  * A single render input value: a plain string sets the text, an object form
- * `{ value?, hide? }`, or — only for inputs with `richText: true` — the rich
- * form `{ runs, hide? }`. `hide` is only honored for inputs with
- * `hidable: true`; `runs` and `value` are mutually exclusive.
+ * `{ value?, hide?, fontFamily? }`, or — only for inputs with `richText: true`
+ * — the rich form `{ runs, hide?, fontFamily? }`. `hide` is only honored for
+ * inputs with `hidable: true`; `runs` and `value` are mutually exclusive;
+ * `fontFamily` (the whole-text font choice) must be one of the input's
+ * `fontOptions[].family` and is refused where `fontOptions` is null.
  */
 export type RenderInputValue =
   | string
-  | { value?: string; hide?: boolean }
-  | { runs: RichRunDTO[]; hide?: boolean };
+  | { value?: string; hide?: boolean; fontFamily?: string }
+  | { runs: RichRunDTO[]; hide?: boolean; fontFamily?: string };
 
 /**
  * A single render image value: a plain gallery image id (centered + contained),
