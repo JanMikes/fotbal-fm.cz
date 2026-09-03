@@ -69,6 +69,13 @@ export interface TemplateInputDTO {
    */
   fontOptions: RichTextFontOptionDTO[] | null;
   /**
+   * Colour allowlist for a rich input's runs: null = any hex (offer the brand
+   * swatches + a free picker), `[]` = colour locked (offer no colour UI),
+   * a list = only these swatches (lowercase `#rrggbb`, no free picker). A
+   * colour outside the list is a 400 `color_not_allowed`.
+   */
+  colorOptions: string[] | null;
+  /**
    * True → the rich envelope may also carry per-line list types
    * (`lines: ["p","ul","ol",...]`) and the export lays the value out as a
    * block stack (paragraphs + bulleted/numbered items). The list-editing UI
@@ -121,7 +128,7 @@ export interface RichRunDTO {
   text: string;
   /** Must be one of `richTextOptions.fonts[].family`; null = designed font. */
   fontFamily: string | null;
-  /** Lowercase `#rrggbb`, or null = designed color. Any well-formed hex is accepted. */
+  /** Lowercase `#rrggbb`, or null = designed color. Any well-formed hex is accepted unless the input carries `colorOptions`. */
   color: string | null;
   underline: boolean;
 }

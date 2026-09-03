@@ -90,6 +90,11 @@ export default function RichTextEditor({
 
   const fontGroups = useMemo(() => groupFontsByName(options.fonts), [options.fonts]);
   const designFamily = input.textStyle?.fontFamily ?? null;
+  // Colour allowlist: null = brand swatches + free picker, [] = colour locked
+  // (no colour UI at all), a list = only those swatches.
+  const colorLocked = input.colorOptions !== null && input.colorOptions.length === 0;
+  const swatches = input.colorOptions ?? options.colors;
+  const freeColor = input.colorOptions === null;
 
   // ------------------------------------------------------------------ DOM <-> runs
 
@@ -582,7 +587,8 @@ export default function RichTextEditor({
         </button>
       </div>
 
-      {/* Color swatches */}
+      {/* Color swatches — per input: the designer may restrict or lock them. */}
+      {!colorLocked && (
       <div className="mb-1.5 flex flex-wrap items-center gap-1" role="group" aria-label="Barva textu">
         <button
           type="button"
@@ -591,7 +597,7 @@ export default function RichTextEditor({
           title="Výchozí barva"
           onClick={() => applyStyle((run) => ({ ...run, color: null }))}
         />
-        {options.colors.map((color) => (
+        {swatches.map((color) => (
           <button
             key={color}
             type="button"
@@ -602,6 +608,7 @@ export default function RichTextEditor({
             onClick={() => applyStyle((run) => ({ ...run, color }))}
           />
         ))}
+        {freeColor && (
         <label
           className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border"
           style={{ background: 'conic-gradient(#f44, #fb0, #4c4, #19d, #b3f, #f44)' }}
@@ -619,7 +626,9 @@ export default function RichTextEditor({
             }}
           />
         </label>
+        )}
       </div>
+      )}
 
       {/* Editing surface */}
       <div

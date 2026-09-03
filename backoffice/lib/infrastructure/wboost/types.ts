@@ -85,6 +85,13 @@ export interface WboostRawInput {
    */
   fontOptions?: WboostRawRichTextFontOption[] | null;
   /**
+   * Rich inputs: the colours a run may carry. Null = any hex (brand swatches
+   * are suggestions), an empty list = the colour cannot be changed at all,
+   * a list = only these swatches (lowercase `#rrggbb`). A colour outside it
+   * is a 400 `color_not_allowed`. May be absent on older payloads.
+   */
+  colorOptions?: string[] | null;
+  /**
    * "Vzorový text" — the admin's default fill the render falls back to when
    * the input is OMITTED from the export payload (an explicit "" suppresses
    * it). Same wire format the export accepts (plain string or the

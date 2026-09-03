@@ -28,6 +28,7 @@ function makeInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO 
     sampleValue: null,
     layerIndex: null,
     fontOptions: null,
+    colorOptions: null,
     ...overrides,
   };
 }

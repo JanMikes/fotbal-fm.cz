@@ -60,6 +60,8 @@ function mapInput(raw: WboostRawInput): TemplateInputDTO {
           url: fontProxyPath(font.family),
         }))
       : null,
+    // Colour allowlist: absent on older payloads → any colour (as before).
+    colorOptions: raw.colorOptions === undefined ? null : raw.colorOptions,
     // Lists + sample: absent on pre-lists payloads → disabled/none.
     lists: raw.lists ?? false,
     listStyle: raw.listStyle
