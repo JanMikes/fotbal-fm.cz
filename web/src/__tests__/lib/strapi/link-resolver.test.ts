@@ -69,7 +69,7 @@ describe('resolveLink', () => {
       page: null,
       anchor: null,
       url: null,
-      file: { url: '/uploads/doc.pdf', alternativeText: null, width: 0, height: 0, name: 'doc.pdf' },
+      file: { id: 1, url: '/uploads/doc.pdf', alternativeText: null, width: 0, height: 0, name: 'doc.pdf' },
     });
     expect(result).toEqual({ href: 'http://uploads.test/uploads/doc.pdf', external: false });
   });
@@ -113,7 +113,7 @@ describe('resolveLink', () => {
       page: null,
       anchor: null,
       url: '/internal',
-      file: { url: '/uploads/file.pdf', alternativeText: null, width: 0, height: 0, name: 'file.pdf' },
+      file: { id: 1, url: '/uploads/file.pdf', alternativeText: null, width: 0, height: 0, name: 'file.pdf' },
     });
     expect(result).toEqual({ href: '/internal', external: false });
   });

@@ -10,6 +10,7 @@ vi.mock('@/lib/config', () => ({
 
 import { mapPage } from '@/lib/strapi/mappers/page';
 import type { StrapiRawPage } from '@/lib/strapi/types';
+import type { ComponentAlert, ComponentHeading } from '@/lib/types';
 
 describe('mapPage', () => {
   it('maps basic page fields', () => {
@@ -127,7 +128,7 @@ describe('mapPage', () => {
 
     const result = mapPage(raw);
     expect(result.content).toHaveLength(1);
-    const heading = result.content[0] as { text: string; type: string; anchor: string };
+    const heading = result.content[0] as ComponentHeading;
     expect(heading.__component).toBe('components.heading');
     expect(heading.text).toBe('Title');
     expect(heading.type).toBe('h2');
@@ -156,7 +157,7 @@ describe('mapPage', () => {
 
     const result = mapPage(raw);
     expect(result.content).toHaveLength(1);
-    const alert = result.content[0] as { type: string; title: string; text: string };
+    const alert = result.content[0] as ComponentAlert;
     expect(alert.__component).toBe('components.alert');
     expect(alert.type).toBe('warning');
     expect(alert.title).toBe('Pozor');

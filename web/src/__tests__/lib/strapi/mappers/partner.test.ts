@@ -43,7 +43,7 @@ describe('mapPartner', () => {
 
   it('maps logo media with URL transform', () => {
     const result = mapPartner(makeRawPartner({
-      logo: { url: '/uploads/logo.png', alternativeText: 'Logo', width: 200, height: 100, name: 'logo.png' },
+      logo: { id: 1, url: '/uploads/logo.png', alternativeText: 'Logo', width: 200, height: 100, name: 'logo.png' },
     }));
     expect(result.logo).not.toBeNull();
     expect(result.logo!.url).toBe('http://uploads.test/uploads/logo.png');
