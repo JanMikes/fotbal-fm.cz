@@ -1,10 +1,24 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { strapiPost, strapiGetSingle, strapiDelete } from '../lib/strapi.js';
 import { extractJwt } from '../middleware/auth.js';
+import { enrichAuthResult, type StrapiAuthResult } from '../lib/auth-enrich.js';
+import { AudienceCategorySchema, DeepLinkClaimResultSchema } from '../schemas/audience.js';
+
+/**
+ * Optional on login and register: a deep-link code (fotbal-fm.cz/a/<code>) the app picked up
+ * before the user had an account. When valid, its audience categories are put on the account
+ * server-side and reported back in `deepLink`; an invalid code never fails the request.
+ */
+const DeepLinkCodeSchema = z
+  .string()
+  .max(32)
+  .nullish()
+  .openapi({ example: '7K3M9PQ2', description: 'Deep-link code to claim after a successful login/registration' });
 
 const LoginBodySchema = z.object({
   identifier: z.string().openapi({ example: 'user@example.com' }),
   password: z.string().openapi({ example: 'password123' }),
+  deepLinkCode: DeepLinkCodeSchema,
 });
 
 const LoginResponseSchema = z.object({
@@ -13,7 +27,9 @@ const LoginResponseSchema = z.object({
     id: z.number(),
     username: z.string(),
     email: z.string(),
+    audienceCategories: z.array(AudienceCategorySchema).optional(),
   }),
+  deepLink: DeepLinkClaimResultSchema.optional(),
 });
 
 const ErrorResponseSchema = z.object({
@@ -56,6 +72,7 @@ const RegisterBodySchema = z.object({
   username: z.string().min(3, 'Uživatelské jméno musí mít alespoň 3 znaky').openapi({ example: 'johndoe' }),
   email: z.string().email('Neplatný formát e-mailu').openapi({ example: 'john@example.com' }),
   password: z.string().min(6, 'Heslo musí mít alespoň 6 znaků').openapi({ example: 'password123' }),
+  deepLinkCode: DeepLinkCodeSchema,
 });
 
 const registerRoute = createRoute({
@@ -268,30 +285,26 @@ export const authForgotPasswordRoute = new OpenAPIHono();
 export const authResetPasswordRoute = new OpenAPIHono();
 
 authLoginRoute.openapi(route, async (c) => {
-  const body = c.req.valid('json');
+  const { deepLinkCode, ...credentials } = c.req.valid('json');
 
+  let result: StrapiAuthResult;
   try {
-    const result = await strapiPost<{ jwt: string; user: { id: number; username: string; email: string } }>(
-      '/auth/local',
-      body,
-    );
-
-    return c.json(result, 200);
+    result = await strapiPost<StrapiAuthResult>('/auth/local', credentials);
   } catch (err) {
     return c.json({ error: 'Neplatné přihlašovací údaje' }, 401);
   }
+
+  const enriched = await enrichAuthResult(c, result, { deepLinkCode: deepLinkCode || undefined, source: 'login' });
+  return c.json(enriched, 200);
 });
 
 authRegisterRoute.openapi(registerRoute, async (c) => {
-  const body = c.req.valid('json');
+  // Strapi rejects unknown registration fields, so the code must not be forwarded.
+  const { deepLinkCode, ...credentials } = c.req.valid('json');
 
+  let result: StrapiAuthResult;
   try {
-    const result = await strapiPost<{ jwt: string; user: { id: number; username: string; email: string } }>(
-      '/auth/local/register',
-      body,
-    );
-
-    return c.json(result, 200);
+    result = await strapiPost<StrapiAuthResult>('/auth/local/register', credentials);
   } catch (err) {
     let message = 'Registrace se nezdařila';
     try {
@@ -306,6 +319,9 @@ authRegisterRoute.openapi(registerRoute, async (c) => {
 
     return c.json({ error: message }, 400);
   }
+
+  const enriched = await enrichAuthResult(c, result, { deepLinkCode: deepLinkCode || undefined, source: 'register' });
+  return c.json(enriched, 200);
 });
 
 // --- Change Password Handler ---

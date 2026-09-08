@@ -464,3 +464,20 @@ export type DynamicZoneComponent =
   | ComponentImage
   | ComponentNewsArticles
   | ComponentForm;
+
+export interface AudienceCategory {
+  slug: string;
+  name: string;
+  description: string | null;
+}
+
+export type DeepLinkStatus = 'valid' | 'inactive' | 'expired';
+
+/** Shareable app link fotbal-fm.cz/a/<code>; see docs/audience-categories-deep-links.md */
+export interface DeepLink {
+  code: string;
+  url: string;
+  name: string;
+  status: DeepLinkStatus;
+  audienceCategories: AudienceCategory[];
+}

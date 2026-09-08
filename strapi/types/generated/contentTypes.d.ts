@@ -430,6 +430,52 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAudienceCategoryAudienceCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'audience_categories';
+  info: {
+    description: 'Named audience group assigned to app users (N:M) \u2014 used by deep links and later by push-notification targeting';
+    displayName: 'Audience Category';
+    pluralName: 'audience-categories';
+    singularName: 'audience-category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deepLinks: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::deep-link.deep-link'
+    >;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::audience-category.audience-category'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    selectable: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
+    sortOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    users: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiCategoryCodeCategoryCode
   extends Struct.CollectionTypeSchema {
   collectionName: 'category_codes';
@@ -609,6 +655,102 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDeepLinkClaimDeepLinkClaim
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'deep_link_claims';
+  info: {
+    description: 'One row per user who came through a deep link \u2014 written by the API, read-only for admins';
+    displayName: 'Deep Link Claim';
+    pluralName: 'deep-link-claims';
+    singularName: 'deep-link-claim';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deepLink: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::deep-link.deep-link'
+    >;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::deep-link-claim.deep-link-claim'
+    > &
+      Schema.Attribute.Private;
+    platform: Schema.Attribute.Enumeration<
+      ['ios', 'android', 'web', 'unknown']
+    > &
+      Schema.Attribute.DefaultTo<'unknown'>;
+    publishedAt: Schema.Attribute.DateTime;
+    source: Schema.Attribute.Enumeration<['register', 'login', 'claim']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiDeepLinkDeepLink extends Struct.CollectionTypeSchema {
+  collectionName: 'deep_links';
+  info: {
+    description: 'Shareable app link (fotbal-fm.cz/a/<code>) that assigns audience categories to whoever registers or signs in through it';
+    displayName: 'Deep Link';
+    pluralName: 'deep-links';
+    singularName: 'deep-link';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    active: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    audienceCategories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::audience-category.audience-category'
+    >;
+    claims: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::deep-link-claim.deep-link-claim'
+    >;
+    claimsCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    code: Schema.Attribute.String &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 16;
+      }>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    createdByUser: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    expiresAt: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::deep-link.deep-link'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    url: Schema.Attribute.String;
   };
 }
 
@@ -1858,12 +2000,24 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
+    audienceCategories: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::audience-category.audience-category'
+    >;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    createdDeepLinks: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::deep-link.deep-link'
+    >;
+    deepLinkClaims: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::deep-link-claim.deep-link-claim'
+    >;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
@@ -1913,10 +2067,13 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::audience-category.audience-category': ApiAudienceCategoryAudienceCategory;
       'api::category-code.category-code': ApiCategoryCodeCategoryCode;
       'api::category-group.category-group': ApiCategoryGroupCategoryGroup;
       'api::category.category': ApiCategoryCategory;
       'api::comment.comment': ApiCommentComment;
+      'api::deep-link-claim.deep-link-claim': ApiDeepLinkClaimDeepLinkClaim;
+      'api::deep-link.deep-link': ApiDeepLinkDeepLink;
       'api::event.event': ApiEventEvent;
       'api::footer.footer': ApiFooterFooter;
       'api::form.form': ApiFormForm;

@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "deep_links",
+  "info": {
+    "singularName": "deep-link",
+    "pluralName": "deep-links",
+    "displayName": "Deep Link",
+    "description": "Shareable app link (fotbal-fm.cz/a/<code>) that assigns audience categories to whoever registers or signs in through it"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "unique": true,
+      "maxLength": 16
+    },
+    "url": {
+      "type": "string"
+    },
+    "audienceCategories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::audience-category.audience-category",
+      "inversedBy": "deepLinks"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "expiresAt": {
+      "type": "datetime"
+    },
+    "claimsCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "createdByUser": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "createdDeepLinks"
+    },
+    "claims": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::deep-link-claim.deep-link-claim",
+      "mappedBy": "deepLink"
+    }
+  }
+}

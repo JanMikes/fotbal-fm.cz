@@ -17,6 +17,9 @@ import { newsRoute } from './routes/news.js';
 import { partnersRoute } from './routes/partners.js';
 import { formsRoute } from './routes/forms.js';
 import { navigationPagesRoute } from './routes/navigation-pages.js';
+import { audienceCategoriesRoute } from './routes/audience-categories.js';
+import { meRoute } from './routes/me.js';
+import { deepLinksRoute } from './routes/deep-links.js';
 
 export const app = new OpenAPIHono();
 
@@ -39,6 +42,9 @@ app.route('/api/v1', newsRoute);
 app.route('/api/v1', partnersRoute);
 app.route('/api/v1', formsRoute);
 app.route('/api/v1', navigationPagesRoute);
+app.route('/api/v1', audienceCategoriesRoute);
+app.route('/api/v1', meRoute);
+app.route('/api/v1', deepLinksRoute);
 
 // OpenAPI spec
 app.doc('/openapi.json', {

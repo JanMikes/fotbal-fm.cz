@@ -241,3 +241,24 @@ export interface StrapiRawPlayerHighlight {
   categories: import('@fotbal-fm/strapi-client').StrapiRawCategory[] | null;
   sortOrder: number;
 }
+
+export interface StrapiRawAudienceCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  sortOrder: number | null;
+  selectable: boolean | null;
+}
+
+export interface StrapiRawDeepLink {
+  id: number;
+  documentId: string;
+  name: string;
+  code: string;
+  url: string;
+  active: boolean | null;
+  expiresAt: string | null;
+  audienceCategories: StrapiRawAudienceCategory[] | null;
+}

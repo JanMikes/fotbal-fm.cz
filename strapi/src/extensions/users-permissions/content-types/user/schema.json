@@ -74,6 +74,24 @@
     },
     "jobTitle": {
       "type": "string"
+    },
+    "audienceCategories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::audience-category.audience-category",
+      "inversedBy": "users"
+    },
+    "deepLinkClaims": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::deep-link-claim.deep-link-claim",
+      "mappedBy": "user"
+    },
+    "createdDeepLinks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::deep-link.deep-link",
+      "mappedBy": "createdByUser"
     }
   }
 }

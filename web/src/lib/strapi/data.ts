@@ -2,6 +2,7 @@ import type {
   Category,
   CategoryGroup,
   CategoryHeroData,
+  DeepLink,
   Footer,
   Match,
   NavigationItem,
@@ -19,6 +20,7 @@ import type {
   StrapiRawCategory,
   StrapiRawCategoryGroup,
   StrapiRawCategoryWithHero,
+  StrapiRawDeepLink,
   StrapiRawFooter,
   StrapiRawMatch,
   StrapiRawNavigation,
@@ -33,6 +35,7 @@ import type {
 import { getStrapiClient } from './client';
 import { mapCategory } from './mappers/category';
 import { mapCategoryGroup } from './mappers/category-group';
+import { mapDeepLink } from './mappers/deep-link';
 import { mapFooter } from './mappers/footer';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
@@ -47,6 +50,7 @@ import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
 import { cacheGetOrSet } from '@fotbal-fm/cache';
 import { currentSeasonStartYear, seasonDateRange } from '@/lib/season';
+import { deepLinkCodeCandidates } from '@/lib/app-links';
 
 const TTL = 24 * 60 * 60; // 24 hours
 
@@ -631,4 +635,27 @@ export async function getPlayerHighlightsByCategory(categorySlug: string): Promi
     });
     return data.map(mapPlayerHighlight);
   }, TTL);
+}
+
+// --- Deep links (landing page /a/<code>) ---
+
+/** Shorter than the default: an admin toggling a link off should not wait a day. */
+const DEEP_LINK_TTL = 60 * 60;
+
+export async function getDeepLinkByCode(rawCode: string): Promise<DeepLink | null> {
+  for (const code of deepLinkCodeCandidates(rawCode)) {
+    const raw = await cacheGetOrSet<StrapiRawDeepLink | null>(`deep-link:${code}`, async () => {
+      const client = getStrapiClient();
+      const { data } = await client.findMany<StrapiRawDeepLink>('deep-links', {
+        filters: { code: { $eq: code } },
+        populate: { audienceCategories: { fields: ['name', 'slug', 'description', 'sortOrder'] } },
+        pagination: { pageSize: 1 },
+      });
+      return data[0] ?? null;
+    }, DEEP_LINK_TTL);
+
+    // Status (active/expired) is computed at request time, never from the cached snapshot's clock.
+    if (raw) return mapDeepLink(raw);
+  }
+  return null;
 }

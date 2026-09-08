@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "audience_categories",
+  "info": {
+    "singularName": "audience-category",
+    "pluralName": "audience-categories",
+    "displayName": "Audience Category",
+    "description": "Named audience group assigned to app users (N:M) — used by deep links and later by push-notification targeting"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "sortOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "selectable": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "users": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "audienceCategories"
+    },
+    "deepLinks": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::deep-link.deep-link",
+      "mappedBy": "audienceCategories"
+    }
+  }
+}

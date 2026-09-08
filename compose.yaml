@@ -57,6 +57,8 @@ services:
             JWT_SECRET: toBeModifiedJwtSecret
             NODE_OPTIONS: "--max-http-header-size=65536"
             REDIS_URL: redis://redis:6379
+            # Public base of generated deep links (production default: https://fotbal-fm.cz/a)
+            DEEP_LINK_BASE_URL: http://localhost:${WEB_PORT:-3001}/a
             # Email Configuration (Mailpit for development)
             SMTP_HOST: mailpit
             SMTP_PORT: "1025"

@@ -130,3 +130,36 @@ export interface StrapiRawPartner {
   content: StrapiRawDynamicZoneComponent[];
   panel: StrapiRawDynamicZoneComponent[] | null;
 }
+
+// --- Audience categories & deep links ---
+
+export interface StrapiRawAudienceCategory {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  sortOrder: number | null;
+  selectable: boolean | null;
+}
+
+export interface StrapiRawDeepLink {
+  id: number;
+  documentId: string;
+  name: string;
+  code: string;
+  url: string;
+  active: boolean | null;
+  expiresAt: string | null;
+  claimsCount: number | null;
+  audienceCategories: StrapiRawAudienceCategory[] | null;
+}
+
+/** users-permissions user as returned by /users/me and /users/:id (not wrapped in `data`). */
+export interface StrapiRawUser {
+  id: number;
+  documentId?: string;
+  username: string;
+  email: string;
+  audienceCategories?: StrapiRawAudienceCategory[] | null;
+}

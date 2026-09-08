@@ -75,6 +75,20 @@ const MODEL_CACHE_PATTERNS: Record<string, {
     collection: [],
     cascading: ['matches:*', 'match:*', 'standings:*'],
   },
+  // Deep links + audience categories: only the landing page caches them. Claims are
+  // written on every app registration through a link and must never flush the site.
+  'audience-category': {
+    collection: ['audience-categories:*'],
+    cascading: ['deep-link:*'],
+  },
+  'deep-link': {
+    collection: ['deep-link:*'],
+    cascading: [],
+  },
+  'deep-link-claim': {
+    collection: [],
+    cascading: [],
+  },
 };
 
 const DOCUMENT_ACTIONS = new Set([

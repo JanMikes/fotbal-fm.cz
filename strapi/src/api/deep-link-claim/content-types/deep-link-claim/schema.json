@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "deep_link_claims",
+  "info": {
+    "singularName": "deep-link-claim",
+    "pluralName": "deep-link-claims",
+    "displayName": "Deep Link Claim",
+    "description": "One row per user who came through a deep link — written by the API, read-only for admins"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "deepLink": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::deep-link.deep-link",
+      "inversedBy": "claims"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "deepLinkClaims"
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": ["register", "login", "claim"],
+      "required": true
+    },
+    "platform": {
+      "type": "enumeration",
+      "enum": ["ios", "android", "web", "unknown"],
+      "default": "unknown"
+    }
+  }
+}

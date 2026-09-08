@@ -81,6 +81,42 @@ async function backfillPlayerDisplayNames(strapi: Core.Strapi) {
   strapi.log.info('Player displayName backfill complete');
 }
 
+/**
+ * Content-API permissions that must stay OFF no matter what is clicked in the admin.
+ * users-permissions stores an enabled action as a row, so deleting the row disables it.
+ * The remaining user actions (find/findOne/update/me) stay enabled for the backoffice
+ * and are ownership-guarded in src/extensions/users-permissions/strapi-server.ts.
+ */
+const USER_PERMISSION_DENYLIST: Array<{ roleType: string; action: string; reason: string }> = [
+  {
+    roleType: 'public',
+    action: 'plugin::users-permissions.user.create',
+    reason: 'anyone could create accounts (with any role) bypassing registration',
+  },
+  {
+    roleType: 'authenticated',
+    action: 'plugin::users-permissions.user.count',
+    reason: 'members have no business counting accounts',
+  },
+];
+
+async function enforceUserPermissionPolicy(strapi: Core.Strapi) {
+  for (const rule of USER_PERMISSION_DENYLIST) {
+    const role = await strapi.db.query('plugin::users-permissions.role').findOne({
+      where: { type: rule.roleType },
+      select: ['id'],
+    });
+    if (!role) continue;
+
+    const result = await strapi.db.query('plugin::users-permissions.permission').deleteMany({
+      where: { action: rule.action, role: { id: role.id } },
+    });
+    if (result.count > 0) {
+      strapi.log.warn(`[Permissions] Removed ${rule.action} from role "${rule.roleType}" — ${rule.reason}`);
+    }
+  }
+}
+
 let cleanupCache: (() => Promise<void>) | null = null;
 
 export default {
@@ -92,6 +128,7 @@ export default {
     await seedCategories(strapi);
     await backfillPlayerDisplayNames(strapi);
     await setPlayerMainField(strapi);
+    await enforceUserPermissionPolicy(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },
 
