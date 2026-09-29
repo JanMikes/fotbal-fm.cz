@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Frame, Loader2, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
@@ -43,9 +43,11 @@ interface PreviewPanelProps {
   onImageChange: (slotId: string, partial: Partial<ImageSlotState>) => void;
   matchId: string | null;
   matchImages: StrapiImage[];
-  // Action (rendered under the preview)
+  // Action (rendered in the header and under the preview)
   onDownload: () => void;
   actionsDisabled: boolean;
+  /** Replaces the default "Stáhnout PNG" CTA (the group editor's ZIP + per-dimension PNG). */
+  actions?: ReactNode;
   renderError?: string | null;
   /** Container whose filled texts overflowed on the last render (highlights its fields). */
   overflowContainerId?: string | null;
@@ -95,6 +97,7 @@ export default function PreviewPanel({
   matchImages,
   onDownload,
   actionsDisabled,
+  actions,
   renderError,
   overflowContainerId = null,
   overflowWarning = null,
@@ -216,7 +219,7 @@ export default function PreviewPanel({
     : -1;
 
   // The download CTA — rendered identically above (header) and below the preview.
-  const downloadButton = (
+  const downloadButton = actions ?? (
     <Button variant="accent" size="md" onClick={onDownload} disabled={actionsDisabled}>
       <Download className="mr-2 h-4 w-4" />
       Stáhnout PNG

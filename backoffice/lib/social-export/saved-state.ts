@@ -7,7 +7,7 @@
  * Client-safe (types + pure merge helpers only).
  */
 
-import type { ImageFrameDTO, TemplateVariantDTO } from './api-types';
+import type { ImageFrameDTO, ListLineType, TemplateVariantDTO } from './api-types';
 import type { InputFieldState } from './field-rules';
 import { normalizeRuns, plainText, isStyled } from './rich-text';
 import {
@@ -34,14 +34,22 @@ export type StoredImageSlotState = Omit<ImageSlotState, 'offsetXRatio' | 'offset
   offsetY?: number;
 };
 
-/** The JSON blob persisted per (match, variant). */
+/**
+ * The JSON blob persisted per (match, fill surface). The surface is a variant,
+ * or a GROUP (then `variantId` of the record holds the group id): its texts are
+ * shared, and the image state is per member dimension in
+ * `dimensionImageStates` (the picked picture is the same everywhere, the
+ * placement differs per dimension).
+ */
 export interface SavedExportState {
   formState: Record<string, InputFieldState>;
   imageState: Record<string, StoredImageSlotState>;
+  dimensionImageStates?: Record<string, Record<string, StoredImageSlotState>>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */
 export interface SavedExportStateDTO {
+  /** The fill surface: a variant id, or a group id for a group fill. */
   variantId: string;
   templateId: string;
   state: SavedExportState;
@@ -72,9 +80,25 @@ export function applySavedState(
     return { formState: baseForm, imageState: baseImages, restored: false };
   }
 
+  return {
+    formState: applySavedForm(variant.inputs, baseForm, saved.formState),
+    imageState: applySavedImages(variant.imageInputs, baseImages, saved.imageState),
+    restored: true,
+  };
+}
+
+/**
+ * The text half of {@link applySavedState} — also used for group fills, whose
+ * inputs are the union of the member dimensions'.
+ */
+export function applySavedForm(
+  inputs: TemplateVariantDTO['inputs'],
+  baseForm: Record<string, InputFieldState>,
+  savedForm: Record<string, InputFieldState> | null | undefined
+): Record<string, InputFieldState> {
   const formState = { ...baseForm };
-  for (const input of variant.inputs) {
-    const field = saved.formState?.[input.id];
+  for (const input of inputs) {
+    const field = savedForm?.[input.id];
     if (field && typeof field.value === 'string' && typeof field.hidden === 'boolean') {
       // Restore rich runs only when they are shape-valid, the input still
       // allows rich text (the admin may have unchecked it since the save) and
@@ -85,23 +109,57 @@ export function applySavedState(
         input.richText && field.runs != null ? normalizeRuns(field.runs) : null;
       const runsValid = runs !== null && isStyled(runs) && plainText(runs) === field.value;
 
+      // The font pick survives only while the input still offers it.
+      const fontFamily =
+        typeof field.fontFamily === 'string' &&
+        input.fontOptions?.some((font) => font.family === field.fontFamily)
+          ? field.fontFamily
+          : null;
+      const lines = sanitizeLines(field.lines, field.value, input);
+
       formState[input.id] = {
         value: field.value,
         hidden: field.hidden,
         ...(runsValid ? { runs } : {}),
+        ...(fontFamily ? { fontFamily } : {}),
+        ...(lines ? { lines } : {}),
       };
     }
   }
 
+  return formState;
+}
+
+/** The image half of {@link applySavedState} (one dimension's slots). */
+export function applySavedImages(
+  slots: TemplateVariantDTO['imageInputs'],
+  baseImages: Record<string, ImageSlotState>,
+  savedImages: Record<string, StoredImageSlotState> | null | undefined
+): Record<string, ImageSlotState> {
   const imageState = { ...baseImages };
-  for (const slot of variant.imageInputs) {
-    const slotState = saved.imageState?.[slot.id];
+  for (const slot of slots) {
+    const slotState = savedImages?.[slot.id];
     if (slotState) {
       imageState[slot.id] = sanitizeSlotState(slotState, slot.frame);
     }
   }
 
-  return { formState, imageState, restored: true };
+  return imageState;
+}
+
+const LINE_TYPES: readonly ListLineType[] = ['p', 'ul', 'ol', 'cb', 'cbx'];
+
+/** Keep stored list lines only while they still fit the value and the input. */
+function sanitizeLines(
+  raw: unknown,
+  value: string,
+  input: TemplateVariantDTO['inputs'][number]
+): ListLineType[] | null {
+  if (!input.richText || !input.lists || !Array.isArray(raw)) return null;
+  if (!raw.every((line): line is ListLineType => LINE_TYPES.includes(line as ListLineType))) return null;
+  if (raw.length !== value.split('\n').length) return null;
+  if (!input.listCheckboxes && raw.some((line) => line === 'cb' || line === 'cbx')) return null;
+  return raw;
 }
 
 /**
@@ -110,7 +168,7 @@ export function applySavedState(
  * conversion the drag does — so an old save reopens on the crop it was made on
  * instead of silently snapping back to centre.
  */
-function sanitizeSlotState(
+export function sanitizeSlotState(
   raw: StoredImageSlotState,
   frame: ImageFrameDTO | null
 ): ImageSlotState {

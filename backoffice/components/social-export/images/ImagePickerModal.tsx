@@ -12,6 +12,9 @@ import {
 import type { GalleryImageDTO, PlaceholderDirectoryDTO } from '@/lib/social-export/api-types';
 import type { StrapiImage } from '@/types/match';
 
+/** WBoost's upload limit (10 000 000 bytes); HEIC & co. are converted to JPEG server-side. */
+const MAX_UPLOAD_BYTES = 10_000_000;
+
 interface ImagePickerModalProps {
   open: boolean;
   onClose: () => void;
@@ -104,6 +107,11 @@ export default function ImagePickerModal({
     const file = e.target.files?.[0];
     if (file) {
       e.target.value = ''; // allow re-selecting the same file later
+      // WBoost rejects uploads over 10 MB (decimal) with a bare 400.
+      if (file.size > MAX_UPLOAD_BYTES) {
+        setActionError('Soubor je větší než 10 MB — zmenšete ho prosím a zkuste to znovu.');
+        return;
+      }
       setBusy(true);
       setActionError(null);
       const res = await uploadSlotImage(variantId, imageInputId, file, directoryId || undefined);
@@ -237,7 +245,7 @@ export default function ImagePickerModal({
           <input
             ref={fileRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
+            accept="image/*"
             className="hidden"
             onChange={handleFileChange}
           />

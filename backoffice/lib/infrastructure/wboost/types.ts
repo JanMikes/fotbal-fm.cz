@@ -291,6 +291,8 @@ export interface WboostRawVariant {
    * `richText: true`.
    */
   richTextOptions?: WboostRawRichTextOptions | null;
+  /** True = member dimension of the template's group. Absent on older deploys. */
+  groupMember?: boolean;
 }
 
 /**
@@ -319,6 +321,34 @@ export interface WboostRawTemplate {
   categoryName: string | null;
   createdAt: string;
   variants: WboostRawVariant[];
+  /** Non-null → the template is a synchronized GROUP. Absent on older deploys. */
+  group?: { id: string; name: string } | null;
+}
+
+/** One entry of a fill surface's export history (`…/export-versions`). */
+export interface WboostRawExportVersion {
+  id: string;
+  subject: 'group' | 'variant';
+  groupId: string | null;
+  variantId: string | null;
+  name: string | null;
+  pinned: boolean;
+  pinnedAt: string | null;
+  createdAt: string;
+  lastExportedAt: string;
+  exportCount: number;
+  channel: string;
+  summary: { texts: { label: string; value: string }[]; pictures: number; hidden: number };
+}
+
+/** An export version with its fill in the export request shape. */
+export interface WboostRawExportVersionDetail extends WboostRawExportVersion {
+  fill: {
+    inputs: Record<string, unknown>;
+    /** Picked images carry `url` (public store URL) next to `imageId`. */
+    images: Record<string, unknown>;
+    placements: Record<string, Record<string, Record<string, number>>>;
+  };
 }
 
 /** OAuth2 client_credentials token response. */

@@ -12,6 +12,9 @@ import {
   RenderImageValue,
   GalleryImageDTO,
   RenderErrorDetails,
+  GroupRenderRequest,
+  ExportVersionDTO,
+  ExportVersionDetailDTO,
 } from '@/lib/social-export/api-types';
 import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
 
@@ -115,22 +118,23 @@ export async function saveExportState(
 }
 
 // ---------------------------------------------------------------------------
-// renderVariant: POST /api/social-export/render
-// Returns a Blob on success or an error string on failure.
+// Rendering: POST /api/social-export/render | group-render
+// `preview` = unrecorded WebP for the screen, `export` = the recorded download.
 // ---------------------------------------------------------------------------
 
-export async function renderVariant(
-  variantId: string,
-  inputs: Record<string, RenderInputValue>,
-  images?: Record<string, RenderImageValue>
-): Promise<{ blob?: Blob; error?: string; errorDetails?: RenderErrorDetails }> {
-  try {
-    const body =
-      images && Object.keys(images).length > 0
-        ? { variantId, inputs, images }
-        : { variantId, inputs };
+export type RenderMode = 'preview' | 'export';
 
-    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/render`, {
+export interface RenderResult {
+  blob?: Blob;
+  /** WBoost's download filename (`{group}.zip`, `{group}-{dimension}.png`), when sent. */
+  filename?: string | null;
+  error?: string;
+  errorDetails?: RenderErrorDetails;
+}
+
+async function postRender(path: string, body: unknown): Promise<RenderResult> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -138,13 +142,13 @@ export async function renderVariant(
 
     if (res.ok) {
       const contentType = res.headers.get('content-type') ?? '';
-      if (contentType.startsWith('image/')) {
-        return { blob: await res.blob() };
+      if (contentType.startsWith('image/') || contentType.startsWith('application/zip')) {
+        return { blob: await res.blob(), filename: res.headers.get('x-export-filename') };
       }
     }
 
-    // Non-image response — try to parse JSON error (incl. the structured
-    // details a container_overflow 400 carries: code, containerId, overflowPx).
+    // Non-file response — parse the JSON error, incl. the structured WBoost
+    // details (code + inputId / imageInputId / containerId / variantId).
     try {
       const json = await res.json();
       const details =
@@ -157,6 +161,92 @@ export async function renderVariant(
     }
   } catch {
     return { error: 'Generování selhalo — síťová chyba' };
+  }
+}
+
+export function renderVariant(
+  variantId: string,
+  inputs: Record<string, RenderInputValue>,
+  images: Record<string, RenderImageValue> | undefined,
+  mode: RenderMode
+): Promise<RenderResult> {
+  return postRender('render', {
+    variantId,
+    inputs,
+    ...(images && Object.keys(images).length > 0 ? { images } : {}),
+    mode,
+  });
+}
+
+/**
+ * Group fill render: `preview` / `export` ONE member dimension (`variantId`),
+ * or `export` without `variantId` → every dimension as one ZIP.
+ */
+export function renderGroup(
+  request: Omit<GroupRenderRequest, 'mode'>,
+  mode: RenderMode
+): Promise<RenderResult> {
+  return postRender('group-render', { ...request, mode });
+}
+
+// ---------------------------------------------------------------------------
+// Export history (shared with WBoost; per group or per variant)
+// ---------------------------------------------------------------------------
+
+async function fetchVersions(url: string): Promise<ExportVersionDTO[]> {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.error || 'Nepodařilo se načíst historii exportů');
+  }
+  return json.data.versions as ExportVersionDTO[];
+}
+
+/** The export history of a fill surface; pass null to skip. */
+export function useExportVersions(subject: { groupId: string } | { variantId: string } | null): {
+  versions: ExportVersionDTO[];
+  isLoading: boolean;
+  error: string | null;
+  mutate: KeyedMutator<ExportVersionDTO[]>;
+} {
+  const key = subject
+    ? `${SOCIAL_EXPORT_API_BASE}/versions?${new URLSearchParams(subject as Record<string, string>).toString()}`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<ExportVersionDTO[], Error>(key, fetchVersions, {
+    revalidateOnFocus: false,
+  });
+
+  return { versions: data ?? [], isLoading, error: error ? error.message : null, mutate };
+}
+
+export async function fetchExportVersion(
+  versionId: string
+): Promise<{ version?: ExportVersionDetailDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/versions/${encodeURIComponent(versionId)}`);
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Verzi se nepodařilo načíst' };
+    return { version: json.data.version as ExportVersionDetailDTO };
+  } catch {
+    return { error: 'Verzi se nepodařilo načíst — síťová chyba' };
+  }
+}
+
+export async function updateExportVersion(
+  versionId: string,
+  patch: { name?: string | null; pinned?: boolean }
+): Promise<{ version?: ExportVersionDetailDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/versions/${encodeURIComponent(versionId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Úprava verze se nezdařila' };
+    return { version: json.data.version as ExportVersionDetailDTO };
+  } catch {
+    return { error: 'Úprava verze se nezdařila — síťová chyba' };
   }
 }
 

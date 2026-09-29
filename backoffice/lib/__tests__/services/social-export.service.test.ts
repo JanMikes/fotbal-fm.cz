@@ -584,27 +584,27 @@ describe('SocialExportService', () => {
   });
 
   describe('renderVariant', () => {
-    it('returns ok with Uint8Array on success', async () => {
-      const bytes = new Uint8Array([1, 2, 3]);
-      const client = makeFakeClient({ renderVariant: vi.fn().mockResolvedValue(bytes) });
+    it('returns ok with the rendered file on success', async () => {
+      const file = { body: new Uint8Array([1, 2, 3]), contentType: 'image/png', filename: null };
+      const client = makeFakeClient({ renderVariant: vi.fn().mockResolvedValue(file) });
       const service = new SocialExportService(client as never);
 
-      const result = await service.renderVariant('v1', { inp: 'val' });
+      const result = await service.renderVariant('v1', { inp: 'val' }, undefined, 'export');
 
       expect(result.success).toBe(true);
       if (!result.success) return;
-      expect(result.data).toBe(bytes);
+      expect(result.data).toBe(file);
     });
 
-    it('passes images through to the client', async () => {
-      const renderVariant = vi.fn().mockResolvedValue(new Uint8Array([1]));
+    it('passes images and the mode through to the client', async () => {
+      const renderVariant = vi.fn().mockResolvedValue({ body: new Uint8Array([1]), contentType: 'image/webp', filename: null });
       const client = makeFakeClient({ renderVariant });
       const service = new SocialExportService(client as never);
 
       const images = { slot1: 'img-9', slot2: { imageId: 'img-3', scale: 1.4 } };
-      await service.renderVariant('v1', { inp: 'val' }, images);
+      await service.renderVariant('v1', { inp: 'val' }, images, 'preview');
 
-      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images);
+      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images, 'preview');
     });
 
     it('propagates AppError from client', async () => {
@@ -612,11 +612,52 @@ describe('SocialExportService', () => {
       const client = makeFakeClient({ renderVariant: vi.fn().mockRejectedValue(appErr) });
       const service = new SocialExportService(client as never);
 
-      const result = await service.renderVariant('v1', {});
+      const result = await service.renderVariant('v1', {}, undefined, 'preview');
 
       expect(result.success).toBe(false);
       if (result.success) return;
       expect(result.error).toBe(appErr);
+    });
+  });
+
+  describe('group render + export history', () => {
+    it('passes a group fill through to the client', async () => {
+      const renderGroup = vi.fn().mockResolvedValue({ body: new Uint8Array([1]), contentType: 'application/zip', filename: 'x.zip' });
+      const service = new SocialExportService(makeFakeClient({ renderGroup }) as never);
+
+      const fill = { inputs: { t: 'x' }, images: { s: 'img' }, placements: { v1: { s: { scale: 2 } } } };
+      const result = await service.renderGroup('g1', null, fill, 'export');
+
+      expect(result.success).toBe(true);
+      expect(renderGroup).toHaveBeenCalledWith('g1', null, fill, 'export');
+    });
+
+    it('maps versions and version detail', async () => {
+      const raw = {
+        id: 'ver-1',
+        subject: 'group',
+        groupId: 'g1',
+        variantId: null,
+        name: 'Finál',
+        pinned: true,
+        pinnedAt: '2026-09-29T10:00:00+00:00',
+        createdAt: '2026-09-29T09:00:00+00:00',
+        lastExportedAt: '2026-09-29T10:00:00+00:00',
+        exportCount: 2,
+        channel: 'api',
+        summary: { texts: [{ label: 'Nadpis', value: 'Výhra' }], pictures: 1, hidden: 0 },
+      };
+      const client = makeFakeClient({
+        listExportVersions: vi.fn().mockResolvedValue([raw]),
+        getExportVersion: vi.fn().mockResolvedValue({ ...raw, fill: { inputs: { t: 'x' }, images: {}, placements: {} } }),
+      });
+      const service = new SocialExportService(client as never);
+
+      const list = await service.listExportVersions({ groupId: 'g1' });
+      const detail = await service.getExportVersion('ver-1');
+
+      expect(list.success && list.data[0]).toEqual(raw);
+      expect(detail.success && detail.data.fill).toEqual({ inputs: { t: 'x' }, images: {}, placements: {} });
     });
   });
 

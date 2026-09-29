@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import FieldInsertMenu from './FieldInsertMenu';
+import ChecklistEditor from './ChecklistEditor';
 import FontChoiceSelect from './FontChoiceSelect';
 import RichTextEditor from './RichTextEditor';
 import type { RichTextOptionsDTO, TemplateInputDTO } from '@/lib/social-export/api-types';
@@ -13,6 +14,7 @@ import {
   validateInputValue,
   type InputFieldState,
 } from '@/lib/social-export/field-rules';
+import { codePointLength } from '@/lib/social-export/rich-text';
 
 interface PlaceholderTextPanelProps {
   input: TemplateInputDTO;
@@ -47,6 +49,9 @@ export default function PlaceholderTextPanel({
   const isHidden = state.hidden;
   const validationError = validateInputValue(input, value) ?? undefined;
   const isRich = input.richText && richTextOptions != null;
+  // A dedicated checklist component gets per-item rows, never the WYSIWYG.
+  const isChecklist = input.checklist != null;
+  const length = codePointLength(value);
 
   // Focus the value input on open for keyboard-first editing (the rich editor
   // focuses itself via autoFocus).
@@ -56,13 +61,14 @@ export default function PlaceholderTextPanel({
   }, []);
 
   // Set the field to a chosen match-data value (replace), respecting maxLength.
-  // Inserted match data is always PLAIN — clear any rich formatting.
+  // Inserted match data is always PLAIN — clear any rich formatting and
+  // list structure.
   function handleInsert(insertValue: string) {
     let next = insertValue;
-    if (input.maxLength != null && next.length > input.maxLength) {
-      next = next.slice(0, input.maxLength);
+    if (input.maxLength != null && codePointLength(next) > input.maxLength) {
+      next = Array.from(next).slice(0, input.maxLength).join('');
     }
-    onChange({ value: next, runs: null });
+    onChange({ value: next, runs: null, lines: null });
   }
 
   return (
@@ -87,7 +93,7 @@ export default function PlaceholderTextPanel({
       {/* Font choice (plain inputs the designer opened up): a whole-text
           switch, sent as the value's `fontFamily`. Rich inputs switch faces
           inside the editor instead (its menu is the per-input fontOptions). */}
-      {!isRich && input.fontOptions && (
+      {(!isRich || isChecklist) && input.fontOptions && (
         <FontChoiceSelect
           options={input.fontOptions}
           value={state.fontFamily}
@@ -98,7 +104,9 @@ export default function PlaceholderTextPanel({
 
       <div className="flex items-start gap-2">
         <div className="flex-1">
-          {isRich && richTextOptions ? (
+          {isChecklist ? (
+            <ChecklistEditor input={input} state={state} disabled={isHidden} onChange={onChange} />
+          ) : isRich && richTextOptions ? (
             <RichTextEditor
               input={input}
               options={input.fontOptions ? { ...richTextOptions, fonts: input.fontOptions } : richTextOptions}
@@ -120,7 +128,7 @@ export default function PlaceholderTextPanel({
             />
           )}
         </div>
-        {chips.length > 0 && (
+        {chips.length > 0 && !isChecklist && (
           <FieldInsertMenu chips={chips} disabled={isHidden} onSelect={handleInsert} />
         )}
       </div>
@@ -135,10 +143,10 @@ export default function PlaceholderTextPanel({
         {input.maxLength != null && (
           <span
             className={`text-xs tabular-nums shrink-0 ${
-              value.length > input.maxLength ? 'text-danger' : 'text-text-muted'
+              length > input.maxLength ? 'text-danger' : 'text-text-muted'
             }`}
           >
-            {value.length}/{input.maxLength}
+            {length}/{input.maxLength}
           </span>
         )}
       </div>

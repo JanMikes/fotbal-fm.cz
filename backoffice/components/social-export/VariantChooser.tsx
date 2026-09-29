@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ImageIcon } from 'lucide-react';
+import { ArrowLeft, ImageIcon, Layers } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { TemplateDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import SavedBadge from './SavedBadge';
@@ -8,6 +8,8 @@ import SavedBadge from './SavedBadge';
 interface VariantChooserProps {
   template: TemplateDTO;
   onSelect: (variant: TemplateVariantDTO) => void;
+  /** Open the template GROUP (every member dimension at once); only for grouped templates. */
+  onSelectGroup?: () => void;
   onBack: () => void;
   /** Variant ids that have a saved editing state for the current match. */
   savedVariantIds?: ReadonlySet<string>;
@@ -17,7 +19,18 @@ interface VariantChooserProps {
  * Variant selection screen — shows all variants for a chosen template
  * as preview cards with aspect-ratio boxes.
  */
-export default function VariantChooser({ template, onSelect, onBack, savedVariantIds }: VariantChooserProps) {
+export default function VariantChooser({
+  template,
+  onSelect,
+  onSelectGroup,
+  onBack,
+  savedVariantIds,
+}: VariantChooserProps) {
+  const members = template.group ? template.variants.filter((v) => v.groupMember) : [];
+  // Member dimensions are filled together through the group card; only the
+  // variants added by hand outside the group are edited on their own.
+  const singles = template.group ? template.variants.filter((v) => !v.groupMember) : template.variants;
+
   return (
     <div>
       {/* Header */}
@@ -34,9 +47,34 @@ export default function VariantChooser({ template, onSelect, onBack, savedVarian
         </div>
       </div>
 
+      {template.group && members.length > 0 && onSelectGroup && (
+        <button
+          type="button"
+          onClick={onSelectGroup}
+          className="group relative mb-6 flex w-full items-center gap-4 rounded-xl border border-accent/40 bg-accent/5 p-4 text-left transition-all hover:border-accent hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring-focus"
+        >
+          <Layers className="h-8 w-8 shrink-0 text-accent" strokeWidth={1.5} />
+          <div>
+            <p className="text-sm font-semibold text-text-primary group-hover:text-accent">
+              Všechny rozměry najednou
+            </p>
+            <p className="text-xs text-text-muted">
+              {members.map((m) => m.dimension).join(', ')} — vyplníte jednou, stáhnete jako ZIP
+            </p>
+          </div>
+          {savedVariantIds?.has(template.group.id) && (
+            <SavedBadge className="absolute top-2 right-2" />
+          )}
+        </button>
+      )}
+
+      {template.group && singles.length > 0 && (
+        <h3 className="mb-3 text-sm font-semibold text-text-secondary">Samostatné varianty</h3>
+      )}
+
       {/* Variant cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {template.variants.map((variant) => (
+        {singles.map((variant) => (
           <button
             key={variant.id}
             type="button"

@@ -13,11 +13,12 @@
  */
 
 import type {
+  ListLineType,
   RenderInputValue,
   RichRunDTO,
   TemplateInputDTO,
 } from './api-types';
-import { isStyled } from './rich-text';
+import { codePointLength, isStyled, normalizeRuns, plainText } from './rich-text';
 
 /** Resolve the field label: name, else description, else a generic "Text N". */
 export function resolveInputLabel(input: TemplateInputDTO, index: number): string {
@@ -41,7 +42,7 @@ export function validateInputValue(
   input: TemplateInputDTO,
   value: string
 ): string | null {
-  if (input.maxLength != null && value.length > input.maxLength) {
+  if (input.maxLength != null && codePointLength(value) > input.maxLength) {
     return `Maximální délka je ${input.maxLength} znaků.`;
   }
   return null;
@@ -69,6 +70,80 @@ export interface InputFieldState {
    * for inputs without `fontOptions` (the API 400s otherwise).
    */
   fontFamily?: string | null;
+  /**
+   * Per-line block types for `lists` inputs — one entry per `\n`-separated
+   * line of `value` ('p' paragraph, 'ul'/'ol' list items, 'cb'/'cbx'
+   * checkbox items). Null/absent (or all 'p') = no list structure.
+   */
+  lines?: ListLineType[] | null;
+}
+
+/**
+ * The field state an input starts from: its "Vzorový text" (`sampleValue`,
+ * the admin's default fill the render uses for an omitted input) — a plain
+ * string, or for rich inputs the `{"runs":[…],"lines":[…]}` envelope string —
+ * unless match prefill supplies a value. Seeding the form with the sample
+ * makes the fields show what the preview renders.
+ */
+export function initialFieldState(input: TemplateInputDTO, prefill?: string): InputFieldState {
+  if (prefill !== undefined && prefill !== '') {
+    return { value: prefill, hidden: false };
+  }
+
+  const sample = input.sampleValue;
+  if (sample == null || sample === '' || input.locked) {
+    return { value: '', hidden: false };
+  }
+
+  const envelope = parseEnvelope(sample);
+  if (!envelope) {
+    return { value: sample, hidden: false };
+  }
+
+  const runs = normalizeRuns(envelope.runs) ?? [];
+  const value = plainText(runs);
+  const lines =
+    input.lists && Array.isArray(envelope.lines) && envelope.lines.length === value.split('\n').length
+      ? (envelope.lines.filter((line): line is ListLineType =>
+          ['p', 'ul', 'ol', 'cb', 'cbx'].includes(line as string)
+        ) as ListLineType[])
+      : null;
+
+  return {
+    value,
+    hidden: false,
+    ...(input.richText && isStyled(runs) ? { runs } : {}),
+    ...(lines && lines.length === value.split('\n').length ? { lines } : {}),
+  };
+}
+
+/** A rich envelope string `{"runs":[…],"lines":[…]?}`, or null for plain text. */
+export function parseEnvelope(raw: string): { runs: unknown[]; lines: unknown[] | null } | null {
+  if (!raw.startsWith('{"runs"')) return null;
+  try {
+    const decoded: unknown = JSON.parse(raw);
+    if (!decoded || typeof decoded !== 'object') return null;
+    const { runs, lines } = decoded as { runs?: unknown; lines?: unknown };
+    if (!Array.isArray(runs)) return null;
+    return { runs, lines: Array.isArray(lines) ? lines : null };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The list structure to SEND for a field: only for `lists` inputs, only when
+ * it carries at least one list line, only with one entry per line of the
+ * value, and never checkbox lines the input does not allow — anything else
+ * (a stale save, an edit that changed the line count) sends no structure.
+ */
+export function effectiveLines(input: TemplateInputDTO, state: InputFieldState): ListLineType[] | null {
+  const lines = state.lines;
+  if (!input.richText || !input.lists || !lines || lines.length === 0) return null;
+  if (!lines.some((line) => line !== 'p')) return null;
+  if (lines.length !== (state.value ?? '').split('\n').length) return null;
+  if (!input.listCheckboxes && lines.some((line) => line === 'cb' || line === 'cbx')) return null;
+  return lines;
 }
 
 /**
@@ -98,7 +173,16 @@ export function buildRenderInputs(
     const hidden = input.hidable && fieldState.hidden;
     // Rich runs are sent ONLY for richText inputs (the API 400s otherwise)
     // and only when actually styled — unstyled values keep the plain shape.
-    const runs = input.richText && isStyled(fieldState.runs) ? fieldState.runs : null;
+    const lines = effectiveLines(input, fieldState);
+    // List structure only rides the rich path, so a list value goes as runs
+    // even when no run is styled.
+    const runs =
+      input.richText && isStyled(fieldState.runs)
+        ? fieldState.runs
+        : lines
+          ? [{ text: value, fontFamily: null, color: null, underline: false }]
+          : null;
+    const list = lines ? { lines } : {};
     // The font choice is sent ONLY for inputs that offer it, and only for a
     // pick inside the offer (a stale pick from a saved state is dropped).
     const fontFamily =
@@ -109,7 +193,7 @@ export function buildRenderInputs(
 
     if (hidden) {
       if (runs) {
-        payload[input.id] = { runs, hide: true, ...font };
+        payload[input.id] = { runs, ...list, hide: true, ...font };
       } else {
         payload[input.id] = value ? { value, hide: true, ...font } : { hide: true, ...font };
       }
@@ -117,7 +201,7 @@ export function buildRenderInputs(
     }
 
     if (runs) {
-      payload[input.id] = { runs, ...font };
+      payload[input.id] = { runs, ...list, ...font };
       continue;
     }
 

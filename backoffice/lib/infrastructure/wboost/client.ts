@@ -13,27 +13,63 @@ import * as Sentry from '@sentry/nextjs';
 import { AppError, ErrorCode, NetworkError } from '@/lib/core/errors';
 import { getWboostConfig, WboostConfig } from '@/lib/config';
 import { getWboostTokenManager, WboostTokenManager } from './token-manager';
-import type { WboostRawTemplate, WboostRawGalleryImage, WboostRawProjectFont } from './types';
-import type { RenderInputValue, RenderImageValue } from '@/lib/social-export/api-types';
+import type {
+  WboostRawTemplate,
+  WboostRawGalleryImage,
+  WboostRawProjectFont,
+  WboostRawExportVersion,
+  WboostRawExportVersionDetail,
+} from './types';
+import type {
+  GroupPlacements,
+  RenderInputValue,
+  RenderImageValue,
+} from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
 // Error message map (Czech)
 // --------------------------------------------------------------------------
 
 /**
- * Structured error body of a WBoost 400 (currently only `container_overflow`:
- * a container's filled texts don't fit its max height even after reflow).
+ * Structured error body of a WBoost render 400 / 503: `{ error, code, ... }`
+ * with the offending `inputId` / `imageInputId` (value errors), `containerId`
+ * + `overflowPx` (container_overflow) and, for group renders, the `variantId`
+ * of the dimension that failed.
  */
 export interface WboostErrorBody {
   error?: string;
   code?: string;
   containerId?: string | null;
   overflowPx?: number;
+  inputId?: string;
+  imageInputId?: string;
+  variantId?: string;
+  maxLength?: number;
+  transform?: string;
 }
 
+/** Czech message per WBoost error `code` (the fields themselves are highlighted by id). */
+const CODE_MESSAGES: Record<string, string> = {
+  container_overflow: 'Texty se nevejdou do vymezené oblasti šablony — zkraťte zvýrazněná pole',
+  value_too_long: 'Text je delší, než šablona dovoluje',
+  invalid_value: 'Neplatná hodnota textového pole',
+  rich_text_not_allowed: 'Toto pole nepodporuje formátování textu',
+  invalid_rich_text: 'Formátovaný text je neplatný',
+  font_not_allowed: 'Zvolené písmo není pro toto pole povolené',
+  color_not_allowed: 'Zvolená barva není pro toto pole povolená',
+  invalid_color: 'Neplatná barva textu',
+  lists_not_allowed: 'Toto pole nepodporuje seznamy',
+  checkbox_lists_not_allowed: 'Toto pole nepodporuje zaškrtávací seznamy',
+  invalid_image_value: 'Neplatné nastavení obrázku',
+  image_transform_not_allowed: 'Tento obrázek nelze posouvat, zvětšovat nebo otáčet',
+  image_not_allowed: 'Vybraný obrázek už není k dispozici nebo do tohoto pole nepatří — vyberte jiný',
+  image_unreadable: 'Vybraný obrázek se nepodařilo načíst — vyberte jiný',
+  render_unavailable: 'Generování obrázků je momentálně přetížené — zkuste to prosím za chvíli',
+};
+
 function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
-  if (status === 400 && body?.code === 'container_overflow') {
-    return 'Texty se nevejdou do vymezené oblasti šablony — zkraťte zvýrazněná pole';
+  if (body?.code && CODE_MESSAGES[body.code]) {
+    return CODE_MESSAGES[body.code];
   }
   switch (status) {
     case 400:
@@ -46,6 +82,8 @@ function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
       return 'Šablona nebyla nalezena';
     case 500:
       return 'Chyba při generování obrázku';
+    case 503:
+      return CODE_MESSAGES.render_unavailable;
     default:
       return `Neočekávaná chyba WBoost (${status})`;
   }
@@ -69,6 +107,24 @@ function mapStatusToErrorCode(status: number): ErrorCode {
 // --------------------------------------------------------------------------
 // Client
 // --------------------------------------------------------------------------
+
+/** `preview` = unrecorded WebP for the screen; `export` = the recorded download. */
+export type RenderMode = 'preview' | 'export';
+
+/** A rendered image / archive with the metadata WBoost sent along. */
+export interface WboostRenderedFile {
+  body: Uint8Array;
+  contentType: string;
+  /** From Content-Disposition (`{group}-{dimension}.png`, `{group}.zip`), when sent. */
+  filename: string | null;
+}
+
+/** `attachment; filename="x.zip"` → `x.zip` (null when absent). */
+export function filenameFromDisposition(header: string | null): string | null {
+  if (!header) return null;
+  const match = /filename="?([^";]+)"?/i.exec(header);
+  return match ? match[1] : null;
+}
 
 export class WboostClient {
   constructor(
@@ -136,32 +192,113 @@ export class WboostClient {
     }
   }
 
+  /**
+   * Render one variant. `preview` → WBoost's unrecorded WebP preview (the
+   * debounced live preview), `export` → the recorded PNG download (usage +
+   * a version in the variant's export history). Never download a preview.
+   */
   async renderVariant(
     variantId: string,
     inputs: Record<string, RenderInputValue>,
-    images?: Record<string, RenderImageValue>
-  ): Promise<Uint8Array> {
-    const url = `${this.config.apiBase}/api/template-variants/${variantId}/export`;
+    images: Record<string, RenderImageValue> | undefined,
+    mode: RenderMode
+  ): Promise<WboostRenderedFile> {
+    const url = `${this.config.apiBase}/api/template-variants/${variantId}/${mode}`;
 
     Sentry.addBreadcrumb({
       category: 'wboost',
-      message: 'Rendering variant',
+      message: mode === 'preview' ? 'Previewing variant' : 'Exporting variant',
       level: 'info',
       data: { variantId },
     });
 
-    // Only include `images` when there is something to send — keeps the call
-    // byte-for-byte backward-compatible with text-only renders.
+    // Only include `images` when there is something to send.
     const body =
       images && Object.keys(images).length > 0 ? { inputs, images } : { inputs };
 
-    const res = await this.authedFetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    return this.postForFile(url, body);
+  }
+
+  /**
+   * Render a template GROUP fill: `preview` one member dimension (WebP,
+   * unrecorded), `export` one dimension (PNG) or — without `variantId` —
+   * every dimension as one ZIP. Exports record ONE group version.
+   */
+  async renderGroup(
+    groupId: string,
+    variantId: string | null,
+    fill: {
+      inputs: Record<string, RenderInputValue>;
+      images?: Record<string, RenderImageValue>;
+      placements?: GroupPlacements;
+    },
+    mode: RenderMode
+  ): Promise<WboostRenderedFile> {
+    if (mode === 'preview' && !variantId) {
+      throw new AppError('Náhled skupiny vyžaduje rozměr', ErrorCode.VALIDATION_FAILED, 400);
+    }
+
+    const path =
+      mode === 'preview'
+        ? `preview/${variantId}`
+        : variantId
+          ? `export/${variantId}`
+          : 'export';
+    const url = `${this.config.apiBase}/api/template-groups/${groupId}/${path}`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: `Group ${mode}`,
+      level: 'info',
+      data: { groupId, variantId },
     });
 
-    return new Uint8Array(await res.arrayBuffer());
+    return this.postForFile(url, {
+      inputs: fill.inputs,
+      images: fill.images ?? {},
+      placements: fill.placements ?? {},
+    });
+  }
+
+  /** The shared export history of a fill surface (group or variant), pinned first. */
+  async listExportVersions(
+    subject: { groupId: string } | { variantId: string }
+  ): Promise<WboostRawExportVersion[]> {
+    const url =
+      'groupId' in subject
+        ? `${this.config.apiBase}/api/template-groups/${subject.groupId}/export-versions`
+        : `${this.config.apiBase}/api/template-variants/${subject.variantId}/export-versions`;
+
+    const res = await this.authedFetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    return this.parseJson<WboostRawExportVersion[]>(res, 'export-versions');
+  }
+
+  /** One export version with its fill (seeded against the current design). */
+  async getExportVersion(versionId: string): Promise<WboostRawExportVersionDetail> {
+    const res = await this.authedFetch(`${this.config.apiBase}/api/export-versions/${versionId}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    return this.parseJson<WboostRawExportVersionDetail>(res, 'export-version');
+  }
+
+  /** Rename (`name`, null clears) and/or pin (`pinned`) a version; absent keys stay untouched. */
+  async updateExportVersion(
+    versionId: string,
+    patch: { name?: string | null; pinned?: boolean }
+  ): Promise<WboostRawExportVersionDetail> {
+    const res = await this.authedFetch(`${this.config.apiBase}/api/export-versions/${versionId}`, {
+      method: 'PATCH',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+
+    return this.parseJson<WboostRawExportVersionDetail>(res, 'export-version');
   }
 
   /** List the gallery images an image slot can be filled with (its allowed folders only). */
@@ -251,6 +388,28 @@ export class WboostClient {
   }
 
   // ---------- Private helpers ----------------------------------------------
+
+  private async postForFile(url: string, body: unknown): Promise<WboostRenderedFile> {
+    const res = await this.authedFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    return {
+      body: new Uint8Array(await res.arrayBuffer()),
+      contentType: res.headers.get('content-type') ?? 'application/octet-stream',
+      filename: filenameFromDisposition(res.headers.get('content-disposition')),
+    };
+  }
+
+  private async parseJson<T>(res: Response, what: string): Promise<T> {
+    try {
+      return (await res.json()) as T;
+    } catch {
+      throw new AppError(`WBoost ${what} endpoint vrátil neplatný JSON`, ErrorCode.INTERNAL_ERROR, 502);
+    }
+  }
 
   /**
    * Make an authenticated fetch request. On a 401 response, invalidates the

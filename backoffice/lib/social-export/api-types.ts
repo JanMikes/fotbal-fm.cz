@@ -78,10 +78,8 @@ export interface TemplateInputDTO {
   /**
    * True → the rich envelope may also carry per-line list types
    * (`lines: ["p","ul","ol",...]`) and the export lays the value out as a
-   * block stack (paragraphs + bulleted/numbered items). The list-editing UI
-   * is not built here yet — untouched inputs still render their lists via
-   * the server-side sample fallback, and editing a rich value simply sends
-   * runs without lines (renders without list structure).
+   * block stack (paragraphs + bulleted/numbered items). The rich editor
+   * offers list buttons and sends the structure in `InputFieldState.lines`.
    */
   lists: boolean;
   /** Resolved bullet + spacing geometry; non-null exactly when `lists`. */
@@ -89,8 +87,8 @@ export interface TemplateInputDTO {
   /**
    * True (implies `lists`) → the envelope's `lines` may also carry checkbox
    * item types ('cb' unchecked / 'cbx' checked; 400
-   * `checkbox_lists_not_allowed` otherwise). Like `lists`, the editing UI is
-   * not built here yet — sample-driven checklists render server-side.
+   * `checkbox_lists_not_allowed` otherwise); the rich editor then also
+   * offers a checkbox-list button.
    */
   listCheckboxes: boolean;
   /**
@@ -99,8 +97,7 @@ export interface TemplateInputDTO {
    * flags — `toggle` (check/uncheck), `editText`, `addItems`,
    * `removeItems`. The wire format is the ordinary checkbox-list envelope.
    * With all four flags false the server ignores overrides (read-only).
-   * Editing UI not built here yet — sample-driven checklists render
-   * server-side.
+   * Edited through `ChecklistEditor`.
    */
   checklist: ChecklistCapabilitiesDTO | null;
   /**
@@ -120,9 +117,17 @@ export interface TemplateInputDTO {
 }
 
 /**
+ * Per-LINE block type of a rich value (one entry per `\n`-separated line of
+ * the concatenated runs): `p` paragraph, `ul` bullet item, `ol` numbered item,
+ * `cb` / `cbx` unchecked / checked checkbox item. Only for inputs with
+ * `lists` (`cb`/`cbx` additionally need `listCheckboxes`).
+ */
+export type ListLineType = 'p' | 'ul' | 'ol' | 'cb' | 'cbx';
+
+/**
  * One styled segment of a rich-text value. Null style = inherit the designed
  * style. The concatenation of run texts is the plain-text projection
- * (`maxLength` counts it). Run text must not contain line breaks.
+ * (`maxLength` counts it). `\n` in a run is a hard line break.
  */
 export interface RichRunDTO {
   text: string;
@@ -208,6 +213,13 @@ export interface RenderErrorDetails {
   code?: string;
   containerId?: string | null;
   overflowPx?: number;
+  /** The text input a value error concerns (value_too_long, rich-text codes, …). */
+  inputId?: string;
+  /** The image slot an image error concerns (image_not_allowed, …). */
+  imageInputId?: string;
+  /** Group renders: the member dimension that failed. */
+  variantId?: string;
+  maxLength?: number;
 }
 
 /** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
@@ -312,6 +324,19 @@ export interface TemplateVariantDTO {
   containers: TemplateContainerDTO[];
   /** Fonts + swatches for rich-text inputs; null unless some input has `richText: true`. */
   richTextOptions: RichTextOptionsDTO | null;
+  /**
+   * True when this variant is a member dimension of its template's GROUP
+   * (`TemplateDTO.group`) — filled once together with the other members. A
+   * variant added by hand to a grouped template is not a member (false) and
+   * is edited on its own.
+   */
+  groupMember: boolean;
+}
+
+/** The synchronized group a template is (one design in several dimensions). */
+export interface TemplateGroupRefDTO {
+  id: string;
+  name: string;
 }
 
 /** A social-network template, grouped/sorted-ready for display. */
@@ -322,6 +347,12 @@ export interface TemplateDTO {
   categoryId: string | null;
   categoryName: string | null;
   variants: TemplateVariantDTO[];
+  /**
+   * Non-null → the template is a GROUP: its member variants (`groupMember`)
+   * share their input ids and are filled ONCE, previewed per dimension and
+   * exported as a ZIP (or one dimension as PNG).
+   */
+  group: TemplateGroupRefDTO | null;
 }
 
 /** Response body of `GET /api/social-export/templates` (wrapped in apiSuccess). */
@@ -352,7 +383,7 @@ export interface ProjectFontsResponse {
 export type RenderInputValue =
   | string
   | { value?: string; hide?: boolean; fontFamily?: string }
-  | { runs: RichRunDTO[]; hide?: boolean; fontFamily?: string };
+  | { runs: RichRunDTO[]; lines?: ListLineType[]; hide?: boolean; fontFamily?: string };
 
 /**
  * A single render image value: a plain gallery image id (centered + contained),
@@ -384,6 +415,68 @@ export interface RenderRequest {
   inputs: Record<string, RenderInputValue>;
   /** Keyed by imageInput UUID. Omitted slots keep their stand-in. Optional + backward-compatible. */
   images?: Record<string, RenderImageValue>;
+}
+
+/**
+ * Per-dimension image placement of a group fill: variantId → imageInputId →
+ * transform. It replaces the shared pick's transform in that dimension.
+ */
+export type GroupPlacements = Record<
+  string,
+  Record<string, { scale?: number; offsetXRatio?: number; offsetYRatio?: number; rotation?: number }>
+>;
+
+/**
+ * Request body of the group routes (`/api/social-export/group-render`,
+ * `/api/social-export/group-export`): ONE fill for every member dimension.
+ */
+export interface GroupRenderRequest {
+  groupId: string;
+  /** Member dimension to render (preview / single-dimension export); absent = the whole group as ZIP. */
+  variantId?: string;
+  inputs: Record<string, RenderInputValue>;
+  /** Shared picks only: image id or `{ hide: true }` — placement lives in `placements`. */
+  images?: Record<string, RenderImageValue>;
+  placements?: GroupPlacements;
+}
+
+/** Digest of a version's fill (what history lists show instead of a thumbnail). */
+export interface ExportVersionSummaryDTO {
+  texts: { label: string; value: string }[];
+  pictures: number;
+  hidden: number;
+}
+
+/**
+ * One entry of a fill surface's shared EXPORT HISTORY in WBoost (a group for
+ * synchronized templates, the variant otherwise). Pinned first, then freshest.
+ */
+export interface ExportVersionDTO {
+  id: string;
+  subject: 'group' | 'variant';
+  groupId: string | null;
+  variantId: string | null;
+  name: string | null;
+  pinned: boolean;
+  pinnedAt: string | null;
+  createdAt: string;
+  lastExportedAt: string;
+  exportCount: number;
+  /** Channel of the latest export: web | api | mcp | facebook | instagram. */
+  channel: string;
+  summary: ExportVersionSummaryDTO;
+}
+
+/** A version's fill in the render request shape, seeded against the current design. */
+export interface ExportVersionFillDTO {
+  inputs: Record<string, RenderInputValue>;
+  /** Picked images carry their public `url` next to `imageId`. */
+  images: Record<string, RenderImageValue & { url?: string }>;
+  placements: GroupPlacements;
+}
+
+export interface ExportVersionDetailDTO extends ExportVersionDTO {
+  fill: ExportVersionFillDTO;
 }
 
 /** API route base path for the social-export feature. */

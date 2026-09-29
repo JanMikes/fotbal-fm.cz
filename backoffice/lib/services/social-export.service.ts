@@ -10,7 +10,12 @@ import * as Sentry from '@sentry/nextjs';
 import { Result, ok, err } from '@/lib/core/result';
 import { AppError, ErrorCode, toAppError } from '@/lib/core/errors';
 import { getWboostConfig } from '@/lib/config';
-import { getWboostClient, WboostClient } from '@/lib/infrastructure/wboost/client';
+import {
+  getWboostClient,
+  WboostClient,
+  type RenderMode,
+  type WboostRenderedFile,
+} from '@/lib/infrastructure/wboost/client';
 import type {
   WboostRawTemplate,
   WboostRawVariant,
@@ -18,6 +23,8 @@ import type {
   WboostRawImageInput,
   WboostRawGalleryImage,
   WboostRawProjectFont,
+  WboostRawExportVersion,
+  WboostRawExportVersionDetail,
 } from '@/lib/infrastructure/wboost/types';
 import type {
   TemplateDTO,
@@ -28,6 +35,10 @@ import type {
   RenderInputValue,
   RenderImageValue,
   RichTextFontOptionDTO,
+  GroupPlacements,
+  ExportVersionDTO,
+  ExportVersionDetailDTO,
+  ExportVersionFillDTO,
 } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
@@ -161,6 +172,7 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
           colors: raw.richTextOptions.colors,
         }
       : null,
+    groupMember: raw.groupMember === true,
   };
 }
 
@@ -197,6 +209,37 @@ function mapTemplate(raw: WboostRawTemplate, thumbnailsEnabled: boolean): Templa
     categoryId: raw.categoryId,
     categoryName: raw.categoryName,
     variants: raw.variants.map((v) => mapVariant(v, thumbnailsEnabled)),
+    group: raw.group ? { id: raw.group.id, name: raw.group.name } : null,
+  };
+}
+
+function mapExportVersion(raw: WboostRawExportVersion): ExportVersionDTO {
+  return {
+    id: raw.id,
+    subject: raw.subject,
+    groupId: raw.groupId,
+    variantId: raw.variantId,
+    name: raw.name,
+    pinned: raw.pinned,
+    pinnedAt: raw.pinnedAt,
+    createdAt: raw.createdAt,
+    lastExportedAt: raw.lastExportedAt,
+    exportCount: raw.exportCount,
+    channel: raw.channel,
+    summary: raw.summary,
+  };
+}
+
+function mapExportVersionDetail(raw: WboostRawExportVersionDetail): ExportVersionDetailDTO {
+  return {
+    ...mapExportVersion(raw),
+    // The fill is already in the render request shape; its image `url`s are
+    // public store URLs the browser loads directly (like gallery images).
+    fill: {
+      inputs: (raw.fill?.inputs ?? {}) as ExportVersionFillDTO['inputs'],
+      images: (raw.fill?.images ?? {}) as ExportVersionFillDTO['images'],
+      placements: (raw.fill?.placements ?? {}) as GroupPlacements,
+    },
   };
 }
 
@@ -253,17 +296,59 @@ export class SocialExportService {
     }
   }
 
+  /** `preview` = unrecorded WebP for the screen, `export` = the recorded PNG download. */
   async renderVariant(
     variantId: string,
     inputs: Record<string, RenderInputValue>,
-    images?: Record<string, RenderImageValue>
-  ): Promise<Result<Uint8Array, AppError>> {
+    images: Record<string, RenderImageValue> | undefined,
+    mode: RenderMode
+  ): Promise<Result<WboostRenderedFile, AppError>> {
+    return this.attempt('renderVariant', () => this.client.renderVariant(variantId, inputs, images, mode));
+  }
+
+  /** Group fill: preview / export one dimension, or (no variantId + export) the whole ZIP. */
+  async renderGroup(
+    groupId: string,
+    variantId: string | null,
+    fill: {
+      inputs: Record<string, RenderInputValue>;
+      images?: Record<string, RenderImageValue>;
+      placements?: GroupPlacements;
+    },
+    mode: RenderMode
+  ): Promise<Result<WboostRenderedFile, AppError>> {
+    return this.attempt('renderGroup', () => this.client.renderGroup(groupId, variantId, fill, mode));
+  }
+
+  async listExportVersions(
+    subject: { groupId: string } | { variantId: string }
+  ): Promise<Result<ExportVersionDTO[], AppError>> {
+    return this.attempt('listExportVersions', async () =>
+      (await this.client.listExportVersions(subject)).map(mapExportVersion)
+    );
+  }
+
+  async getExportVersion(versionId: string): Promise<Result<ExportVersionDetailDTO, AppError>> {
+    return this.attempt('getExportVersion', async () =>
+      mapExportVersionDetail(await this.client.getExportVersion(versionId))
+    );
+  }
+
+  async updateExportVersion(
+    versionId: string,
+    patch: { name?: string | null; pinned?: boolean }
+  ): Promise<Result<ExportVersionDetailDTO, AppError>> {
+    return this.attempt('updateExportVersion', async () =>
+      mapExportVersionDetail(await this.client.updateExportVersion(versionId, patch))
+    );
+  }
+
+  private async attempt<T>(method: string, run: () => Promise<T>): Promise<Result<T, AppError>> {
     try {
-      const bytes = await this.client.renderVariant(variantId, inputs, images);
-      return ok(bytes);
+      return ok(await run());
     } catch (e) {
       if (e instanceof AppError) return err(e);
-      Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'renderVariant' } });
+      Sentry.captureException(e, { tags: { service: 'SocialExportService', method } });
       return err(toAppError(e));
     }
   }

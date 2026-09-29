@@ -78,16 +78,17 @@ describe('WboostClient', () => {
   });
 
   describe('renderVariant', () => {
-    it('POSTs {inputs} JSON and returns Uint8Array from arrayBuffer', async () => {
+    it('POSTs {inputs} to /export and returns the file with its content type', async () => {
       const pngBytes = new Uint8Array([137, 80, 78, 71]);
       mockFetch.mockResolvedValueOnce(mockBinaryResponse(pngBytes));
 
       const tm = makeFakeTokenManager();
       const client = new WboostClient(CFG, tm as never);
 
-      const result = await client.renderVariant('v1', { inp1: 'hello' });
+      const result = await client.renderVariant('v1', { inp1: 'hello' }, undefined, 'export');
 
-      expect(result).toBeInstanceOf(Uint8Array);
+      expect(result.body).toBeInstanceOf(Uint8Array);
+      expect(result.contentType).toBe('image/png');
 
       const [url, init] = mockFetch.mock.calls[0];
       expect(url).toBe('http://wboost.test/api/template-variants/v1/export');
@@ -96,24 +97,118 @@ describe('WboostClient', () => {
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { inp1: 'hello' } });
     });
 
+    it('live previews go to the unrecorded /preview endpoint', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1]), 'image/webp'));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      const result = await client.renderVariant('v1', { t: 'x' }, undefined, 'preview');
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-variants/v1/preview');
+      expect(result.contentType).toBe('image/webp');
+    });
+
     it('includes `images` in the body when provided', async () => {
       mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
       const client = new WboostClient(CFG, makeFakeTokenManager() as never);
 
-      await client.renderVariant('v1', { t: 'x' }, { s: 'img-1' });
+      await client.renderVariant('v1', { t: 'x' }, { s: 'img-1' }, 'preview');
 
       const [, init] = mockFetch.mock.calls[0];
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { t: 'x' }, images: { s: 'img-1' } });
     });
 
-    it('omits the `images` key when images is empty (backward-compatible)', async () => {
+    it('omits the `images` key when images is empty', async () => {
       mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
       const client = new WboostClient(CFG, makeFakeTokenManager() as never);
 
-      await client.renderVariant('v1', { t: 'x' }, {});
+      await client.renderVariant('v1', { t: 'x' }, {}, 'preview');
 
       const [, init] = mockFetch.mock.calls[0];
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { t: 'x' } });
+    });
+  });
+
+  describe('renderGroup', () => {
+    it('exports the whole group as ZIP and keeps the download filename', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ...mockBinaryResponse(new Uint8Array([80, 75]), 'application/zip'),
+        headers: {
+          get: (h: string) =>
+            h === 'content-type'
+              ? 'application/zip'
+              : h === 'content-disposition'
+                ? 'attachment; filename="vysledek.zip"'
+                : null,
+        },
+      });
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      const result = await client.renderGroup(
+        'g1',
+        null,
+        { inputs: { t: 'x' }, images: { s: 'img-1' }, placements: { v1: { s: { scale: 1.5 } } } },
+        'export'
+      );
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe('http://wboost.test/api/template-groups/g1/export');
+      expect(JSON.parse(init.body as string)).toEqual({
+        inputs: { t: 'x' },
+        images: { s: 'img-1' },
+        placements: { v1: { s: { scale: 1.5 } } },
+      });
+      expect(result.filename).toBe('vysledek.zip');
+      expect(result.contentType).toBe('application/zip');
+    });
+
+    it('routes a dimension export and a dimension preview', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])))
+        .mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1]), 'image/webp'));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.renderGroup('g1', 'v2', { inputs: {} }, 'export');
+      await client.renderGroup('g1', 'v2', { inputs: {} }, 'preview');
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-groups/g1/export/v2');
+      expect(mockFetch.mock.calls[1][0]).toBe('http://wboost.test/api/template-groups/g1/preview/v2');
+    });
+
+    it('refuses a group preview without a dimension', async () => {
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await expect(client.renderGroup('g1', null, { inputs: {} }, 'preview')).rejects.toBeInstanceOf(AppError);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('export versions', () => {
+    it('lists a group history, loads and patches a version', async () => {
+      mockFetch
+        .mockResolvedValueOnce(mockJsonResponse([{ id: 'ver-1' }]))
+        .mockResolvedValueOnce(mockJsonResponse({ id: 'ver-1', fill: {} }))
+        .mockResolvedValueOnce(mockJsonResponse({ id: 'ver-1', fill: {} }));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.listExportVersions({ groupId: 'g1' });
+      await client.getExportVersion('ver-1');
+      await client.updateExportVersion('ver-1', { pinned: true });
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-groups/g1/export-versions');
+      expect(mockFetch.mock.calls[1][0]).toBe('http://wboost.test/api/export-versions/ver-1');
+      const [patchUrl, patchInit] = mockFetch.mock.calls[2];
+      expect(patchUrl).toBe('http://wboost.test/api/export-versions/ver-1');
+      expect(patchInit.method).toBe('PATCH');
+      expect(JSON.parse(patchInit.body as string)).toEqual({ pinned: true });
+    });
+
+    it('lists a variant history', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse([]));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.listExportVersions({ variantId: 'v1' });
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-variants/v1/export-versions');
     });
   });
 
@@ -249,7 +344,7 @@ describe('WboostClient', () => {
       const client = new WboostClient(CFG, tm as never);
 
       try {
-        await client.renderVariant('v1', { inp1: 'too long' });
+        await client.renderVariant('v1', { inp1: 'too long' }, undefined, 'preview');
         expect.unreachable('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(AppError);

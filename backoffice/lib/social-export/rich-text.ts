@@ -6,7 +6,8 @@
  *  - a value is a list of "runs" `{ text, fontFamily|null, color|null,
  *    underline }`; the concatenation of run texts is the plain-text projection
  *    (`maxLength` counts it, in Unicode code points)
- *  - null style = inherit the designed style; run text carries no line breaks
+ *  - null style = inherit the designed style; `\n` in run text is a hard line
+ *    break (CRLF / lone CR are canonicalized to `\n`, like the server does)
  *  - adjacent equal-styled runs merge, empty runs drop (normalize)
  *
  * Client-safe (pure functions, no server imports).
@@ -35,7 +36,7 @@ function sameStyle(a: RichRunDTO, b: RichRunDTO): boolean {
 
 /**
  * Coerce + normalize an untrusted runs value (autosave restore, external
- * data): drops non-object runs, flattens line breaks to spaces, nulls
+ * data): drops non-object runs, canonicalizes line breaks to `\n`, nulls
  * malformed styles, merges adjacent equal-styled runs, drops empty ones.
  * Returns null when the input isn't an array at all.
  */
@@ -48,7 +49,7 @@ export function normalizeRuns(raw: unknown): RichRunDTO[] | null {
     const candidate = entry as Record<string, unknown>;
     if (typeof candidate.text !== 'string') continue;
 
-    const text = candidate.text.replace(/[\r\n]+/g, ' ');
+    const text = canonicalNewlines(candidate.text);
     if (text === '') continue;
 
     const run: RichRunDTO = {
@@ -90,9 +91,14 @@ export function truncateRuns(runs: RichRunDTO[], maxLength: number): RichRunDTO[
   return result;
 }
 
-/** A single unstyled run for a plain string ('' → empty list). */
+/** CRLF / lone CR → `\n` (the server's canonical hard line break). */
+export function canonicalNewlines(text: string): string {
+  return text.replace(/\r\n?/g, '\n');
+}
+
+/** A single unstyled run for a plain string ('' → empty list); line breaks kept. */
 export function runsFromPlain(value: string): RichRunDTO[] {
-  const text = value.replace(/[\r\n]+/g, ' ');
+  const text = canonicalNewlines(value);
   return text === '' ? [] : [{ text, fontFamily: null, color: null, underline: false }];
 }
 

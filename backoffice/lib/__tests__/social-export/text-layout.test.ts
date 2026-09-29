@@ -54,6 +54,7 @@ function makeVariant(overrides: Partial<TemplateVariantDTO> = {}): TemplateVaria
     imageInputs: [],
     containers: [],
     richTextOptions: null,
+    groupMember: false,
     ...overrides,
   };
 }
@@ -549,5 +550,176 @@ describe('computeTextLayout', () => {
 describe('measureWrappedTextHeight', () => {
   it('returns null when no canvas 2D context is available', () => {
     expect(measureWrappedTextHeight('text', 100, STYLE)).toBeNull();
+  });
+});
+
+// ---------- List block stack (WBoostRichTextBlocks.layoutStack mirror) -------
+
+describe('computeTextLayout with list lines', () => {
+  const LIST_STYLE = {
+    bullet: 'disc' as const,
+    bulletImageUrl: null,
+    indent: 20,
+    itemSpacing: 5,
+    blockSpacing: 10,
+    checkboxImageUrl: null,
+    checkboxCheckedImageUrl: null,
+  };
+  // fontSize 20 × 1.13 × (1.2 − 1)
+  const LEADING = 20 * 1.13 * 0.2;
+
+  function listInput(overrides: Partial<TemplateInputDTO> = {}): TemplateInputDTO {
+    return makeInput({
+      id: 'l',
+      frame: frame(0, 0, 200, 50),
+      textStyle: STYLE,
+      richText: true,
+      lists: true,
+      listStyle: LIST_STYLE,
+      listCheckboxes: true,
+      ...overrides,
+    });
+  }
+
+  function recordingMeasure() {
+    const calls: { text: string; width: number }[] = [];
+    const measure = (value: MeasurableText, width: number) => {
+      calls.push({ text: plainOf(value), width });
+      return plainOf(value).length * 10;
+    };
+    return { calls, measure };
+  }
+
+  it('stacks paragraph blocks and individually wrapped, indented list items', () => {
+    const { calls, measure } = recordingMeasure();
+    const variant = makeVariant({ inputs: [listInput()] });
+    const { frames } = computeTextLayout(
+      variant,
+      { l: { value: 'ab\ncde\nf\ng', hidden: false, lines: ['p', 'ul', 'ul', 'p'] } },
+      measure
+    );
+    expect(calls).toEqual([
+      { text: 'ab', width: 200 },
+      { text: 'cde', width: 180 },
+      { text: 'f', width: 180 },
+      { text: 'g', width: 200 },
+    ]);
+    // 20 +L | +10 block | 30 +L | +5 item | 10 +L | +10 block | 10 (no trailing L)
+    const expected = 20 + LEADING + 10 + 30 + LEADING + 5 + 10 + LEADING + 10 + 10;
+    expect(frames['l'].height).toBeCloseTo(expected, 6);
+  });
+
+  it('re-joins consecutive paragraph lines into ONE paragraph block', () => {
+    const { calls, measure } = recordingMeasure();
+    const variant = makeVariant({ inputs: [listInput()] });
+    computeTextLayout(
+      variant,
+      { l: { value: 'a\nb\nc', hidden: false, lines: ['p', 'p', 'ol'] } },
+      measure
+    );
+    expect(calls).toEqual([
+      { text: 'a\nb', width: 200 },
+      { text: 'c', width: 180 },
+    ]);
+  });
+
+  it('keeps checked and unchecked items in one checklist block (item spacing only)', () => {
+    const { measure } = recordingMeasure();
+    const variant = makeVariant({ inputs: [listInput()] });
+    const { frames } = computeTextLayout(
+      variant,
+      { l: { value: 'ab\ncd', hidden: false, lines: ['cb', 'cbx'] } },
+      measure
+    );
+    expect(frames['l'].height).toBeCloseTo(20 + LEADING + 5 + 20, 6);
+  });
+
+  it('measures styled runs per item with their face overrides', () => {
+    const segments: MeasurableText[] = [];
+    const variant = makeVariant({ inputs: [listInput()] });
+    computeTextLayout(
+      variant,
+      {
+        l: {
+          value: 'ab\ncd',
+          hidden: false,
+          runs: [
+            { text: 'ab\nc', fontFamily: 'Bold', color: null, underline: false },
+            { text: 'd', fontFamily: null, color: null, underline: false },
+          ],
+          lines: ['ul', 'ul'],
+        },
+      },
+      (value) => {
+        segments.push(value);
+        return 10;
+      }
+    );
+    expect(segments).toEqual([
+      [{ text: 'ab', fontFamily: 'Bold' }],
+      [
+        { text: 'c', fontFamily: 'Bold' },
+        { text: 'd', fontFamily: null },
+      ],
+    ]);
+  });
+
+  it('ignores lines on an input without lists (one flowing text)', () => {
+    const { calls, measure } = recordingMeasure();
+    const variant = makeVariant({ inputs: [listInput({ lists: false, listStyle: null })] });
+    computeTextLayout(
+      variant,
+      { l: { value: 'a\nb', hidden: false, lines: ['ul', 'ul'] } },
+      measure
+    );
+    expect(calls).toEqual([{ text: 'a\nb', width: 200 }]);
+  });
+
+  it('ignores a stale structure whose line count no longer matches the value', () => {
+    const { calls, measure } = recordingMeasure();
+    const variant = makeVariant({ inputs: [listInput()] });
+    computeTextLayout(
+      variant,
+      { l: { value: 'a\nb\nc', hidden: false, lines: ['ul', 'ul'] } },
+      measure
+    );
+    expect(calls).toEqual([{ text: 'a\nb\nc', width: 200 }]);
+  });
+});
+
+describe('computeTextLayout container parity fixes', () => {
+  it('uses the designed gaps when the container gap is negative', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'm1', containerId: 'c', frame: frame(0, 100, 200, 40), textStyle: STYLE }),
+        makeInput({ id: 'm2', containerId: 'c', frame: frame(0, 200, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [{ id: 'c', maxHeight: 300, y: 100, memberInputIds: ['m1', 'm2'], gap: -5 }],
+    });
+    const { frames } = computeTextLayout(
+      variant,
+      { m1: { value: 'x'.repeat(6), hidden: false }, m2: { value: '', hidden: false } },
+      measureByLength
+    );
+    // m1 grows 40 → 60; designed gap 60 kept: m2 at 100 + 60 + 60.
+    expect(frames['m2'].y).toBe(220);
+  });
+
+  it('skips a root container without a positive maxHeight (no reflow, no overflow)', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'm1', containerId: 'c', frame: frame(0, 100, 200, 40), textStyle: STYLE }),
+        makeInput({ id: 'm2', containerId: 'c', frame: frame(0, 160, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [{ id: 'c', maxHeight: 0, y: 100, memberInputIds: ['m1', 'm2'] }],
+    });
+    const { frames, overflows } = computeTextLayout(
+      variant,
+      { m1: { value: 'x'.repeat(20), hidden: false }, m2: { value: '', hidden: false } },
+      measureByLength
+    );
+    expect(frames['m1']).toEqual(frame(0, 100, 200, 200));
+    expect(frames['m2'].y).toBe(160);
+    expect(overflows).toEqual([]);
   });
 });

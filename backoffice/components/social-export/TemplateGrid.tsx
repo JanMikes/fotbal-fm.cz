@@ -1,6 +1,6 @@
 'use client';
 
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Layers } from 'lucide-react';
 import { TemplateDTO } from '@/lib/social-export/api-types';
 import SavedBadge from './SavedBadge';
 
@@ -61,7 +61,9 @@ export default function TemplateGrid({ templates, onSelect, savedVariantIds }: T
               const hasVariants = template.variants.length > 0;
               const thumbUrl = template.variants[0]?.thumbnailUrl ?? null;
               const dimensionList = template.variants.map((v) => v.dimension).join(', ');
-              const hasSavedState = template.variants.some((v) => savedVariantIds?.has(v.id));
+              const hasSavedState =
+                template.variants.some((v) => savedVariantIds?.has(v.id)) ||
+                (template.group != null && savedVariantIds?.has(template.group.id) === true);
 
               return (
                 <button
@@ -92,6 +94,15 @@ export default function TemplateGrid({ templates, onSelect, savedVariantIds }: T
                       </div>
                     )}
                     {hasSavedState && <SavedBadge className="absolute top-1.5 right-1.5" />}
+                    {template.group && (
+                      <span
+                        className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full border border-border bg-white px-2 py-0.5 text-[10px] font-medium text-text-secondary"
+                        title="Jedna grafika ve více rozměrech — vyplníte jednou, stáhnete najednou"
+                      >
+                        <Layers className="h-3 w-3" />
+                        Všechny rozměry
+                      </span>
+                    )}
                   </div>
 
                   {/* Card body */}

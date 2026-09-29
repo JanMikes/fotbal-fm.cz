@@ -6,6 +6,7 @@ import FormField from '@/components/ui/FormField';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import Alert from '@/components/ui/Alert';
 import FieldInsertMenu from './FieldInsertMenu';
+import ChecklistEditor from './ChecklistEditor';
 import FontChoiceSelect from './FontChoiceSelect';
 import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
@@ -16,6 +17,7 @@ import {
   validateInputValue,
   InputFieldState,
 } from '@/lib/social-export/field-rules';
+import { codePointLength } from '@/lib/social-export/rich-text';
 
 interface ExportInputFormProps {
   variant: TemplateVariantDTO;
@@ -56,17 +58,18 @@ export default function ExportInputForm({
   const isDisabled = isRendering || hasValidationErrors;
 
   // Set a field to a chosen match-data value (replace), respecting maxLength.
-  // Inserted match data is always PLAIN — clear any rich formatting.
+  // Inserted match data is always PLAIN — clear any rich formatting and
+  // list structure.
   function handleInsert(inputId: string, value: string) {
     const input = variant.inputs.find((i) => i.id === inputId);
     if (!input) return;
 
     let next = value;
-    if (input.maxLength != null && next.length > input.maxLength) {
-      next = next.slice(0, input.maxLength);
+    if (input.maxLength != null && codePointLength(next) > input.maxLength) {
+      next = Array.from(next).slice(0, input.maxLength).join('');
     }
 
-    onChange(inputId, { value: next, runs: null });
+    onChange(inputId, { value: next, runs: null, lines: null });
   }
 
   return (
@@ -80,6 +83,10 @@ export default function ExportInputForm({
           const isHidden = fieldState.hidden;
           const editable = isEditable(input);
           const validationError = editable ? validateInputValue(input, value) ?? undefined : undefined;
+          const isRich = input.richText && variant.richTextOptions != null;
+          // A dedicated checklist component gets per-item rows, never the WYSIWYG.
+          const isChecklist = input.checklist != null;
+          const length = codePointLength(value);
 
           // Build hint text
           const hints: string[] = [];
@@ -116,7 +123,7 @@ export default function ExportInputForm({
             >
               {/* Font choice for plain inputs the designer opened up; rich
                   inputs get the per-input faces as their editor menu. */}
-              {!(input.richText && variant.richTextOptions) && input.fontOptions && (
+              {(!isRich || isChecklist) && input.fontOptions && (
                 <FontChoiceSelect
                   options={input.fontOptions}
                   value={fieldState.fontFamily}
@@ -126,7 +133,14 @@ export default function ExportInputForm({
               )}
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  {input.richText && variant.richTextOptions ? (
+                  {isChecklist ? (
+                    <ChecklistEditor
+                      input={input}
+                      state={fieldState}
+                      disabled={isHidden}
+                      onChange={(partial) => onChange(input.id, partial)}
+                    />
+                  ) : isRich && variant.richTextOptions ? (
                     <RichTextEditor
                       input={input}
                       options={input.fontOptions ? { ...variant.richTextOptions, fonts: input.fontOptions } : variant.richTextOptions}
@@ -146,7 +160,7 @@ export default function ExportInputForm({
                     />
                   )}
                 </div>
-                {chips.length > 0 && (
+                {chips.length > 0 && !isChecklist && (
                   <FieldInsertMenu
                     chips={chips}
                     disabled={isHidden}
@@ -173,10 +187,10 @@ export default function ExportInputForm({
                 {input.maxLength != null && (
                   <span
                     className={`text-xs tabular-nums ${
-                      value.length > input.maxLength ? 'text-danger' : 'text-text-muted'
+                      length > input.maxLength ? 'text-danger' : 'text-text-muted'
                     }`}
                   >
-                    {value.length}/{input.maxLength}
+                    {length}/{input.maxLength}
                   </span>
                 )}
               </div>

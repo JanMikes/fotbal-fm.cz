@@ -1,36 +1,7 @@
 import { NextRequest } from 'next/server';
-import { z } from 'zod/v4';
 import { withAuth, apiSuccess, ApiErrors, addApiBreadcrumb } from '@/lib/api';
 import { getSocialExportStateService } from '@/lib/services/social-export-state.service';
-
-const inputFieldStateSchema = z.object({
-  value: z.string().max(10000),
-  hidden: z.boolean(),
-});
-
-// The pan is stored as a fraction of the slot's frame. `offsetX`/`offsetY` are
-// the pre-portable px form: still accepted so a client mid-deploy can save, and
-// converted on read (applySavedState) against the slot's frame.
-const imageSlotStateSchema = z.object({
-  image: z.object({ id: z.string(), url: z.string() }).nullable(),
-  scale: z.number(),
-  offsetXRatio: z.number().optional(),
-  offsetYRatio: z.number().optional(),
-  offsetX: z.number().optional(),
-  offsetY: z.number().optional(),
-  rotation: z.number(),
-  hidden: z.boolean(),
-});
-
-const saveStateRequestSchema = z.object({
-  matchId: z.string().min(1),
-  templateId: z.string().min(1),
-  variantId: z.string().min(1),
-  state: z.object({
-    formState: z.record(z.string(), inputFieldStateSchema),
-    imageState: z.record(z.string(), imageSlotStateSchema),
-  }),
-});
+import { saveStateRequestSchema } from '@/lib/social-export/schemas';
 
 export const GET = withAuth(async (request: NextRequest) => {
   const matchId = new URL(request.url).searchParams.get('matchId');

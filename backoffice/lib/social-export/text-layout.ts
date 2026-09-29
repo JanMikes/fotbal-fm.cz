@@ -17,7 +17,10 @@
  * `fontSize × 1.13 × lineHeight` with the last line NOT lineHeight-multiplied
  * (Fabric's calcTextHeight). Rich-text runs may switch the font FAMILY per
  * segment (never the size) — a bold face wraps wider, so word widths are
- * summed per same-family piece.
+ * summed per same-family piece. A value with list lines (`effectiveLines`)
+ * measures as WBoost's block stack (rich_text_blocks.js layoutStack):
+ * paragraph blocks at `frame.width`, list items at `frame.width − indent`,
+ * item/block spacing, and the designed leading re-inserted between elements.
  *
  * Accuracy depends on the REAL fonts being loaded (`useWboostFonts` — the
  * project fonts endpoint + FontFace). Before they load, wrap points come from
@@ -30,13 +33,17 @@
 
 import type {
   ImageFrameDTO,
+  ListLineType,
+  ListStyleDTO,
+  RichRunDTO,
   TemplateContainerDTO,
   TemplateInputDTO,
   TemplateVariantDTO,
   TextStyleDTO,
 } from './api-types';
-import type { InputFieldState } from './field-rules';
-import { isStyled, truncateRuns } from './rich-text';
+import { effectiveLines, type InputFieldState } from './field-rules';
+import { fitLines } from './list-lines';
+import { isStyled, plainText, truncateRuns } from './rich-text';
 
 /** Fabric's Text._fontSizeMult — part of every line's height. */
 const FONT_SIZE_MULT = 1.13;
@@ -289,6 +296,14 @@ export interface ContainerLayoutResult {
   overflowPx: number;
 }
 
+/**
+ * A usable uniform gap / spaceAfter: a finite number >= 0, else null (=
+ * designed spacing / no clearance) — WBoostContainerLayout.normalizeGap.
+ */
+export function normalizeGap(gap: unknown): number | null {
+  return typeof gap === 'number' && Number.isFinite(gap) && gap >= 0 ? gap : null;
+}
+
 /** Designed vertical gaps between consecutive members; gaps[i] sits between i and i+1. */
 export function computeGaps(members: DesignedMember[]): number[] {
   const gaps: number[] = [];
@@ -349,18 +364,10 @@ function renderedValue(
   fieldState: InputFieldState | undefined
 ): MeasurableText | null {
   if (input.locked) return null;
-
   if (input.richText && isStyled(fieldState?.runs)) {
-    let runs = fieldState.runs;
-    if (input.maxLength != null) {
-      runs = truncateRuns(runs, input.maxLength);
-    }
-    const segments: TextSegment[] = runs.map((run) => ({
-      text: input.uppercase ? run.text.toUpperCase() : run.text,
-      fontFamily: run.fontFamily,
-    }));
-    return segments.some((segment) => segment.text !== '') ? segments : null;
+    return renderedSegments(input, fieldState.runs);
   }
+
 
   let value = fieldState?.value ?? '';
   if (value === '') return null;
@@ -368,6 +375,130 @@ function renderedValue(
     value = value.slice(0, input.maxLength);
   }
   return input.uppercase ? value.toUpperCase() : value;
+}
+
+/** Rich runs → the segments the render draws (maxLength cap, uppercase), null when empty. */
+function renderedSegments(input: TemplateInputDTO, source: RichRunDTO[]): TextSegment[] | null {
+  const runs = input.maxLength != null ? truncateRuns(source, input.maxLength) : source;
+  const segments: TextSegment[] = runs.map((run) => ({
+    text: input.uppercase ? run.text.toUpperCase() : run.text,
+    fontFamily: run.fontFamily,
+  }));
+  return segments.some((segment) => segment.text !== '') ? segments : null;
+}
+
+/** One render block of a list value (WBoostRichTextBlocks.groupBlocks). */
+type ListBlock =
+  | { type: 'p'; segments: TextSegment[] }
+  | { type: 'ul' | 'ol' | 'cb'; items: TextSegment[][] };
+
+/**
+ * Group per-line segments into blocks exactly like rich_text_blocks.js:
+ * consecutive 'p' lines re-join (with their `\n`) into ONE paragraph,
+ * consecutive same-type list lines form one list ('cb' and 'cbx' share a
+ * block — a checklist mixes states).
+ */
+function groupListBlocks(segments: TextSegment[], lines: ListLineType[]): ListBlock[] {
+  const perLine: TextSegment[][] = [[]];
+  for (const segment of segments) {
+    segment.text.split('\n').forEach((part, index) => {
+      if (index > 0) perLine.push([]);
+      if (part !== '') perLine[perLine.length - 1].push({ text: part, fontFamily: segment.fontFamily });
+    });
+  }
+
+  const blocks: ListBlock[] = [];
+  perLine.forEach((lineSegments, index) => {
+    const lineType = lines[index] ?? 'p';
+    const type = lineType === 'cbx' ? 'cb' : lineType;
+    const last = blocks[blocks.length - 1];
+    if (type === 'p') {
+      if (last && last.type === 'p') {
+        last.segments.push({ text: '\n', fontFamily: null }, ...lineSegments);
+      } else {
+        blocks.push({ type: 'p', segments: [...lineSegments] });
+      }
+    } else if (last && last.type === type) {
+      last.items.push(lineSegments);
+    } else {
+      blocks.push({ type, items: [lineSegments] });
+    }
+  });
+  return blocks;
+}
+
+/**
+ * Height of a list value's block stack (WBoostRichTextBlocks.layoutStack):
+ * a paragraph block wraps at `width`, each list item individually at
+ * `width − indent`; `itemSpacing` between items, `blockSpacing` between
+ * blocks, and the designed line leading `fontSize × 1.13 × (lineHeight − 1)`
+ * re-inserted BETWEEN elements (each element is its own Fabric box, which
+ * drops its last line's leading) — never after the last one. Null when any
+ * element can't be measured.
+ */
+function measureListStack(
+  blocks: ListBlock[],
+  listStyle: ListStyleDTO | null,
+  width: number,
+  style: TextStyleDTO,
+  measure: MeasureTextHeight
+): number | null {
+  const indent = Math.max(0, listStyle?.indent ?? 0);
+  const itemSpacing = Math.max(0, listStyle?.itemSpacing ?? 0);
+  const blockSpacing = Math.max(0, listStyle?.blockSpacing ?? 0);
+  const leading = Math.max(0, style.fontSize * FONT_SIZE_MULT * (style.lineHeight - 1));
+  const itemWidth = Math.max(10, width - indent);
+
+  let y = 0;
+  let elements = 0;
+  for (let b = 0; b < blocks.length; b += 1) {
+    const block = blocks[b];
+    if (b > 0) y += blockSpacing;
+    const parts = block.type === 'p' ? [block.segments] : block.items;
+    for (let i = 0; i < parts.length; i += 1) {
+      if (block.type !== 'p' && i > 0) y += itemSpacing;
+      const height = measure(parts[i], block.type === 'p' ? width : itemWidth, style);
+      if (height === null) return null;
+      y += height + leading;
+      elements += 1;
+    }
+  }
+  return elements > 0 ? y - leading : y;
+}
+
+/**
+ * Wrapped height of one input's current value: a list value (effective
+ * `lines`) as a block stack, anything else as one wrapped text. Null =
+ * keep the designed height (value omitted from the render, or unmeasurable).
+ */
+function measuredHeight(
+  input: TemplateInputDTO,
+  fieldState: InputFieldState | undefined,
+  measure: MeasureTextHeight
+): number | null {
+  if (!input.frame || !input.textStyle || input.locked) return null;
+
+  const lines = fieldState ? effectiveLines(input, fieldState) : null;
+  if (fieldState && lines) {
+    const runs: RichRunDTO[] =
+      input.richText && isStyled(fieldState.runs)
+        ? fieldState.runs
+        : [{ text: fieldState.value ?? '', fontFamily: null, color: null, underline: false }];
+    const capped = input.maxLength != null ? truncateRuns(runs, input.maxLength) : runs;
+    const segments = renderedSegments(input, capped) ?? [];
+    // A maxLength cut may drop lines: slice/pad like normalizeLines does.
+    return measureListStack(
+      groupListBlocks(segments, fitLines(plainText(capped), lines)),
+      input.listStyle,
+      input.frame.width,
+      input.textStyle,
+      measure
+    );
+  }
+
+  const value = renderedValue(input, fieldState);
+  if (value === null) return null;
+  return measure(value, input.frame.width, input.textStyle);
 }
 
 /** One container whose predicted flow exceeds its maxHeight. */
@@ -405,11 +536,7 @@ export function computeTextLayout(
 
   for (const input of variant.inputs) {
     if (!input.frame) continue;
-    let height = input.frame.height;
-    const value = renderedValue(input, state[input.id]);
-    if (value !== null && input.textStyle) {
-      height = measure(value, input.frame.width, input.textStyle) ?? height;
-    }
+    const height = measuredHeight(input, state[input.id], measure) ?? input.frame.height;
     frames[input.id] = { ...input.frame, height };
   }
 
@@ -516,14 +643,15 @@ export function computeTextLayout(
         item.extTop = null;
         return;
       }
-      let gap =
-        typeof node.container.gap === 'number' ? node.container.gap : (node.gaps[i - 1] ?? 0);
+      const uniformGap = normalizeGap(node.container.gap);
+      let gap = uniformGap !== null ? uniformGap : (node.gaps[i - 1] ?? 0);
       // A nested child's spaceAfter floors the parent-flow gap after it.
       const previousItem = node.items[i - 1];
       if (previousItem?.kind === 'container') {
         const previousChild = containerById.get(previousItem.id);
-        if (typeof previousChild?.spaceAfter === 'number') {
-          gap = Math.max(gap, previousChild.spaceAfter);
+        const childSpaceAfter = normalizeGap(previousChild?.spaceAfter);
+        if (childSpaceAfter !== null) {
+          gap = Math.max(gap, childSpaceAfter);
         }
       }
       item.extTop = previousBottom === null ? node.anchorTop : previousBottom + gap;
@@ -562,6 +690,9 @@ export function computeTextLayout(
   const rootNodes: FlowNode[] = [];
   for (const container of variant.containers) {
     if (claimed.has(container.id) || container.nested === true) continue;
+    // WBoost prepareFabricContainers: a root without a positive maxHeight
+    // is not a flow at all (its members stay at their designed tops).
+    if (!(container.maxHeight > 0)) continue;
     const node = buildNode(container, new Set());
     if (node) {
       measureNode(node);
@@ -584,7 +715,7 @@ export function computeTextLayout(
           Math.min(other.extRight, node.extRight) - Math.max(other.extLeft, node.extLeft);
         if (!(xOverlap > 0)) return;
         const clearance =
-          typeof other.container.spaceAfter === 'number' ? other.container.spaceAfter : 0;
+          normalizeGap(other.container.spaceAfter) ?? 0;
         delta = Math.max(delta, other.contentBottom + other.rootDelta + clearance - node.anchorTop);
       });
       node.rootDelta = Math.max(0, delta);
@@ -616,7 +747,7 @@ export function computeTextLayout(
     // its 0.5px tolerance used by the WBoost fill overlay.
     const finalBottom = node.contentBottom + delta;
     const clearance =
-      typeof node.container.spaceAfter === 'number' ? node.container.spaceAfter : 0;
+      normalizeGap(node.container.spaceAfter) ?? 0;
     const overflowPx = Math.max(
       finalBottom - (node.anchorTop + delta + node.container.maxHeight),
       finalBottom - (variant.height - clearance)
