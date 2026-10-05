@@ -17,7 +17,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { scrapePlayers, FACR_CLUBS, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
-import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields } from '../lib/sync-diff.js';
 import { detectImageType } from '../lib/media.js';
 
@@ -287,7 +286,6 @@ async function main() {
   console.log(`  Unchanged: ${unchanged}`);
   console.log(`  Photos:   ${photosUploaded}`);
 
-  await flushWebCacheIfChanged(created + updated);
 }
 
 main().catch((err) => {

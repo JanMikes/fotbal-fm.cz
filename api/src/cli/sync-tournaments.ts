@@ -19,7 +19,6 @@ import * as path from 'path';
 import { scrapeCompetitions, FACR_CLUBS, type FacrCompetition } from '../lib/facr.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
-import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
@@ -218,7 +217,6 @@ async function main() {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
 
-  await flushWebCacheIfChanged(created + updated);
 }
 
 main().catch((err) => {

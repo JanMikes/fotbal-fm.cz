@@ -23,7 +23,6 @@ import { scrapeStandings, FACR_CLUBS, type FacrStanding } from '../lib/facr.js';
 import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
-import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields, relationId, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
@@ -329,7 +328,6 @@ async function main() {
   console.log(`  Deleted:  ${deleted}`);
   console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
 
-  await flushWebCacheIfChanged(created + updated + deleted + teamsCreated);
 }
 
 main().catch((err) => {

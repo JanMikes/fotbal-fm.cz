@@ -39,7 +39,6 @@ import {
   type SportbmPlayer,
 } from '../lib/sportbm.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
-import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields, relationIds } from '../lib/sync-diff.js';
 import { detectImageType } from '../lib/media.js';
 
@@ -452,7 +451,6 @@ async function main() {
 
   if (dryRun) return;
 
-  await flushWebCacheIfChanged(created + updated);
   if (failed > 0) {
     console.error(`${failed} player(s) failed to sync`);
     process.exitCode = 1;

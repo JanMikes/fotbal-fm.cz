@@ -26,7 +26,6 @@ import { scrapeMatchesXlsx, parseMatchRows, FACR_CLUBS, type FacrMatch, type Xls
 import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
-import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields, relationId, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
@@ -465,7 +464,6 @@ async function main() {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
 
-  await flushWebCacheIfChanged(created + updated + merged + deleted + teamsCreated);
 }
 
 main().catch((err) => {

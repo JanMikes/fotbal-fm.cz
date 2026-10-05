@@ -35,15 +35,6 @@ class FakeRedis {
     };
     return chain;
   }
-  async scan(_cursor: string, _match: string, pattern: string) {
-    const prefix = pattern.replace(/\*$/, '');
-    return ['0', [...this.strings.keys(), ...this.hashes.keys()].filter((k) => k.startsWith(prefix))];
-  }
-  async del(...keys: string[]) {
-    let n = 0;
-    for (const k of keys) n += Number(this.strings.delete(k) || this.hashes.delete(k));
-    return n;
-  }
 }
 
 let fake = new FakeRedis();
@@ -54,7 +45,6 @@ const swr = await import('../swr');
 const { cached, bumpTags, entryKey, TAGVER, FOREGROUND_BUDGET_MS, FAILURE_MEMO_MS, NO_REDIS_MEMO_MS, __resetSwrState, __swrStateSize } = swr;
 const { UpstreamError, UpstreamAuthError } = await import('../errors');
 const { setMetricsSink } = await import('../metrics');
-const { cacheClearAll } = await import('../cache');
 
 const results: string[] = [];
 setMetricsSink({ cacheRequest: (_fn, result) => results.push(result), strapiRequest: () => {} });
@@ -378,25 +368,12 @@ describe('DATA_CACHE_MODE', () => {
   });
 });
 
-describe('bumpTags / cacheClearAll', () => {
+describe('bumpTags', () => {
   it('bumpTags increments generations and this process sees it at once', async () => {
     await read(async () => 'v1');
     await bumpTags(['match']);
     expect(await read(async () => 'v2')).toBe('v2');
     expect(fake.hashes.get(TAGVER)!.get('match')).toBe('1');
     expect(fake.hashes.get('fotbalfm:v2:tagts')!.get('match')).toBe(String(Date.now()));
-  });
-
-  it('cacheClearAll bumps `all` and deletes only legacy v1 keys — v2 entries and tag hashes stay', async () => {
-    await read(async () => 'v1');
-    fake.strings.set('fotbalfm:categories:all', { value: '[]' });
-    fake.strings.set('form-rate:1.2.3.4', { value: '1' });
-
-    expect(await cacheClearAll()).toBe(true);
-    expect(fake.strings.has('fotbalfm:categories:all')).toBe(false);
-    expect(fake.strings.has('form-rate:1.2.3.4')).toBe(true);
-    expect(fake.strings.has(await entryKey('getMatches', URL_))).toBe(true);
-    expect(fake.hashes.get(TAGVER)!.get('all')).toBe('1');
-    expect(await read(async () => 'v2')).toBe('v2'); // invalidated, refreshed
   });
 });

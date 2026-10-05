@@ -1,4 +1,3 @@
-export { cacheGet, cacheSet, cacheDelete, cacheDeletePattern, cacheClearAll, cacheStats } from './cache';
 export {
   cached,
   bumpTags,
@@ -22,4 +21,3 @@ export type { Tag } from './tags';
 export { metrics, setMetricsSink } from './metrics';
 export type { MetricsSink, CacheResult } from './metrics';
 export { getRedisClient, closeRedisClient, REDIS_CLIENT_OPTIONS } from './redis';
-export { isValidWebhookSecret } from './auth';

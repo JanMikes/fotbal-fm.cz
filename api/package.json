@@ -7,7 +7,6 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@fotbal-fm/cache": "*",
     "@fotbal-fm/form": "*",
     "@fotbal-fm/strapi-client": "*",
     "@hono/node-server": "^1.13.8",
