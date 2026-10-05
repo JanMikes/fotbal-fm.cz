@@ -20,6 +20,7 @@ vi.mock('../../../lib/strapi/client', () => ({
 }));
 
 const { __resetCacheGetOrSetState } = await import('@fotbal-fm/cache');
+const { StrapiError } = await vi.importActual<typeof import('../../../lib/strapi/client')>('../../../lib/strapi/client');
 
 const {
   getCategories,
@@ -679,7 +680,7 @@ describe('data layer', () => {
 
   describe('when Strapi fails (P0-1)', () => {
     const strapiDown = () => {
-      const error = Object.assign(new Error('Strapi x: HTTP 503'), { name: 'StrapiError', status: 503 });
+      const error = new StrapiError('x', 503);
       mockFindMany.mockRejectedValue(error);
       mockFindSingle.mockRejectedValue(error);
       mockFindAll.mockRejectedValue(error);
@@ -740,6 +741,31 @@ describe('data layer', () => {
     it('logs the failure with the cache key', async () => {
       await getCategories();
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[Cache] categories:all: upstream failed, not cached'));
+    });
+  });
+
+  describe('when a loader has a bug (P0-V3)', () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('a mapper error propagates (the page 500s, the readiness latch stays closed) and is not remembered', async () => {
+      mockFindMany.mockResolvedValue({ data: [null], total: 1 }); // mapPlayer(null) throws
+
+      await expect(getPlayersByCategory('muzi')).rejects.toBeInstanceOf(TypeError);
+      await expect(getPlayersByCategory('muzi')).rejects.toBeInstanceOf(TypeError);
+      expect(mockFindMany).toHaveBeenCalledTimes(2); // no failure memo for a bug
+      mockFindMany.mockReset();
+    });
+
+    it('the same function still falls back on a Strapi failure', async () => {
+      mockFindMany.mockRejectedValueOnce(new StrapiError('players', 'timeout'));
+
+      expect(await getPlayersByCategory('muzi')).toEqual([]);
     });
   });
 

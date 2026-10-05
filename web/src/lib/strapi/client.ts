@@ -1,3 +1,5 @@
+import { unstable_rethrow } from 'next/navigation';
+import { UpstreamError } from '@fotbal-fm/cache';
 import { config } from '@/lib/config';
 import { buildStrapiQueryString } from './queries';
 import type { StrapiCollectionResponse, StrapiSingleResponse, StrapiQueryOptions } from './types';
@@ -8,9 +10,10 @@ const REQUEST_TIMEOUT_MS = 10_000;
  * A Strapi request that produced no usable answer: an HTTP error status, the request timeout,
  * or a network/parse failure. The client throws it instead of returning empty data so the
  * cache layer can tell "Strapi said there is nothing" (cacheable) from "Strapi failed" (never
- * cached — data.ts renders its empty fallback for that one request).
+ * cached — data.ts renders its empty fallback for that one request). It is an UpstreamError:
+ * the only kind of error the cache layer turns into that fallback.
  */
-export class StrapiError extends Error {
+export class StrapiError extends UpstreamError {
   readonly status: number | 'timeout' | 'network';
   readonly contentType: string;
 
@@ -52,6 +55,10 @@ class StrapiClient {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
+      // Next.js signals through errors thrown from fetch (e.g. "dynamic server usage" for a
+      // no-store fetch during a build-time prerender). They are not Strapi failures: rethrow them
+      // untouched so Next can act on them (and the cache never remembers them).
+      unstable_rethrow(error);
       const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
       throw new StrapiError(label, timedOut ? 'timeout' : 'network', { cause: error });
     }
@@ -62,6 +69,7 @@ class StrapiClient {
     try {
       return (await res.json()) as B;
     } catch (error) {
+      unstable_rethrow(error);
       throw new StrapiError(label, 'network', { cause: error });
     }
   }

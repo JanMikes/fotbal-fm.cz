@@ -107,6 +107,36 @@ describe('StrapiClient', () => {
       await expect(client.findMany('categories')).rejects.toMatchObject({ status: 'timeout' });
     });
 
+    it("rethrows Next.js's dynamic-usage signal untouched instead of wrapping it (P0-V2)", async () => {
+      const { DynamicServerError } = await import('next/dist/client/components/hooks-server-context');
+      const signal = new DynamicServerError('Route / couldn\'t be rendered statically because it used no-store fetch');
+      mockFetch.mockRejectedValueOnce(signal);
+
+      const client = await getClient();
+      const error = await client.findMany('category-groups').catch((e) => e);
+
+      expect(error).toBe(signal);
+      expect(error).not.toBeInstanceOf(StrapiError);
+    });
+
+    it("rethrows Next.js's notFound()/redirect() signals too (unstable_rethrow)", async () => {
+      const { notFound } = await import('next/navigation');
+      let signal: unknown;
+      try { notFound(); } catch (e) { signal = e; }
+      mockFetch.mockRejectedValueOnce(signal);
+
+      const client = await getClient();
+      await expect(client.findMany('pages')).rejects.toBe(signal);
+    });
+
+    it('StrapiError is an upstream error (the only kind the cache turns into a fallback)', async () => {
+      const { isUpstreamError } = await import('@fotbal-fm/cache');
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+
+      const client = await getClient();
+      expect(isUpstreamError(await client.findMany('pages').catch((e) => e))).toBe(true);
+    });
+
     it('throws StrapiError(network) on an unparsable body', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) });
 

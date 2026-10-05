@@ -20,6 +20,8 @@ const {
   FAILURE_MEMO_MS,
   FAILURE_MEMO_MAX_KEYS,
   HALF_OPEN_WAIT_MS,
+  UpstreamError,
+  isUpstreamError,
   __resetCacheGetOrSetState,
   __cacheGetOrSetStateSize,
 } = await import('../cache');
@@ -88,7 +90,7 @@ describe('cacheGetOrSet', () => {
 
   it('a failed load returns the onError value and writes nothing to Redis', async () => {
     const fn = vi.fn(async (): Promise<string[]> => {
-      throw new Error('Strapi categories: HTTP 500');
+      throw new UpstreamError('Strapi categories: HTTP 500');
     });
 
     const result = await cacheGetOrSet('k', fn, 60, { onError: () => [] });
@@ -112,7 +114,7 @@ describe('cacheGetOrSet', () => {
     const a = cacheGetOrSet('k', fn, 60, { onError: () => 'fallback-a' });
     const b = cacheGetOrSet('k', fn, 60, { onError: () => 'fallback-b' });
     await vi.waitFor(() => expect(fn).toHaveBeenCalledTimes(1));
-    gate.reject(new Error('timeout'));
+    gate.reject(new UpstreamError('timeout'));
 
     expect(await a).toBe('fallback-a');
     expect(await b).toBe('fallback-b');
@@ -120,7 +122,7 @@ describe('cacheGetOrSet', () => {
   });
 
   describe('failure memo (V41)', () => {
-    const failing = () => vi.fn(async (): Promise<string> => { throw new Error('Strapi pages: timeout'); });
+    const failing = () => vi.fn(async (): Promise<string> => { throw new UpstreamError('Strapi pages: timeout'); });
 
     it('within the window a failed key returns onError immediately, without a new load', async () => {
       const fn = failing();
@@ -133,7 +135,7 @@ describe('cacheGetOrSet', () => {
 
     it('after the window the next call retries the loader, and a success is cached', async () => {
       const fn = vi.fn()
-        .mockRejectedValueOnce(new Error('Strapi pages: HTTP 503'))
+        .mockRejectedValueOnce(new UpstreamError('Strapi pages: HTTP 503'))
         .mockResolvedValueOnce('fresh');
       await cacheGetOrSet('k', fn, 60, { onError: () => 'empty' });
 
@@ -196,7 +198,7 @@ describe('cacheGetOrSet', () => {
       const first = cacheGetOrSet('k', probe, 60, { onError: () => 'empty' });
       await vi.waitFor(() => expect(probe).toHaveBeenCalledTimes(1));
       const second = cacheGetOrSet('k', probe, 60, { onError: () => 'empty' });
-      gate.reject(new Error('HTTP 503'));
+      gate.reject(new UpstreamError('HTTP 503'));
 
       expect(await first).toBe('empty');
       expect(await second).toBe('empty');
@@ -241,6 +243,58 @@ describe('cacheGetOrSet', () => {
       await cacheGetOrSet(`k${FAILURE_MEMO_MAX_KEYS + 24}`, newest, 60, { onError: () => 'empty' });
       expect(oldest).toHaveBeenCalledTimes(1);
       expect(newest).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('only upstream failures fall back (P0-V2/V3)', () => {
+    it('isUpstreamError recognises the brand, not just the class', () => {
+      expect(isUpstreamError(new UpstreamError('x'))).toBe(true);
+      expect(isUpstreamError(Object.assign(new Error('copy from another bundle'), { upstreamFailure: true }))).toBe(true);
+      expect(isUpstreamError(new TypeError('x'))).toBe(false);
+      expect(isUpstreamError(null)).toBe(false);
+      expect(isUpstreamError('x')).toBe(false);
+    });
+
+    it('a loader bug (e.g. a mapper TypeError) propagates despite onError, is not cached and not remembered', async () => {
+      const bug = new TypeError("Cannot read properties of null (reading 'slug')");
+      const fn = vi.fn(async (): Promise<string> => { throw bug; });
+
+      await expect(cacheGetOrSet('k', fn, 60, { onError: () => 'empty' })).rejects.toBe(bug);
+      await expect(cacheGetOrSet('k', fn, 60, { onError: () => 'empty' })).rejects.toBe(bug);
+
+      expect(fn).toHaveBeenCalledTimes(2); // no failure memo: the next request runs the loader again
+      expect(fakeRedis.setex).not.toHaveBeenCalled();
+      expect(__cacheGetOrSetStateSize()).toEqual({ inflight: 0, recentFailures: 0 });
+      expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('upstream failed'));
+    });
+
+    it("a framework control-flow error (Next's dynamic-usage signal) reaches every caller unchanged", async () => {
+      const signal = Object.assign(new Error('Dynamic server usage: no-store fetch'), { digest: 'DYNAMIC_SERVER_USAGE' });
+      const gate = deferred<string>();
+      const fn = vi.fn(() => gate.promise);
+
+      const a = cacheGetOrSet('k', fn, 60, { onError: () => 'empty' });
+      const b = cacheGetOrSet('k', fn, 60, { onError: () => 'empty' });
+      await vi.waitFor(() => expect(fn).toHaveBeenCalledTimes(1));
+      gate.reject(signal);
+
+      await expect(a).rejects.toBe(signal);
+      await expect(b).rejects.toBe(signal);
+      expect(__cacheGetOrSetStateSize().recentFailures).toBe(0);
+    });
+
+    it('a half-open probe that hits a non-upstream error propagates it to its waiters', async () => {
+      await cacheGetOrSet('k', vi.fn(async (): Promise<string> => { throw new UpstreamError('HTTP 503'); }), 60, { onError: () => 'empty' });
+      vi.setSystemTime(Date.now() + FAILURE_MEMO_MS);
+      const bug = new RangeError('mapper bug');
+
+      await expect(cacheGetOrSet('k', async (): Promise<string> => { throw bug; }, 60, { onError: () => 'empty' })).rejects.toBe(bug);
+    });
+
+    it('an upstream failure still falls back', async () => {
+      const fn = vi.fn(async (): Promise<string> => { throw new UpstreamError('Strapi pages: network'); });
+      expect(await cacheGetOrSet('k', fn, 60, { onError: () => 'empty' })).toBe('empty');
+      expect(__cacheGetOrSetStateSize().recentFailures).toBe(1);
     });
   });
 });

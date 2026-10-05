@@ -19,10 +19,14 @@ const montserrat = Montserrat({
 const SITE_TITLE = `${SITE_NAME} | Oficiální web fotbalového klubu`;
 
 /*
- * Every page is rendered per request (Strapi data via the Redis cache). This used to follow
- * implicitly from each render making a `no-store` fetch to Strapi; since the data layer can now
- * answer from memory (single-flight joiners, the failure memo), a build-time render may make no
- * fetch at all — and `/` was then prerendered with the Strapi-less empty fallback baked in.
+ * Every page is rendered per request (Strapi data via the Redis cache). Without this line that
+ * only follows implicitly: a build-time render's `no-store` Strapi fetch throws Next's "dynamic
+ * server usage" signal, and Next marks the route dynamic when that signal reaches it. The Strapi
+ * client once wrapped it as a network failure and the failure memo remembered it, so `/` was
+ * prerendered with the empty fallback baked in. The client now rethrows Next's signals and the
+ * cache never swallows non-Strapi errors, which fixes that on its own (a build without this line
+ * was checked). The line stays as defence in depth: "every page is dynamic" is then a stated
+ * property, not a side effect of fetch options, and the build never tries to prerender a page.
  */
 export const dynamic = 'force-dynamic';
 

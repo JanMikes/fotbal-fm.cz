@@ -7,6 +7,8 @@ export {
   cacheGetOrSet,
   cacheStats,
   FAILURE_MEMO_MS,
+  UpstreamError,
+  isUpstreamError,
   __resetCacheGetOrSetState,
 } from './cache';
 export type { CacheGetOrSetOptions } from './cache';

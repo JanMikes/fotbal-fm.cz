@@ -109,6 +109,14 @@ export async function cacheClearAll(): Promise<boolean> {
 //
 // Both maps are in-process only (one per web process) and never written to Redis.
 //
+// Which failures fall back: only an UpstreamError (the data source failed: HTTP error status,
+//   timeout, network). It gets the caller's `onError` value and is remembered below. Anything
+//   else thrown by a loader — a mapper or programming bug, or a framework control-flow error
+//   such as Next.js's "dynamic server usage" signal — propagates unchanged to every caller of
+//   that load and is never remembered: a broken build must still fail (500, readiness latch
+//   closed), and Next must still see its own signals. Redis failures never get here at all:
+//   cacheGet/cacheSet degrade to a miss / no-op.
+//
 // inflight: one load per key at a time. Every concurrent miss of a key waits for the same
 //   load instead of sending its own request upstream (the 2026-10-05 burst sent each miss
 //   to Strapi). With one web replica, two during a rollout, that is ≤2 upstream calls per key.
@@ -127,6 +135,20 @@ export async function cacheClearAll(): Promise<boolean> {
 //   Per key rather than global on purpose: a broken query or a 4xx on one key must not take
 //   every other key offline. The cost of per key: during an outage each cold key still pays
 //   the full client timeout once, on its first failure; after that it is fail-fast.
+
+/**
+ * A failure of the data source behind a loader — the only kind cacheGetOrSet turns into the
+ * caller's `onError` fallback and remembers. Data-source clients throw it (web's StrapiError
+ * extends it). Recognised by a brand property rather than `instanceof`, so it still works if a
+ * bundler ends up with two copies of this module.
+ */
+export class UpstreamError extends Error {
+  readonly upstreamFailure = true as const;
+}
+
+export function isUpstreamError(error: unknown): error is UpstreamError {
+  return typeof error === 'object' && error !== null && (error as { upstreamFailure?: unknown }).upstreamFailure === true;
+}
 
 /** How long a failed load short-circuits further loads of the same key. */
 export const FAILURE_MEMO_MS = 10_000;
@@ -147,6 +169,10 @@ function rememberFailure(key: string): void {
   }
 }
 
+// Invariant (no cache-layer timeout): a loader must settle on its own — every web loader is
+// bounded by the Strapi client's 10 s request timeout (findAll: per page) — and must not read
+// its own key (it would wait for itself). A never-settling loader would park every later
+// caller of that key.
 function load<T>(key: string, fetchFn: () => Promise<T>, ttlSeconds: number): Promise<T> {
   const running = inflight.get(key) as Promise<T> | undefined;
   if (running) return running;
@@ -160,9 +186,11 @@ function load<T>(key: string, fetchFn: () => Promise<T>, ttlSeconds: number): Pr
       await cacheSet(key, data, ttlSeconds);
       return data;
     } catch (error) {
-      rememberFailure(key);
-      console.error(`[Cache] ${key}: upstream failed, not cached: ${(error as Error).message}`);
-      throw error;
+      if (isUpstreamError(error)) {
+        rememberFailure(key);
+        console.error(`[Cache] ${key}: upstream failed, not cached: ${error.message}`);
+      }
+      throw error; // every caller decides: fallback (upstream + onError) or propagate
     } finally {
       inflight.delete(key);
     }
@@ -173,8 +201,9 @@ function load<T>(key: string, fetchFn: () => Promise<T>, ttlSeconds: number): Pr
 
 export interface CacheGetOrSetOptions<T> {
   /**
-   * Value to render when `fetchFn` throws (or failed less than FAILURE_MEMO_MS ago). It is
-   * never written to the cache. Without it the error propagates to the caller.
+   * Value to render when `fetchFn` throws an UpstreamError (or did less than FAILURE_MEMO_MS
+   * ago). It is never written to the cache. Other errors, and every error without this option,
+   * propagate to the caller.
    */
   onError?: () => T;
 }
@@ -198,20 +227,30 @@ export async function cacheGetOrSet<T>(
   try {
     return await load(key, fetchFn, ttlSeconds);
   } catch (error) {
-    if (!onError) throw error;
+    if (!onError || !isUpstreamError(error)) throw error;
     return onError();
   }
 }
 
-/** The probe's value if it succeeds within HALF_OPEN_WAIT_MS, the fallback otherwise (the probe runs on). */
+/**
+ * The probe's value if it succeeds within HALF_OPEN_WAIT_MS, the fallback if it fails upstream
+ * or takes longer (the probe runs on); any other error of the probe propagates.
+ */
 async function waitForProbe<T>(probe: Promise<T>, onError: () => T): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
     timer = setTimeout(() => resolve(null), HALF_OPEN_WAIT_MS);
   });
+  // Never rejects, so a probe that fails after the waiter left cannot become unhandled.
+  const outcome = probe.then(
+    (value) => ({ value }),
+    (error: unknown) => (isUpstreamError(error) ? null : { error }),
+  );
   try {
-    const settled = await Promise.race([probe.then((value) => ({ value }), () => null), timeout]);
-    return settled ? settled.value : onError();
+    const settled = await Promise.race([outcome, timeout]);
+    if (!settled) return onError();
+    if ('error' in settled) throw settled.error;
+    return settled.value;
   } finally {
     clearTimeout(timer);
   }
