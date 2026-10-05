@@ -3,12 +3,14 @@ import Redis from 'ioredis';
 
 const CACHE_PREFIX = 'fotbalfm:';
 
-const MODEL_CACHE_PATTERNS: Record<string, {
+// Patterns per model (the web's `fotbalfm:` keys, web/src/lib/strapi/data.ts). A model missing
+// from this map clears the WHOLE cache, so models the web never reads map to nothing.
+export const MODEL_CACHE_PATTERNS: Record<string, {
   collection: string[];
   cascading: string[];
 }> = {
   'category': {
-    collection: ['categories:*', 'category:*', 'category-groups:*', 'category-hero:*'],
+    collection: ['categories:*', 'category:*', 'category-slugs:*', 'category-groups:*', 'category-hero:*'],
     cascading: ['news:cat:*', 'matches:*', 'match:*', 'players:*', 'standings:*', 'player-highlights:*'],
   },
   'category-code': {
@@ -29,7 +31,7 @@ const MODEL_CACHE_PATTERNS: Record<string, {
   },
   'news-article': {
     collection: ['news:*', 'news-article:*'],
-    cascading: [],
+    cascading: ['category-hero:*'],             // hero slide 3 shows an article
   },
   'news-article-type': {
     collection: ['news-article-types:*'],
@@ -56,8 +58,8 @@ const MODEL_CACHE_PATTERNS: Record<string, {
     cascading: [],
   },
   'page': {
-    collection: ['page:*'],
-    cascading: [],
+    collection: ['page:*', 'page-slugs:*', 'navigation-pages:*'],
+    cascading: ['navigation:*', 'footer:*', 'partner:*'], // they link to pages (title/slug)
   },
   'partner': {
     collection: ['partners:*', 'partner:*'],
@@ -89,17 +91,24 @@ const MODEL_CACHE_PATTERNS: Record<string, {
     collection: [],
     cascading: [],
   },
+  // Backoffice social-media export history: not read by the web. Unmapped, it caused a full
+  // cache clear on every export (35 in one day).
+  'social-export-state': {
+    collection: [],
+    cascading: [],
+  },
 };
 
-const DOCUMENT_ACTIONS = new Set([
+export const DOCUMENT_ACTIONS = new Set([
   'create',
   'update',
   'delete',
+  'clone',        // Strapi admin "duplicate" — creates an entry (emits entry.create)
   'publish',
   'unpublish',
 ]);
 
-function normalizeModelUid(uid: string): string | null {
+export function normalizeModelUid(uid: string): string | null {
   if (!uid.startsWith('api::')) return null;
   return uid.split('::')[1].split('.')[0];
 }
@@ -127,7 +136,7 @@ async function clearAllCache(redis: Redis): Promise<number> {
   return scanAndDelete(redis, '*');
 }
 
-async function invalidateModel(redis: Redis, modelName: string): Promise<number> {
+export async function invalidateModel(redis: Redis, modelName: string): Promise<number> {
   const mapping = MODEL_CACHE_PATTERNS[modelName];
 
   if (!mapping) {
@@ -146,9 +155,61 @@ async function invalidateModel(redis: Redis, modelName: string): Promise<number>
 
 const DEBOUNCE_MS = 2000;
 
+/**
+ * Same options as the web's client (packages/cache/src/redis.ts — Strapi is not an npm
+ * workspace, hence the copy). retryStrategy never returns null, so the client reconnects
+ * forever instead of ending after 3 attempts; while disconnected a command fails at once
+ * (offline queue off) and a stalled Redis costs at most 500 ms per command.
+ */
+export const REDIS_CLIENT_OPTIONS = {
+  lazyConnect: true,
+  retryStrategy: (times: number) => Math.min(times * 200, 5000),
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: 1,
+  connectTimeout: 2000,
+  commandTimeout: 500,
+};
+
 let redis: Redis | null = null;
-let connected = false;
+let shuttingDown = false;
 const pendingTimers = new Map<string, NodeJS.Timeout>();
+
+function createRedis(strapi: Core.Strapi, redisUrl: string): Redis | null {
+  let client: Redis;
+  try {
+    client = new Redis(redisUrl, REDIS_CLIENT_OPTIONS);
+  } catch (error) {
+    strapi.log.error(`[Cache] Failed to create Redis client: ${(error as Error).message}`);
+    return null;
+  }
+
+  client.on('error', (err) => {
+    strapi.log.error(`[Cache] Redis error: ${err.message}`);
+  });
+
+  client.on('ready', () => {
+    strapi.log.info('[Cache] Redis connected');
+  });
+
+  // `end` = the client will never reconnect (explicit quit, or a failure ioredis cannot retry).
+  // Drop it so the next invalidation creates a fresh one.
+  client.on('end', () => {
+    if (redis === client) redis = null;
+  });
+
+  client.connect().catch(() => {
+    // first attempt failed; ioredis keeps retrying in the background
+  });
+  return client;
+}
+
+/** The shared client, recreated after `end`. Null without REDIS_URL or while shutting down. */
+function getRedis(strapi: Core.Strapi): Redis | null {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl || shuttingDown) return null;
+  if (!redis) redis = createRedis(strapi, redisUrl);
+  return redis;
+}
 
 function scheduleInvalidation(strapi: Core.Strapi, modelName: string) {
   const existing = pendingTimers.get(modelName);
@@ -156,11 +217,14 @@ function scheduleInvalidation(strapi: Core.Strapi, modelName: string) {
 
   pendingTimers.set(modelName, setTimeout(async () => {
     pendingTimers.delete(modelName);
-    if (!redis) return;
+    const client = getRedis(strapi);
+    if (!client) return;
     try {
-      const deleted = await invalidateModel(redis, modelName);
+      const deleted = await invalidateModel(client, modelName);
       strapi.log.info(`[Cache] Invalidated ${modelName}: deleted ${deleted} keys`);
     } catch (error) {
+      // Redis unreachable (commands fail fast while reconnecting) or slow: logged, not retried.
+      // The "Clear cache" webhook still flushes the web cache on every entry write.
       strapi.log.error(`[Cache] Failed to invalidate ${modelName}: ${(error as Error).message}`);
     }
   }, DEBOUNCE_MS));
@@ -179,7 +243,8 @@ export function registerCacheMiddleware(strapi: Core.Strapi): void {
   strapi.documents.use(async (context, next) => {
     const result = await next();
 
-    if (!connected) return result;
+    // No "connected" gate: a write during a Redis blip is scheduled like any other, and the
+    // delete is attempted (and logged if it fails) after the debounce.
     if (!DOCUMENT_ACTIONS.has(context.action)) return result;
 
     const modelName = normalizeModelUid(context.uid);
@@ -201,41 +266,22 @@ export function connectCacheRedis(strapi: Core.Strapi): (() => Promise<void>) | 
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) return null;
 
-  try {
-    redis = new Redis(redisUrl, {
-      maxRetriesPerRequest: 3,
-      retryStrategy(times) {
-        if (times > 3) return null;
-        return Math.min(times * 100, 2000);
-      },
-      lazyConnect: true,
-    });
-  } catch (error) {
-    strapi.log.error(`[Cache] Failed to create Redis client: ${(error as Error).message}`);
-    return null;
-  }
-
-  redis.on('error', (err) => {
-    strapi.log.error(`[Cache] Redis error: ${err.message}`);
-  });
-
-  redis.on('connect', () => {
-    connected = true;
-  });
-
-  redis.on('close', () => {
-    connected = false;
-  });
-
-  redis.connect()
-    .then(() => strapi.log.info('[Cache] Redis connected'))
-    .catch((err) => strapi.log.error(`[Cache] Redis connection failed: ${err.message}`));
+  shuttingDown = false;
+  if (!getRedis(strapi)) return null;
 
   return async () => {
+    shuttingDown = true;
     for (const timer of pendingTimers.values()) {
       clearTimeout(timer);
     }
     pendingTimers.clear();
-    if (redis) await redis.quit();
+    const client = redis;
+    redis = null;
+    if (!client) return;
+    try {
+      await client.quit();
+    } catch {
+      client.disconnect();
+    }
   };
 }
