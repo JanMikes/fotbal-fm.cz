@@ -23,7 +23,8 @@ import { scrapeStandings, FACR_CLUBS, type FacrStanding } from '../lib/facr.js';
 import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
-import { flushWebCache } from '../lib/cache-flush.js';
+import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
+import { changedFields, relationId, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
   id: number;
@@ -48,6 +49,35 @@ interface StrapiStanding {
   competitionCode: string;
   season: number;
   position: number;
+  matchesPlayed: number | null;
+  wins: number | null;
+  draws: number | null;
+  losses: number | null;
+  goalsFor: number | null;
+  goalsAgainst: number | null;
+  points: number | null;
+  team?: { documentId: string } | null;
+  tournament?: { documentId: string } | null;
+  categories?: { documentId: string }[] | null;
+}
+
+/** A stored standing row reduced to the shape of the payload the sync writes. */
+function storedSyncFields(standing: StrapiStanding): Record<string, unknown> {
+  return {
+    position: standing.position,
+    team: relationId(standing.team),
+    matchesPlayed: standing.matchesPlayed,
+    wins: standing.wins,
+    draws: standing.draws,
+    losses: standing.losses,
+    goalsFor: standing.goalsFor,
+    goalsAgainst: standing.goalsAgainst,
+    points: standing.points,
+    competitionCode: standing.competitionCode,
+    season: standing.season,
+    categories: relationIds(standing.categories),
+    tournament: relationId(standing.tournament),
+  };
 }
 
 interface StrapiTeam {
@@ -181,21 +211,32 @@ async function main() {
     console.log(`Created ${teamsCreated} new teams`);
   }
 
-  // 5. Load existing standings from Strapi for cleanup
+  // 5. Load existing standings from Strapi for the upsert and cleanup
   const existingStandings = new Map<string, string>(); // "code:season:position" -> documentId
+  // Same key -> stored values of the fields the sync writes, to skip no-op PUTs
+  const storedStandings = new Map<string, Record<string, unknown>>();
   let sPage = 1;
   let sTotalPages = 1;
   while (sPage <= sTotalPages) {
     const res = await strapiGet<StrapiStanding>(
       '/standings',
       {
-        fields: ['competitionCode', 'season', 'position'],
+        fields: [
+          'competitionCode', 'season', 'position', 'matchesPlayed',
+          'wins', 'draws', 'losses', 'goalsFor', 'goalsAgainst', 'points',
+        ],
+        populate: {
+          team: { fields: ['documentId'] },
+          tournament: { fields: ['documentId'] },
+          categories: { fields: ['documentId'] },
+        },
         pagination: { pageSize: 100, page: sPage },
       },
     );
     for (const s of res.data) {
       const key = `${s.competitionCode}:${s.season}:${s.position}`;
       existingStandings.set(key, s.documentId);
+      storedStandings.set(key, storedSyncFields(s));
     }
     sTotalPages = res.meta?.pagination?.pageCount ?? 1;
     sPage++;
@@ -205,6 +246,8 @@ async function main() {
   // 6. Upsert standings
   let created = 0;
   let updated = 0;
+  let unchanged = 0;
+  const updatedPerCompetition = new Map<string, number>(); // "code season" -> rows
   const processedKeys = new Set<string>();
 
   for (const standing of scraped) {
@@ -238,11 +281,18 @@ async function main() {
         ...(tournamentDocumentId ? { tournament: tournamentDocumentId } : {}),
       };
 
+      // PUT only when a field differs — Strapi bumps updatedAt (and fires the
+      // cache-clear webhook) even on an identical write.
       const existingDocId = existingStandings.get(key);
       if (existingDocId) {
-        await strapiPut(`/standings/${existingDocId}`, {
-          data: { ...data, ...relationFields },
-        });
+        const payload = { ...data, ...relationFields };
+        if (changedFields(storedStandings.get(key) ?? {}, payload).length === 0) {
+          unchanged++;
+          continue;
+        }
+        await strapiPut(`/standings/${existingDocId}`, { data: payload });
+        const competition = `${standing.competitionCode} ${standing.season}`;
+        updatedPerCompetition.set(competition, (updatedPerCompetition.get(competition) ?? 0) + 1);
         updated++;
       } else {
         await strapiPost('/standings', {
@@ -272,10 +322,14 @@ async function main() {
   console.log(`  Competitions with standings: ${scraped.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  for (const [competition, rows] of updatedPerCompetition) {
+    console.log(`    ${competition}: ${rows} rows`);
+  }
+  console.log(`  Unchanged: ${unchanged}`);
   console.log(`  Deleted:  ${deleted}`);
   console.log(`  Teams:    ${teamLookup.size} (${teamsCreated} new)`);
 
-  await flushWebCache();
+  await flushWebCacheIfChanged(created + updated + deleted + teamsCreated);
 }
 
 main().catch((err) => {

@@ -26,7 +26,8 @@ import { scrapeMatchesXlsx, parseMatchRows, FACR_CLUBS, type FacrMatch, type Xls
 import { normalizeClubTeamName } from '../lib/team-name.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut, strapiDelete } from '../lib/strapi.js';
-import { flushWebCache } from '../lib/cache-flush.js';
+import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
+import { changedFields, relationId, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
   id: number;
@@ -44,10 +45,20 @@ interface StrapiMatch {
   facrId: string | null;
 }
 
-/** Fields loaded alongside a match so the prune pass can judge it. */
+/**
+ * Fields loaded alongside a match: the prune pass judges it by them, and the
+ * upsert compares the scraped values against them to skip unchanged matches.
+ */
 interface ExistingMatchExtras {
   season?: number | null;
   matchDate?: string | null;
+  matchTime?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  round?: number | null;
+  venue?: string | null;
+  period?: string | null;
+  organizingBody?: string | null;
   competitionName?: string | null;
   competitionCode?: string | null;
   homeGoalscorers?: string | null;
@@ -57,8 +68,32 @@ interface ExistingMatchExtras {
   imagesUrl?: string | null;
   homeTeam?: { documentId: string; name?: string } | null;
   awayTeam?: { documentId: string; name?: string } | null;
+  tournament?: { documentId: string } | null;
+  categories?: { documentId: string }[] | null;
   images?: unknown[] | null;
   files?: unknown[] | null;
+}
+
+/** A stored match reduced to the shape of the payload the sync writes. */
+function storedSyncFields(match: StrapiMatch & ExistingMatchExtras): Record<string, unknown> {
+  return {
+    facrId: match.facrId,
+    homeTeam: relationId(match.homeTeam),
+    awayTeam: relationId(match.awayTeam),
+    homeScore: match.homeScore,
+    awayScore: match.awayScore,
+    matchDate: match.matchDate,
+    matchTime: match.matchTime,
+    round: match.round,
+    venue: match.venue,
+    competitionName: match.competitionName,
+    competitionCode: match.competitionCode,
+    season: match.season,
+    period: match.period,
+    organizingBody: match.organizingBody,
+    tournament: relationId(match.tournament),
+    categories: relationIds(match.categories),
+  };
 }
 
 interface PruneCandidate {
@@ -232,6 +267,8 @@ async function main() {
   //    - Matches WITHOUT facrId: for merging with manually-created matches (by teams + date)
 
   const existingByFacrId = new Map<string, string>();
+  // facrId -> stored values of the fields the sync writes, to skip no-op PUTs
+  const storedByFacrId = new Map<string, Record<string, unknown>>();
   // Composite key: "homeTeamDocId:awayTeamDocId:matchDate" -> documentId
   const existingByCompositeKey = new Map<string, string>();
   // FAČR-sourced rows, for the prune pass in step 8.
@@ -243,12 +280,15 @@ async function main() {
       '/matches',
       {
         fields: [
-          'facrId', 'matchDate', 'season', 'competitionName', 'competitionCode',
+          'facrId', 'matchDate', 'matchTime', 'season', 'competitionName', 'competitionCode',
+          'homeScore', 'awayScore', 'round', 'venue', 'period', 'organizingBody',
           'homeGoalscorers', 'awayGoalscorers', 'matchReport', 'lineup', 'imagesUrl',
         ],
         populate: {
           homeTeam: { fields: ['documentId', 'name'] },
           awayTeam: { fields: ['documentId', 'name'] },
+          tournament: { fields: ['documentId'] },
+          categories: { fields: ['documentId'] },
           images: { fields: ['id'] },
           files: { fields: ['id'] },
         },
@@ -258,6 +298,7 @@ async function main() {
     for (const mr of res.data) {
       if (mr.facrId) {
         existingByFacrId.set(mr.facrId, mr.documentId);
+        storedByFacrId.set(mr.facrId, storedSyncFields(mr));
         pruneCandidates.set(mr.facrId, {
           documentId: mr.documentId,
           season: mr.season ?? null,
@@ -279,6 +320,7 @@ async function main() {
   // 7. Upsert matches
   let created = 0;
   let updated = 0;
+  let unchanged = 0;
   let merged = 0;
   const withoutCategory: string[] = [];
   let linkedToTournament = 0;
@@ -325,12 +367,21 @@ async function main() {
       ...(categoryDocumentId ? { categories: [categoryDocumentId] } : {}),
     };
 
-    // 1. Check if match exists by facrId (direct match)
+    // 1. Check if match exists by facrId (direct match). PUT only when a
+    //    field differs — Strapi bumps updatedAt even on an identical write.
     const existingDocId = existingByFacrId.get(match.facrId);
     if (existingDocId) {
-      await strapiPut(`/matches/${existingDocId}`, {
-        data: { ...scrapedFields, ...relationFields },
-      });
+      const data = { ...scrapedFields, ...relationFields };
+      const changes = changedFields(storedByFacrId.get(match.facrId) ?? {}, data);
+      if (changes.length === 0) {
+        unchanged++;
+        continue;
+      }
+      await strapiPut(`/matches/${existingDocId}`, { data });
+      console.log(
+        `  Updated ${match.matchDate} ${match.homeTeam} vs ${match.awayTeam}`
+        + ` [${match.competitionCode}] ${match.facrId}: ${changes.join(', ')}`,
+      );
       updated++;
     } else {
       // 2. Check if a manually-created match exists (same teams + date)
@@ -398,6 +449,7 @@ async function main() {
   console.log(`  Total:    ${parsedMatches.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  console.log(`  Unchanged: ${unchanged}`);
   console.log(`  Merged:   ${merged} (linked manual matches to FAČR data)`);
   console.log(`  Deleted:  ${deleted} (no longer listed by FAČR)`);
   if (keptWithContent.length > 0) {
@@ -413,7 +465,7 @@ async function main() {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
 
-  await flushWebCache();
+  await flushWebCacheIfChanged(created + updated + merged + deleted + teamsCreated);
 }
 
 main().catch((err) => {

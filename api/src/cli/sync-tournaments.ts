@@ -19,7 +19,8 @@ import * as path from 'path';
 import { scrapeCompetitions, FACR_CLUBS, type FacrCompetition } from '../lib/facr.js';
 import { parseSeasonArg } from '../lib/cli-args.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
-import { flushWebCache } from '../lib/cache-flush.js';
+import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
+import { changedFields, relationIds } from '../lib/sync-diff.js';
 
 interface StrapiCategoryCode {
   id: number;
@@ -35,7 +36,33 @@ interface StrapiTournament {
   id: number;
   documentId: string;
   facrId: string;
+  facrUuid: string | null;
+  name: string | null;
   code: string;
+  categoryLetter: string | null;
+  level: number | null;
+  group: string | null;
+  competitionType: string | null;
+  organizingBody: string | null;
+  season: number | null;
+  categories?: { documentId: string }[] | null;
+}
+
+/** A stored tournament reduced to the shape of the payload the sync writes. */
+function storedSyncFields(tournament: StrapiTournament): Record<string, unknown> {
+  return {
+    facrId: tournament.facrId,
+    facrUuid: tournament.facrUuid,
+    name: tournament.name,
+    code: tournament.code,
+    categoryLetter: tournament.categoryLetter,
+    level: tournament.level,
+    group: tournament.group,
+    competitionType: tournament.competitionType,
+    organizingBody: tournament.organizingBody,
+    season: tournament.season,
+    categories: relationIds(tournament.categories),
+  };
 }
 
 /** Fields that should never be overwritten by the scraper on update */
@@ -100,13 +127,19 @@ async function main() {
 
   // 3. Load existing tournaments with facrId from Strapi for upsert
   const existingByFacrId = new Map<string, string>();
+  // facrId -> stored values of the fields the sync writes, to skip no-op PUTs
+  const storedByFacrId = new Map<string, Record<string, unknown>>();
   let page = 1;
   let totalPages = 1;
   while (page <= totalPages) {
     const res = await strapiGet<StrapiTournament>(
       '/tournaments',
       {
-        fields: ['facrId', 'code'],
+        fields: [
+          'facrId', 'facrUuid', 'name', 'code', 'categoryLetter', 'level',
+          'group', 'competitionType', 'organizingBody', 'season',
+        ],
+        populate: { categories: { fields: ['documentId'] } },
         filters: { facrId: { $notNull: true } },
         pagination: { pageSize: 100, page },
       },
@@ -114,6 +147,7 @@ async function main() {
     for (const t of res.data) {
       if (t.facrId) {
         existingByFacrId.set(t.facrId, t.documentId);
+        storedByFacrId.set(t.facrId, storedSyncFields(t));
       }
     }
     totalPages = res.meta?.pagination?.pageCount ?? 1;
@@ -124,6 +158,7 @@ async function main() {
   // 4. Upsert tournaments
   let created = 0;
   let updated = 0;
+  let unchanged = 0;
   const withoutCategory: string[] = [];
 
   for (const comp of scraped) {
@@ -151,10 +186,17 @@ async function main() {
 
     const existingDocId = existingByFacrId.get(comp.facrId);
     if (existingDocId) {
-      // Update: scraped fields + re-link category (never overwrite admin fields)
-      await strapiPut(`/tournaments/${existingDocId}`, {
-        data: { ...scrapedFields, ...relationFields },
-      });
+      // Update: scraped fields + re-link category (never overwrite admin fields).
+      // PUT only when a field differs — Strapi bumps updatedAt even on an
+      // identical write.
+      const data = { ...scrapedFields, ...relationFields };
+      const changes = changedFields(storedByFacrId.get(comp.facrId) ?? {}, data);
+      if (changes.length === 0) {
+        unchanged++;
+        continue;
+      }
+      await strapiPut(`/tournaments/${existingDocId}`, { data });
+      console.log(`  Updated ${comp.name} [${comp.code} ${comp.season}]: ${changes.join(', ')}`);
       updated++;
     } else {
       await strapiPost('/tournaments', {
@@ -170,13 +212,13 @@ async function main() {
   console.log(`  Total:    ${scraped.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  console.log(`  Unchanged: ${unchanged}`);
   console.log(`  Matched:  ${scraped.length - uniqueWithout.length} with category`);
   if (uniqueWithout.length > 0) {
     console.log(`  Missing category mapping for codes: ${uniqueWithout.join(', ')}`);
   }
 
-
-  await flushWebCache();
+  await flushWebCacheIfChanged(created + updated);
 }
 
 main().catch((err) => {

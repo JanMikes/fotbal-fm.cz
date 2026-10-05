@@ -215,7 +215,7 @@ docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
 
 The web app caches all Strapi data in Redis (24h TTL, key prefix `fotbalfm:`). Invalidation is two-fold:
 1. The Strapi webhook "Clear cache" → `http://web:3000/api/cache/clear` (header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`) fires on every entry create/update/delete, so content edited in Strapi admin or backoffice shows on the web immediately. Note: Strapi loads webhook config at startup — restart strapi after changing the webhook directly in the DB.
-2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs.
+2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs. The FAČR syncs (tournaments, matches, standings, players) only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts` — Strapi bumps `updatedAt` and fires the webhook even on an identical write) and skip the flush when the run changed nothing (`flushWebCacheIfChanged()`).
 
 ### Audience Categories & Deep Links
 

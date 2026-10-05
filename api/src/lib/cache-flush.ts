@@ -13,3 +13,15 @@ export async function flushWebCache(): Promise<void> {
   await cacheClearAll();
   await closeRedisClient();
 }
+
+/**
+ * Flush only when the sync run wrote something (`changes` = creates +
+ * updates + deletes); a run that changed nothing leaves the cache warm.
+ */
+export async function flushWebCacheIfChanged(changes: number): Promise<void> {
+  if (changes === 0) {
+    console.log('Nothing changed, web cache kept');
+    return;
+  }
+  await flushWebCache();
+}

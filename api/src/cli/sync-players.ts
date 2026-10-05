@@ -17,7 +17,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { scrapePlayers, FACR_CLUBS, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
-import { flushWebCache } from '../lib/cache-flush.js';
+import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
+import { changedFields } from '../lib/sync-diff.js';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
@@ -27,6 +28,10 @@ interface StrapiPlayer {
   documentId: string;
   name: string;
   facrId: string | null;
+  facrUuid: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  isActive: boolean | null;
   photo: { id: number } | null;
 }
 
@@ -191,7 +196,7 @@ async function main() {
   const existingRes = await strapiGet<StrapiPlayer>(
     '/players',
     {
-      fields: ['name', 'facrId'],
+      fields: ['name', 'facrId', 'facrUuid', 'dateOfBirth', 'nationality', 'isActive'],
       populate: ['photo'],
       pagination: { pageSize: 100 },
     },
@@ -204,7 +209,7 @@ async function main() {
     const pageRes = await strapiGet<StrapiPlayer>(
       '/players',
       {
-        fields: ['name', 'facrId'],
+        fields: ['name', 'facrId', 'facrUuid', 'dateOfBirth', 'nationality', 'isActive'],
         populate: ['photo'],
         pagination: { pageSize: 100, page },
       },
@@ -224,6 +229,7 @@ async function main() {
   // 3. Upsert players
   let created = 0;
   let updated = 0;
+  let unchanged = 0;
   let photosUploaded = 0;
 
   for (const player of scraped) {
@@ -259,7 +265,24 @@ async function main() {
     };
 
     if (existing) {
+      // PUT only when a field differs (a newly uploaded photo counts) —
+      // Strapi bumps updatedAt even on an identical write.
+      const stored = {
+        name: existing.name,
+        facrId: existing.facrId,
+        facrUuid: existing.facrUuid,
+        dateOfBirth: existing.dateOfBirth,
+        nationality: existing.nationality,
+        isActive: existing.isActive,
+        photo: existing.photo?.id ?? null,
+      };
+      const changes = changedFields(stored, payload.data);
+      if (changes.length === 0) {
+        unchanged++;
+        continue;
+      }
       await strapiPut(`/players/${existing.documentId}`, payload);
+      console.log(`  Updated ${player.name} ${player.facrId}: ${changes.join(', ')}`);
       updated++;
     } else {
       await strapiPost('/players', {
@@ -276,9 +299,10 @@ async function main() {
   console.log(`  Scraped:  ${scraped.length}`);
   console.log(`  Created:  ${created}`);
   console.log(`  Updated:  ${updated}`);
+  console.log(`  Unchanged: ${unchanged}`);
   console.log(`  Photos:   ${photosUploaded}`);
 
-  await flushWebCache();
+  await flushWebCacheIfChanged(created + updated);
 }
 
 main().catch((err) => {
