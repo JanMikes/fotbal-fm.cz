@@ -17,11 +17,14 @@ export default function Pagination({ currentPage, totalPages, baseHref, paramNam
 
   const linkClass = 'inline-flex items-center justify-center w-10 h-10 text-sm font-medium transition-colors';
 
+  // The page links don't prefetch: every page is dynamic and has no loading.tsx, so a prefetch
+  // gets no page data, yet costs two server requests per visible link.
   return (
     <nav className="flex items-center justify-center gap-1 mt-12" aria-label="Stránkování">
       {currentPage > 1 ? (
         <Link
           href={buildPageHref(baseHref, currentPage - 1, paramName)}
+          prefetch={false}
           className={clsx(linkClass, 'text-primary/60 hover:text-accent')}
           aria-label="Předchozí stránka"
         >
@@ -50,6 +53,7 @@ export default function Pagination({ currentPage, totalPages, baseHref, paramNam
           <Link
             key={page}
             href={buildPageHref(baseHref, page, paramName)}
+            prefetch={false}
             className={clsx(linkClass, 'text-primary/60 hover:text-accent hover:bg-accent/5 rounded-full')}
           >
             {page}
@@ -60,6 +64,7 @@ export default function Pagination({ currentPage, totalPages, baseHref, paramNam
       {currentPage < totalPages ? (
         <Link
           href={buildPageHref(baseHref, currentPage + 1, paramName)}
+          prefetch={false}
           className={clsx(linkClass, 'text-primary/60 hover:text-accent')}
           aria-label="Další stránka"
         >

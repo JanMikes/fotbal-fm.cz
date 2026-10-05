@@ -37,7 +37,9 @@ function SidebarCard({
     : `/novinky/clanek/${article.slug}`;
 
   return (
-    <Link href={href} className="group block">
+    // No prefetch on sidebar article links, like NewsCard: every page is dynamic and has no
+    // loading.tsx, so a prefetch gets no page data, yet costs two server requests per link.
+    <Link href={href} prefetch={false} className="group block">
       <p className="text-xs font-semibold text-primary line-clamp-2 group-hover:text-accent transition-colors leading-snug">
         {article.title}
       </p>

@@ -10,7 +10,9 @@ interface PartnerCardProps {
 
 export default function PartnerCard({ partner, className }: PartnerCardProps) {
   return (
-    <Link href={`/partner/${partner.slug}`} className="block">
+    // No prefetch on partner cards (one per partner on /partneri): every page is dynamic and has
+    // no loading.tsx, so a prefetch gets no page data, yet costs two server requests per card.
+    <Link href={`/partner/${partner.slug}`} prefetch={false} className="block">
       <article
         className={clsx(
           'group bg-white overflow-hidden shadow-card card-lift cursor-pointer h-full flex flex-col items-center p-6',

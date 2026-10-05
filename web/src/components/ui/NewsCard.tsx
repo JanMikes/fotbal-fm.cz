@@ -23,9 +23,12 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
       ? `/kategorie/${categorySlug}/clanek/${article.slug}`
       : `/novinky/clanek/${article.slug}`;
   const imageUrl = article.mainPhoto?.url || '/news-placeholder.jpg';
+  // No prefetch on article cards (both variants): every page is dynamic and has no loading.tsx,
+  // so a prefetch gets only the route tree and metadata, never page data, yet costs two server
+  // requests per visible card. A click renders the article in one request either way.
   if (featured) {
     return (
-      <Link href={href} className="block">
+      <Link href={href} prefetch={false} className="block">
         <article
           className={clsx(
             'relative group overflow-hidden cursor-pointer',
@@ -73,7 +76,7 @@ export default function NewsCard({ article, categorySlug, featured = false, clas
   }
 
   return (
-    <Link href={href} className="block">
+    <Link href={href} prefetch={false} className="block">
       <article
         className={clsx(
           'group bg-white overflow-hidden shadow-card card-lift cursor-pointer h-full',

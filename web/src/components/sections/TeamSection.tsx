@@ -164,7 +164,9 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
           </div>
         )}
 
-        {/* Players Tab - Table View */}
+        {/* Players Tab - Table View. The table rows (here and in the staff table) don't prefetch,
+            like PlayerCard: every page is dynamic and has no loading.tsx, so a prefetch gets no
+            page data, yet costs two server requests per visible row. */}
         {activeTab === 'players' && viewMode === 'table' && (
           <div className="space-y-8">
             {positionGroups.map((group) => (
@@ -188,6 +190,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
                     >
                       <Link
                         href={`/kategorie/${categorySlug}/hrac/${player.slug}`}
+                        prefetch={false}
                         className="flex items-center gap-4 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
                       >
                         <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white/10">
@@ -271,6 +274,7 @@ export default function TeamSection({ players, categorySlug, categoryName }: Tea
                 >
                   <Link
                     href={`/kategorie/${categorySlug}/hrac/${person.slug}`}
+                    prefetch={false}
                     className="flex items-center gap-4 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
                   >
                     <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white/10">

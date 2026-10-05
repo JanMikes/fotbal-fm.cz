@@ -29,7 +29,10 @@ export default function PlayerCard({ player, categorySlug, className }: PlayerCa
   const lastName = nameParts[nameParts.length - 1];
 
   return (
-    <Link href={href} className="block">
+    // No prefetch on roster cards: every page is dynamic and has no loading.tsx, so a prefetch
+    // gets only the route tree and metadata, never page data, yet costs two server requests per
+    // visible card. A click renders the player page in one request either way.
+    <Link href={href} prefetch={false} className="block">
       <div
         className={clsx(
           'group relative aspect-player-card overflow-hidden cursor-pointer',
