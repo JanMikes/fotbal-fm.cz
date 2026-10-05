@@ -48,11 +48,21 @@ import { mapPlayerHighlight } from './mappers/player-highlight';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
+import { cache } from 'react';
 import { cacheGetOrSet } from '@fotbal-fm/cache';
 import { currentSeasonStartYear, seasonDateRange } from '@/lib/season';
 import { deepLinkCodeCandidates } from '@/lib/app-links';
 
 const TTL = 24 * 60 * 60; // 24 hours
+
+/*
+ * What a page renders when its Strapi call fails (the client throws StrapiError). These are
+ * the values the client used to return on error; cacheGetOrSet never stores them, so the empty
+ * section lives for one request (a ~10 s failure memo per key), not for the 24 h TTL.
+ */
+const EMPTY_LIST = { onError: () => [] };
+const NONE = { onError: () => null };
+const NO_ARTICLES = { onError: () => ({ articles: [], total: 0 }) };
 
 /** Substring identifying our club's teams (FK Frýdek-Místek, Frýdek-Místek B, …). */
 const CLUB_NAME_FRAGMENT = 'Frýdek';
@@ -70,10 +80,13 @@ export async function getCategories(): Promise<Category[]> {
       pagination: { pageSize: 100 },
     });
     return data.map(mapCategory);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
-export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+// The four by-slug lookups below are wrapped in React cache(): generateMetadata and the page
+// call them with the same slug, and cache() turns that into one lookup per request.
+
+export const getCategoryBySlug = cache(async (slug: string): Promise<Category | null> => {
   return cacheGetOrSet(`category:${slug}`, async () => {
     const client = getStrapiClient();
     const { data } = await client.findMany<StrapiRawCategory>('categories', {
@@ -81,7 +94,21 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapCategory(data[0]) : null;
-  }, TTL);
+  }, TTL, NONE);
+});
+
+/**
+ * Slugs of ALL categories, hidden ones included (getCategoryBySlug serves those by direct URL
+ * too). The /kategorie/[category] routes check it before any other data call, so an unknown
+ * slug costs no Strapi request and no per-slug cache key. `null` = Strapi failed: callers fall
+ * through to getCategoryBySlug (today's behaviour) instead of 404ing every category.
+ */
+export async function getCategorySlugIndex(): Promise<string[] | null> {
+  return cacheGetOrSet<string[] | null>('category-slugs:all', async () => {
+    const client = getStrapiClient();
+    const data = await client.findAll<Pick<StrapiRawCategory, 'slug'>>('categories', { fields: ['slug'] });
+    return data.map((c) => c.slug).filter(Boolean);
+  }, TTL, NONE);
 }
 
 export async function getCategoryGroups(): Promise<CategoryGroup[]> {
@@ -100,7 +127,7 @@ export async function getCategoryGroups(): Promise<CategoryGroup[]> {
     return data
       .map(mapCategoryGroup)
       .filter((g) => g.categories.length > 0);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getCategoryGroupByCategorySlug(slug: string): Promise<CategoryGroup | null> {
@@ -148,7 +175,7 @@ export async function getNewsArticlesByCategory(
       articles: data.map(mapNewsArticleSummary),
       total,
     };
-  }, TTL);
+  }, TTL, NO_ARTICLES);
 }
 
 export async function getAllNewsArticles(
@@ -201,7 +228,7 @@ export async function getAllNewsArticles(
       articles: data.map(mapNewsArticleSummary),
       total,
     };
-  }, TTL);
+  }, TTL, NO_ARTICLES);
 }
 
 export async function getNewsArticleTypes(): Promise<NewsArticleType[]> {
@@ -212,10 +239,10 @@ export async function getNewsArticleTypes(): Promise<NewsArticleType[]> {
       pagination: { pageSize: 100 },
     });
     return data.map((t) => ({ documentId: t.documentId, name: t.name, slug: t.slug }));
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
-export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | null> {
+export const getNewsArticleBySlug = cache(async (slug: string): Promise<NewsArticle | null> => {
   return cacheGetOrSet(`news-article:${slug}`, async () => {
     const client = getStrapiClient();
     const { data } = await client.findMany<StrapiRawNewsArticle>('news-articles', {
@@ -237,8 +264,8 @@ export async function getNewsArticleBySlug(slug: string): Promise<NewsArticle | 
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapNewsArticle(data[0]) : null;
-  }, TTL);
-}
+  }, TTL, NONE);
+});
 
 export async function getSidebarArticles(
   article: NewsArticle,
@@ -281,7 +308,7 @@ export async function getUpcomingMatches(categorySlug: string, limit = 3): Promi
       pagination: { pageSize: limit },
     });
     return data.map(mapMatch);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getFinishedMatches(categorySlug: string, limit = 3): Promise<Match[]> {
@@ -301,7 +328,7 @@ export async function getFinishedMatches(categorySlug: string, limit = 3): Promi
       pagination: { pageSize: limit },
     });
     return data.map(mapMatch);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getAllMatchesByCategory(categorySlug: string): Promise<Match[]> {
@@ -319,7 +346,7 @@ export async function getAllMatchesByCategory(categorySlug: string): Promise<Mat
       sort: 'matchDate:desc',
     });
     return data.map(mapMatch);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export interface ClubMatchesFilter {
@@ -379,7 +406,7 @@ export async function getClubMatches(filter: ClubMatchesFilter): Promise<ClubMat
       total,
       pageCount: Math.max(1, Math.ceil(total / pageSize)),
     };
-  }, TTL);
+  }, TTL, { onError: () => ({ matches: [], total: 0, pageCount: 1 }) });
 }
 
 /**
@@ -400,7 +427,7 @@ export async function getAvailableSeasons(): Promise<number[]> {
     }
     seasons.add(currentSeasonStartYear());
     return [...seasons].sort((a, b) => b - a);
-  }, TTL);
+  }, TTL, { onError: () => [currentSeasonStartYear()] });
 }
 
 export async function getPlayersByCategory(categorySlug: string): Promise<Player[]> {
@@ -428,7 +455,7 @@ export async function getPlayersByCategory(categorySlug: string): Promise<Player
       }
     }
     return players;
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getPlayerByCategoryAndSlug(categorySlug: string, playerSlug: string): Promise<Player | null> {
@@ -445,7 +472,7 @@ export async function getNavigation(): Promise<NavigationItem[]> {
       pagination: { pageSize: 100 },
     });
     return data.map(mapNavigation).filter((item): item is NavigationItem => item !== null);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getFooter(): Promise<Footer | null> {
@@ -455,7 +482,7 @@ export async function getFooter(): Promise<Footer | null> {
       populate: buildFooterPopulate(),
     });
     return raw ? mapFooter(raw) : null;
-  }, TTL);
+  }, TTL, NONE);
 }
 
 export async function getNavigationPages(): Promise<{ title: string; slug: string }[]> {
@@ -467,10 +494,10 @@ export async function getNavigationPages(): Promise<{ title: string; slug: strin
       pagination: { pageSize: 100 },
     });
     return data.map((p) => ({ title: p.title, slug: p.slug }));
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
-export async function getPageBySlug(slug: string): Promise<Page | null> {
+export const getPageBySlug = cache(async (slug: string): Promise<Page | null> => {
   return cacheGetOrSet(`page:${slug}`, async () => {
     const client = getStrapiClient();
     const { data } = await client.findMany<StrapiRawPage>('pages', {
@@ -479,7 +506,21 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapPage(data[0]) : null;
-  }, TTL);
+  }, TTL, NONE);
+});
+
+/**
+ * Every CMS page slug: the membership index the `[slug]` catch-all checks before it asks Strapi
+ * for a page, so scanner paths (/.env, /wp-login.php, …) cost no Strapi call and no cache key
+ * of their own. Loaded with findAll (no 100-row cliff). `null` = Strapi failed: callers fall
+ * through to getPageBySlug instead of 404ing every CMS page during a Strapi blip.
+ */
+export async function getPageSlugIndex(): Promise<string[] | null> {
+  return cacheGetOrSet<string[] | null>('page-slugs:all', async () => {
+    const client = getStrapiClient();
+    const data = await client.findAll<Pick<StrapiRawPage, 'slug'>>('pages', { fields: ['slug'] });
+    return data.map((p) => p.slug).filter(Boolean);
+  }, TTL, NONE);
 }
 
 export async function getStandingsByCategory(categorySlug: string): Promise<Standing[]> {
@@ -497,7 +538,7 @@ export async function getStandingsByCategory(categorySlug: string): Promise<Stan
       pagination: { pageSize: 100 },
     });
     return data.map(mapStanding);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 export async function getCategoryWithHeroBySlug(
@@ -543,7 +584,7 @@ export async function getCategoryWithHeroBySlug(
         heroSlide3Link: raw.heroSlide3Link ?? null,
       },
     };
-  }, TTL);
+  }, TTL, NONE);
 }
 
 export async function getUpcomingMatch(categorySlug: string): Promise<Match | null> {
@@ -564,7 +605,7 @@ export async function getUpcomingMatch(categorySlug: string): Promise<Match | nu
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapMatch(data[0]) : null;
-  }, TTL);
+  }, TTL, NONE);
 }
 
 export async function getLastResult(categorySlug: string): Promise<Match | null> {
@@ -584,7 +625,7 @@ export async function getLastResult(categorySlug: string): Promise<Match | null>
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapMatch(data[0]) : null;
-  }, TTL);
+  }, TTL, NONE);
 }
 
 export async function getPartners(): Promise<Partner[]> {
@@ -600,10 +641,10 @@ export async function getPartners(): Promise<Partner[]> {
       pagination: { pageSize: 100 },
     });
     return data.map(mapPartner);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
-export async function getPartnerBySlug(slug: string): Promise<PartnerDetail | null> {
+export const getPartnerBySlug = cache(async (slug: string): Promise<PartnerDetail | null> => {
   return cacheGetOrSet(`partner:${slug}`, async () => {
     const client = getStrapiClient();
     const { data } = await client.findMany<StrapiRawPartner>('partners', {
@@ -612,8 +653,8 @@ export async function getPartnerBySlug(slug: string): Promise<PartnerDetail | nu
       pagination: { pageSize: 1 },
     });
     return data.length > 0 ? mapPartnerDetail(data[0]) : null;
-  }, TTL);
-}
+  }, TTL, NONE);
+});
 
 export async function getPlayerHighlightsByCategory(categorySlug: string): Promise<PlayerHighlight[]> {
   return cacheGetOrSet(`player-highlights:${categorySlug}`, async () => {
@@ -634,7 +675,7 @@ export async function getPlayerHighlightsByCategory(categorySlug: string): Promi
       pagination: { pageSize: 100 },
     });
     return data.map(mapPlayerHighlight);
-  }, TTL);
+  }, TTL, EMPTY_LIST);
 }
 
 // --- Deep links (landing page /a/<code>) ---
@@ -652,7 +693,7 @@ export async function getDeepLinkByCode(rawCode: string): Promise<DeepLink | nul
         pagination: { pageSize: 1 },
       });
       return data[0] ?? null;
-    }, DEEP_LINK_TTL);
+    }, DEEP_LINK_TTL, NONE);
 
     // Status (active/expired) is computed at request time, never from the cached snapshot's clock.
     if (raw) return mapDeepLink(raw);

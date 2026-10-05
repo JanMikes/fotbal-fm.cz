@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/ui';
 import { getNewsArticleBySlug, getSidebarArticles } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 import { pageMetadata, toDescription } from '@/lib/seo';
+import { isPlausibleSlug } from '@/lib/slug';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -12,7 +13,7 @@ interface ArticlePageProps {
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getNewsArticleBySlug(slug);
+  const article = isPlausibleSlug(slug) ? await getNewsArticleBySlug(slug) : null;
 
   if (!article) {
     return pageMetadata({
@@ -37,6 +38,11 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
+
+  if (!isPlausibleSlug(slug)) {
+    notFound();
+  }
+
   const article = await getNewsArticleBySlug(slug);
 
   if (!article) {

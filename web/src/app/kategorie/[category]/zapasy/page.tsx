@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getAllMatchesByCategory, getCategoryBySlug } from '@/lib/strapi/data';
+import { isKnownCategorySlug } from '@/lib/route-guards';
 import { Breadcrumb } from '@/components/ui';
 import MatchesPageContent from '@/components/sections/MatchesPageContent';
 import { pageMetadata } from '@/lib/seo';
@@ -10,7 +12,7 @@ interface ZapasyPageProps {
 
 export async function generateMetadata({ params }: ZapasyPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = await getCategoryBySlug(categorySlug);
+  const category = (await isKnownCategorySlug(categorySlug)) ? await getCategoryBySlug(categorySlug) : null;
   const name = category?.name ?? categorySlug;
 
   return pageMetadata({
@@ -24,6 +26,11 @@ export async function generateMetadata({ params }: ZapasyPageProps): Promise<Met
 
 export default async function ZapasyPage({ params }: ZapasyPageProps) {
   const { category: categorySlug } = await params;
+
+  if (!(await isKnownCategorySlug(categorySlug))) {
+    notFound();
+  }
+
   const [matches, category] = await Promise.all([
     getAllMatchesByCategory(categorySlug),
     getCategoryBySlug(categorySlug),

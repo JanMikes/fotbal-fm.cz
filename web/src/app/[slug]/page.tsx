@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { SidePanel } from '@/components/layout';
 import { Breadcrumb } from '@/components/ui';
 import { getPageBySlug } from '@/lib/strapi/data';
+import { isKnownPageSlug } from '@/lib/route-guards';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
 import { pageMetadata, toDescription } from '@/lib/seo';
 
@@ -12,7 +13,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await getPageBySlug(slug);
+  const page = (await isKnownPageSlug(slug)) ? await getPageBySlug(slug) : null;
 
   if (!page) {
     return pageMetadata({
@@ -35,6 +36,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CmsPage({ params }: PageProps) {
   const { slug } = await params;
+
+  // The catch-all also receives /.env, /wp-login.php, … — unknown slugs 404 without a Strapi call.
+  if (!(await isKnownPageSlug(slug))) {
+    notFound();
+  }
 
   const page = await getPageBySlug(slug);
 

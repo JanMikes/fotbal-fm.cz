@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Hero, Matches, Statistics, CategorySwitcher } from '@/components/sections';
 import { NewsList, TeamSection } from '@/components/sections';
 import { pageMetadata } from '@/lib/seo';
@@ -16,6 +17,7 @@ import {
   getUpcomingMatch,
   getUpcomingMatches,
 } from '@/lib/strapi/data';
+import { isKnownCategorySlug } from '@/lib/route-guards';
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -23,7 +25,7 @@ interface CategoryPageProps {
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = await getCategoryBySlug(categorySlug);
+  const category = (await isKnownCategorySlug(categorySlug)) ? await getCategoryBySlug(categorySlug) : null;
   const name = category?.name ?? categorySlug;
 
   return pageMetadata({
@@ -37,6 +39,10 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
+
+  if (!(await isKnownCategorySlug(categorySlug))) {
+    notFound();
+  }
 
   const [newsResult, players, upcoming, finished, standings, categoryWithHero, upcomingMatch, lastResult, allMatches, categoryGroup, playerHighlights] =
     await Promise.all([

@@ -18,11 +18,17 @@ async function checkRateLimit(ip: string): Promise<boolean> {
   if (!redis) return true; // allow if Redis is unavailable
 
   const key = `form-rate:${ip}`;
-  const count = await redis.incr(key);
-  if (count === 1) {
-    await redis.expire(key, RATE_LIMIT_WINDOW);
+  try {
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.expire(key, RATE_LIMIT_WINDOW);
+    }
+    return count <= RATE_LIMIT_MAX;
+  } catch (error) {
+    // Redis commands time out after 500 ms (packages/cache): a stalled Redis must not 500 the form.
+    console.error('[Form Submit] Rate limit check failed, allowing:', (error as Error).message);
+    return true;
   }
-  return count <= RATE_LIMIT_MAX;
 }
 
 export async function POST(request: Request) {

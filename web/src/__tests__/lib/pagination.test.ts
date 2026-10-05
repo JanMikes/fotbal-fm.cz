@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generatePageNumbers, buildPageHref, parsePageNumber } from '../../lib/pagination';
+import { generatePageNumbers, buildPageHref, parsePageNumber, MAX_PAGE } from '../../lib/pagination';
 
 describe('buildPageHref', () => {
   it('returns clean baseHref for page 1', () => {
@@ -105,6 +105,14 @@ describe('parsePageNumber', () => {
     expect(parsePageNumber('1')).toBe(1);
     expect(parsePageNumber('2')).toBe(2);
     expect(parsePageNumber('100')).toBe(100);
+  });
+
+  it('clamps to MAX_PAGE (U13: every page number is its own cache key)', () => {
+    expect(MAX_PAGE).toBe(200);
+    expect(parsePageNumber('200')).toBe(200);
+    expect(parsePageNumber('201')).toBe(200);
+    expect(parsePageNumber('99999')).toBe(200);
+    expect(parsePageNumber('1e9')).toBe(1);
   });
 
   it('handles float strings by truncating', () => {

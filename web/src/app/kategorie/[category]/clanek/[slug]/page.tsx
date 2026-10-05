@@ -5,6 +5,13 @@ import { Breadcrumb } from '@/components/ui';
 import { getNewsArticleBySlug, getCategoryBySlug, getSidebarArticles } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 import { pageMetadata, toDescription } from '@/lib/seo';
+import { isPlausibleSlug } from '@/lib/slug';
+import { isKnownCategorySlug } from '@/lib/route-guards';
+
+/** Category known and the article slug plausible: only then may the route query Strapi. */
+async function isValidRoute(categorySlug: string, slug: string): Promise<boolean> {
+  return isPlausibleSlug(slug) && (await isKnownCategorySlug(categorySlug));
+}
 
 interface ArticlePageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -12,10 +19,10 @@ interface ArticlePageProps {
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { category: categorySlug, slug } = await params;
-  const [article, category] = await Promise.all([
-    getNewsArticleBySlug(slug),
-    getCategoryBySlug(categorySlug),
-  ]);
+  const valid = await isValidRoute(categorySlug, slug);
+  const [article, category] = valid
+    ? await Promise.all([getNewsArticleBySlug(slug), getCategoryBySlug(categorySlug)])
+    : [null, null];
   const path = `/kategorie/${categorySlug}/clanek/${slug}`;
 
   if (!article) {
@@ -43,6 +50,11 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { category: categorySlug, slug } = await params;
+
+  if (!(await isValidRoute(categorySlug, slug))) {
+    notFound();
+  }
+
   const [article, category] = await Promise.all([
     getNewsArticleBySlug(slug),
     getCategoryBySlug(categorySlug),

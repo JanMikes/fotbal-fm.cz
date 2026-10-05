@@ -7,6 +7,7 @@ import { getPartnerBySlug } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 import { DynamicZone } from '@/components/strapi/DynamicZone';
 import { pageMetadata, toDescription } from '@/lib/seo';
+import { isPlausibleSlug } from '@/lib/slug';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -14,7 +15,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const partner = await getPartnerBySlug(slug);
+  const partner = isPlausibleSlug(slug) ? await getPartnerBySlug(slug) : null;
 
   if (!partner) {
     return pageMetadata({
@@ -38,6 +39,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PartnerDetailPage({ params }: PageProps) {
   const { slug } = await params;
+
+  if (!isPlausibleSlug(slug)) {
+    notFound();
+  }
 
   const partner = await getPartnerBySlug(slug);
 

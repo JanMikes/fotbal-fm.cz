@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/config', () => ({
   config: {
@@ -10,12 +10,16 @@ vi.mock('@/lib/config', () => ({
 
 const mockFindMany = vi.fn();
 const mockFindSingle = vi.fn();
+const mockFindAll = vi.fn();
 vi.mock('../../../lib/strapi/client', () => ({
   getStrapiClient: () => ({
     findMany: mockFindMany,
     findSingle: mockFindSingle,
+    findAll: mockFindAll,
   }),
 }));
+
+const { __resetCacheGetOrSetState } = await import('@fotbal-fm/cache');
 
 const {
   getCategories,
@@ -34,11 +38,24 @@ const {
   getStandingsByCategory,
   getClubMatches,
   getAvailableSeasons,
+  getCategoryGroups,
+  getAllNewsArticles,
+  getNewsArticleTypes,
+  getAllMatchesByCategory,
+  getNavigationPages,
+  getCategoryWithHeroBySlug,
+  getUpcomingMatch,
+  getLastResult,
+  getPlayerHighlightsByCategory,
+  getDeepLinkByCode,
+  getPageSlugIndex,
+  getCategorySlugIndex,
 } = await import('../../../lib/strapi/data');
 
 describe('data layer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    __resetCacheGetOrSetState(); // the failure memo is per process; tests must not share it
   });
 
   describe('getCategories', () => {
@@ -657,6 +674,88 @@ describe('data layer', () => {
       expect(result).toContain(2025);
       expect(result).toContain(2024);
       expect(result).toEqual([...result].sort((a, b) => b - a));
+    });
+  });
+
+  describe('when Strapi fails (P0-1)', () => {
+    const strapiDown = () => {
+      const error = Object.assign(new Error('Strapi x: HTTP 503'), { name: 'StrapiError', status: 503 });
+      mockFindMany.mockRejectedValue(error);
+      mockFindSingle.mockRejectedValue(error);
+      mockFindAll.mockRejectedValue(error);
+    };
+
+    beforeEach(() => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      strapiDown();
+    });
+
+    afterEach(() => {
+      mockFindMany.mockReset();
+      mockFindSingle.mockReset();
+      mockFindAll.mockReset();
+      vi.restoreAllMocks();
+    });
+
+    const currentSeason = () => {
+      const now = new Date();
+      return now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    };
+
+    it.each([
+      ['getCategories', () => getCategories(), []],
+      ['getCategoryBySlug', () => getCategoryBySlug('muzi'), null],
+      ['getCategoryGroups', () => getCategoryGroups(), []],
+      ['getNewsArticlesByCategory', () => getNewsArticlesByCategory('muzi'), { articles: [], total: 0 }],
+      ['getAllNewsArticles', () => getAllNewsArticles(), { articles: [], total: 0 }],
+      ['getNewsArticleTypes', () => getNewsArticleTypes(), []],
+      ['getNewsArticleBySlug', () => getNewsArticleBySlug('x'), null],
+      ['getUpcomingMatches', () => getUpcomingMatches('muzi'), []],
+      ['getFinishedMatches', () => getFinishedMatches('muzi'), []],
+      ['getAllMatchesByCategory', () => getAllMatchesByCategory('muzi'), []],
+      ['getClubMatches', () => getClubMatches({ season: 2026 }), { matches: [], total: 0, pageCount: 1 }],
+      ['getPlayersByCategory', () => getPlayersByCategory('muzi'), []],
+      ['getNavigation', () => getNavigation(), []],
+      ['getFooter', () => getFooter(), null],
+      ['getNavigationPages', () => getNavigationPages(), []],
+      ['getPageBySlug', () => getPageBySlug('o-klubu'), null],
+      ['getStandingsByCategory', () => getStandingsByCategory('muzi'), []],
+      ['getCategoryWithHeroBySlug', () => getCategoryWithHeroBySlug('muzi'), null],
+      ['getUpcomingMatch', () => getUpcomingMatch('muzi'), null],
+      ['getLastResult', () => getLastResult('muzi'), null],
+      ['getPartners', () => getPartners(), []],
+      ['getPartnerBySlug', () => getPartnerBySlug('p'), null],
+      ['getPlayerHighlightsByCategory', () => getPlayerHighlightsByCategory('muzi'), []],
+      ['getDeepLinkByCode', () => getDeepLinkByCode('7K3M9PQ2'), null],
+      ['getPageSlugIndex', () => getPageSlugIndex(), null],
+      ['getCategorySlugIndex', () => getCategorySlugIndex(), null],
+    ] as const)('%s renders its empty fallback instead of throwing', async (_name, call, expected) => {
+      await expect((call as () => Promise<unknown>)()).resolves.toEqual(expected);
+    });
+
+    it('getAvailableSeasons falls back to the current season', async () => {
+      expect(await getAvailableSeasons()).toEqual([currentSeason()]);
+    });
+
+    it('logs the failure with the cache key', async () => {
+      await getCategories();
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[Cache] categories:all: upstream failed, not cached'));
+    });
+  });
+
+  describe('slug indexes (membership guards)', () => {
+    it('getPageSlugIndex loads every page slug with findAll', async () => {
+      mockFindAll.mockResolvedValueOnce([{ slug: 'o-klubu' }, { slug: 'kontakty' }, { slug: null }]);
+
+      expect(await getPageSlugIndex()).toEqual(['o-klubu', 'kontakty']);
+      expect(mockFindAll).toHaveBeenCalledWith('pages', { fields: ['slug'] });
+    });
+
+    it('getCategorySlugIndex loads ALL categories, hidden ones included (no hidden filter)', async () => {
+      mockFindAll.mockResolvedValueOnce([{ slug: 'muzi-a' }, { slug: 'skryta' }]);
+
+      expect(await getCategorySlugIndex()).toEqual(['muzi-a', 'skryta']);
+      expect(mockFindAll).toHaveBeenCalledWith('categories', { fields: ['slug'] });
     });
   });
 });

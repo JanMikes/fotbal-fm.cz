@@ -5,6 +5,16 @@ import { Breadcrumb } from '@/components/ui';
 import { getPlayerByCategoryAndSlug, getCategoryBySlug } from '@/lib/strapi/data';
 import { toPublicUrl } from '@/lib/strapi/mappers/shared';
 import { pageMetadata, toDescription } from '@/lib/seo';
+import { isPlausibleSlug } from '@/lib/slug';
+import { isKnownCategorySlug } from '@/lib/route-guards';
+
+/**
+ * Category known and the player slug plausible. The player itself is then looked up in the
+ * category's cached roster (getPlayerByCategoryAndSlug), so no per-slug query exists at all.
+ */
+async function isValidRoute(categorySlug: string, slug: string): Promise<boolean> {
+  return isPlausibleSlug(slug) && (await isKnownCategorySlug(categorySlug));
+}
 
 interface PlayerPageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -12,10 +22,10 @@ interface PlayerPageProps {
 
 export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
   const { category: categorySlug, slug } = await params;
-  const [player, category] = await Promise.all([
-    getPlayerByCategoryAndSlug(categorySlug, slug),
-    getCategoryBySlug(categorySlug),
-  ]);
+  const valid = await isValidRoute(categorySlug, slug);
+  const [player, category] = valid
+    ? await Promise.all([getPlayerByCategoryAndSlug(categorySlug, slug), getCategoryBySlug(categorySlug)])
+    : [null, null];
   const path = `/kategorie/${categorySlug}/hrac/${slug}`;
 
   if (!player) {
@@ -55,6 +65,11 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { category: categorySlug, slug } = await params;
+
+  if (!(await isValidRoute(categorySlug, slug))) {
+    notFound();
+  }
+
   const [player, category] = await Promise.all([
     getPlayerByCategoryAndSlug(categorySlug, slug),
     getCategoryBySlug(categorySlug),

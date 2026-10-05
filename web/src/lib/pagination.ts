@@ -27,11 +27,18 @@ export function buildPageHref(baseHref: string, page: number, paramName = 'stran
 }
 
 /**
+ * Highest page number a listing accepts. Every page number is its own cache key and Strapi
+ * query, so `?stranka=` must not be unbounded; past the real last page a listing renders empty.
+ */
+export const MAX_PAGE = 200;
+
+/**
  * Parse page number from search param value.
- * Returns 1 for undefined, empty, non-numeric, zero, or negative values.
+ * Returns 1 for undefined, empty, non-numeric, zero, or negative values; clamps to MAX_PAGE.
  */
 export function parsePageNumber(value: string | string[] | undefined): number {
   if (value === undefined || Array.isArray(value)) return 1;
   const parsed = parseInt(value, 10);
-  return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+  if (Number.isNaN(parsed) || parsed < 1) return 1;
+  return Math.min(parsed, MAX_PAGE);
 }

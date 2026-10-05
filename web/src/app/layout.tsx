@@ -18,6 +18,14 @@ const montserrat = Montserrat({
 
 const SITE_TITLE = `${SITE_NAME} | Oficiální web fotbalového klubu`;
 
+/*
+ * Every page is rendered per request (Strapi data via the Redis cache). This used to follow
+ * implicitly from each render making a `no-store` fetch to Strapi; since the data layer can now
+ * answer from memory (single-flight joiners, the failure memo), a build-time render may make no
+ * fetch at all — and `/` was then prerendered with the Strapi-less empty fallback baked in.
+ */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,

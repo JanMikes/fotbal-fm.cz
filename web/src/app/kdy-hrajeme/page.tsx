@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Breadcrumb } from '@/components/ui';
 import KdyHrajemeContent, { type HomeAwayFilter } from '@/components/sections/KdyHrajemeContent';
 import { getAvailableSeasons, getCategories, getClubMatches, type ClubMatchesResult } from '@/lib/strapi/data';
+import { parsePageNumber } from '@/lib/pagination';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -30,7 +31,7 @@ export default async function KdyHrajemePage({ searchParams }: KdyHrajemePagePro
   const homeAway = homeAwayParam === 'domaci' ? 'home' as const
     : homeAwayParam === 'venkovni' ? 'away' as const
     : undefined;
-  const page = Math.max(1, Number(params.strana) || 1);
+  const page = parsePageNumber(params.strana); // 1..MAX_PAGE: every page number is its own cache key
 
   const requestedSeason = Number(params.rocnik);
   let season: number | null = seasons.includes(requestedSeason) ? requestedSeason : null;

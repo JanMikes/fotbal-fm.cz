@@ -1,21 +1,24 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getNewsArticlesByCategory, getCategoryBySlug, getNewsArticleTypes } from '@/lib/strapi/data';
 import { Breadcrumb, NewsCard } from '@/components/ui';
 import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
+import { pickKnownSlugs } from '@/lib/query-params';
+import { isKnownCategorySlug } from '@/lib/route-guards';
 import { pageMetadata } from '@/lib/seo';
 
 interface NovinkyPageProps {
   params: Promise<{ category: string }>;
-  searchParams: Promise<{ stranka?: string; typ?: string }>;
+  searchParams: Promise<{ stranka?: string | string[]; typ?: string | string[] }>;
 }
 
 const PAGE_SIZE = 12;
 
 export async function generateMetadata({ params }: NovinkyPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = await getCategoryBySlug(categorySlug);
+  const category = (await isKnownCategorySlug(categorySlug)) ? await getCategoryBySlug(categorySlug) : null;
   const name = category?.name ?? categorySlug;
 
   return pageMetadata({
@@ -29,15 +32,23 @@ export async function generateMetadata({ params }: NovinkyPageProps): Promise<Me
 
 export default async function NovinkyPage({ params, searchParams }: NovinkyPageProps) {
   const { category: categorySlug } = await params;
+
+  if (!(await isKnownCategorySlug(categorySlug))) {
+    notFound();
+  }
+
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
-  const typeSlugs = resolvedSearchParams.typ?.split(',').filter(Boolean) ?? [];
 
-  const [{ articles, total }, category, articleTypes] = await Promise.all([
-    getNewsArticlesByCategory(categorySlug, currentPage, PAGE_SIZE, typeSlugs.length > 0 ? typeSlugs : undefined),
+  // `typ` is reduced to existing article types before it reaches the query (unknown values dropped).
+  const [category, articleTypes] = await Promise.all([
     getCategoryBySlug(categorySlug),
     getNewsArticleTypes(),
   ]);
+  const typeSlugs = pickKnownSlugs(resolvedSearchParams.typ, articleTypes.map((t) => t.slug));
+  const { articles, total } = await getNewsArticlesByCategory(
+    categorySlug, currentPage, PAGE_SIZE, typeSlugs.length > 0 ? typeSlugs : undefined,
+  );
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (

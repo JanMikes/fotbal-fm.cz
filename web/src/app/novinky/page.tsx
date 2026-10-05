@@ -4,10 +4,11 @@ import { Breadcrumb, NewsCard } from '@/components/ui';
 import NewsArticleTypeFilter from '@/components/ui/NewsArticleTypeFilter';
 import Pagination from '@/components/ui/Pagination';
 import { parsePageNumber } from '@/lib/pagination';
+import { pickKnownSlugs } from '@/lib/query-params';
 import { pageMetadata } from '@/lib/seo';
 
 interface NovinkyPageProps {
-  searchParams: Promise<{ stranka?: string; typ?: string; kategorie?: string }>;
+  searchParams: Promise<{ stranka?: string | string[]; typ?: string | string[]; kategorie?: string | string[] }>;
 }
 
 const PAGE_SIZE = 12;
@@ -23,14 +24,18 @@ export const metadata: Metadata = pageMetadata({
 export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const currentPage = parsePageNumber(resolvedSearchParams.stranka);
-  const typeSlugs = resolvedSearchParams.typ?.split(',').filter(Boolean) ?? [];
-  const categorySlugs = resolvedSearchParams.kategorie?.split(',').filter(Boolean) ?? [];
 
-  const [{ articles, total }, articleTypes, categories] = await Promise.all([
-    getAllNewsArticles(currentPage, PAGE_SIZE, typeSlugs.length > 0 ? typeSlugs : undefined, categorySlugs.length > 0 ? categorySlugs : undefined),
-    getNewsArticleTypes(),
-    getCategories(),
-  ]);
+  // `typ` / `kategorie` are reduced to existing types / categories before they reach the query.
+  const [articleTypes, categories] = await Promise.all([getNewsArticleTypes(), getCategories()]);
+  const typeSlugs = pickKnownSlugs(resolvedSearchParams.typ, articleTypes.map((t) => t.slug));
+  const categorySlugs = pickKnownSlugs(resolvedSearchParams.kategorie, categories.map((c) => c.slug));
+
+  const { articles, total } = await getAllNewsArticles(
+    currentPage,
+    PAGE_SIZE,
+    typeSlugs.length > 0 ? typeSlugs : undefined,
+    categorySlugs.length > 0 ? categorySlugs : undefined,
+  );
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const paginationParams = new URLSearchParams();
