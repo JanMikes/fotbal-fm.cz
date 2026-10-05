@@ -30,3 +30,20 @@ export function mapMediaArray(raw: StrapiRawMedia[] | null | undefined): MediaIm
   if (!raw) return [];
   return raw.map(mapMedia).filter((m): m is MediaImage => m !== null);
 }
+
+/**
+ * Detect the image type from magic bytes. Returns null for anything that is
+ * not an image we recognise — e.g. the HTML page an expired session or a
+ * redirect returns instead of a photo, which must never be uploaded.
+ */
+export function detectImageType(buffer: Buffer): { mime: string; ext: string } | null {
+  const hex = buffer.subarray(0, 4).toString('hex');
+  if (hex.startsWith('ffd8ff')) return { mime: 'image/jpeg', ext: 'jpg' };
+  if (hex === '89504e47') return { mime: 'image/png', ext: 'png' };
+  if (hex.startsWith('474946')) return { mime: 'image/gif', ext: 'gif' };
+  if (buffer.subarray(0, 4).toString('ascii') === 'RIFF'
+    && buffer.subarray(8, 12).toString('ascii') === 'WEBP') {
+    return { mime: 'image/webp', ext: 'webp' };
+  }
+  return null;
+}

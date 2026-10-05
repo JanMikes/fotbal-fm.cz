@@ -19,6 +19,7 @@ import { scrapePlayers, FACR_CLUBS, type FacrPlayer } from '../lib/facr.js';
 import { strapiGet, strapiPost, strapiPut } from '../lib/strapi.js';
 import { flushWebCacheIfChanged } from '../lib/cache-flush.js';
 import { changedFields } from '../lib/sync-diff.js';
+import { detectImageType } from '../lib/media.js';
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
@@ -79,22 +80,6 @@ async function uploadPhotoFromFile(photoFilename: string, playerName: string): P
     console.warn(`  Photo error for ${playerName}: ${err}`);
     return null;
   }
-}
-
-/**
- * Detect the image type from magic bytes. Returns null for anything that is
- * not an image we recognise.
- */
-function detectImageType(buffer: Buffer): { mime: string; ext: string } | null {
-  const hex = buffer.subarray(0, 4).toString('hex');
-  if (hex.startsWith('ffd8ff')) return { mime: 'image/jpeg', ext: 'jpg' };
-  if (hex === '89504e47') return { mime: 'image/png', ext: 'png' };
-  if (hex.startsWith('474946')) return { mime: 'image/gif', ext: 'gif' };
-  if (buffer.subarray(0, 4).toString('ascii') === 'RIFF'
-    && buffer.subarray(8, 12).toString('ascii') === 'WEBP') {
-    return { mime: 'image/webp', ext: 'webp' };
-  }
-  return null;
 }
 
 /**

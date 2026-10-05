@@ -190,24 +190,15 @@ docker compose exec api npx tsx src/cli/sync-sportbm-players.ts
 ```
 Requires `sportbmCategoryId` to be set on categories in Strapi admin.
 
-**Offline scrape + sync pattern (for production where external APIs are unreachable):**
-```bash
-# Scrape locally (where SportBM/FAČR is reachable), then commit data to repo
-docker compose exec api npx tsx src/cli/scrape-facr.ts
-docker compose exec api npx tsx src/cli/scrape-sportbm.ts
+**Production: everything runs live on the lily host cron** (`~/www/lily.srv/apps/fotbal-fm/cron.d/fotbal-fm` → `facr-sync.sh`, Prague time):
+- every 15 min 08–23: matches + standings
+- nightly 05:10: tournaments, matches, standings, players, sportbm-players
 
-# Sync from file on production (uses committed JSON + photos)
-docker compose exec api npx tsx src/cli/sync-sportbm-players.ts --from-file
-```
+Each run is wrapped in `sentry-cli monitors run` (Sentry Crons, project `fotbal-fm-nextjs`, monitors `facr-sync-live` / `facr-sync-nightly`) for missed/failed runs, plus lily's `LilyCronJobFailed`. Log: `/var/log/lily/fotbal-fm-cron.log`. **Deploys never sync data** — the committed `api/data/` snapshot is not used in production. To sync by hand on lily: `/srv/fotbal-fm/facr-sync.sh matches standings` (names = `src/cli/sync-<name>.ts`; shares the cron's lock).
 
-**For cron (non-interactive, no TTY) - use `-T` flag:**
-```bash
-docker compose exec -T api npx tsx src/cli/sync-tournaments.ts
-docker compose exec -T api npx tsx src/cli/sync-matches.ts
-docker compose exec -T api npx tsx src/cli/sync-standings.ts
-docker compose exec -T api npx tsx src/cli/sync-players.ts
-docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
-```
+`sync-sportbm-players.ts --dry-run` prints every change it would make (old → new values) without writing anything.
+
+**Offline pattern (local development only):** `scrape-facr.ts` / `scrape-sportbm.ts` save JSON + photos to `api/data/`, and every sync accepts `--from-file`. Never run `--from-file` against production: it re-applies a stale snapshot (that is what the old deploy-time sync did on every api deploy).
 
 **Regular sync order:** Steps 1, 3, 4, 5, 6 can be re-run anytime. Step 2 only when new competition codes appear (logged as "missing category mapping").
 
@@ -215,7 +206,7 @@ docker compose exec -T api npx tsx src/cli/sync-sportbm-players.ts --from-file
 
 The web app caches all Strapi data in Redis (24h TTL, key prefix `fotbalfm:`). Invalidation is two-fold:
 1. The Strapi webhook "Clear cache" → `http://web:3000/api/cache/clear` (header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`) fires on every entry create/update/delete, so content edited in Strapi admin or backoffice shows on the web immediately. Note: Strapi loads webhook config at startup — restart strapi after changing the webhook directly in the DB.
-2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs. The FAČR syncs (tournaments, matches, standings, players) only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts` — Strapi bumps `updatedAt` and fires the webhook even on an identical write) and skip the flush when the run changed nothing (`flushWebCacheIfChanged()`).
+2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs. The FAČR syncs (tournaments, matches, standings, players) and the SportBM players sync only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts` — Strapi bumps `updatedAt` and fires the webhook even on an identical write) and skip the flush when the run changed nothing (`flushWebCacheIfChanged()`).
 
 ### Audience Categories & Deep Links
 

@@ -24,6 +24,7 @@ import {
   fetchGroups,
   fetchGroupParticipants,
   fetchPlayerProfile,
+  toShirtNumber,
   type SportbmPlayer,
 } from '../lib/sportbm.js';
 
@@ -147,7 +148,7 @@ async function main() {
       sportbmId: String(sportbmId),
       name,
       dateOfBirth: profile.user.birth_date || null,
-      number: profile.number || null,
+      number: toShirtNumber(profile.number),
       photoFilename,
       groupIds,
     });

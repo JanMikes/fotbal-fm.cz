@@ -7,9 +7,9 @@
 # Postgres, one Redis and one uploads volume. The path filters keep the builds
 # independent; the box's deploy.sh rolls only the services whose image changed.
 #
-# The old post-deploy `sync-facr` job (root-SSH, ran the --from-file syncs when
-# api/data/ changed) now lives in the box's deploy.sh: it hashes /app/api/data
-# in the deployed image and runs the same four syncs when the hash changed.
+# A deploy never syncs data: FAČR and SportBM are synced live by the lily host
+# cron (cron.d/fotbal-fm in the lily.srv repo). The committed api/data/ snapshot
+# is for local development only.
 name: API
 
 permissions:

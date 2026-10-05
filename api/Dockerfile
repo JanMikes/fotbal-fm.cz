@@ -20,6 +20,11 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 FROM node:22-alpine
 
+# sentry-cli wraps the host-cron sync runs (`sentry-cli monitors run`) so Sentry
+# Crons flags a missed or failed run. Static binary; same version as the other
+# lily apps.
+COPY --from=getsentry/sentry-cli:3.8.0 /bin/sentry-cli /usr/local/bin/sentry-cli
+
 WORKDIR /app
 
 # Copy installed dependencies

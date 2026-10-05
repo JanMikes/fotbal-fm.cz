@@ -27,7 +27,19 @@ export interface SportbmPlayer {
     last_name: string;
     birth_date: string | null;
   };
-  number: number | null;
+  /** A number for some players, a string ("9") for others. */
+  number: number | string | null;
+}
+
+/**
+ * Shirt number as the integer Strapi stores. SportBM returns it as a number
+ * for some players and as a string ("9") for others; 0, empty and anything
+ * non-numeric mean "no number".
+ */
+export function toShirtNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : null;
 }
 
 interface PaginatedResponse<T> {
