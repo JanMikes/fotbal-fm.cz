@@ -12,6 +12,7 @@
     "@fotbal-fm/cache": "*",
     "@fotbal-fm/form": "*",
     "@fotbal-fm/strapi-client": "*",
+    "@prometheus-io/client": "^0.16.1",
     "@tailwindcss/typography": "^0.5.19",
     "clsx": "^2.1.1",
     "embla-carousel-autoplay": "^8.5.1",

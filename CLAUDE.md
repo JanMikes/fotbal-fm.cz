@@ -204,9 +204,14 @@ Each run is wrapped in `sentry-cli monitors run` (Sentry Crons, project `fotbal-
 
 ### Web Cache
 
-The web app caches all Strapi data in Redis (24h TTL, key prefix `fotbalfm:`). Invalidation is two-fold:
-1. The Strapi webhook "Clear cache" → `http://web:3000/api/cache/clear` (header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`) fires on every entry create/update/delete, so content edited in Strapi admin or backoffice shows on the web immediately. Note: Strapi loads webhook config at startup — restart strapi after changing the webhook directly in the DB.
-2. Every sync script additionally flushes the whole cache once at the end of its run (`flushWebCache()` in `api/src/lib/cache-flush.ts`; requires `REDIS_URL` on the api service, no-op without it) — a guarantee of a consistent final state after bulk syncs. The FAČR syncs (tournaments, matches, standings, players) and the SportBM players sync only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts` — Strapi bumps `updatedAt` and fires the webhook even on an identical write) and skip the flush when the run changed nothing (`flushWebCacheIfChanged()`).
+The web app caches every Strapi response in Redis — the **data cache v2** (`packages/cache/src/swr.ts`, design in lily.srv D75):
+- **One entry per Strapi request URL** (`fotbalfm:v2:d:<fn>:<sha1(url)>`, raw response, mapped on read, hard TTL 7 d). Every query in `web/src/lib/strapi/data.ts` (`QUERIES`) declares the **tags** of every content type it filters on or populates.
+- **Invalidation = tag generations, never deletes.** Strapi bumps the tags of every type it writes, after commit (`strapi/src/cache-invalidation.ts`: Document Service middleware + `media.*` events, debounced ≥1 s/≤5 s, retried; `all` at boot). A reader whose entry predates a bump refreshes in the foreground for ≤1.5 s, else gets the old copy while the refresh finishes. Entries older than 5 min (`DATA_CACHE_SOFT_TTL_MS`) refresh in the background — the bound for anything that bypasses Strapi (SQL, Adminer).
+- **The type → tags map** is `packages/cache/src/type-tags.json`; `strapi/src/cache-tags.json` must be a byte-identical copy (test). **Adding a query, a populate or a filter:** declare its tags — `npm test` (test U1 walks the queries against the Strapi schemas) fails on a missing or extra tag. **Adding a content type:** add it to both JSON copies (or `ignored`).
+- Strapi failures: stale copy if one exists, else the section's empty fallback (never cached). A 401/403 (bad token) is never turned into empty data, and the `/api/health` readiness latch refuses a container whose token Strapi rejects.
+- **Invalidate everything:** `docker compose exec -T redis redis-cli HINCRBY fotbalfm:v2:tagver all 1`.
+- `DATA_CACHE_MODE=off` bypasses Redis (debugging only — puts Strapi on the hot path). Metrics: `:9464/metrics` (`fotbalfm_datacache_requests_total`, `fotbalfm_strapi_requests_total`, transport heartbeat).
+- **Transitional, until the Strapi "Clear cache" webhook is disabled:** the webhook → `http://web:3000/api/cache/clear` (header `X-Strapi-Webhook-Signature: $STRAPI_WEBHOOK_SECRET`) bumps the written type's tags; every sync script's `flushWebCacheIfChanged()` (`api/src/lib/cache-flush.ts`) bumps `all` after a run that changed something. The FAČR and SportBM syncs only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts`).
 
 ### Audience Categories & Deep Links
 

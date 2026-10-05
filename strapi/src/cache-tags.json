@@ -1,0 +1,24 @@
+{
+  "typeTags": {
+    "audience-category": ["audience-category"],
+    "category": ["category"],
+    "category-code": ["match", "standing"],
+    "category-group": ["category-group"],
+    "deep-link": ["deep-link"],
+    "footer": ["footer"],
+    "form": ["form"],
+    "match": ["match"],
+    "navigation": ["navigation"],
+    "news-article": ["news-article"],
+    "news-article-type": ["news-article-type"],
+    "page": ["page"],
+    "partner": ["partner"],
+    "partner-category": ["partner-category"],
+    "player": ["player"],
+    "player-highlight": ["player-highlight"],
+    "standing": ["standing"],
+    "team": ["team"],
+    "tournament": ["tournament"]
+  },
+  "ignored": ["comment", "deep-link-claim", "event", "social-export-state"]
+}

@@ -137,6 +137,42 @@ describe('StrapiClient', () => {
       expect(isUpstreamError(await client.findMany('pages').catch((e) => e))).toBe(true);
     });
 
+    it.each([401, 403])('a %s is a StrapiAuthError — never an upstream failure, so never an empty fallback (P0-V11)', async (status) => {
+      const { isUpstreamError, isUpstreamAuthError } = await import('@fotbal-fm/cache');
+      mockFetch.mockResolvedValueOnce({ ok: false, status });
+
+      const client = await getClient();
+      const error = await client.findMany('pages').catch((e) => e);
+
+      expect(error.name).toBe('StrapiAuthError');
+      expect(error.status).toBe(status);
+      expect(isUpstreamAuthError(error)).toBe(true);
+      expect(isUpstreamError(error)).toBe(false);
+    });
+
+    it('reports every request to the metrics sink (type, status, duration)', async () => {
+      const { setMetricsSink } = await import('@fotbal-fm/cache');
+      const strapiRequest = vi.fn();
+      setMetricsSink({ cacheRequest: () => {}, strapiRequest });
+      mockFetch
+        .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve({ data: [] }) })
+        .mockResolvedValueOnce({ ok: false, status: 503 })
+        .mockRejectedValueOnce(new DOMException('timeout', 'TimeoutError'));
+
+      const client = await getClient();
+      await client.findMany('categories');
+      await client.findMany('categories').catch(() => {});
+      await client.findOne('pages', 'doc-1').catch(() => {});
+
+      expect(strapiRequest.mock.calls.map(([type, status]) => [type, status])).toEqual([
+        ['categories', '200'],
+        ['categories', '503'],
+        ['pages', 'timeout'],
+      ]);
+      expect(strapiRequest.mock.calls[0][2]).toBeGreaterThanOrEqual(0);
+      setMetricsSink(undefined);
+    });
+
     it('throws StrapiError(network) on an unparsable body', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.reject(new SyntaxError('Unexpected token <')) });
 

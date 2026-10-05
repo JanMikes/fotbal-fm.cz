@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildStrapiQueryString } from '../queries';
+import { buildStrapiQueryString, strapiUrl } from '../queries';
 
 describe('buildStrapiQueryString', () => {
   it('returns empty string for empty options', () => {
@@ -116,5 +116,17 @@ describe('buildStrapiQueryString', () => {
     expect(result).toContain('pagination%5BpageSize%5D=100');
     expect(result).toContain('fields%5B0%5D=name');
     expect(result).toContain('fields%5B1%5D=slug');
+  });
+});
+
+describe('strapiUrl', () => {
+  it('is the REST path plus the query string (the data cache keys entries by it)', () => {
+    expect(strapiUrl('categories', { sort: 'sortOrder:asc' })).toBe('/api/categories?sort=sortOrder%3Aasc');
+    expect(strapiUrl('footer')).toBe('/api/footer');
+  });
+
+  it('is deterministic for equal options', () => {
+    const options = { filters: { slug: { $eq: 'muzi-a' } }, pagination: { pageSize: 1 } };
+    expect(strapiUrl('categories', options)).toBe(strapiUrl('categories', structuredClone(options)));
   });
 });

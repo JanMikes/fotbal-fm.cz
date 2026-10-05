@@ -1,4 +1,5 @@
-const mediaFields = { fields: ['url', 'alternativeText', 'width', 'height', 'name', 'ext', 'size'] };
+// `updatedAt` versions the URL (`?v=`, mappers/shared.ts) so a replaced file gets a new one.
+const mediaFields = { fields: ['url', 'alternativeText', 'width', 'height', 'name', 'ext', 'size', 'updatedAt'] };
 
 const textLinkPopulate = {
   populate: {

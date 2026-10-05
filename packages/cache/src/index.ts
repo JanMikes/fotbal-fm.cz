@@ -1,16 +1,25 @@
+export { cacheGet, cacheSet, cacheDelete, cacheDeletePattern, cacheClearAll, cacheStats } from './cache';
 export {
-  cacheGet,
-  cacheSet,
-  cacheDelete,
-  cacheDeletePattern,
-  cacheClearAll,
-  cacheGetOrSet,
-  cacheStats,
+  cached,
+  bumpTags,
+  entryKey,
+  cacheMode,
+  softTtlMs,
+  TAGVER,
+  TAGTS,
+  TRANSPORT,
+  ENTRY_PREFIX,
+  FOREGROUND_BUDGET_MS,
   FAILURE_MEMO_MS,
-  UpstreamError,
-  isUpstreamError,
-  __resetCacheGetOrSetState,
-} from './cache';
-export type { CacheGetOrSetOptions } from './cache';
+  NO_REDIS_MEMO_MS,
+  __resetSwrState,
+  __swrStateSize,
+} from './swr';
+export type { CachedOptions } from './swr';
+export { UpstreamError, isUpstreamError, UpstreamAuthError, isUpstreamAuthError } from './errors';
+export { TAGS } from './tags';
+export type { Tag } from './tags';
+export { metrics, setMetricsSink } from './metrics';
+export type { MetricsSink, CacheResult } from './metrics';
 export { getRedisClient, closeRedisClient, REDIS_CLIENT_OPTIONS } from './redis';
 export { isValidWebhookSecret } from './auth';

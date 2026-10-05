@@ -9,7 +9,7 @@ vi.mock('@/lib/config', () => ({
   },
 }));
 
-const { transformImageUrl, mapMedia, mapMediaArray } = await import('../../../../lib/strapi/mappers/shared');
+const { transformImageUrl, mapMedia, mapMediaArray, mapFile, versionedUrl } = await import('../../../../lib/strapi/mappers/shared');
 
 describe('transformImageUrl', () => {
   it('prepends public uploads URL to /uploads/ paths', () => {
@@ -99,5 +99,34 @@ describe('mapMediaArray', () => {
     ] as unknown as StrapiRawMedia[];
     const result = mapMediaArray(raw);
     expect(result).toHaveLength(1);
+  });
+});
+
+describe('media URL versioning (U8)', () => {
+  const updatedAt = '2026-10-06T08:15:30.123Z';
+  const v = Date.parse(updatedAt).toString(36);
+
+  it('mapMedia appends ?v=<updatedAt> so a replaced file (same URL) gets a new one', () => {
+    const media = mapMedia({ id: 1, url: '/uploads/photo_abc.jpg', updatedAt } as StrapiRawMedia);
+    expect(media!.url).toBe(`http://uploads.test/uploads/photo_abc.jpg?v=${v}`);
+  });
+
+  it('mapFile (documents) is versioned too', () => {
+    expect(mapFile({ id: 1, url: '/uploads/rozpis.pdf', name: 'Rozpis', updatedAt } as StrapiRawMedia).url)
+      .toBe(`http://uploads.test/uploads/rozpis.pdf?v=${v}`);
+  });
+
+  it('appends once, and keeps an existing query string', () => {
+    expect(versionedUrl(`/uploads/a.jpg?v=${v}`, updatedAt)).toBe(`/uploads/a.jpg?v=${v}`);
+    expect(versionedUrl('/uploads/a.jpg?w=1', updatedAt)).toBe(`/uploads/a.jpg?w=1&v=${v}`);
+  });
+
+  it('a different updatedAt gives a different URL', () => {
+    expect(versionedUrl('/uploads/a.jpg', updatedAt)).not.toBe(versionedUrl('/uploads/a.jpg', '2026-10-07T00:00:00.000Z'));
+  });
+
+  it('without updatedAt (or an invalid one) the URL is unchanged', () => {
+    expect(mapMedia({ id: 1, url: '/uploads/a.jpg' } as StrapiRawMedia)!.url).toBe('http://uploads.test/uploads/a.jpg');
+    expect(versionedUrl('/uploads/a.jpg', 'not a date')).toBe('/uploads/a.jpg');
   });
 });

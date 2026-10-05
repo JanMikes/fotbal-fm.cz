@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// S7: the transitional Strapi webhook target bumps the written type's tags (data cache v2), never
+// flushes. The real type → tags map is used.
+
 vi.mock('@fotbal-fm/cache', () => ({
-  cacheClearAll: vi.fn(async () => true),
-  cacheDeletePattern: vi.fn(async () => 2),
+  bumpTags: vi.fn(async () => true),
   isValidWebhookSecret: (provided: string | null, expected: string | undefined) => !!provided && provided === expected,
 }));
 
-const { cacheClearAll, cacheDeletePattern } = await import('@fotbal-fm/cache');
+const { bumpTags } = await import('@fotbal-fm/cache');
 const { POST } = await import('@/app/api/cache/clear/route');
 
 function webhook(body: unknown, secret = 'test-secret') {
@@ -18,43 +20,54 @@ function webhook(body: unknown, secret = 'test-secret') {
   });
 }
 
-describe('POST /api/cache/clear (Strapi webhook)', () => {
+describe('POST /api/cache/clear (transitional Strapi webhook target)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
     process.env.STRAPI_WEBHOOK_SECRET = 'test-secret';
   });
 
   it('rejects a bad secret', async () => {
     const res = await POST(webhook({ model: 'news-article' }, 'wrong'));
     expect(res.status).toBe(401);
-    expect(cacheClearAll).not.toHaveBeenCalled();
+    expect(bumpTags).not.toHaveBeenCalled();
   });
 
-  it('flushes everything for ordinary content', async () => {
+  it('bumps only the written type\'s tags', async () => {
     const res = await POST(webhook({ event: 'entry.update', model: 'news-article', uid: 'api::news-article.news-article' }));
-    expect(await res.json()).toEqual({ cleared: true });
-    expect(cacheClearAll).toHaveBeenCalledTimes(1);
+    expect(await res.json()).toEqual({ model: 'api::news-article.news-article', tags: ['news-article'], bumped: true });
+    expect(bumpTags).toHaveBeenCalledWith(['news-article']);
   });
 
-  it('flushes everything when the payload cannot be read', async () => {
-    const res = await POST(webhook('not json'));
-    expect(await res.json()).toEqual({ cleared: true });
-    expect(cacheClearAll).toHaveBeenCalledTimes(1);
+  it('builds the uid from `model` when the payload has none', async () => {
+    await POST(webhook({ event: 'entry.update', model: 'match' }));
+    expect(bumpTags).toHaveBeenCalledWith(['match']);
   });
 
-  it('never flushes the site for a deep-link claim', async () => {
-    const res = await POST(webhook({ event: 'entry.create', model: 'deep-link-claim' }));
-    expect(await res.json()).toEqual({ cleared: false, model: 'deep-link-claim', deleted: 0 });
-    expect(cacheClearAll).not.toHaveBeenCalled();
-    expect(cacheDeletePattern).not.toHaveBeenCalled();
+  it('category-code writes bump match + standing (codes map competitions to categories)', async () => {
+    await POST(webhook({ event: 'entry.update', model: 'category-code', uid: 'api::category-code.category-code' }));
+    expect(bumpTags).toHaveBeenCalledWith(['match', 'standing']);
   });
 
-  it('invalidates only the landing-page keys for deep links and audience categories', async () => {
-    await POST(webhook({ event: 'entry.update', model: 'deep-link' }));
-    expect(cacheDeletePattern).toHaveBeenCalledWith('deep-link:*');
+  it.each(['deep-link-claim', 'social-export-state', 'comment', 'event'])('%s (not read by the web) bumps nothing', async (model) => {
+    const res = await POST(webhook({ event: 'entry.create', model, uid: `api::${model}.${model}` }));
+    expect((await res.json()).tags).toEqual([]);
+    expect(bumpTags).toHaveBeenCalledWith([]);
+  });
 
-    await POST(webhook({ event: 'entry.update', model: 'audience-category' }));
-    expect(cacheDeletePattern).toHaveBeenCalledWith('audience-categories:*');
-    expect(cacheClearAll).not.toHaveBeenCalled();
+  it('an unmapped api:: type bumps `all`', async () => {
+    await POST(webhook({ event: 'entry.create', uid: 'api::brand-new.brand-new' }));
+    expect(bumpTags).toHaveBeenCalledWith(['all']);
+  });
+
+  it('an unparsable payload bumps `all`', async () => {
+    await POST(webhook('not json'));
+    expect(bumpTags).toHaveBeenCalledWith(['all']);
+  });
+
+  it('answers 503 when Redis is unavailable (the bump did not happen)', async () => {
+    vi.mocked(bumpTags).mockResolvedValueOnce(false);
+    const res = await POST(webhook({ uid: 'api::page.page' }));
+    expect(res.status).toBe(503);
   });
 });

@@ -19,7 +19,7 @@ vi.mock('../../../lib/strapi/client', () => ({
   }),
 }));
 
-const { __resetCacheGetOrSetState } = await import('@fotbal-fm/cache');
+const { __resetSwrState } = await import('@fotbal-fm/cache');
 const { StrapiError } = await vi.importActual<typeof import('../../../lib/strapi/client')>('../../../lib/strapi/client');
 
 const {
@@ -56,7 +56,7 @@ const {
 describe('data layer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    __resetCacheGetOrSetState(); // the failure memo is per process; tests must not share it
+    __resetSwrState(); // the data cache's in-process state (memo, failure memo) must not leak between tests
   });
 
   describe('getCategories', () => {
@@ -740,7 +740,7 @@ describe('data layer', () => {
 
     it('logs the failure with the cache key', async () => {
       await getCategories();
-      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[Cache] categories:all: upstream failed, not cached'));
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('[Cache] getCategories: upstream failed, not cached'));
     });
   });
 
@@ -753,12 +753,14 @@ describe('data layer', () => {
       vi.restoreAllMocks();
     });
 
-    it('a mapper error propagates (the page 500s, the readiness latch stays closed) and is not remembered', async () => {
+    it('a mapper error propagates on every read (the page 500s, the readiness latch stays closed)', async () => {
       mockFindMany.mockResolvedValue({ data: [null], total: 1 }); // mapPlayer(null) throws
 
       await expect(getPlayersByCategory('muzi')).rejects.toBeInstanceOf(TypeError);
       await expect(getPlayersByCategory('muzi')).rejects.toBeInstanceOf(TypeError);
-      expect(mockFindMany).toHaveBeenCalledTimes(2); // no failure memo for a bug
+      // The cache holds the raw Strapi response (valid data) and maps on read: the bug is never
+      // turned into a cached empty value, and fixing the mapper fixes every entry at once.
+      expect(mockFindMany).toHaveBeenCalledTimes(1);
       mockFindMany.mockReset();
     });
 

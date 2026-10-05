@@ -29,10 +29,22 @@ export function transformContentUrls(html: string): string {
   });
 }
 
+/**
+ * Appends `?v=<updatedAt>` (base-36 ms) once. Uploads are served `immutable` for 30 days and a
+ * replaced file keeps its URL, so without it browsers and the image optimizer keep the old file.
+ * Not applied to rich-text HTML (transformContentUrls) — a documented limitation.
+ */
+export function versionedUrl(url: string, updatedAt: string | null | undefined): string {
+  if (!updatedAt || /[?&]v=/.test(url)) return url;
+  const at = Date.parse(updatedAt);
+  if (Number.isNaN(at)) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}v=${at.toString(36)}`;
+}
+
 export function mapMedia(raw: StrapiRawMedia | null | undefined): MediaImage | null {
   if (!raw?.url) return null;
   return {
-    url: transformImageUrl(raw.url),
+    url: transformImageUrl(versionedUrl(raw.url, raw.updatedAt)),
     alternativeText: raw.alternativeText ?? null,
     width: raw.width ?? 0,
     height: raw.height ?? 0,
@@ -46,7 +58,7 @@ export function mapMediaArray(raw: StrapiRawMedia[] | null | undefined): MediaIm
 
 export function mapFile(raw: StrapiRawMedia): MediaFile {
   return {
-    url: transformPublicUrl(raw.url),
+    url: transformPublicUrl(versionedUrl(raw.url, raw.updatedAt)),
     name: raw.name || raw.url.split('/').pop() || 'File',
   };
 }

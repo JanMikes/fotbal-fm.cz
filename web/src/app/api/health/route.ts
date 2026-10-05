@@ -1,3 +1,5 @@
+import { findRejectedEndpoints } from '@/lib/strapi/auth-probe';
+
 /**
  * Docker healthcheck of the web container — a readiness latch (D75).
  *
@@ -9,8 +11,11 @@
  * it never renders again and never depends on Strapi, so a slow render under load or a Strapi
  * outage cannot turn the container unhealthy (Traefik would then drop the only replica).
  *
- * It does NOT prove Strapi works: with Strapi down every section renders its empty fallback,
- * the page is still a 200 with a header, and the latch opens.
+ * It does NOT prove Strapi is up: with Strapi down every section renders its empty fallback or a
+ * cached copy, the page is still a 200 with a header, and the latch opens. It DOES prove the API
+ * token works (P0-V11): the smoke render may be served entirely from Redis, so the latch also
+ * asks Strapi for every endpoint the site reads and stays closed if any answers 401/403 — a new
+ * container with a wrong or under-privileged token never takes traffic and the rollout reverts.
  */
 
 const SMOKE_TIMEOUT_MS = 8000; // below the 10 s Docker healthcheck timeout
@@ -19,6 +24,17 @@ const READY_MARKER = '<header';
 
 let ready = false;
 let smoke: Promise<boolean> | null = null;
+
+async function smokeCheck(): Promise<boolean> {
+  const [rendered, rejected] = await Promise.all([smokeRender(), findRejectedEndpoints()]);
+  if (rejected.length > 0) {
+    console.error(
+      `[Health] Strapi REJECTS the API token for ${rejected.map((r) => `${r.endpoint} (${r.status})`).join(', ')} — not ready`,
+    );
+    return false;
+  }
+  return rendered;
+}
 
 async function smokeRender(): Promise<boolean> {
   const port = process.env.PORT ?? '3000';
@@ -44,7 +60,7 @@ async function smokeRender(): Promise<boolean> {
 export async function GET() {
   if (!ready) {
     // Concurrent probes share one smoke render.
-    smoke ??= smokeRender().finally(() => {
+    smoke ??= smokeCheck().finally(() => {
       smoke = null;
     });
     if (await smoke) ready = true; // a latch: once open it never closes again

@@ -9,4 +9,4 @@ export type {
   StrapiQueryOptions,
 } from './types';
 
-export { buildStrapiQueryString } from './queries';
+export { buildStrapiQueryString, strapiUrl } from './queries';

@@ -72,3 +72,11 @@ export function buildStrapiQueryString(options: StrapiQueryOptions): string {
   const queryString = params.toString();
   return queryString ? `?${queryString}` : '';
 }
+
+/**
+ * The REST path of a request (`/api/<contentType>?<query>`): what the web's Strapi client
+ * fetches, and what the data cache keys an entry by — one cache entry per distinct request.
+ */
+export function strapiUrl(contentType: string, options: StrapiQueryOptions = {}): string {
+  return `/api/${contentType}${buildStrapiQueryString(options)}`;
+}

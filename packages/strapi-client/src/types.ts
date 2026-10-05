@@ -41,6 +41,7 @@ export interface StrapiRawMedia {
   width?: number;
   height?: number;
   formats?: Record<string, unknown> | null;
+  updatedAt?: string;
 }
 
 export interface StrapiRawCategory {
