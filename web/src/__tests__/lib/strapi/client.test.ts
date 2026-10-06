@@ -191,6 +191,22 @@ describe('StrapiClient', () => {
       expect(options.cache).toBe('no-store');
     });
 
+    it('a deadline caps the request: a hung Strapi is given up on at the deadline, not after 10 s (BF-V6)', async () => {
+      mockFetch.mockImplementationOnce((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+        init.signal!.addEventListener('abort', () => reject(init.signal!.reason));
+      }));
+      const client = await getClient();
+      const started = performance.now();
+      await expect(client.findMany('categories', {}, { deadline: Date.now() + 100 })).rejects.toMatchObject({ status: 'timeout' });
+      expect(performance.now() - started).toBeLessThan(2000);
+    });
+
+    it('a deadline already past fails as a timeout without a request', async () => {
+      const client = await getClient();
+      await expect(client.findMany('categories', {}, { deadline: Date.now() - 1 })).rejects.toMatchObject({ status: 'timeout' });
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('falls back to data.length when pagination total is missing', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

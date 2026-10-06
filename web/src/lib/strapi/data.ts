@@ -34,6 +34,7 @@ import type {
   StrapiRawStanding,
 } from './types';
 import { getStrapiClient } from './client';
+import { STRAPI_REQUEST_TIMEOUT_MS } from './timeouts';
 import { RecordUnavailableError } from './record-unavailable';
 import { mapCategory } from './mappers/category';
 import { mapCategoryGroup } from './mappers/category-group';
@@ -707,17 +708,20 @@ type ComponentList = { __component: string }[] | null | undefined;
  */
 async function findWithItsComponents<R>(q: Query, zones: readonly string[]): Promise<{ data: R[]; total: number }> {
   const client = getStrapiClient();
+  // One budget for both steps (review BF-V6): with Strapi hung the load gives up after the
+  // client's 10 s in total, as a single-request load does — not 10 s per step.
+  const deadline = Date.now() + STRAPI_REQUEST_TIMEOUT_MS;
   const shape = await client.findMany<Record<string, ComponentList>>(q.contentType, {
     filters: q.options.filters,
     fields: ['slug'],
     populate: Object.fromEntries(zones.map((zone) => [zone, true])),
     pagination: { pageSize: 1 },
-  });
+  }, { deadline });
   const record = shape.data[0];
   if (!record) return { data: [], total: shape.total }; // no such record: the full query's answer too
   const used = Object.fromEntries(zones.map((zone) => [zone, [...new Set((record[zone] ?? []).map((c) => c.__component))]]));
   const populate = narrowDynamicZones(q.options.populate as Record<string, unknown>, used);
-  return client.findMany<R>(q.contentType, populate ? { ...q.options, populate } : q.options);
+  return client.findMany<R>(q.contentType, populate ? { ...q.options, populate } : q.options, { deadline });
 }
 
 /**

@@ -444,12 +444,18 @@ describe('data layer', () => {
 
       await getPageBySlug('test');
 
-      expect(mockFindMany).toHaveBeenNthCalledWith(1, 'pages', {
+      expect(mockFindMany.mock.calls[0][0]).toBe('pages');
+      expect(mockFindMany.mock.calls[0][1]).toEqual({
         filters: { slug: { $eq: 'test' } },
         fields: ['slug'],
         populate: { content: true, sidebar: true },
         pagination: { pageSize: 1 },
       });
+      // one budget for both steps (BF-V6): the same deadline, at most the client's 10 s from now
+      const deadline = mockFindMany.mock.calls[0][2].deadline;
+      expect(mockFindMany.mock.calls[1][2]).toEqual({ deadline });
+      expect(deadline).toBeGreaterThan(Date.now());
+      expect(deadline).toBeLessThanOrEqual(Date.now() + 10_000);
       const declared = QUERIES.getPageBySlug('test').options;
       const step2 = mockFindMany.mock.calls[1][1];
       expect(step2.filters).toEqual(declared.filters);
@@ -596,12 +602,14 @@ describe('data layer', () => {
 
       await getPartnerBySlug('test');
 
-      expect(mockFindMany).toHaveBeenNthCalledWith(1, 'partners', {
+      expect(mockFindMany.mock.calls[0][0]).toBe('partners');
+      expect(mockFindMany.mock.calls[0][1]).toEqual({
         filters: { slug: { $eq: 'test' } },
         fields: ['slug'],
         populate: { content: true, panel: true },
         pagination: { pageSize: 1 },
       });
+      expect(mockFindMany.mock.calls[1][2]).toEqual(mockFindMany.mock.calls[0][2]); // one shared deadline
       const declared = QUERIES.getPartnerBySlug('test').options as { populate: Record<string, unknown>; filters: unknown; pagination: unknown };
       const step2 = mockFindMany.mock.calls[1][1];
       expect(step2.filters).toEqual(declared.filters);

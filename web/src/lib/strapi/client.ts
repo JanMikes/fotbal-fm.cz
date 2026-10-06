@@ -5,7 +5,12 @@ import { config } from '@/lib/config';
 import { typeLabel } from './type-label';
 import type { StrapiCollectionResponse, StrapiSingleResponse, StrapiQueryOptions } from './types';
 
-const REQUEST_TIMEOUT_MS = 10_000;
+import { STRAPI_REQUEST_TIMEOUT_MS as REQUEST_TIMEOUT_MS } from './timeouts';
+
+export interface RequestOptions {
+  /** Epoch ms by which the request must have answered (min with REQUEST_TIMEOUT_MS); past it, it fails as a timeout. */
+  deadline?: number;
+}
 
 /**
  * A Strapi request that produced no usable answer: an HTTP error status, the request timeout,
@@ -66,16 +71,21 @@ class StrapiClient {
    * GET a Strapi REST URL and return the parsed body. `notFoundAsNull`: a 404 is an answer
    * ("no such document" / an empty single type), not a failure.
    */
-  private async request<B>(label: string, path: string, notFoundAsNull = false): Promise<B | null> {
+  private async request<B>(label: string, path: string, notFoundAsNull = false, { deadline }: RequestOptions = {}): Promise<B | null> {
     const started = performance.now();
     const report = (status: number | string) =>
       metrics.strapiRequest(typeLabel(label), String(status), (performance.now() - started) / 1000);
+    const timeoutMs = deadline === undefined ? REQUEST_TIMEOUT_MS : Math.min(REQUEST_TIMEOUT_MS, deadline - Date.now());
+    if (timeoutMs <= 0) {
+      report('timeout');
+      throw new StrapiError(label, 'timeout');
+    }
     let res: Response;
     try {
       res = await fetch(`${this.baseUrl}${path}`, {
         headers: this.headers,
         cache: 'no-store',
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (error) {
       // Next.js signals through errors thrown from fetch (e.g. "dynamic server usage" for a
@@ -103,8 +113,9 @@ class StrapiClient {
   async findMany<T>(
     contentType: string,
     options: StrapiQueryOptions = {},
+    requestOptions: RequestOptions = {},
   ): Promise<{ data: T[]; total: number }> {
-    const json = await this.request<StrapiCollectionResponse<T>>(contentType, strapiUrl(contentType, options));
+    const json = await this.request<StrapiCollectionResponse<T>>(contentType, strapiUrl(contentType, options), false, requestOptions);
     return {
       data: json?.data ?? [],
       total: json?.meta?.pagination?.total ?? json?.data?.length ?? 0,
