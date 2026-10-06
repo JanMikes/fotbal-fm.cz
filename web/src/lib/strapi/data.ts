@@ -51,7 +51,7 @@ import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
 import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate, narrowDynamicZones } from './populates';
 import { cache } from 'react';
-import { cached, TAGS, type Tag } from '@fotbal-fm/cache';
+import { cached, FOREGROUND_BUDGET_MS, TAGS, type Tag } from '@fotbal-fm/cache';
 import { strapiUrl } from '@fotbal-fm/strapi-client';
 import { currentSeasonStartYear, seasonDateRange } from '@/lib/season';
 import { deepLinkCodeCandidates } from '@/lib/app-links';
@@ -457,15 +457,25 @@ function readMany<R>(fn: QueryName, q: Query, { load, record = false }: ReadOpti
 }
 
 /** Every page of a collection; `onError` decides what "unavailable" means for the caller. */
-function readAll<R, E>(fn: QueryName, q: Query, onError: () => E): Promise<R[] | E> {
+function readAll<R, E>(fn: QueryName, q: Query, onError: () => E, missBudgetMs?: number): Promise<R[] | E> {
   return cached<R[] | E>({
     fn,
     url: strapiUrl(q.contentType, q.options),
     tags: q.tags,
     load: () => getStrapiClient().findAll<R>(q.contentType, q.options),
     onError,
+    missBudgetMs,
   });
 }
+
+/**
+ * The membership indexes' wait limit on a miss (review BF-V8). Their "unavailable" answer (null)
+ * only means "can't tell": the caller falls through to the record lookup — it can never cause a
+ * false 404. So a cold index must not hold a page for the Strapi client's 10 s (warm record pages
+ * took 10-20 s with a cold index during a Strapi outage); it gets the foreground budget instead,
+ * and its load goes on in the background to fill the cache.
+ */
+const INDEX_MISS_BUDGET_MS = FOREGROUND_BUDGET_MS;
 
 function readSingle<R>(fn: QueryName, q: Query): Promise<R | null> {
   return cached<R | null>({
@@ -536,7 +546,7 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<Category | 
  * through to getCategoryBySlug instead of 404ing every category.
  */
 export async function getCategorySlugIndex(): Promise<string[] | null> {
-  const data = await readAll<Pick<StrapiRawCategory, 'slug'>, null>('getCategorySlugIndex', QUERIES.getCategorySlugIndex(), () => null);
+  const data = await readAll<Pick<StrapiRawCategory, 'slug'>, null>('getCategorySlugIndex', QUERIES.getCategorySlugIndex(), () => null, INDEX_MISS_BUDGET_MS);
   return data ? data.map((c) => c.slug).filter(Boolean) : null;
 }
 
@@ -731,7 +741,7 @@ async function findWithItsComponents<R>(q: Query, zones: readonly string[]): Pro
  * through to getPageBySlug instead of 404ing every CMS page during a Strapi blip.
  */
 export async function getPageSlugIndex(): Promise<string[] | null> {
-  const data = await readAll<Pick<StrapiRawPage, 'slug'>, null>('getPageSlugIndex', QUERIES.getPageSlugIndex(), () => null);
+  const data = await readAll<Pick<StrapiRawPage, 'slug'>, null>('getPageSlugIndex', QUERIES.getPageSlugIndex(), () => null, INDEX_MISS_BUDGET_MS);
   return data ? data.map((p) => p.slug).filter(Boolean) : null;
 }
 

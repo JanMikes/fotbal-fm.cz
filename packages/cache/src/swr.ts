@@ -54,6 +54,14 @@ export interface CachedOptions<T> {
   load: () => Promise<T>;
   /** Value for a miss whose load failed upstream. Never stored. Without it the error propagates. */
   onError?: () => T;
+  /**
+   * Opt-in wait limit for a MISS (no copy to serve instead). Past it the reader gets `onError` while
+   * the load goes on and fills the cache; later readers of the key get `onError` at once while that
+   * load is still running. ONLY for reads whose `onError` is a harmless "can't tell" — the slug
+   * indexes (null = fall through to the record lookup), never a section or a record, where it would
+   * turn a merely slow Strapi into an empty section or a 404 (review BF-V8; cf. 650f26b).
+   */
+  missBudgetMs?: number;
 }
 
 export function softTtlMs(): number {
@@ -210,6 +218,27 @@ async function missLoad<T>(failureKey: string, o: CachedOptions<T>, start: () =>
   if (o.onError && failedRecently(failureKey)) {
     count(o.fn, 'fallback');
     return o.onError(); // open: Strapi failed this key moments ago, don't wait for it again
+  }
+  if (o.onError && o.missBudgetMs !== undefined) {
+    // A "can't tell" read (BF-V8): wait at most the miss budget, then answer onError; the load goes on.
+    if (slowRefreshes.has(failureKey)) {
+      count(o.fn, 'budget_exceeded');
+      return o.onError(); // its load already blew the budget and is still running
+    }
+    const pending = start();
+    const outcome = await within(pending, o.missBudgetMs);
+    if (outcome === 'timeout') {
+      count(o.fn, 'budget_exceeded');
+      background(pending, o.fn);
+      slowRefreshes.add(failureKey);
+      const settled = () => slowRefreshes.delete(failureKey);
+      pending.then(settled, settled);
+      return o.onError();
+    }
+    if ('value' in outcome) return outcome.value;
+    if (!isUpstreamError(outcome.error)) throw outcome.error;
+    count(o.fn, 'fallback');
+    return o.onError();
   }
   try {
     return await start();

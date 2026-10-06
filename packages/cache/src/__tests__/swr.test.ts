@@ -320,6 +320,37 @@ describe('cached() — failures', () => {
     expect(__swrStateSize().recentFailures).toBe(0); // the success closed the memo
   });
 
+  it('BF-V8: an opt-in miss budget (index reads): a hung miss answers onError at the budget, later readers at once, the load still fills the cache', async () => {
+    const hung = deferred<string>();
+    const load = vi.fn(() => hung.promise);
+    const opts = { onError: () => 'cannot tell', missBudgetMs: 100 };
+
+    let started = performance.now();
+    expect(await read(load, opts)).toBe('cannot tell');
+    expect(performance.now() - started).toBeGreaterThanOrEqual(90);
+    expect(performance.now() - started).toBeLessThan(1000);
+
+    started = performance.now();
+    expect(await read(load, opts)).toBe('cannot tell'); // the load is still running: no second wait, no second load
+    expect(performance.now() - started).toBeLessThan(50);
+    expect(load).toHaveBeenCalledTimes(1);
+
+    hung.resolve('index');
+    await vi.waitFor(async () => expect((await stored()).v).toBe('index'));
+    expect(await read(load, opts)).toBe('index');
+    expect(__swrStateSize().slowRefreshes).toBe(0);
+  });
+
+  it('BF-V8: within the miss budget the value (or an upstream failure → onError + memo) as usual', async () => {
+    expect(await read(async () => 'v1', { onError: () => 'x', missBudgetMs: 100 })).toBe('v1');
+    __resetSwrState();
+    fake = new FakeRedis();
+    const failing = vi.fn(async (): Promise<string> => { throw upstream(); });
+    expect(await read(failing, { onError: () => 'x', missBudgetMs: 100 })).toBe('x');
+    expect(await read(failing, { onError: () => 'x', missBudgetMs: 100 })).toBe('x'); // memo open
+    expect(failing).toHaveBeenCalledTimes(1);
+  });
+
   it('without onError an upstream failure on a miss propagates', async () => {
     await expect(read(async () => { throw upstream(); })).rejects.toBeInstanceOf(UpstreamError);
   });

@@ -821,6 +821,19 @@ describe('data layer', () => {
       await expect(getPlayerByCategoryAndSlug('muzi', 'jan-novak')).rejects.toBeInstanceOf(RecordUnavailableError);
     });
 
+    it('BF-V8: a slug index Strapi does not answer gives "can\'t tell" (null) after the 1.5 s budget, not after 10 s', async () => {
+      mockFindAll.mockImplementation(() => new Promise(() => {}));
+      let started = performance.now();
+      expect(await getPageSlugIndex()).toBeNull();
+      expect(performance.now() - started).toBeLessThan(2500);
+      started = performance.now();
+      expect(await getCategorySlugIndex()).toBeNull();
+      expect(performance.now() - started).toBeLessThan(2500);
+      started = performance.now();
+      expect(await getPageSlugIndex()).toBeNull(); // its load is still running: at once
+      expect(performance.now() - started).toBeLessThan(100);
+    });
+
     it('getAvailableSeasons falls back to the current season', async () => {
       expect(await getAvailableSeasons()).toEqual([currentSeason()]);
     });
