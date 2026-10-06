@@ -48,7 +48,7 @@ import { mapPlayer } from './mappers/player';
 import { mapPlayerHighlight } from './mappers/player-highlight';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
-import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPagePopulateFor, buildPartnerPopulate } from './populates';
+import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate, narrowDynamicZones } from './populates';
 import { cache } from 'react';
 import { cached, TAGS, type Tag } from '@fotbal-fm/cache';
 import { strapiUrl } from '@fotbal-fm/strapi-client';
@@ -501,11 +501,14 @@ function routeRecord<R>(fn: QueryName, q: Query, load?: () => Promise<{ data: R[
 export const RECORDS = {
   page: (slug: string) => {
     const q = QUERIES.getPageBySlug(slug);
-    return routeRecord<StrapiRawPage>('getPageBySlug', q, () => findPageWithItsComponents(q));
+    return routeRecord<StrapiRawPage>('getPageBySlug', q, () => findWithItsComponents<StrapiRawPage>(q, ['content', 'sidebar']));
   },
   category: (slug: string) => routeRecord<StrapiRawCategory>('getCategoryBySlug', QUERIES.getCategoryBySlug(slug)),
   article: (slug: string) => routeRecord<StrapiRawNewsArticle>('getNewsArticleBySlug', QUERIES.getNewsArticleBySlug(slug)),
-  partner: (slug: string) => routeRecord<StrapiRawPartner>('getPartnerBySlug', QUERIES.getPartnerBySlug(slug)),
+  partner: (slug: string) => {
+    const q = QUERIES.getPartnerBySlug(slug);
+    return routeRecord<StrapiRawPartner>('getPartnerBySlug', q, () => findWithItsComponents<StrapiRawPartner>(q, ['content', 'panel']));
+  },
   /** A player page's record is the category roster it is found in. */
   roster: (categorySlug: string) => routeRecord<StrapiRawPlayer>('getPlayersByCategory', QUERIES.getPlayersByCategory(categorySlug)),
 } satisfies Record<string, (slug: string) => RouteRecord>;
@@ -695,25 +698,26 @@ export const getPageBySlug = cache(async (slug: string): Promise<Page | null> =>
 type ComponentList = { __component: string }[] | null | undefined;
 
 /**
- * Two-step page load: the page's dynamic-zone component types first (a shallow populate, ~16 ms
- * on prod), then the page populated for exactly those types (~45 ms) instead of all 50 fragments
- * (~400 ms of Strapi CPU; five concurrent page refreshes took 1.5-2.2 s and blew the 1.5 s budget
- * after every `page` bump). Same answer byte for byte, same cache key (the declared query's URL),
- * same tags; a write between the two steps bumps `page` and the next read refreshes again.
+ * Two-step load of a record with dynamic zones (a CMS page: content + sidebar; a partner: content +
+ * panel): its zones' component types first (a shallow populate, ~16 ms on prod), then the record
+ * populated for exactly those types (~45 ms) instead of all 50 fragments (~400 ms of Strapi CPU;
+ * five concurrent page refreshes took 1.5-2.2 s and blew the 1.5 s budget after every `page`
+ * bump). Same answer byte for byte, same cache key (the declared query's URL), same tags; a write
+ * between the two steps bumps the record's tag and the next read refreshes again.
  */
-async function findPageWithItsComponents(q: Query): Promise<{ data: StrapiRawPage[]; total: number }> {
+async function findWithItsComponents<R>(q: Query, zones: readonly string[]): Promise<{ data: R[]; total: number }> {
   const client = getStrapiClient();
-  const shape = await client.findMany<{ content?: ComponentList; sidebar?: ComponentList }>(q.contentType, {
+  const shape = await client.findMany<Record<string, ComponentList>>(q.contentType, {
     filters: q.options.filters,
     fields: ['slug'],
-    populate: { content: true, sidebar: true },
+    populate: Object.fromEntries(zones.map((zone) => [zone, true])),
     pagination: { pageSize: 1 },
   });
-  const page = shape.data[0];
-  if (!page) return { data: [], total: shape.total }; // no such page: the full query's answer too
-  const types = (list: ComponentList) => [...new Set((list ?? []).map((c) => c.__component))];
-  const populate = buildPagePopulateFor({ content: types(page.content), sidebar: types(page.sidebar) });
-  return client.findMany<StrapiRawPage>(q.contentType, populate ? { ...q.options, populate } : q.options);
+  const record = shape.data[0];
+  if (!record) return { data: [], total: shape.total }; // no such record: the full query's answer too
+  const used = Object.fromEntries(zones.map((zone) => [zone, [...new Set((record[zone] ?? []).map((c) => c.__component))]]));
+  const populate = narrowDynamicZones(q.options.populate as Record<string, unknown>, used);
+  return client.findMany<R>(q.contentType, populate ? { ...q.options, populate } : q.options);
 }
 
 /**

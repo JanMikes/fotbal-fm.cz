@@ -195,32 +195,31 @@ export function buildPagePopulate() {
   };
 }
 
-/** The dynamic-zone component types a page actually has (from the shallow first step of the load). */
-export interface PageComponentTypes {
-  content: readonly string[];
-  sidebar: readonly string[];
-}
-
 /**
- * The page populate narrowed to the component types the page has: its fragments only, in the
- * full populate's order, and an empty zone as `true` in its own position — so Strapi answers byte
- * for byte what the full populate answers (verified on prod for all 23 pages, 2026-10-06), at a
- * fraction of the cost: Strapi spends ~90% of a full page query (~400 ms, serialized on its one
- * event loop) on the 50 fragments, not on data. `null` when a type has no fragment here: the
- * caller uses the full populate (same answer by construction).
+ * A populate narrowed to the dynamic-zone component types a record actually has: for each zone in
+ * `used`, only its fragments (in the full populate's order), an empty zone as `true` in its own
+ * position, every other key unchanged and in place — so Strapi answers byte for byte what the full
+ * populate answers (verified on prod for all 23 pages and 3 partners, 2026-10-06) at a fraction of
+ * the cost: ~90% of a full page/partner query (~400 ms of Strapi CPU, serialized on its single
+ * event loop) goes to the 50 unused fragments, not to data. `null` when a zone has a type this
+ * populate has no fragment for: the caller uses the full populate (same answer by construction).
  */
-export function buildPagePopulateFor(used: PageComponentTypes) {
-  const content = narrowDynamicZone(used.content);
-  const sidebar = narrowDynamicZone(used.sidebar);
-  if (content === null || sidebar === null) return null;
-  return { content, sidebar, ...buildParentPopulate(5) };
-}
-
-function narrowDynamicZone(types: readonly string[]): true | { on: Record<string, unknown> } | null {
-  const { on } = buildDynamicZonePopulate();
-  if (types.some((type) => !Object.hasOwn(on, type))) return null;
-  if (types.length === 0) return true; // keeps `zone: []` in the answer
-  return { on: Object.fromEntries(Object.entries(on).filter(([type]) => types.includes(type))) };
+export function narrowDynamicZones(
+  full: Record<string, unknown>,
+  used: Record<string, readonly string[]>,
+): Record<string, unknown> | null {
+  const narrowed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(full)) {
+    const types = used[key];
+    if (!types) {
+      narrowed[key] = value;
+      continue;
+    }
+    const on = (value as { on?: Record<string, unknown> }).on;
+    if (!on || types.some((type) => !Object.hasOwn(on, type))) return null;
+    narrowed[key] = types.length === 0 ? true : { on: Object.fromEntries(Object.entries(on).filter(([type]) => types.includes(type))) };
+  }
+  return narrowed;
 }
 
 export function buildPartnerPopulate() {

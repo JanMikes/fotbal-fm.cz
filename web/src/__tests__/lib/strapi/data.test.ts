@@ -561,20 +561,19 @@ describe('data layer', () => {
     });
   });
 
-  describe('getPartnerBySlug', () => {
+  describe('getPartnerBySlug (two-step: component types of content + panel, then exactly those)', () => {
+    const fullPartner = {
+      id: 1, documentId: 'partner-1', name: 'Partner A', slug: 'partner-a',
+      logo: null, description: 'Desc', sortOrder: 1,
+      content: [{ id: 10, __component: 'components.text', text: 'Hello' }],
+      panel: null,
+      createdAt: '2025-01-01', updatedAt: '2025-01-01',
+    };
+
     it('returns partner when found', async () => {
-      mockFindMany.mockResolvedValueOnce({
-        data: [
-          {
-            id: 1, documentId: 'partner-1', name: 'Partner A', slug: 'partner-a',
-            logo: null, description: 'Desc', sortOrder: 1,
-            content: [{ id: 10, __component: 'components.text', text: 'Hello' }],
-            panel: null,
-            createdAt: '2025-01-01', updatedAt: '2025-01-01',
-          },
-        ],
-        total: 1,
-      });
+      mockFindMany
+        .mockResolvedValueOnce({ data: [{ slug: 'partner-a', content: [{ __component: 'components.text' }], panel: null }], total: 1 })
+        .mockResolvedValueOnce({ data: [fullPartner], total: 1 });
 
       const result = await getPartnerBySlug('partner-a');
       expect(result).not.toBeNull();
@@ -582,35 +581,36 @@ describe('data layer', () => {
       expect(result!.content).toHaveLength(1);
     });
 
-    it('returns null when not found', async () => {
+    it('returns null when not found — after the shallow step only', async () => {
       mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
 
       const result = await getPartnerBySlug('nonexistent');
       expect(result).toBeNull();
+      expect(mockFindMany).toHaveBeenCalledTimes(1);
     });
 
-    it('passes slug filter and populate', async () => {
-      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+    it('step 1 asks for the content + panel types; step 2 keeps logo/partnerCategory, narrows the zones in place', async () => {
+      mockFindMany
+        .mockResolvedValueOnce({ data: [{ slug: 'test', content: [{ __component: 'components.image' }, { __component: 'components.text' }], panel: [] }], total: 1 })
+        .mockResolvedValueOnce({ data: [], total: 0 });
 
       await getPartnerBySlug('test');
 
-      expect(mockFindMany).toHaveBeenCalledWith('partners', expect.objectContaining({
+      expect(mockFindMany).toHaveBeenNthCalledWith(1, 'partners', {
         filters: { slug: { $eq: 'test' } },
+        fields: ['slug'],
+        populate: { content: true, panel: true },
         pagination: { pageSize: 1 },
-      }));
-      const callArgs = mockFindMany.mock.calls[0][1];
-      expect(callArgs.populate).toHaveProperty('logo');
-      expect(callArgs.populate).toHaveProperty('content');
-      expect(callArgs.populate).toHaveProperty('panel');
-    });
-
-    it('does not filter by show_on_web (detail accessible even when hidden from list)', async () => {
-      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
-
-      await getPartnerBySlug('hidden-partner');
-
-      const callArgs = mockFindMany.mock.calls[0][1];
-      expect(callArgs.filters).not.toHaveProperty('show_on_web');
+      });
+      const declared = QUERIES.getPartnerBySlug('test').options as { populate: Record<string, unknown>; filters: unknown; pagination: unknown };
+      const step2 = mockFindMany.mock.calls[1][1];
+      expect(step2.filters).toEqual(declared.filters);
+      expect(step2.pagination).toEqual(declared.pagination);
+      expect(Object.keys(step2.populate)).toEqual(['logo', 'partnerCategory', 'content', 'panel']);
+      expect(step2.populate.logo).toEqual(declared.populate.logo);
+      expect(step2.populate.partnerCategory).toEqual(declared.populate.partnerCategory);
+      expect(Object.keys(step2.populate.content.on)).toEqual(['components.text', 'components.image']); // the full populate's order
+      expect(step2.populate.panel).toBe(true); // empty zone: shallow, in place
     });
   });
 
