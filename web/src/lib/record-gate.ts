@@ -45,10 +45,8 @@ function decode(segment: string): string {
   }
 }
 
-/** A segment that can be a record slug: plausible and without a dot (public files, scanner paths). */
-function isRecordSlug(segment: string | undefined): segment is string {
-  return isPlausibleSlug(segment) && !segment.includes('.');
-}
+/** A segment that can be a record slug: the pages' own pre-filter (no dots: public files, scanner paths). */
+const isRecordSlug = isPlausibleSlug;
 
 export interface Route {
   /** The membership index that says whether the slug can exist, if the route has one. */

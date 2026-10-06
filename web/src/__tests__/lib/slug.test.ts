@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { isPlausibleSlug } from '@/lib/slug';
 
 describe('isPlausibleSlug (Strapi uid charset pre-filter)', () => {
-  it.each(['o-klubu', 'muzi-a', 'pripravka-u9', 'Novinka_2026', 'a.b~c', 'x', 'clh3k2m9x0000a8b7c6d5e4f3', 'a'.repeat(120)])(
+  it.each(['o-klubu', 'muzi-a', 'pripravka-u9', 'Novinka_2026', 'a-b~c', 'x', 'clh3k2m9x0000a8b7c6d5e4f3', 'a'.repeat(120)])(
     'accepts %s',
     (slug) => {
       expect(isPlausibleSlug(slug)).toBe(true);
@@ -27,8 +27,9 @@ describe('isPlausibleSlug (Strapi uid charset pre-filter)', () => {
     expect(isPlausibleSlug(null)).toBe(false);
   });
 
-  it('lets scanner favourites through — the membership index rejects those', () => {
-    expect(isPlausibleSlug('.env')).toBe(true);
-    expect(isPlausibleSlug('wp-login.php')).toBe(true);
+  it('rejects dots: scanner favourites and files never reach Strapi (no record slug has a dot — BF-V9)', () => {
+    for (const slug of ['.env', 'wp-login.php', 'logo.svg', 'a.b~c', 'index.html', 'x.json']) {
+      expect([slug, isPlausibleSlug(slug)]).toEqual([slug, false]);
+    }
   });
 });
