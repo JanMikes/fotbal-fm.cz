@@ -1,6 +1,7 @@
 export {
   cached,
   hasEntry,
+  redisResponds,
   bumpTags,
   entryKey,
   cacheMode,

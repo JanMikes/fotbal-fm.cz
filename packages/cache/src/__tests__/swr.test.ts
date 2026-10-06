@@ -13,6 +13,11 @@ class FakeRedis {
     this.strings.set(key, { value, ex: ttl });
     return 'OK';
   }
+  pingDelayMs = 0;
+  async ping() {
+    if (this.pingDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, this.pingDelayMs));
+    return 'PONG';
+  }
   async exists(key: string) {
     return this.strings.has(key) ? 1 : 0;
   }
@@ -45,7 +50,7 @@ let redisUp = true;
 vi.mock('../redis', () => ({ getRedisClient: vi.fn(async () => (redisUp ? fake : null)) }));
 
 const swr = await import('../swr');
-const { cached, hasEntry, bumpTags, entryKey, TAGVER, FOREGROUND_BUDGET_MS, FAILURE_MEMO_MS, NO_REDIS_MEMO_MS, __resetSwrState, __swrStateSize } = swr;
+const { cached, hasEntry, redisResponds, bumpTags, entryKey, TAGVER, FOREGROUND_BUDGET_MS, FAILURE_MEMO_MS, NO_REDIS_MEMO_MS, __resetSwrState, __swrStateSize } = swr;
 const { UpstreamError, UpstreamAuthError } = await import('../errors');
 const { setMetricsSink } = await import('../metrics');
 
@@ -390,6 +395,18 @@ describe('hasEntry (the web record gate)', () => {
     redisUp = true;
     process.env.DATA_CACHE_MODE = 'off';
     expect(await hasEntry('getMatches', URL_)).toBeNull();
+  });
+});
+
+describe('redisResponds (the web record gate fails open on a stalled Redis)', () => {
+  it('true when PING answers in time, false when it does not (stalled), null without a client', async () => {
+    expect(await redisResponds(100)).toBe(true);
+    fake.pingDelayMs = 400;
+    const started = performance.now();
+    expect(await redisResponds(100)).toBe(false);
+    expect(performance.now() - started).toBeLessThan(300);
+    redisUp = false;
+    expect(await redisResponds(100)).toBeNull();
   });
 });
 

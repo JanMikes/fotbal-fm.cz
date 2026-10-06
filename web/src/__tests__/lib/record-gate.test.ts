@@ -19,14 +19,16 @@ const findAll = vi.fn();
 vi.mock('@/lib/strapi/client', () => ({ getStrapiClient: () => ({ findMany, findAll, findSingle: vi.fn() }) }));
 
 const present = new Set<string>(); // cache entries that "exist" (by fn:url)
+let redisAnswer: boolean | null = true; // redisResponds(): true ok, false stalled, null no client
 vi.mock('@fotbal-fm/cache', async (importActual) => ({
   ...(await importActual<typeof import('@fotbal-fm/cache')>()),
   hasEntry: vi.fn(async (fn: string, url: string) => present.has(`${fn}:${url}`)),
+  redisResponds: vi.fn(async () => redisAnswer),
 }));
 
 const { __resetSwrState } = await import('@fotbal-fm/cache');
 const { StrapiError, StrapiAuthError } = await vi.importActual<typeof import('@/lib/strapi/client')>('@/lib/strapi/client');
-const { gate, recordsFor, STATIC_TOP_LEVEL, FILE_ROUTES } = await import('@/lib/record-gate');
+const { gate, routeOf, STATIC_TOP_LEVEL, __resetGateState } = await import('@/lib/record-gate');
 const { RECORDS } = await import('@/lib/strapi/data');
 
 const PAGES = [{ slug: 'kontakty' }, { slug: 'o-klubu' }];
@@ -42,6 +44,8 @@ function strapi(answers: Partial<Record<string, () => Promise<unknown>>>) {
 
 beforeEach(() => {
   __resetSwrState();
+  __resetGateState();
+  redisAnswer = true;
   present.clear();
   findMany.mockReset();
   findAll.mockReset();
@@ -52,9 +56,12 @@ beforeEach(() => {
 describe('which paths are record routes', () => {
   it.each([
     ['/kdy-hrajeme'], ['/partneri'], ['/komponenty'], ['/favicon.ico'], ['/robots.txt'], ['/manifest.webmanifest'],
+    ['/logo.svg'], ['/icon-192.png'], ['/player-placeholder.png'], ['/wp-login.php'], ['/.env'],
     ['/a/7K3M9PQ2'], ['/api/health'], ['/%E2%9C%93'], ['/'], ['/novinky'], ['/kategorie'],
-  ])('%s is not gated (no lookup at all)', async (pathname) => {
-    expect(await recordsFor(pathname)).toEqual([]);
+    ['/novinky/clanek/x.php'], ['/kategorie/muzi-a/clanek/a.b'], ['/partner/x.html'], ['/kategorie/muzi.a'],
+  ])('%s is no record route (never gated: no lookup, never 503)', async (pathname) => {
+    expect(routeOf(pathname)).toBeNull();
+    expect(await gate(pathname)).toEqual({ status: 'pass' });
     expect(findAll).not.toHaveBeenCalled();
     expect(findMany).not.toHaveBeenCalled();
   });
@@ -63,23 +70,25 @@ describe('which paths are record routes', () => {
     const app = path.resolve(__dirname, '../../app');
     const dirs = readdirSync(app).filter((e) => statSync(path.join(app, e)).isDirectory() && !/^[[(.]/.test(e));
     expect(new Set(dirs)).toEqual(STATIC_TOP_LEVEL);
-    expect(FILE_ROUTES).toEqual(new Set(['apple-icon.png', 'favicon.ico', 'manifest.webmanifest', 'robots.txt']));
   });
 
-  it('an unknown CMS slug (the index says so) is not gated: the page 404s', async () => {
-    expect(await recordsFor('/wp-login.php')).toEqual([]);
-    expect(await recordsFor('/neexistuje')).toEqual([]);
+  it('maps every record route to the records its page reads (same fn and cache URL) and its index', () => {
+    const fns = (p: string) => routeOf(p)!.records.map((r) => r.fn);
+    expect(routeOf('/kontakty')!.records.map((r) => [r.fn, r.url])).toEqual([[RECORDS.page('kontakty').fn, RECORDS.page('kontakty').url]]);
+    expect(routeOf('/kontakty')!.index!.name).toBe('getPageSlugIndex');
+    expect(routeOf('/kategorie/muzi-a/zapasy')!.records.map((r) => [r.fn, r.url])).toEqual([[RECORDS.category('muzi-a').fn, RECORDS.category('muzi-a').url]]);
+    expect(routeOf('/kategorie/muzi-a/zapasy')!.index!.name).toBe('getCategorySlugIndex');
+    expect(fns('/kategorie/muzi-a/clanek/x')).toEqual(['getCategoryBySlug', 'getNewsArticleBySlug']);
+    expect(fns('/kategorie/muzi-a/hrac/jan-novak')).toEqual(['getCategoryBySlug', 'getPlayersByCategory']);
+    expect(fns('/novinky/clanek/x')).toEqual(['getNewsArticleBySlug']);
+    expect(routeOf('/novinky/clanek/x')!.index).toBeNull();
+    expect(fns('/partner/x')).toEqual(['getPartnerBySlug']);
   });
 
-  it('maps every record route to the records its page reads (same fn and cache URL)', async () => {
-    const fns = async (p: string) => (await recordsFor(p)).map((r) => [r.fn, r.url]);
-    expect(await fns('/kontakty')).toEqual([[RECORDS.page('kontakty').fn, RECORDS.page('kontakty').url]]);
-    expect(await fns('/kategorie/muzi-a/zapasy')).toEqual([[RECORDS.category('muzi-a').fn, RECORDS.category('muzi-a').url]]);
-    expect((await fns('/kategorie/muzi-a/clanek/x')).map(([fn]) => fn)).toEqual(['getCategoryBySlug', 'getNewsArticleBySlug']);
-    expect((await fns('/kategorie/muzi-a/hrac/jan-novak')).map(([fn]) => fn)).toEqual(['getCategoryBySlug', 'getPlayersByCategory']);
-    expect((await fns('/novinky/clanek/x')).map(([fn]) => fn)).toEqual(['getNewsArticleBySlug']);
-    expect((await fns('/partner/x')).map(([fn]) => fn)).toEqual(['getPartnerBySlug']);
-    expect(await fns('/kategorie/neni-to')).toEqual([]); // unknown category: the layout 404s
+  it('unknown CMS slugs and categories (the index says so) pass: the page 404s, no record load', async () => {
+    expect(await gate('/neexistuje')).toEqual({ status: 'pass' });
+    expect(await gate('/kategorie/neni-to')).toEqual({ status: 'pass' });
+    expect(findMany).not.toHaveBeenCalled();
   });
 });
 
@@ -126,7 +135,52 @@ describe('gate()', () => {
   it('the membership index unavailable and the record failing: 503 — it may exist, so never 404', async () => {
     findAll.mockRejectedValue(down());
     findMany.mockRejectedValue(down());
+    // the index answers null (Strapi failed: unknown), so the record is tried — and fails
     expect(await gate('/whatever-plausible')).toEqual({ status: 'unavailable', fn: 'getPageBySlug', reason: 'failed' });
+  });
+
+  it('a public file always passes — even with the index unavailable and Strapi failing (review BF-V1)', async () => {
+    findAll.mockRejectedValue(down());
+    findMany.mockRejectedValue(down());
+    for (const file of ['/logo.svg', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png', '/news-placeholder.jpg', '/player-placeholder.png']) {
+      expect(await gate(file)).toEqual({ status: 'pass' });
+    }
+    expect(findAll).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it('the deadline includes the index lookup: a hung index + a cold record → 503 by the deadline, not after 15 s (BF-V2)', async () => {
+    findAll.mockImplementation(hang);
+    findMany.mockImplementation(hang);
+    const started = performance.now();
+    expect(await gate('/kontakty', 50)).toEqual({ status: 'unavailable', fn: 'getPageSlugIndex', reason: 'timeout' });
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it('every record cached: pass without reading the index (nothing else to wait for)', async () => {
+    const page = RECORDS.page('kontakty');
+    present.add(`${page.fn}:${page.url}`);
+    findAll.mockImplementation(hang);
+    expect(await gate('/kontakty', 50)).toEqual({ status: 'pass' });
+    expect(findAll).not.toHaveBeenCalled();
+  });
+
+  it('a stalled Redis (no PING answer in time): pass at once, no further Redis or Strapi reads (BF-V4)', async () => {
+    redisAnswer = false;
+    const { hasEntry } = await import('@fotbal-fm/cache');
+    vi.mocked(hasEntry).mockClear();
+    const started = performance.now();
+    expect(await gate('/kontakty')).toEqual({ status: 'pass' });
+    expect(performance.now() - started).toBeLessThan(100);
+    expect(hasEntry).not.toHaveBeenCalled();
+    expect(findAll).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it('no Redis client at all (down): the gate still works on the no-Redis path — Strapi failing → 503', async () => {
+    redisAnswer = null;
+    strapi({ pages: async () => { throw down(); } });
+    expect(await gate('/kontakty')).toEqual({ status: 'unavailable', fn: 'getPageBySlug', reason: 'failed' });
   });
 
   it('an auth failure (401) is not "unavailable": pass, the page handles it (latch, 500, alert)', async () => {

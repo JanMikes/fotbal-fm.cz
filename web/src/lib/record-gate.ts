@@ -1,4 +1,4 @@
-import { hasEntry } from '@fotbal-fm/cache';
+import { hasEntry, redisResponds } from '@fotbal-fm/cache';
 import { RECORDS, getCategorySlugIndex, getPageSlugIndex, type RouteRecord } from '@/lib/strapi/data';
 import { isRecordUnavailableError } from '@/lib/strapi/record-unavailable';
 import { isPlausibleSlug } from '@/lib/slug';
@@ -8,28 +8,34 @@ import { isPlausibleSlug } from '@/lib/slug';
  * it, an article, a player, a partner — cannot render without its own record. When Strapi fails
  * (or answers slower than RECORD_WAIT_MS) and no copy of that record is cached, the route must
  * answer 503 "temporarily unavailable", never 404 (search engines drop a 404'd page) and never an
- * empty page. Next.js cannot set a 503 from a page, so the gate decides before the page renders:
+ * empty page. Next.js cannot set a 503 from a page, so the gate decides before the page renders,
+ * within ONE deadline (RECORD_WAIT_MS, the slug-index lookup included):
  *
- * - any cached copy of every record (fresh, soft-stale or invalidated: the page serves it) → pass,
- *   with no Strapi call and no refresh of its own (one Redis EXISTS per record);
- * - a cold record → load it now, through the same cache entry the page reads (RECORDS), so the
- *   page then finds it; Strapi failed, or no answer within RECORD_WAIT_MS → 503 (a load that is
+ * - every record cached (fresh, soft-stale or invalidated: the page serves it) → pass, with one
+ *   Redis EXISTS per record and nothing else (no index read, no Strapi call, no refresh);
+ * - a record cold → the membership index first: a slug it says does not exist → pass (the page
+ *   404s as before, and no Strapi query for scanner paths); then the cold records are loaded
+ *   through the same cache entries the page reads (RECORDS), so the page then finds them;
+ * - Strapi failed, or the index or a record not resolved by the deadline → 503 (a load that is
  *   only slow goes on and fills the cache for the retry);
- * - a slug that genuinely does not exist (membership index says unknown, or Strapi answers "no
- *   such record") → pass: the page answers 404 as before;
- * - anything else (auth failures, bugs) → pass: the page shows it as it always has.
+ * - a record Strapi says does not exist → pass (the page 404s); auth failures and bugs → pass (the
+ *   page shows them as it always has);
+ * - Redis stalled (no PING answer within REDIS_PROBE_MS) → pass at once: fail open rather than
+ *   spend 500 ms per Redis command on every gated request (review BF-V4).
  *
- * Nothing is stored about an unavailable record: the data cache's failure memo (10 s) is the only
- * memory of the failure, and the 503 response is `no-store`.
+ * Never gated: paths with a dot in any segment — public files (/logo.svg, also fetched by the
+ * image optimizer) and scanner paths; no record slug on prod has a dot (0 of 903, 2026-10-06; the
+ * proxy's matcher already skips dotted top-level paths, review BF-V1). Nothing is stored about an
+ * unavailable record: the data cache's failure memo (10 s) is the only memory of the failure, and
+ * the 503 response is `no-store`.
  */
 
 export const RECORD_WAIT_MS = 5000;
+export const REDIS_PROBE_MS = 300;
+const REDIS_VERDICT_MS = 1000; // a probe's answer is reused this long (at most one PING per second)
 
 /** Top-level app segments that are not CMS pages: the `[slug]` catch-all's siblings (a test keeps it equal to src/app). */
 export const STATIC_TOP_LEVEL = new Set(['a', 'api', 'kategorie', 'kdy-hrajeme', 'komponenty', 'novinky', 'partner', 'partneri']);
-
-/** Files the app serves at the top level (metadata routes); never CMS pages either. */
-export const FILE_ROUTES = new Set(['apple-icon.png', 'favicon.ico', 'manifest.webmanifest', 'robots.txt']);
 
 function decode(segment: string): string {
   try {
@@ -39,38 +45,46 @@ function decode(segment: string): string {
   }
 }
 
-/** The records a path cannot render without; [] when it is no record route or its slug cannot exist. */
-export async function recordsFor(pathname: string): Promise<RouteRecord[]> {
+/** A segment that can be a record slug: plausible and without a dot (public files, scanner paths). */
+function isRecordSlug(segment: string | undefined): segment is string {
+  return isPlausibleSlug(segment) && !segment.includes('.');
+}
+
+export interface Route {
+  /** The membership index that says whether the slug can exist, if the route has one. */
+  index: null | { name: 'getPageSlugIndex' | 'getCategorySlugIndex'; slug: string; read: () => Promise<string[] | null> };
+  records: RouteRecord[];
+}
+
+/** The record route a path is, with no I/O; null when it is none (or a slug that cannot be a record). */
+export function routeOf(pathname: string): Route | null {
   const parts = pathname.split('/').filter(Boolean).map(decode);
+  if (parts.some((part) => part.includes('.'))) return null;
 
   if (parts.length === 1) {
     const [slug] = parts;
-    if (STATIC_TOP_LEVEL.has(slug) || FILE_ROUTES.has(slug) || !isPlausibleSlug(slug)) return [];
-    const index = await getPageSlugIndex();
-    if (index && !index.includes(slug)) return []; // unknown: the page 404s (no Strapi call)
-    return [RECORDS.page(slug)]; // known — or the index is unavailable and we cannot tell
+    if (STATIC_TOP_LEVEL.has(slug) || !isRecordSlug(slug)) return null;
+    return { index: { name: 'getPageSlugIndex', slug, read: getPageSlugIndex }, records: [RECORDS.page(slug)] };
   }
 
   if (parts[0] === 'kategorie') {
     const [, category, sub, slug] = parts;
-    if (!isPlausibleSlug(category)) return [];
-    const index = await getCategorySlugIndex();
-    if (index && !index.includes(category)) return [];
+    if (!isRecordSlug(category)) return null;
     const records: RouteRecord[] = [RECORDS.category(category)];
-    if (parts.length === 4 && sub === 'clanek' && isPlausibleSlug(slug)) records.push(RECORDS.article(slug));
-    if (parts.length === 4 && sub === 'hrac' && isPlausibleSlug(slug)) records.push(RECORDS.roster(category));
-    return records;
+    if (parts.length === 4 && sub === 'clanek' && isRecordSlug(slug)) records.push(RECORDS.article(slug));
+    if (parts.length === 4 && sub === 'hrac' && isRecordSlug(slug)) records.push(RECORDS.roster(category));
+    return { index: { name: 'getCategorySlugIndex', slug: category, read: getCategorySlugIndex }, records };
   }
 
-  if (parts.length === 3 && parts[0] === 'novinky' && parts[1] === 'clanek' && isPlausibleSlug(parts[2])) {
-    return [RECORDS.article(parts[2])];
+  if (parts.length === 3 && parts[0] === 'novinky' && parts[1] === 'clanek' && isRecordSlug(parts[2])) {
+    return { index: null, records: [RECORDS.article(parts[2])] };
   }
 
-  if (parts.length === 2 && parts[0] === 'partner' && isPlausibleSlug(parts[1])) {
-    return [RECORDS.partner(parts[1])];
+  if (parts.length === 2 && parts[0] === 'partner' && isRecordSlug(parts[1])) {
+    return { index: null, records: [RECORDS.partner(parts[1])] };
   }
 
-  return [];
+  return null;
 }
 
 export type GateDecision =
@@ -79,9 +93,23 @@ export type GateDecision =
 
 const PASS: GateDecision = { status: 'pass' };
 
-/** Loads a cold record; settles as 'loaded', 'failed' (RecordUnavailableError) or 'other' (let the page handle it). */
-async function secure(record: RouteRecord): Promise<'present' | 'loaded' | 'failed' | 'other'> {
-  if ((await hasEntry(record.fn, record.url)) === true) return 'present';
+let redisVerdict: { at: number; stalled: boolean } | null = null;
+
+/** Redis connected but not answering → stalled (remembered for a second); no client at all → not stalled. */
+async function redisStalled(): Promise<boolean> {
+  if (redisVerdict && Date.now() - redisVerdict.at < REDIS_VERDICT_MS) return redisVerdict.stalled;
+  const stalled = (await redisResponds(REDIS_PROBE_MS)) === false;
+  redisVerdict = { at: Date.now(), stalled };
+  return stalled;
+}
+
+/** Tests only. */
+export function __resetGateState(): void {
+  redisVerdict = null;
+}
+
+/** Loads a cold record: 'loaded', 'failed' (RecordUnavailableError) or 'other' (let the page handle it). */
+async function load(record: RouteRecord): Promise<'loaded' | 'failed' | 'other'> {
   try {
     await record.read();
     return 'loaded';
@@ -91,25 +119,36 @@ async function secure(record: RouteRecord): Promise<'present' | 'loaded' | 'fail
 }
 
 export async function gate(pathname: string, waitMs = RECORD_WAIT_MS): Promise<GateDecision> {
-  let records: RouteRecord[];
-  try {
-    records = await recordsFor(pathname);
-  } catch {
-    return PASS; // the indexes never throw on a Strapi failure (they answer null); anything else is the page's
-  }
-  if (records.length === 0) return PASS;
+  const route = routeOf(pathname);
+  if (!route) return PASS;
+  if (await redisStalled()) return PASS;
 
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<'timeout'>((resolve) => {
+  const deadline = new Promise<'timeout'>((resolve) => {
     timer = setTimeout(() => resolve('timeout'), waitMs);
   });
-  // All records at once (secure() never rejects); one deadline for the whole gate.
-  const pending = records.map((record) => secure(record));
+  const withinDeadline = <T>(promise: Promise<T>) => Promise.race([promise, deadline]);
+
   try {
-    for (let i = 0; i < pending.length; i++) {
-      const outcome = await Promise.race([pending[i], timeout]);
-      if (outcome === 'timeout') return { status: 'unavailable', fn: records[i].fn, reason: 'timeout' };
-      if (outcome === 'failed') return { status: 'unavailable', fn: records[i].fn, reason: 'failed' };
+    // 1. Records already cached: the page can render them whatever the index says.
+    const present = await withinDeadline(Promise.all(route.records.map((r) => hasEntry(r.fn, r.url))));
+    if (present === 'timeout') return PASS; // Redis too slow to tell: fail open
+    const cold = route.records.filter((_, i) => present[i] !== true);
+    if (cold.length === 0) return PASS;
+
+    // 2. The membership index: a slug that cannot exist is the page's 404, not ours to load.
+    if (route.index) {
+      const index = await withinDeadline(route.index.read().catch(() => null));
+      if (index === 'timeout') return { status: 'unavailable', fn: route.index.name, reason: 'timeout' }; // it may exist
+      if (index && !index.includes(route.index.slug)) return PASS;
+    }
+
+    // 3. Load the cold records, all at once, within what is left of the deadline.
+    const outcomes = cold.map((record) => load(record));
+    for (let i = 0; i < cold.length; i++) {
+      const outcome = await withinDeadline(outcomes[i]);
+      if (outcome === 'timeout') return { status: 'unavailable', fn: cold[i].fn, reason: 'timeout' };
+      if (outcome === 'failed') return { status: 'unavailable', fn: cold[i].fn, reason: 'failed' };
     }
     return PASS;
   } finally {

@@ -20,6 +20,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   // The record routes only: CMS pages (the top-level catch-all), categories and everything under
-  // them, articles, partners. Static files, /_next, /api and the readiness latch never get here.
-  matcher: ['/:slug', '/kategorie/:category/:path*', '/novinky/clanek/:slug', '/partner/:slug'],
+  // them, articles, partners. Never /_next, /api, the readiness latch — nor public files: the
+  // catch-all takes only dot-free segments, so /logo.svg, /icon-192.png, … (also fetched by the
+  // image optimizer) never pay the proxy and can never be 503'd (review BF-V1; a test checks
+  // every file in web/public against these matchers, compiled as Next compiles them).
+  matcher: ['/:slug([^/.]+)', '/kategorie/:category/:path*', '/novinky/clanek/:slug', '/partner/:slug'],
 };

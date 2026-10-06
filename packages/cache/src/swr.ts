@@ -348,6 +348,26 @@ export async function hasEntry(fn: string, url: string): Promise<boolean | null>
 }
 
 /**
+ * Whether Redis answers a PING within `timeoutMs`: true; false when it is connected but does not
+ * answer in time (stalled) or the PING fails; null when there is no client (no REDIS_URL, or not
+ * connected — commands then fail at once, nothing to wait for). For callers that must not spend
+ * the per-command 500 ms timeout several times over on a stalled Redis (the web's record gate).
+ */
+export async function redisResponds(timeoutMs: number): Promise<boolean | null> {
+  const redis = await getRedisClient().catch(() => null);
+  if (!redis) return null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<false>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
+  });
+  try {
+    return await Promise.race([redis.ping().then(() => true, () => false), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Bumps tag generations now (the transitional webhook endpoint and the api syncs' flush). Returns
  * false when Redis is unavailable — the caller logs it; Strapi's transport bumps the same writes.
  */
