@@ -47,7 +47,7 @@ import { mapPlayer } from './mappers/player';
 import { mapPlayerHighlight } from './mappers/player-highlight';
 import { mapStanding } from './mappers/standing';
 import { mapMedia } from './mappers/shared';
-import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPartnerPopulate } from './populates';
+import { buildNavigationPopulate, buildFooterPopulate, buildPagePopulate, buildPagePopulateFor, buildPartnerPopulate } from './populates';
 import { cache } from 'react';
 import { cached, TAGS, type Tag } from '@fotbal-fm/cache';
 import { strapiUrl } from '@fotbal-fm/strapi-client';
@@ -428,12 +428,16 @@ export type QueryName = keyof typeof QUERIES;
 // onError: what a section renders when Strapi fails upstream on a miss (5xx, timeout, network)
 // and no stale copy exists. Never stored. An auth failure (401/403) never gets it (P0-V11).
 
-function readMany<R>(fn: QueryName, q: Query): Promise<{ data: R[]; total: number }> {
+function readMany<R>(
+  fn: QueryName,
+  q: Query,
+  load: () => Promise<{ data: R[]; total: number }> = () => getStrapiClient().findMany<R>(q.contentType, q.options),
+): Promise<{ data: R[]; total: number }> {
   return cached({
     fn,
-    url: strapiUrl(q.contentType, q.options),
+    url: strapiUrl(q.contentType, q.options), // the key is always the declared query's URL
     tags: q.tags,
-    load: () => getStrapiClient().findMany<R>(q.contentType, q.options),
+    load,
     onError: () => ({ data: [], total: 0 }),
   });
 }
@@ -630,9 +634,34 @@ export async function getNavigationPages(): Promise<{ title: string; slug: strin
 }
 
 export const getPageBySlug = cache(async (slug: string): Promise<Page | null> => {
-  const { data } = await readMany<StrapiRawPage>('getPageBySlug', QUERIES.getPageBySlug(slug));
+  const q = QUERIES.getPageBySlug(slug);
+  const { data } = await readMany<StrapiRawPage>('getPageBySlug', q, () => findPageWithItsComponents(q));
   return data.length > 0 ? mapPage(data[0]) : null;
 });
+
+type ComponentList = { __component: string }[] | null | undefined;
+
+/**
+ * Two-step page load: the page's dynamic-zone component types first (a shallow populate, ~16 ms
+ * on prod), then the page populated for exactly those types (~45 ms) instead of all 50 fragments
+ * (~400 ms of Strapi CPU; five concurrent page refreshes took 1.5-2.2 s and blew the 1.5 s budget
+ * after every `page` bump). Same answer byte for byte, same cache key (the declared query's URL),
+ * same tags; a write between the two steps bumps `page` and the next read refreshes again.
+ */
+async function findPageWithItsComponents(q: Query): Promise<{ data: StrapiRawPage[]; total: number }> {
+  const client = getStrapiClient();
+  const shape = await client.findMany<{ content?: ComponentList; sidebar?: ComponentList }>(q.contentType, {
+    filters: q.options.filters,
+    fields: ['slug'],
+    populate: { content: true, sidebar: true },
+    pagination: { pageSize: 1 },
+  });
+  const page = shape.data[0];
+  if (!page) return { data: [], total: shape.total }; // no such page: the full query's answer too
+  const types = (list: ComponentList) => [...new Set((list ?? []).map((c) => c.__component))];
+  const populate = buildPagePopulateFor({ content: types(page.content), sidebar: types(page.sidebar) });
+  return client.findMany<StrapiRawPage>(q.contentType, populate ? { ...q.options, populate } : q.options);
+}
 
 /**
  * Every CMS page slug: the membership index the `[slug]` catch-all checks before it asks Strapi

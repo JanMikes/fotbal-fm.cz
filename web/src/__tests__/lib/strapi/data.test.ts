@@ -22,7 +22,9 @@ vi.mock('../../../lib/strapi/client', () => ({
 const { __resetSwrState } = await import('@fotbal-fm/cache');
 const { StrapiError } = await vi.importActual<typeof import('../../../lib/strapi/client')>('../../../lib/strapi/client');
 
+const { strapiUrl } = await import('@fotbal-fm/strapi-client');
 const {
+  QUERIES,
   getCategories,
   getCategoryBySlug,
   getNewsArticlesByCategory,
@@ -395,9 +397,14 @@ describe('data layer', () => {
     });
   });
 
-  describe('getPageBySlug', () => {
+  describe('getPageBySlug (two-step: component types, then the page populated for exactly those)', () => {
+    const shape = (content: string[], sidebar: string[]) => ({
+      data: [{ id: 1, documentId: 'page-1', slug: 'x', content: content.map((t) => ({ __component: t })), sidebar: sidebar.map((t) => ({ __component: t })) }],
+      total: 1,
+    });
+
     it('returns mapped page when found', async () => {
-      mockFindMany.mockResolvedValueOnce({
+      mockFindMany.mockResolvedValueOnce(shape(['components.text'], [])).mockResolvedValueOnce({
         data: [
           {
             id: 1,
@@ -423,30 +430,82 @@ describe('data layer', () => {
       expect(result!.content[0].__component).toBe('components.text');
     });
 
-    it('returns null when not found', async () => {
+    it('returns null when not found — after the first, shallow step only', async () => {
       mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
 
       const result = await getPageBySlug('nonexistent');
       expect(result).toBeNull();
+      expect(mockFindMany).toHaveBeenCalledTimes(1);
     });
 
-    it('passes slug filter and populate', async () => {
-      mockFindMany.mockResolvedValueOnce({ data: [], total: 0 });
+    it('step 1 asks only for the component types; step 2 populates exactly those, the rest of the query unchanged', async () => {
+      mockFindMany.mockResolvedValueOnce(shape(['components.timeline', 'components.text', 'components.text'], ['components.heading'])).mockResolvedValueOnce({ data: [], total: 0 });
 
       await getPageBySlug('test');
 
-      expect(mockFindMany).toHaveBeenCalledWith('pages', expect.objectContaining({
+      expect(mockFindMany).toHaveBeenNthCalledWith(1, 'pages', {
         filters: { slug: { $eq: 'test' } },
+        fields: ['slug'],
+        populate: { content: true, sidebar: true },
         pagination: { pageSize: 1 },
-      }));
-      // Should include populate with content and sidebar
-      const callArgs = mockFindMany.mock.calls[0][1];
-      expect(callArgs.populate).toHaveProperty('content');
-      expect(callArgs.populate).toHaveProperty('sidebar');
+      });
+      const declared = QUERIES.getPageBySlug('test').options;
+      const step2 = mockFindMany.mock.calls[1][1];
+      expect(step2.filters).toEqual(declared.filters);
+      expect(step2.pagination).toEqual(declared.pagination);
+      expect(Object.keys(step2.populate.content.on)).toEqual(['components.text', 'components.timeline']); // full-populate order
+      expect(Object.keys(step2.populate.sidebar.on)).toEqual(['components.heading']);
+      const full = declared.populate as { content: { on: Record<string, unknown> }; parent: unknown };
+      expect(step2.populate.content.on['components.timeline']).toEqual(full.content.on['components.timeline']);
+      expect(step2.populate.parent).toEqual(full.parent);
+      expect(Object.keys(step2.populate)).toEqual(['content', 'sidebar', 'parent']); // same order as the full populate
+    });
+
+    it('an empty zone is populated shallowly (`true`) in its own position, so the answer keeps `zone: []`', async () => {
+      mockFindMany.mockResolvedValueOnce(shape(['components.text'], [])).mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPageBySlug('test');
+
+      const step2 = mockFindMany.mock.calls[1][1];
+      expect(step2.populate.sidebar).toBe(true);
+      expect(Object.keys(step2.populate)).toEqual(['content', 'sidebar', 'parent']);
+    });
+
+    it('serializes to the full query with only the unused fragments removed', async () => {
+      mockFindMany.mockResolvedValueOnce(shape(['components.text'], ['components.heading'])).mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPageBySlug('test');
+
+      const declared = new URLSearchParams(strapiUrl('pages', QUERIES.getPageBySlug('test').options).split('?')[1]);
+      const narrowed = new URLSearchParams(strapiUrl('pages', mockFindMany.mock.calls[1][1]).split('?')[1]);
+      const kept = [...declared].filter(([k]) => {
+        const m = k.match(/^populate\[(content|sidebar)\]\[on\]\[([^\]]+)\]/);
+        return !m || (m[1] === 'content' ? m[2] === 'components.text' : m[2] === 'components.heading');
+      });
+      expect([...narrowed]).toEqual(kept);
+      expect(narrowed.toString().length).toBeLessThan(declared.toString().length / 5);
+    });
+
+    it('a component type the web has no fragment for: step 2 uses the full populate (same answer by construction)', async () => {
+      mockFindMany.mockResolvedValueOnce(shape(['components.text', 'components.brand-new'], [])).mockResolvedValueOnce({ data: [], total: 0 });
+
+      await getPageBySlug('test');
+
+      expect(mockFindMany.mock.calls[1][1]).toEqual(QUERIES.getPageBySlug('test').options);
+    });
+
+    it('the cache key stays the declared (full) query: one entry per page, as before', async () => {
+      const keys: string[] = [];
+      const spy = vi.spyOn(globalThis.crypto.subtle, 'digest');
+      mockFindMany.mockResolvedValueOnce(shape(['components.text'], [])).mockResolvedValueOnce({ data: [], total: 0 });
+      await getPageBySlug('keyed');
+      for (const [, bytes] of spy.mock.calls) keys.push(new TextDecoder().decode(bytes as Uint8Array));
+      spy.mockRestore();
+      expect(keys).toContain(strapiUrl('pages', QUERIES.getPageBySlug('keyed').options));
     });
 
     it('maps page with sidebar components', async () => {
-      mockFindMany.mockResolvedValueOnce({
+      mockFindMany.mockResolvedValueOnce(shape(['components.text'], ['components.heading'])).mockResolvedValueOnce({
         data: [
           {
             id: 1,
