@@ -73,11 +73,21 @@ export function cacheMode(): 'on' | 'off' {
 
 const flights = new Map<string, Promise<unknown>>();
 const recentFailures = new Map<string, number>(); // key -> failed at
+// Keys whose foreground refresh already blew the budget and is still running (C-V3): later readers
+// of the invalidated entry get the stale copy at once instead of each waiting the budget again.
+// An entry lives only as long as its flight (≤ the Strapi client's 10 s timeout).
+const slowRefreshes = new Set<string>();
 const noRedisMemo = new Map<string, { v: unknown; at: number }>();
 let tagMemo: { at: number; gens: Gens } | null = null;
 
 function count(fn: string, result: CacheResult): void {
   metrics.cacheRequest(fn, result);
+}
+
+/** The failure memo is open for `key`: its last load failed upstream less than FAILURE_MEMO_MS ago. */
+function failedRecently(key: string): boolean {
+  const failedAt = recentFailures.get(key);
+  return failedAt !== undefined && Date.now() - failedAt < FAILURE_MEMO_MS;
 }
 
 function rememberFailure(key: string): void {
@@ -282,11 +292,26 @@ export async function cached<T>(o: CachedOptions<T>): Promise<T> {
 
   if (isInvalidated(entry, tags, g)) {
     count(o.fn, 'invalidated');
+    // C-V3: Strapi failed this key moments ago, or a refresh of it is already running past the
+    // budget (Strapi hung or slow) — serve the stale copy now instead of every reader waiting the
+    // budget again. No new load while the memo is open; the first read after it expires refreshes
+    // in the foreground again (the half-open probe, as on a miss).
+    if (failedRecently(key)) {
+      count(o.fn, 'stale_if_error');
+      return entry.v;
+    }
+    if (slowRefreshes.has(key)) {
+      count(o.fn, 'budget_exceeded');
+      return entry.v;
+    }
     const pending = refresh();
     const outcome = await within(pending, FOREGROUND_BUDGET_MS); // V10: Strapi latency is capped for users
     if (outcome === 'timeout') {
       count(o.fn, 'budget_exceeded');
       background(pending, o.fn);
+      slowRefreshes.add(key);
+      const settled = () => slowRefreshes.delete(key);
+      pending.then(settled, settled);
       return entry.v;
     }
     if ('value' in outcome) return outcome.value;
@@ -330,11 +355,12 @@ export async function bumpTags(tags: readonly string[]): Promise<boolean> {
 export function __resetSwrState(): void {
   flights.clear();
   recentFailures.clear();
+  slowRefreshes.clear();
   noRedisMemo.clear();
   tagMemo = null;
 }
 
 /** Tests only: sizes of the in-process maps. */
-export function __swrStateSize(): { flights: number; recentFailures: number; noRedisMemo: number } {
-  return { flights: flights.size, recentFailures: recentFailures.size, noRedisMemo: noRedisMemo.size };
+export function __swrStateSize(): { flights: number; recentFailures: number; slowRefreshes: number; noRedisMemo: number } {
+  return { flights: flights.size, recentFailures: recentFailures.size, slowRefreshes: slowRefreshes.size, noRedisMemo: noRedisMemo.size };
 }

@@ -235,6 +235,56 @@ describe('cached() — failures', () => {
     expect(results.at(-1)).toBe('stale_if_error');
   });
 
+  it('C-V3: Strapi hung — only the first reader of an invalidated entry waits the budget; the rest get the stale copy at once, also while the memo is open after the refresh failed', async () => {
+    await read(async () => 'v1');
+    bump('match');
+    const hung = deferred<string>();
+    const load = vi.fn(() => hung.promise);
+
+    // the first reader waits the budget (nothing is known yet), then gets the stale copy
+    let started = performance.now();
+    expect(await read(load)).toBe('v1');
+    expect(performance.now() - started).toBeGreaterThanOrEqual(FOREGROUND_BUDGET_MS - 50);
+
+    // while that refresh is still running, nobody waits for it again and no second load starts
+    started = performance.now();
+    for (let i = 0; i < 20; i++) expect(await read(load)).toBe('v1');
+    expect(performance.now() - started).toBeLessThan(200);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(__swrStateSize().slowRefreshes).toBe(1);
+
+    // the Strapi client gives up (its 10 s timeout): the failure memo opens — still stale at once, no load
+    hung.reject(upstream());
+    await vi.waitFor(() => expect(__swrStateSize().slowRefreshes).toBe(0));
+    results.length = 0;
+    started = performance.now();
+    for (let i = 0; i < 20; i++) expect(await read(load)).toBe('v1');
+    expect(performance.now() - started).toBeLessThan(200);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(new Set(results)).toEqual(new Set(['invalidated', 'stale_if_error']));
+
+    // the memo expires: the next read is the probe and refreshes in the foreground
+    vi.setSystemTime(Date.now() + FAILURE_MEMO_MS);
+    expect(await read(async () => 'v2')).toBe('v2');
+    expect((await stored()).v).toBe('v2');
+    expect(__swrStateSize().recentFailures).toBe(0);
+  });
+
+  it('C-V3: a slow refresh that finishes after the budget clears its mark and stores the fresh value (no memo)', async () => {
+    await read(async () => 'v1');
+    bump('match');
+    const slow = deferred<string>();
+    expect(await read(() => slow.promise)).toBe('v1');
+    expect(await read(async () => 'never called')).toBe('v1'); // the slow refresh is still running
+
+    slow.resolve('v2');
+    await vi.waitFor(() => expect(__swrStateSize().slowRefreshes).toBe(0));
+    results.length = 0;
+    expect(await read(async () => 'never called')).toBe('v2');
+    expect(results).toEqual(['hit']);
+    expect(__swrStateSize().recentFailures).toBe(0);
+  });
+
   it('a miss whose load fails upstream returns onError, writes nothing, and is memoized for 10 s (V31)', async () => {
     const load = vi.fn(async (): Promise<string> => { throw upstream(); });
 
