@@ -289,6 +289,29 @@ describe('cached() — failures', () => {
     expect((await stored()).v).toBe('v1');
   });
 
+  it('a cold key waits for a slow Strapi (no budget on a miss): the value, never the fallback', async () => {
+    const slow = () => new Promise<string>((resolve) => setTimeout(() => resolve('v1'), FOREGROUND_BUDGET_MS + 300));
+    expect(await read(slow, { onError: () => 'empty' })).toBe('v1');
+    expect(results).not.toContain('fallback');
+  });
+
+  it('budget-fix: after a failure, the half-open probe of a cold key waits for a SLOW Strapi — readers get the value, not the fallback (a 404 for a page record)', async () => {
+    const failing = vi.fn(async (): Promise<string> => { throw upstream(); });
+    expect(await read(failing, { onError: () => 'empty' })).toBe('empty'); // a real failure: fallback, memo open
+    expect(await read(failing, { onError: () => 'empty' })).toBe('empty'); // open: at once, no load
+    expect(failing).toHaveBeenCalledTimes(1);
+
+    vi.setSystemTime(Date.now() + FAILURE_MEMO_MS); // half-open
+    results.length = 0;
+    const slow = vi.fn(() => new Promise<string>((resolve) => setTimeout(() => resolve('v1'), FOREGROUND_BUDGET_MS + 300)));
+    const readers = await Promise.all([read(slow, { onError: () => 'empty' }), read(slow, { onError: () => 'empty' })]);
+    expect(readers).toEqual(['v1', 'v1']); // both waited for the one probe
+    expect(slow).toHaveBeenCalledTimes(1);
+    expect(results).not.toContain('fallback');
+    expect((await stored()).v).toBe('v1');
+    expect(__swrStateSize().recentFailures).toBe(0); // the success closed the memo
+  });
+
   it('without onError an upstream failure on a miss propagates', async () => {
     await expect(read(async () => { throw upstream(); })).rejects.toBeInstanceOf(UpstreamError);
   });

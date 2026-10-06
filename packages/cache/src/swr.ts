@@ -197,20 +197,19 @@ function background(promise: Promise<unknown>, fn: string): void {
   promise.catch(() => count(fn, 'refresh_error'));
 }
 
-/** A miss: wait for the load; upstream failures → `onError` (behind the failure memo), the rest propagates. */
+/**
+ * A miss: there is no copy to serve instead, so the reader waits for the load — never a budget.
+ * A slow-but-answering Strapi gives a slow but correct page, never the fallback (an empty section,
+ * or a 404 for a page/category record). Only an upstream FAILURE (5xx, the client's 10 s timeout,
+ * network) gives `onError`, and for FAILURE_MEMO_MS after it the key answers `onError` at once
+ * (open). After that the next read is the probe (half-open): it waits for the load like any miss —
+ * single-flighted, so concurrent readers share it — and a success clears the memo.
+ * Non-upstream errors (bugs, auth, framework signals) propagate.
+ */
 async function missLoad<T>(failureKey: string, o: CachedOptions<T>, start: () => Promise<T>): Promise<T> {
-  const failedAt = recentFailures.get(failureKey);
-  if (o.onError && failedAt !== undefined) {
-    if (Date.now() - failedAt < FAILURE_MEMO_MS) {
-      count(o.fn, 'fallback');
-      return o.onError(); // open: Strapi failed this key moments ago, don't wait for it again
-    }
-    // half-open: one probe; nobody waits for it longer than the foreground budget
-    const outcome = await within(start(), FOREGROUND_BUDGET_MS);
-    if (outcome !== 'timeout' && 'value' in outcome) return outcome.value;
-    if (outcome !== 'timeout' && !isUpstreamError(outcome.error)) throw outcome.error;
+  if (o.onError && failedRecently(failureKey)) {
     count(o.fn, 'fallback');
-    return o.onError();
+    return o.onError(); // open: Strapi failed this key moments ago, don't wait for it again
   }
   try {
     return await start();
