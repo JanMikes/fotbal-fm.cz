@@ -19,7 +19,8 @@ vi.mock('../../../lib/strapi/client', () => ({
   }),
 }));
 
-const { __resetSwrState } = await import('@fotbal-fm/cache');
+const { __resetSwrState, __swrStateSize } = await import('@fotbal-fm/cache');
+const { RecordUnavailableError } = await import('../../../lib/strapi/record-unavailable');
 const { StrapiError } = await vi.importActual<typeof import('../../../lib/strapi/client')>('../../../lib/strapi/client');
 
 const { strapiUrl } = await import('@fotbal-fm/strapi-client');
@@ -764,12 +765,10 @@ describe('data layer', () => {
 
     it.each([
       ['getCategories', () => getCategories(), []],
-      ['getCategoryBySlug', () => getCategoryBySlug('muzi'), null],
       ['getCategoryGroups', () => getCategoryGroups(), []],
       ['getNewsArticlesByCategory', () => getNewsArticlesByCategory('muzi'), { articles: [], total: 0 }],
       ['getAllNewsArticles', () => getAllNewsArticles(), { articles: [], total: 0 }],
       ['getNewsArticleTypes', () => getNewsArticleTypes(), []],
-      ['getNewsArticleBySlug', () => getNewsArticleBySlug('x'), null],
       ['getUpcomingMatches', () => getUpcomingMatches('muzi'), []],
       ['getFinishedMatches', () => getFinishedMatches('muzi'), []],
       ['getAllMatchesByCategory', () => getAllMatchesByCategory('muzi'), []],
@@ -778,19 +777,40 @@ describe('data layer', () => {
       ['getNavigation', () => getNavigation(), []],
       ['getFooter', () => getFooter(), null],
       ['getNavigationPages', () => getNavigationPages(), []],
-      ['getPageBySlug', () => getPageBySlug('o-klubu'), null],
       ['getStandingsByCategory', () => getStandingsByCategory('muzi'), []],
       ['getCategoryWithHeroBySlug', () => getCategoryWithHeroBySlug('muzi'), null],
       ['getUpcomingMatch', () => getUpcomingMatch('muzi'), null],
       ['getLastResult', () => getLastResult('muzi'), null],
       ['getPartners', () => getPartners(), []],
-      ['getPartnerBySlug', () => getPartnerBySlug('p'), null],
       ['getPlayerHighlightsByCategory', () => getPlayerHighlightsByCategory('muzi'), []],
       ['getDeepLinkByCode', () => getDeepLinkByCode('7K3M9PQ2'), null],
       ['getPageSlugIndex', () => getPageSlugIndex(), null],
       ['getCategorySlugIndex', () => getCategorySlugIndex(), null],
     ] as const)('%s renders its empty fallback instead of throwing', async (_name, call, expected) => {
       await expect((call as () => Promise<unknown>)()).resolves.toEqual(expected);
+    });
+
+    it.each([
+      ['getPageBySlug', () => getPageBySlug('o-klubu')],
+      ['getCategoryBySlug', () => getCategoryBySlug('muzi')],
+      ['getNewsArticleBySlug', () => getNewsArticleBySlug('x')],
+      ['getPartnerBySlug', () => getPartnerBySlug('p')],
+      ['getPlayerByCategoryAndSlug', () => getPlayerByCategoryAndSlug('muzi', 'jan-novak')],
+    ] as const)('%s — a route record — throws RecordUnavailableError: never null, which would 404 a page that exists', async (_name, call) => {
+      await expect((call as () => Promise<unknown>)()).rejects.toBeInstanceOf(RecordUnavailableError);
+    });
+
+    it('a record keeps failing at once for the failure memo (10 s) without asking Strapi again; nothing is stored', async () => {
+      await expect(getPageBySlug('memo')).rejects.toBeInstanceOf(RecordUnavailableError);
+      const calls = mockFindMany.mock.calls.length;
+      await expect(getPageBySlug('memo')).rejects.toBeInstanceOf(RecordUnavailableError);
+      expect(mockFindMany.mock.calls.length).toBe(calls);
+      expect(__swrStateSize().noRedisMemo).toBe(0);
+    });
+
+    it('the player roster stays an empty section on the category page, but is the player page\'s record', async () => {
+      expect(await getPlayersByCategory('muzi')).toEqual([]);
+      await expect(getPlayerByCategoryAndSlug('muzi', 'jan-novak')).rejects.toBeInstanceOf(RecordUnavailableError);
     });
 
     it('getAvailableSeasons falls back to the current season', async () => {

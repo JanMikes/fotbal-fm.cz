@@ -1,5 +1,6 @@
 export {
   cached,
+  hasEntry,
   bumpTags,
   entryKey,
   cacheMode,

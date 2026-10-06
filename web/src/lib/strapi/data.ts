@@ -34,6 +34,7 @@ import type {
   StrapiRawStanding,
 } from './types';
 import { getStrapiClient } from './client';
+import { RecordUnavailableError } from './record-unavailable';
 import { mapCategory } from './mappers/category';
 import { mapCategoryGroup } from './mappers/category-group';
 import { mapDeepLink } from './mappers/deep-link';
@@ -427,18 +428,30 @@ export type QueryName = keyof typeof QUERIES;
 //
 // onError: what a section renders when Strapi fails upstream on a miss (5xx, timeout, network)
 // and no stale copy exists. Never stored. An auth failure (401/403) never gets it (P0-V11).
+// A route's own RECORD never gets an empty answer either: it throws RecordUnavailableError,
+// which the proxy's record gate turns into a 503 page (an empty answer would 404 it).
 
-function readMany<R>(
-  fn: QueryName,
-  q: Query,
-  load: () => Promise<{ data: R[]; total: number }> = () => getStrapiClient().findMany<R>(q.contentType, q.options),
-): Promise<{ data: R[]; total: number }> {
+interface ReadOptions<R> {
+  /** How to load it; defaults to the declared query. The cache key is always the declared query's URL. */
+  load?: () => Promise<{ data: R[]; total: number }>;
+  /**
+   * A route's own record: on an upstream failure with no cached copy, throw RecordUnavailableError
+   * (the proxy's gate answers 503) instead of the empty answer — which would 404 a page that exists.
+   */
+  record?: boolean;
+}
+
+function readMany<R>(fn: QueryName, q: Query, { load, record = false }: ReadOptions<R> = {}): Promise<{ data: R[]; total: number }> {
   return cached({
     fn,
-    url: strapiUrl(q.contentType, q.options), // the key is always the declared query's URL
+    url: strapiUrl(q.contentType, q.options),
     tags: q.tags,
-    load,
-    onError: () => ({ data: [], total: 0 }),
+    load: load ?? (() => getStrapiClient().findMany<R>(q.contentType, q.options)),
+    onError: record
+      ? () => {
+          throw new RecordUnavailableError(fn);
+        }
+      : () => ({ data: [], total: 0 }),
   });
 }
 
@@ -463,6 +476,40 @@ function readSingle<R>(fn: QueryName, q: Query): Promise<R | null> {
   });
 }
 
+// --- route records ---------------------------------------------------------------------------
+//
+// The record each record route cannot render without. The data functions below read them through
+// these, and the proxy's record gate (src/proxy.ts) secures the same (fn, URL, load) before the
+// route renders — so a cold record the gate loads is exactly the cache entry the page then reads.
+
+export interface RouteRecord {
+  fn: QueryName;
+  /** The cache entry's URL (the declared query). */
+  url: string;
+  /** Reads it through the data cache; RecordUnavailableError when Strapi fails and no copy exists. */
+  read: () => Promise<{ data: unknown[]; total: number }>;
+}
+
+function routeRecord<R>(fn: QueryName, q: Query, load?: () => Promise<{ data: R[]; total: number }>) {
+  return {
+    fn,
+    url: strapiUrl(q.contentType, q.options),
+    read: () => readMany<R>(fn, q, { load, record: true }),
+  };
+}
+
+export const RECORDS = {
+  page: (slug: string) => {
+    const q = QUERIES.getPageBySlug(slug);
+    return routeRecord<StrapiRawPage>('getPageBySlug', q, () => findPageWithItsComponents(q));
+  },
+  category: (slug: string) => routeRecord<StrapiRawCategory>('getCategoryBySlug', QUERIES.getCategoryBySlug(slug)),
+  article: (slug: string) => routeRecord<StrapiRawNewsArticle>('getNewsArticleBySlug', QUERIES.getNewsArticleBySlug(slug)),
+  partner: (slug: string) => routeRecord<StrapiRawPartner>('getPartnerBySlug', QUERIES.getPartnerBySlug(slug)),
+  /** A player page's record is the category roster it is found in. */
+  roster: (categorySlug: string) => routeRecord<StrapiRawPlayer>('getPlayersByCategory', QUERIES.getPlayersByCategory(categorySlug)),
+} satisfies Record<string, (slug: string) => RouteRecord>;
+
 // --- the data functions -----------------------------------------------------------------------
 
 export async function getCategories(): Promise<Category[]> {
@@ -474,7 +521,7 @@ export async function getCategories(): Promise<Category[]> {
 // call them with the same slug, and cache() turns that into one lookup per request.
 
 export const getCategoryBySlug = cache(async (slug: string): Promise<Category | null> => {
-  const { data } = await readMany<StrapiRawCategory>('getCategoryBySlug', QUERIES.getCategoryBySlug(slug));
+  const { data } = await RECORDS.category(slug).read();
   return data.length > 0 ? mapCategory(data[0]) : null;
 });
 
@@ -527,7 +574,7 @@ export async function getNewsArticleTypes(): Promise<NewsArticleType[]> {
 }
 
 export const getNewsArticleBySlug = cache(async (slug: string): Promise<NewsArticle | null> => {
-  const { data } = await readMany<StrapiRawNewsArticle>('getNewsArticleBySlug', QUERIES.getNewsArticleBySlug(slug));
+  const { data } = await RECORDS.article(slug).read();
   return data.length > 0 ? mapNewsArticle(data[0]) : null;
 });
 
@@ -599,7 +646,14 @@ export async function getAvailableSeasons(): Promise<number[]> {
 }
 
 export async function getPlayersByCategory(categorySlug: string): Promise<Player[]> {
-  const { data } = await readMany<StrapiRawPlayer>('getPlayersByCategory', QUERIES.getPlayersByCategory(categorySlug));
+  return playersByCategory(categorySlug, false);
+}
+
+/** The roster; as the player page's record (`record`), a failure is RecordUnavailableError, not "no players". */
+async function playersByCategory(categorySlug: string, record: boolean): Promise<Player[]> {
+  const { data } = record
+    ? await RECORDS.roster(categorySlug).read()
+    : await readMany<StrapiRawPlayer>('getPlayersByCategory', QUERIES.getPlayersByCategory(categorySlug));
   const players = data.map(mapPlayer);
   const slugCounts = new Map<string, number>();
   for (const player of players) {
@@ -614,7 +668,7 @@ export async function getPlayersByCategory(categorySlug: string): Promise<Player
 }
 
 export async function getPlayerByCategoryAndSlug(categorySlug: string, playerSlug: string): Promise<Player | null> {
-  const players = await getPlayersByCategory(categorySlug);
+  const players = await playersByCategory(categorySlug, true);
   return players.find((p) => p.slug === playerSlug) ?? null;
 }
 
@@ -634,8 +688,7 @@ export async function getNavigationPages(): Promise<{ title: string; slug: strin
 }
 
 export const getPageBySlug = cache(async (slug: string): Promise<Page | null> => {
-  const q = QUERIES.getPageBySlug(slug);
-  const { data } = await readMany<StrapiRawPage>('getPageBySlug', q, () => findPageWithItsComponents(q));
+  const { data } = await RECORDS.page(slug).read();
   return data.length > 0 ? mapPage(data[0]) : null;
 });
 
@@ -723,7 +776,7 @@ export async function getPartners(): Promise<Partner[]> {
 }
 
 export const getPartnerBySlug = cache(async (slug: string): Promise<PartnerDetail | null> => {
-  const { data } = await readMany<StrapiRawPartner>('getPartnerBySlug', QUERIES.getPartnerBySlug(slug));
+  const { data } = await RECORDS.partner(slug).read();
   return data.length > 0 ? mapPartnerDetail(data[0]) : null;
 });
 

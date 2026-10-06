@@ -13,6 +13,9 @@ class FakeRedis {
     this.strings.set(key, { value, ex: ttl });
     return 'OK';
   }
+  async exists(key: string) {
+    return this.strings.has(key) ? 1 : 0;
+  }
   async hgetall(key: string) {
     return Object.fromEntries(this.hashes.get(key) ?? []);
   }
@@ -42,7 +45,7 @@ let redisUp = true;
 vi.mock('../redis', () => ({ getRedisClient: vi.fn(async () => (redisUp ? fake : null)) }));
 
 const swr = await import('../swr');
-const { cached, bumpTags, entryKey, TAGVER, FOREGROUND_BUDGET_MS, FAILURE_MEMO_MS, NO_REDIS_MEMO_MS, __resetSwrState, __swrStateSize } = swr;
+const { cached, hasEntry, bumpTags, entryKey, TAGVER, FOREGROUND_BUDGET_MS, FAILURE_MEMO_MS, NO_REDIS_MEMO_MS, __resetSwrState, __swrStateSize } = swr;
 const { UpstreamError, UpstreamAuthError } = await import('../errors');
 const { setMetricsSink } = await import('../metrics');
 
@@ -369,6 +372,24 @@ describe('cached() — Redis unavailable', () => {
   it('and still falls back on an upstream failure', async () => {
     redisUp = false;
     expect(await read(async () => { throw new UpstreamError('x'); }, { onError: () => 'empty' })).toBe('empty');
+  });
+});
+
+describe('hasEntry (the web record gate)', () => {
+  it('true for any stored entry — also an invalidated one — false when absent; never loads', async () => {
+    expect(await hasEntry('getMatches', URL_)).toBe(false);
+    await read(async () => 'v1');
+    expect(await hasEntry('getMatches', URL_)).toBe(true);
+    bump('match');
+    expect(await hasEntry('getMatches', URL_)).toBe(true); // stale but servable
+  });
+
+  it('null when it cannot tell: Redis unavailable, or the cache is off', async () => {
+    redisUp = false;
+    expect(await hasEntry('getMatches', URL_)).toBeNull();
+    redisUp = true;
+    process.env.DATA_CACHE_MODE = 'off';
+    expect(await hasEntry('getMatches', URL_)).toBeNull();
   });
 });
 

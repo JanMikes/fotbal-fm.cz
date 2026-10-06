@@ -332,6 +332,22 @@ export async function cached<T>(o: CachedOptions<T>): Promise<T> {
 }
 
 /**
+ * Whether an entry exists for (fn, url) — fresh, soft-stale or invalidated alike: anything a
+ * reader can serve without Strapi. `null` when that cannot be told (cache off, Redis unavailable).
+ * Used by the web's record gate (proxy.ts), which must never start a refresh of its own.
+ */
+export async function hasEntry(fn: string, url: string): Promise<boolean | null> {
+  if (cacheMode() === 'off') return null;
+  try {
+    const redis = await getRedisClient();
+    if (!redis) return null;
+    return (await redis.exists(await entryKey(fn, url))) === 1;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Bumps tag generations now (the transitional webhook endpoint and the api syncs' flush). Returns
  * false when Redis is unavailable — the caller logs it; Strapi's transport bumps the same writes.
  */
