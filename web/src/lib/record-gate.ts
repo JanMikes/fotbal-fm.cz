@@ -130,9 +130,19 @@ export async function gate(pathname: string, waitMs = RECORD_WAIT_MS): Promise<G
   const withinDeadline = <T>(promise: Promise<T>) => Promise.race([promise, deadline]);
 
   try {
-    // 1. Records already cached: the page can render them whatever the index says.
-    const present = await withinDeadline(Promise.all(route.records.map((r) => hasEntry(r.fn, r.url))));
-    if (present === 'timeout') return PASS; // Redis too slow to tell: fail open
+    // 1. Records already cached: the page can render them whatever the index says. Capped like the
+    //    PING (a stall can begin right after a good probe): no answer in time → Redis stalled → pass.
+    let probeTimer: ReturnType<typeof setTimeout> | undefined;
+    const present = await Promise.race([
+      Promise.all(route.records.map((r) => hasEntry(r.fn, r.url))),
+      new Promise<'stalled'>((resolve) => {
+        probeTimer = setTimeout(() => resolve('stalled'), REDIS_PROBE_MS);
+      }),
+    ]).finally(() => clearTimeout(probeTimer));
+    if (present === 'stalled') {
+      redisVerdict = { at: Date.now(), stalled: true };
+      return PASS;
+    }
     const cold = route.records.filter((_, i) => present[i] !== true);
     if (cold.length === 0) return PASS;
 

@@ -177,6 +177,20 @@ describe('gate()', () => {
     expect(findMany).not.toHaveBeenCalled();
   });
 
+  it('Redis stalling right after a good probe: the presence check is capped too — pass within ~300 ms, then pass at once', async () => {
+    const { hasEntry } = await import('@fotbal-fm/cache');
+    vi.mocked(hasEntry).mockImplementationOnce(() => new Promise(() => {})); // EXISTS never answers
+    let started = performance.now();
+    expect(await gate('/kontakty')).toEqual({ status: 'pass' });
+    expect(performance.now() - started).toBeLessThan(800);
+    vi.mocked(hasEntry).mockClear();
+    started = performance.now();
+    expect(await gate('/kontakty')).toEqual({ status: 'pass' }); // remembered as stalled
+    expect(performance.now() - started).toBeLessThan(100);
+    expect(hasEntry).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
   it('no Redis client at all (down): the gate still works on the no-Redis path — Strapi failing → 503', async () => {
     redisAnswer = null;
     strapi({ pages: async () => { throw down(); } });
