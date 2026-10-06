@@ -648,7 +648,7 @@ export interface TournamentPlayer extends Struct.ComponentSchema {
 }
 
 declare module '@strapi/strapi' {
-  export module Public {
+  export namespace Public {
     export interface ComponentSchemas {
       'components.accordion-sections': ComponentsAccordionSections;
       'components.alert': ComponentsAlert;

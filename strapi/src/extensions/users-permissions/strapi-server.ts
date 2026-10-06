@@ -29,8 +29,14 @@ type Ctx = {
   unauthorized: () => unknown;
 };
 
-function isApiTokenRequest(ctx: Ctx): boolean {
-  return ctx.state?.auth?.strategy?.name === 'api-token';
+/**
+ * Content-API token strategy names: `api-token` up to Strapi 5.44, `content-api-token` since the
+ * admin-token split (5.45). Admin tokens (`admin-token`) never authenticate content-API routes.
+ */
+const API_TOKEN_STRATEGIES = new Set(['api-token', 'content-api-token']);
+
+export function isApiTokenRequest(ctx: Ctx): boolean {
+  return API_TOKEN_STRATEGIES.has(ctx.state?.auth?.strategy?.name ?? '');
 }
 
 function currentUserId(ctx: Ctx): number | null {
