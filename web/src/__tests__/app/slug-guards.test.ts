@@ -66,13 +66,18 @@ beforeEach(() => {
 
 describe('/[slug] catch-all', () => {
   it.each(['.env', 'config.json', 'wp-login.php', 'robots.txt', 'xmlrpc.php'])(
-    '%s → 404 after one cached index lookup, no page query',
+    '%s → 404 with zero data calls (dotted: never a record slug — BF-V9)',
     async (slug) => {
       await expect(CmsPage(params({ slug }))).rejects.toThrow(NOT_FOUND);
-      expect(data.getPageSlugIndex).toHaveBeenCalledTimes(1);
-      expect(data.getPageBySlug).not.toHaveBeenCalled();
+      expect(dataCalls()).toBe(0);
     },
   );
+
+  it('an unknown dot-free slug → 404 after one cached index lookup, no page query', async () => {
+    await expect(CmsPage(params({ slug: 'wp-admin' }))).rejects.toThrow(NOT_FOUND);
+    expect(data.getPageSlugIndex).toHaveBeenCalledTimes(1);
+    expect(data.getPageBySlug).not.toHaveBeenCalled();
+  });
 
   it.each(['..%2f..%2fetc%2fpasswd', '../etc', 'a'.repeat(121), 'muži', ''])(
     '%s → 404 with zero data calls (pre-filter)',
