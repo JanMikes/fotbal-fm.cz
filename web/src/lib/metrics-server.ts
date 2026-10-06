@@ -1,6 +1,8 @@
 import http from 'node:http';
 import { Counter, Gauge, Histogram, Registry, collectDefaultMetrics } from '@prometheus-io/client';
 import { getRedisClient, setMetricsSink, TAGVER, TRANSPORT } from '@fotbal-fm/cache';
+import { STRAPI_READ_ENDPOINTS } from '@/lib/strapi/auth-probe';
+import { typeLabel } from '@/lib/strapi/type-label';
 
 /*
  * Prometheus endpoint of the web container (lily D75 Phase 1, Contract F: `metrics.scrape`,
@@ -63,6 +65,13 @@ export function startMetricsServer(): void {
     labelNames: ['type', 'status'],
     registers: [registry],
   });
+  // D-V2: a labelled counter child exists only after its first inc(), so a {status="401"} series
+  // would first appear already at ≥1 and increase() would never count that first rejection
+  // (FotbalFmStrapiAuthErrors stays silent on a burst). Pre-create the auth-failure series at 0
+  // for every type the site reads.
+  for (const type of new Set(STRAPI_READ_ENDPOINTS.map(typeLabel))) {
+    for (const status of ['401', '403']) strapiRequests.inc({ type, status }, 0);
+  }
   const strapiDuration = new Histogram({
     name: 'fotbalfm_strapi_request_duration_seconds',
     help: 'Duration of requests from web to Strapi.',

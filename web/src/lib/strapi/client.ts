@@ -2,6 +2,7 @@ import { unstable_rethrow } from 'next/navigation';
 import { UpstreamAuthError, UpstreamError, metrics } from '@fotbal-fm/cache';
 import { strapiUrl } from '@fotbal-fm/strapi-client';
 import { config } from '@/lib/config';
+import { typeLabel } from './type-label';
 import type { StrapiCollectionResponse, StrapiSingleResponse, StrapiQueryOptions } from './types';
 
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -43,10 +44,6 @@ export class StrapiAuthError extends UpstreamAuthError {
   }
 }
 
-/** Metrics label for a Strapi path: the content type ("pages", "upload/files"), never ids or queries. */
-function typeLabel(label: string): string {
-  return label.split('/')[0];
-}
 
 class StrapiClient {
   private baseUrl: string;
