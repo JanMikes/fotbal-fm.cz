@@ -19,11 +19,16 @@ async function checkRateLimit(ip: string): Promise<boolean> {
 
   const key = `form-rate:${ip}`;
   try {
-    const count = await redis.incr(key);
-    if (count === 1) {
-      await redis.expire(key, RATE_LIMIT_WINDOW);
-    }
-    return count <= RATE_LIMIT_MAX;
+    // D-V4: the count and its TTL in ONE transaction. A separate EXPIRE after the INCR could fail
+    // (500 ms command timeout) and leave a key without a TTL, which volatile-lru never evicts: that
+    // IP would be refused forever. `EXPIRE … NX` sets the window only when the key has none, so the
+    // window stays fixed from the first submission — and a key left without a TTL heals itself.
+    const results = await redis.multi().incr(key).expire(key, RATE_LIMIT_WINDOW, 'NX').exec();
+    if (!results) throw new Error('MULTI aborted');
+    const [[incrError, count], [expireError]] = results;
+    if (incrError) throw incrError;
+    if (expireError) throw expireError;
+    return Number(count) <= RATE_LIMIT_MAX;
   } catch (error) {
     // Redis commands time out after 500 ms (packages/cache): a stalled Redis must not 500 the form.
     console.error('[Form Submit] Rate limit check failed, allowing:', (error as Error).message);
