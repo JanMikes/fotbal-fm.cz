@@ -123,6 +123,20 @@ describe('the latch asks Strapi whether it accepts the API token (P0-V11)', () =
     expect((strapiInit.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
   });
 
+  it('asks every endpoint for one row: upload/files with ?limit=1 (its API ignores pagination), the footer single type unqualified (D-V1)', async () => {
+    const { STRAPI_READ_ENDPOINTS } = await import('@/lib/strapi/auth-probe');
+    smoke.mockResolvedValue(page(200, RENDERED));
+    expect((await GET()).status).toBe(200);
+    const urls = mockFetch.mock.calls.map(([u]) => u).filter((u) => u.startsWith('http://strapi'));
+    expect(urls).toHaveLength(STRAPI_READ_ENDPOINTS.length);
+    expect(urls).toContain('http://strapi:1337/api/upload/files?limit=1');
+    expect(urls).toContain('http://strapi:1337/api/footer');
+    expect(urls).toContain('http://strapi:1337/api/matches?pagination[pageSize]=1');
+    for (const url of urls) {
+      if (!url.endsWith('/footer')) expect(url).toMatch(/\?(limit=1|pagination\[pageSize\]=1)$/);
+    }
+  });
+
   it('a 401 keeps the latch closed even though the page rendered (e.g. served from a warm Redis)', async () => {
     smoke.mockResolvedValue(page(200, RENDERED));
     strapiStatus.set('categories', 401);

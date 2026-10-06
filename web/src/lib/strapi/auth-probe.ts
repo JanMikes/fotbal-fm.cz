@@ -26,8 +26,18 @@ export const STRAPI_READ_ENDPOINTS = [
   'upload/files',
 ] as const;
 
-const SINGLE_TYPES = new Set(['footer']);
 const PROBE_TIMEOUT_MS = 5000;
+
+/**
+ * One row per probe. The upload plugin's content API ignores `pagination[...]` and would return the
+ * whole media library (1,296 files, ~1.5 MB on prod) on every latch attempt; it takes `limit`
+ * (D-V1/C-V4, verified on Strapi 5.39). A single type takes no query.
+ */
+export function probeQuery(endpoint: (typeof STRAPI_READ_ENDPOINTS)[number]): string {
+  if (endpoint === 'footer') return '';
+  if (endpoint === 'upload/files') return '?limit=1';
+  return '?pagination[pageSize]=1';
+}
 
 export interface RejectedEndpoint {
   endpoint: string;
@@ -45,9 +55,8 @@ export async function findRejectedEndpoints(): Promise<RejectedEndpoint[]> {
   if (config.strapi.apiToken) headers.Authorization = `Bearer ${config.strapi.apiToken}`;
   const results = await Promise.all(
     STRAPI_READ_ENDPOINTS.map(async (endpoint): Promise<RejectedEndpoint | null> => {
-      const query = SINGLE_TYPES.has(endpoint) ? '' : '?pagination[pageSize]=1';
       try {
-        const res = await fetch(`${config.strapi.url}/api/${endpoint}${query}`, {
+        const res = await fetch(`${config.strapi.url}/api/${endpoint}${probeQuery(endpoint)}`, {
           headers,
           cache: 'no-store',
           signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
