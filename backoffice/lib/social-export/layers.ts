@@ -1,6 +1,6 @@
 /**
  * Pure helper building the ordered "Vrstvy" (layers panel) row list for a
- * variant: every text + image placeholder merged into ONE list, sorted by the
+ * variant: every text + image placeholder and recolourable shape merged into ONE list, sorted by the
  * API's `layerIndex` DESCENDING — the canvas paint order, so the topmost layer
  * comes first (Photoshop convention). Rows with a null `layerIndex` (object not
  * locatable, or an older API deploy without the field) sink to the end in their
@@ -11,10 +11,11 @@
 
 import { resolveInputLabel, isEditable, type InputFieldState } from './field-rules';
 import { resolveImageLabel, type ImageSlotState } from './field-rules-image';
+import { resolveShapeLabel } from './shape-colors';
 import type { TemplateVariantDTO } from './api-types';
 
 export interface LayerRow {
-  kind: 'text' | 'image';
+  kind: 'text' | 'image' | 'shape';
   id: string;
   label: string;
   /** Locked text inputs are not editable (rendered with a lock, no click). */
@@ -65,6 +66,22 @@ export function buildLayerRows(
       hidden: imageState[input.id]?.hidden ?? false,
       hasFrame: input.frame != null,
       layerIndex: input.layerIndex,
+    });
+  });
+
+  // Recolourable shapes: the colour panel anchors to the shape's box, so a
+  // shape without a frame cannot open it.
+  (variant.shapeInputs ?? []).forEach((shape, index) => {
+    rows.push({
+      kind: 'shape',
+      id: shape.id,
+      label: resolveShapeLabel(shape, index),
+      editable: true,
+      clickable: shape.frame != null,
+      hidable: false,
+      hidden: false,
+      hasFrame: shape.frame != null,
+      layerIndex: shape.layerIndex,
     });
   });
 

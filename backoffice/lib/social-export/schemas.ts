@@ -64,6 +64,9 @@ export const renderImageValueSchema = z.union([
     .strict(),
 ]);
 
+/** Shape inputId → `#rrggbb` ("" = designed colour). WBoost validates against the shape's options. */
+const shapeColorsSchema = z.record(z.string(), z.string().max(16));
+
 /** `preview` = unrecorded WebP for the screen (default), `export` = the recorded download. */
 export const renderModeSchema = z.enum(['preview', 'export']);
 
@@ -73,6 +76,7 @@ export const renderRequestSchema = z
     mode: renderModeSchema.optional(),
     inputs: z.record(z.string(), renderInputValueSchema),
     images: z.record(z.string(), renderImageValueSchema).optional(),
+    shapeColors: shapeColorsSchema.optional(),
   })
   .strict();
 
@@ -94,6 +98,7 @@ export const groupRenderRequestSchema = z
     inputs: z.record(z.string(), renderInputValueSchema),
     images: z.record(z.string(), renderImageValueSchema).optional(),
     placements: z.record(z.string(), z.record(z.string(), placementSchema)).optional(),
+    shapeColors: shapeColorsSchema.optional(),
   })
   .strict();
 
@@ -137,6 +142,8 @@ export const saveStateRequestSchema = z
         dimensionImageStates: z
           .record(z.string(), z.record(z.string(), imageSlotStateSchema))
           .optional(),
+        /** Recolourable shapes: shape inputId → `#rrggbb` (shared by every dimension). */
+        shapeColors: shapeColorsSchema.optional(),
       })
       .strict(),
   })

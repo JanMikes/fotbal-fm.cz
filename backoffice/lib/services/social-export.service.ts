@@ -144,6 +144,17 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
     hasDefaultPreview: raw.previewImageUrl != null,
     inputs: raw.inputs.map(mapInput),
     imageInputs: (raw.imageInputs ?? []).map(mapImageInput),
+    // Absent on older payloads → nothing recolourable.
+    shapeInputs: (raw.shapeInputs ?? []).map((shape) => ({
+      id: shape.id,
+      name: shape.name ?? null,
+      target: shape.target,
+      defaultColor: shape.defaultColor,
+      colorOptions: shape.colorOptions,
+      freeColor: shape.freeColor,
+      frame: shape.frame ?? null,
+      layerIndex: shape.layerIndex ?? null,
+    })),
     // Absent on older payloads → no containers.
     containers: (raw.containers ?? []).map((container) => ({
       id: container.id,
@@ -239,6 +250,7 @@ function mapExportVersionDetail(raw: WboostRawExportVersionDetail): ExportVersio
       inputs: (raw.fill?.inputs ?? {}) as ExportVersionFillDTO['inputs'],
       images: (raw.fill?.images ?? {}) as ExportVersionFillDTO['images'],
       placements: (raw.fill?.placements ?? {}) as GroupPlacements,
+      shapeColors: raw.fill?.shapeColors ?? {},
     },
   };
 }
@@ -301,9 +313,12 @@ export class SocialExportService {
     variantId: string,
     inputs: Record<string, RenderInputValue>,
     images: Record<string, RenderImageValue> | undefined,
-    mode: RenderMode
+    mode: RenderMode,
+    shapeColors?: Record<string, string>
   ): Promise<Result<WboostRenderedFile, AppError>> {
-    return this.attempt('renderVariant', () => this.client.renderVariant(variantId, inputs, images, mode));
+    return this.attempt('renderVariant', () =>
+      this.client.renderVariant(variantId, inputs, images, mode, shapeColors)
+    );
   }
 
   /** Group fill: preview / export one dimension, or (no variantId + export) the whole ZIP. */
@@ -314,6 +329,7 @@ export class SocialExportService {
       inputs: Record<string, RenderInputValue>;
       images?: Record<string, RenderImageValue>;
       placements?: GroupPlacements;
+      shapeColors?: Record<string, string>;
     },
     mode: RenderMode
   ): Promise<Result<WboostRenderedFile, AppError>> {

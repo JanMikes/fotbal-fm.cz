@@ -168,12 +168,14 @@ export function renderVariant(
   variantId: string,
   inputs: Record<string, RenderInputValue>,
   images: Record<string, RenderImageValue> | undefined,
-  mode: RenderMode
+  mode: RenderMode,
+  shapeColors?: Record<string, string>
 ): Promise<RenderResult> {
   return postRender('render', {
     variantId,
     inputs,
     ...(images && Object.keys(images).length > 0 ? { images } : {}),
+    ...(shapeColors && Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
     mode,
   });
 }

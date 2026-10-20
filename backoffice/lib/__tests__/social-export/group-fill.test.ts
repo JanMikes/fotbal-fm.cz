@@ -72,6 +72,7 @@ function makeVariant(id: string, overrides: Partial<TemplateVariantDTO> = {}): T
     hasDefaultPreview: false,
     inputs: [makeInput()],
     imageInputs: [makeSlot()],
+    shapeInputs: [],
     containers: [],
     richTextOptions: null,
     groupMember: true,
@@ -173,6 +174,7 @@ describe('fillToEditorState', () => {
         inputs: { 'txt-1': { value: 'Z historie', hide: true }, 'txt-story': 'Příběh' },
         images: { 'img-1': { imageId: 'pic-1', url: 'https://store/pic-1.png' } },
         placements: { 'v-9x16': { 'img-1': { scale: 1.4, offsetYRatio: 0.1 } } },
+        shapeColors: {},
       },
       members
     );
@@ -189,6 +191,7 @@ describe('fillToEditorState', () => {
         inputs: {},
         images: { 'img-1': { imageId: 'pic-1', url: 'u', scale: 2, offsetX: 100 } },
         placements: {},
+        shapeColors: {},
       },
       [square]
     );
@@ -215,6 +218,7 @@ describe('fillToEditorState', () => {
         },
         images: {},
         placements: {},
+        shapeColors: {},
       },
       [rich]
     );

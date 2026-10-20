@@ -1,6 +1,6 @@
 'use client';
 
-import { Eye, EyeOff, Image as ImageIcon, Layers, Lock, Type } from 'lucide-react';
+import { Eye, EyeOff, Image as ImageIcon, Layers, Lock, Palette, Type } from 'lucide-react';
 import type { ActivePlaceholder } from './PlaceholderOverlay';
 import type { LayerRow } from '@/lib/social-export/layers';
 
@@ -45,7 +45,7 @@ export default function LayersPanel({
         {rows.map((row) => {
           const placeholder: ActivePlaceholder = { kind: row.kind, id: row.id };
           const isActive = active?.kind === row.kind && active.id === row.id;
-          const KindIcon = row.kind === 'image' ? ImageIcon : Type;
+          const KindIcon = row.kind === 'image' ? ImageIcon : row.kind === 'shape' ? Palette : Type;
 
           return (
             <li

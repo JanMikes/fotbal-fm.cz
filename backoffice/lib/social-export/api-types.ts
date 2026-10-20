@@ -206,6 +206,27 @@ export interface TemplateContainerDTO {
 }
 
 /**
+ * A shape the designer opened up for RECOLOURING — one colour field. The
+ * picked `#rrggbb` repaints its fill, its border or both (`target`), and is
+ * sent as `shapeColors[id]` on render.
+ */
+export interface ShapeInputDTO {
+  id: string;
+  name: string | null;
+  target: 'fill' | 'stroke' | 'both';
+  /** The designed colour — the "reset" swatch, = colorOptions[0]. */
+  defaultColor: string;
+  /** Swatches to offer (lowercase `#rrggbb`); the only accepted values unless `freeColor`. */
+  colorOptions: string[];
+  /** Any hex is accepted — offer a colour picker next to the swatches. */
+  freeColor: boolean;
+  /** Bounding box in canvas px; null = no box over the preview. */
+  frame: ImageFrameDTO | null;
+  /** Stacking position — same index space as the text/image `layerIndex`. */
+  layerIndex: number | null;
+}
+
+/**
  * Structured details of a failed render, forwarded from the WBoost 400 body.
  * `code === 'container_overflow'` → point the user at the container's inputs.
  */
@@ -217,6 +238,8 @@ export interface RenderErrorDetails {
   inputId?: string;
   /** The image slot an image error concerns (image_not_allowed, …). */
   imageInputId?: string;
+  /** The shape a colour error concerns (shape_color_not_allowed, invalid_shape_color). */
+  shapeInputId?: string;
   /** Group renders: the member dimension that failed. */
   variantId?: string;
   maxLength?: number;
@@ -320,6 +343,8 @@ export interface TemplateVariantDTO {
   inputs: TemplateInputDTO[];
   /** Image placeholder slots (empty when the variant has none). */
   imageInputs: ImageInputDTO[];
+  /** Shapes the user may recolour (empty when the designer opened none up). */
+  shapeInputs: ShapeInputDTO[];
   /** Containers ("smart text areas"); empty when the variant has none. */
   containers: TemplateContainerDTO[];
   /** Fonts + swatches for rich-text inputs; null unless some input has `richText: true`. */
@@ -415,6 +440,8 @@ export interface RenderRequest {
   inputs: Record<string, RenderInputValue>;
   /** Keyed by imageInput UUID. Omitted slots keep their stand-in. Optional + backward-compatible. */
   images?: Record<string, RenderImageValue>;
+  /** Keyed by shapeInput UUID → `#rrggbb`. Omitted shapes keep their designed colour. */
+  shapeColors?: Record<string, string>;
 }
 
 /**
@@ -438,6 +465,8 @@ export interface GroupRenderRequest {
   /** Shared picks only: image id or `{ hide: true }` — placement lives in `placements`. */
   images?: Record<string, RenderImageValue>;
   placements?: GroupPlacements;
+  /** Shared by every dimension (members share shape ids). */
+  shapeColors?: Record<string, string>;
 }
 
 /** Digest of a version's fill (what history lists show instead of a thumbnail). */
@@ -473,6 +502,8 @@ export interface ExportVersionFillDTO {
   /** Picked images carry their public `url` next to `imageId`. */
   images: Record<string, RenderImageValue & { url?: string }>;
   placements: GroupPlacements;
+  /** Shape inputId → `#rrggbb` ({} when no shape was recoloured). */
+  shapeColors: Record<string, string>;
 }
 
 export interface ExportVersionDetailDTO extends ExportVersionDTO {

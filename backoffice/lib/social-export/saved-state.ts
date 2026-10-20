@@ -45,6 +45,8 @@ export interface SavedExportState {
   formState: Record<string, InputFieldState>;
   imageState: Record<string, StoredImageSlotState>;
   dimensionImageStates?: Record<string, Record<string, StoredImageSlotState>>;
+  /** Recolourable shapes: shapeId → `#rrggbb`, shared by every dimension. Absent on older records. */
+  shapeColors?: Record<string, string>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */

@@ -7,6 +7,7 @@ import Alert from '@/components/ui/Alert';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
 import FloatingPanel from './FloatingPanel';
 import PlaceholderImagePanel from './PlaceholderImagePanel';
+import PlaceholderShapePanel from './PlaceholderShapePanel';
 import PlaceholderTextPanel from './PlaceholderTextPanel';
 import ImagePickerModal from './images/ImagePickerModal';
 import LayersPanel from './LayersPanel';
@@ -19,6 +20,7 @@ import {
   type ImageSlotState,
 } from '@/lib/social-export/field-rules-image';
 import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
+import { currentShapeColor, resolveShapeLabel, type ShapeColorState } from '@/lib/social-export/shape-colors';
 import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
 import type { MatchChip } from '@/lib/social-export/prefill';
@@ -43,6 +45,9 @@ interface PreviewPanelProps {
   onImageChange: (slotId: string, partial: Partial<ImageSlotState>) => void;
   matchId: string | null;
   matchImages: StrapiImage[];
+  // Shape recolouring (shared by every dimension)
+  shapeColors: ShapeColorState;
+  onShapeColorChange: (shapeId: string, color: string | null) => void;
   // Action (rendered in the header and under the preview)
   onDownload: () => void;
   actionsDisabled: boolean;
@@ -95,6 +100,8 @@ export default function PreviewPanel({
   onImageChange,
   matchId,
   matchImages,
+  shapeColors,
+  onShapeColorChange,
   onDownload,
   actionsDisabled,
   actions,
@@ -148,7 +155,7 @@ export default function PreviewPanel({
   // panel, from which "Vyměnit obrázek" still reaches the gallery.
   const handleSelect = useCallback(
     (p: ActivePlaceholder) => {
-      if (p.kind === 'text') {
+      if (p.kind === 'text' || p.kind === 'shape') {
         onSelect(p);
         return;
       }
@@ -171,7 +178,7 @@ export default function PreviewPanel({
     (p: ActivePlaceholder) => {
       if (p.kind === 'text') {
         onFormChange(p.id, { hidden: !(formState[p.id]?.hidden ?? false) });
-      } else {
+      } else if (p.kind === 'image') {
         onImageChange(p.id, { hidden: !(imageState[p.id]?.hidden ?? false) });
       }
     },
@@ -209,6 +216,13 @@ export default function PreviewPanel({
     if (!activeImageInput?.frame || !overlayReady) return null;
     return canvasToDisplay(activeImageInput.frame, scale);
   }, [activeImageInput, overlayReady, scale]);
+
+  // The open SHAPE colour panel, anchored to the shape's box.
+  const shapeInputs = variant.shapeInputs ?? [];
+  const activeShape = active?.kind === 'shape' ? shapeInputs.find((s) => s.id === active.id) ?? null : null;
+  const activeShapeIndex = activeShape ? shapeInputs.findIndex((s) => s.id === activeShape.id) : -1;
+  const shapeAnchorRect =
+    activeShape?.frame && overlayReady ? canvasToDisplay(activeShape.frame, scale) : null;
 
   // The image slot whose picker modal is open.
   const pickerInput = pickerImageId
@@ -407,6 +421,26 @@ export default function PreviewPanel({
                   onCloseActive();
                   setPickerImageId(activeImageInput.id);
                 }}
+                onClose={onCloseActive}
+              />
+            </FloatingPanel>
+          )}
+
+          {/* Floating colour panel anchored to the active SHAPE box. */}
+          {overlayReady && active && activeShape && shapeAnchorRect && stageSize && (
+            <FloatingPanel
+              key={`${active.kind}:${active.id}`}
+              anchorRect={shapeAnchorRect}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              label={resolveShapeLabel(activeShape, activeShapeIndex)}
+              onClose={onCloseActive}
+            >
+              <PlaceholderShapePanel
+                shape={activeShape}
+                label={resolveShapeLabel(activeShape, activeShapeIndex)}
+                current={currentShapeColor(activeShape, shapeColors)}
+                onChange={(color) => onShapeColorChange(activeShape.id, color)}
                 onClose={onCloseActive}
               />
             </FloatingPanel>

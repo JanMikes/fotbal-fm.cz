@@ -63,6 +63,7 @@ function makeVariant(overrides: Partial<TemplateVariantDTO> = {}): TemplateVaria
     hasDefaultPreview: false,
     inputs: [],
     imageInputs: [],
+    shapeInputs: [],
     containers: [],
     richTextOptions: null,
     groupMember: false,

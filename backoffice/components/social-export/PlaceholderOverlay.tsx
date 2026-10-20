@@ -5,6 +5,7 @@ import PlaceholderBox from './PlaceholderBox';
 import PlaceholderTools from './PlaceholderTools';
 import { resolveInputLabel, isEditable, type InputFieldState } from '@/lib/social-export/field-rules';
 import { resolveImageLabel, type ImageSlotState } from '@/lib/social-export/field-rules-image';
+import { resolveShapeLabel } from '@/lib/social-export/shape-colors';
 import { canvasToDisplay, type DisplayRect } from '@/lib/social-export/geometry';
 import type {
   TemplateVariantDTO,
@@ -15,7 +16,8 @@ import type {
 /** Identifies which kind of placeholder a box belongs to. */
 export type ActivePlaceholder =
   | { kind: 'text'; id: string }
-  | { kind: 'image'; id: string };
+  | { kind: 'image'; id: string }
+  | { kind: 'shape'; id: string };
 
 interface PlaceholderOverlayProps {
   variant: TemplateVariantDTO;
@@ -59,7 +61,7 @@ interface PlaceholderOverlayProps {
 
 interface OverlayItem {
   key: string;
-  kind: 'text' | 'image';
+  kind: ActivePlaceholder['kind'];
   id: string;
   rect: DisplayRect;
   label: string;
@@ -203,6 +205,23 @@ export default function PlaceholderOverlay({
       hidden: imageState[input.id]?.hidden ?? false,
       active: active?.kind === 'image' && active.id === input.id,
       hovered: hovered?.kind === 'image' && hovered.id === input.id,
+    });
+  });
+
+  // Recolourable shapes: a colour field, never hidable.
+  (variant.shapeInputs ?? []).forEach((shape, index) => {
+    if (!shape.frame) return;
+    items.push({
+      key: `shape-${shape.id}`,
+      kind: 'shape',
+      id: shape.id,
+      rect: canvasToDisplay(shape.frame, scale),
+      label: resolveShapeLabel(shape, index),
+      editable: true,
+      hidable: false,
+      hidden: false,
+      active: active?.kind === 'shape' && active.id === shape.id,
+      hovered: hovered?.kind === 'shape' && hovered.id === shape.id,
     });
   });
 

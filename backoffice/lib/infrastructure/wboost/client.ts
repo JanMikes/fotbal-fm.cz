@@ -43,6 +43,7 @@ export interface WboostErrorBody {
   overflowPx?: number;
   inputId?: string;
   imageInputId?: string;
+  shapeInputId?: string;
   variantId?: string;
   maxLength?: number;
   transform?: string;
@@ -64,6 +65,8 @@ const CODE_MESSAGES: Record<string, string> = {
   image_transform_not_allowed: 'Tento obrázek nelze posouvat, zvětšovat nebo otáčet',
   image_not_allowed: 'Vybraný obrázek už není k dispozici nebo do tohoto pole nepatří — vyberte jiný',
   image_unreadable: 'Vybraný obrázek se nepodařilo načíst — vyberte jiný',
+  invalid_shape_color: 'Neplatná barva tvaru',
+  shape_color_not_allowed: 'Zvolená barva není pro tento tvar povolená',
   render_unavailable: 'Generování obrázků je momentálně přetížené — zkuste to prosím za chvíli',
 };
 
@@ -201,7 +204,8 @@ export class WboostClient {
     variantId: string,
     inputs: Record<string, RenderInputValue>,
     images: Record<string, RenderImageValue> | undefined,
-    mode: RenderMode
+    mode: RenderMode,
+    shapeColors?: Record<string, string>
   ): Promise<WboostRenderedFile> {
     const url = `${this.config.apiBase}/api/template-variants/${variantId}/${mode}`;
 
@@ -212,9 +216,12 @@ export class WboostClient {
       data: { variantId },
     });
 
-    // Only include `images` when there is something to send.
-    const body =
-      images && Object.keys(images).length > 0 ? { inputs, images } : { inputs };
+    // Only include `images` / `shapeColors` when there is something to send.
+    const body = {
+      inputs,
+      ...(images && Object.keys(images).length > 0 ? { images } : {}),
+      ...(shapeColors && Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
+    };
 
     return this.postForFile(url, body);
   }
@@ -231,6 +238,7 @@ export class WboostClient {
       inputs: Record<string, RenderInputValue>;
       images?: Record<string, RenderImageValue>;
       placements?: GroupPlacements;
+      shapeColors?: Record<string, string>;
     },
     mode: RenderMode
   ): Promise<WboostRenderedFile> {
@@ -257,6 +265,7 @@ export class WboostClient {
       inputs: fill.inputs,
       images: fill.images ?? {},
       placements: fill.placements ?? {},
+      ...(fill.shapeColors && Object.keys(fill.shapeColors).length > 0 ? { shapeColors: fill.shapeColors } : {}),
     });
   }
 

@@ -25,6 +25,7 @@ import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from '.
 import { buildRenderInputs, initialFieldState, type InputFieldState } from './field-rules';
 import { applySavedForm, sanitizeSlotState, type StoredImageSlotState } from './saved-state';
 import { isStyled, normalizeRuns, plainText } from './rich-text';
+import { sanitizeShapeColors, unionShapeInputs, type ShapeColorState } from './shape-colors';
 import type { ListLineType } from './api-types';
 
 export type ImageState = Record<string, ImageSlotState>;
@@ -182,7 +183,7 @@ export function buildGroupRenderBody(
 export function fillToEditorState(
   fill: ExportVersionFillDTO,
   members: TemplateVariantDTO[]
-): { formState: Record<string, InputFieldState>; imageStates: DimensionImageStates } {
+): { formState: Record<string, InputFieldState>; imageStates: DimensionImageStates; shapeColors: ShapeColorState } {
   const inputs = unionInputs(members);
   const base = initSurfaceForm(inputs, {});
   const loaded: Record<string, InputFieldState> = {};
@@ -209,7 +210,7 @@ export function fillToEditorState(
     }
   }
 
-  return { formState, imageStates };
+  return { formState, imageStates, shapeColors: sanitizeShapeColors(unionShapeInputs(members), fill.shapeColors) };
 }
 
 function inputValueToState(value: RenderInputValue, fallback: InputFieldState): InputFieldState {

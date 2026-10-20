@@ -506,6 +506,31 @@ describe('SocialExportService', () => {
       expect(slot).not.toHaveProperty('allowedDirectoryIds');
     });
 
+    it('maps recolourable shapes, defaulting to none on older payloads', async () => {
+      const rawShape = {
+        id: 'shape-1',
+        name: 'Pruh',
+        target: 'both' as const,
+        defaultColor: '#112233',
+        colorOptions: ['#112233', '#c8102e'],
+        freeColor: true,
+        frame: { x: 10, y: 20, width: 100, height: 40 },
+        layerIndex: 4,
+      };
+      const rawTemplates = [
+        makeRawTemplate({ variants: [makeRawVariant({ shapeInputs: [rawShape] }), makeRawVariant({ id: 'v-old' })] }),
+      ];
+      const client = makeFakeClient({ listTemplates: vi.fn().mockResolvedValue(rawTemplates) });
+      const service = new SocialExportService(client as never);
+
+      const result = await service.getTemplates();
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data[0].variants[0].shapeInputs).toEqual([rawShape]);
+      expect(result.data[0].variants[1].shapeInputs).toEqual([]);
+    });
+
     it('passes isBackground through when the API sends it', async () => {
       const rawTemplates = [
         makeRawTemplate({
@@ -604,7 +629,11 @@ describe('SocialExportService', () => {
       const images = { slot1: 'img-9', slot2: { imageId: 'img-3', scale: 1.4 } };
       await service.renderVariant('v1', { inp: 'val' }, images, 'preview');
 
-      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images, 'preview');
+      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images, 'preview', undefined);
+
+      await service.renderVariant('v1', { inp: 'val' }, undefined, 'export', { 'shape-1': '#c8102e' });
+
+      expect(renderVariant).toHaveBeenLastCalledWith('v1', { inp: 'val' }, undefined, 'export', { 'shape-1': '#c8102e' });
     });
 
     it('propagates AppError from client', async () => {
@@ -657,7 +686,8 @@ describe('SocialExportService', () => {
       const detail = await service.getExportVersion('ver-1');
 
       expect(list.success && list.data[0]).toEqual(raw);
-      expect(detail.success && detail.data.fill).toEqual({ inputs: { t: 'x' }, images: {}, placements: {} });
+      // A fill without shapeColors (older WBoost) still maps to the full DTO.
+      expect(detail.success && detail.data.fill).toEqual({ inputs: { t: 'x' }, images: {}, placements: {}, shapeColors: {} });
     });
   });
 

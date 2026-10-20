@@ -293,6 +293,24 @@ export interface WboostRawVariant {
   richTextOptions?: WboostRawRichTextOptions | null;
   /** True = member dimension of the template's group. Absent on older deploys. */
   groupMember?: boolean;
+  /** Shapes the user may recolour (`shapeColors` on render). Absent on older deploys. */
+  shapeInputs?: WboostRawShapeInput[];
+}
+
+/** A shape the designer opened up for recolouring (`variants[].shapeInputs[]`). */
+export interface WboostRawShapeInput {
+  /** UUID — the KEY used in the render `shapeColors` payload. */
+  id: string;
+  name: string | null;
+  /** What one colour repaints. */
+  target: 'fill' | 'stroke' | 'both';
+  /** The designed colour (= colorOptions[0]). */
+  defaultColor: string;
+  /** Lowercase `#rrggbb` swatches; the only accepted values unless `freeColor`. */
+  colorOptions: string[];
+  freeColor: boolean;
+  frame: { x: number; y: number; width: number; height: number } | null;
+  layerIndex: number;
 }
 
 /**
@@ -348,6 +366,8 @@ export interface WboostRawExportVersionDetail extends WboostRawExportVersion {
     /** Picked images carry `url` (public store URL) next to `imageId`. */
     images: Record<string, unknown>;
     placements: Record<string, Record<string, Record<string, number>>>;
+    /** Shape inputId → `#rrggbb`. Absent on older deploys. */
+    shapeColors?: Record<string, string>;
   };
 }
 

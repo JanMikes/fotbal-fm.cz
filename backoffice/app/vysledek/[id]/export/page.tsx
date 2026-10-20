@@ -67,6 +67,7 @@ import {
   unionInputs,
   type DimensionImageStates,
 } from '@/lib/social-export/group-fill';
+import { sanitizeShapeColors, unionShapeInputs, type ShapeColorState } from '@/lib/social-export/shape-colors';
 import { computeTextLayout } from '@/lib/social-export/text-layout';
 import { useWboostFonts } from '@/lib/social-export/use-wboost-fonts';
 import { Match } from '@/types/match';
@@ -154,6 +155,7 @@ function SocialExportPageContent({ params }: PageProps) {
 
   const members = useMemo(() => surface?.members ?? [], [surface]);
   const inputs = useMemo(() => unionInputs(members), [members]);
+  const shapeInputs = useMemo(() => unionShapeInputs(members), [members]);
 
   // The dimension edited in the big preview (a group shows every dimension in
   // the strip; texts are shared, picture placement is per dimension).
@@ -174,6 +176,8 @@ function SocialExportPageContent({ params }: PageProps) {
   const [formState, setFormState] = useState<FormState>({});
   // Image-slot state per dimension (variantId → slotId → state)
   const [imageStates, setImageStates] = useState<DimensionImageStates>({});
+  // Recolourable shapes (shapeId → picked colour), shared by every dimension
+  const [shapeColors, setShapeColors] = useState<ShapeColorState>({});
 
   // Render state — per dimension
   const [previews, setPreviews] = useState<Record<string, string | null>>({});
@@ -361,6 +365,7 @@ function SocialExportPageContent({ params }: PageProps) {
 
     setFormState(applySavedForm(inputs, initSurfaceForm(inputs, prefill), saved?.state.formState));
     setImageStates(seededImages);
+    setShapeColors(sanitizeShapeColors(unionShapeInputs(surface.members), saved?.state.shapeColors));
     setSaveStatus(saved ? 'saved' : 'idle');
     hasUnsavedRef.current = false;
     revokeAllPreviews();
@@ -391,6 +396,7 @@ function SocialExportPageContent({ params }: PageProps) {
               // dimension here (older readers) + every dimension below.
               imageState: imageStates[surface.members[0]?.id] ?? {},
               ...(surface.kind === 'group' ? { dimensionImageStates: imageStates } : {}),
+              ...(Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
             },
           }
         : null;
@@ -405,7 +411,7 @@ function SocialExportPageContent({ params }: PageProps) {
     return () => clearTimeout(timer);
     // doSave is recreated each render; depending on it would reset the debounce.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState, imageStates]);
+  }, [formState, imageStates, shapeColors]);
 
   // Flush pending edits when the page unloads (refresh, tab close) or the
   // component unmounts (SPA navigation back to the match page).
@@ -432,7 +438,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // renderDirtyPreviews/hasValidationErrors are recreated each render;
     // depending on them would reset the debounce on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState, imageStates, dirtyIds, renderingIds, surface]);
+  }, [formState, imageStates, shapeColors, dirtyIds, renderingIds, surface]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -507,6 +513,20 @@ function SocialExportPageContent({ params }: PageProps) {
     [members, activeId, markEdited]
   );
 
+  /** A shape's colour pick (null / the designed colour = reset). Shared → every dimension re-renders. */
+  const handleShapeColorChange = useCallback(
+    (shapeId: string, color: string | null) => {
+      setShapeColors((prev) => {
+        const next = { ...prev };
+        if (color) next[shapeId] = color;
+        else delete next[shapeId];
+        return next;
+      });
+      markEdited(members.map((m) => m.id));
+    },
+    [members, markEdited]
+  );
+
   const handleToggleHighlight = useCallback(() => {
     setHighlightMode((on) => !on);
   }, []);
@@ -552,6 +572,7 @@ function SocialExportPageContent({ params }: PageProps) {
           groupId: surface.id,
           ...(variantId ? { variantId } : {}),
           ...buildGroupRenderBody(surface.members, formState, imageStates),
+          shapeColors: sanitizeShapeColors(shapeInputs, shapeColors),
         },
         mode
       );
@@ -562,7 +583,8 @@ function SocialExportPageContent({ params }: PageProps) {
       variant.id,
       buildRenderInputs(variant.inputs, formState),
       buildRenderImages(variant.imageInputs, imageStates[variant.id] ?? {}),
-      mode
+      mode,
+      sanitizeShapeColors(variant.shapeInputs, shapeColors)
     );
   }
 
@@ -581,6 +603,8 @@ function SocialExportPageContent({ params }: PageProps) {
     }
     if (details.inputId) {
       setActivePlaceholder({ kind: 'text', id: details.inputId });
+    } else if (details.shapeInputId) {
+      setActivePlaceholder({ kind: 'shape', id: details.shapeInputId });
     }
   }
 
@@ -663,6 +687,7 @@ function SocialExportPageContent({ params }: PageProps) {
     const loaded = fillToEditorState(result.version.fill, surface.members);
     setFormState(loaded.formState);
     setImageStates(loaded.imageStates);
+    setShapeColors(loaded.shapeColors);
     setActivePlaceholder(null);
     setRenderError(null);
     setRenderErrorDetails(null);
@@ -968,6 +993,8 @@ function SocialExportPageContent({ params }: PageProps) {
               chips={chips}
               imageState={imageStates[activeVariant.id] ?? {}}
               onImageChange={handleImageChange}
+              shapeColors={shapeColors}
+              onShapeColorChange={handleShapeColorChange}
               matchId={match.id}
               matchImages={match.images}
               onDownload={() => void handleExport(activeVariant.id)}
