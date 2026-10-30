@@ -45,18 +45,20 @@ async function seedCategories(strapi: Core.Strapi) {
 }
 
 async function setPlayerMainField(strapi: Core.Strapi) {
-  const storeKey = 'plugin_content_manager_configuration_content_types::api::player.player';
-  const config = await strapi.store.get({ key: storeKey }) as Record<string, unknown> | null;
+  // store.get/set prefix the key with `<type>_<name>_`, so pass them separately.
+  const storeParams = { type: 'plugin', name: 'content_manager', key: 'configuration_content_types::api::player.player' };
+  const config = await strapi.store.get(storeParams) as Record<string, unknown> | null;
 
-  if (config && (config as any).settings?.mainField === 'displayName') return;
+  // Never write a partial config — the content manager creates the full one.
+  if (!config || (config as any).settings?.mainField === 'displayName') return;
 
-  const settings = (config as any)?.settings || {};
+  const settings = (config as any).settings || {};
   const updated = {
     ...config,
     settings: { ...settings, mainField: 'displayName' },
   };
 
-  await strapi.store.set({ key: storeKey, value: updated });
+  await strapi.store.set({ ...storeParams, value: updated });
   strapi.log.info('Set Player mainField to displayName');
 }
 
