@@ -24,6 +24,7 @@ describe('mapNavigation', () => {
         url: null,
         file: null,
       },
+      level: 'Úroveň 1',
       sortOrder: 0,
     };
 
@@ -32,6 +33,7 @@ describe('mapNavigation', () => {
       title: 'O klubu',
       href: '/o-klubu',
       external: false,
+      level: 1,
     });
   });
 
@@ -47,6 +49,7 @@ describe('mapNavigation', () => {
         url: 'https://facr.cz',
         file: null,
       },
+      level: 'Úroveň 1',
       sortOrder: 1,
     };
 
@@ -55,6 +58,7 @@ describe('mapNavigation', () => {
       title: 'FAČR',
       href: 'https://facr.cz',
       external: true,
+      level: 1,
     });
   });
 
@@ -70,6 +74,7 @@ describe('mapNavigation', () => {
         url: null,
         file: null,
       },
+      level: 'Úroveň 1',
       sortOrder: 2,
     };
 
@@ -82,6 +87,7 @@ describe('mapNavigation', () => {
       documentId: 'nav-4',
       title: 'No Link',
       link: null,
+      level: 'Úroveň 1',
       sortOrder: 3,
     };
 
@@ -100,6 +106,7 @@ describe('mapNavigation', () => {
         url: null,
         file: null,
       },
+      level: 'Úroveň 1',
       sortOrder: 4,
     };
 
@@ -108,6 +115,33 @@ describe('mapNavigation', () => {
       title: 'Kontakty',
       href: '/o-klubu#kontakty',
       external: false,
+      level: 1,
     });
+  });
+
+  it('maps level 2 items to the second row', () => {
+    const raw: StrapiRawNavigation = {
+      id: 6,
+      documentId: 'nav-6',
+      title: 'Obchod JOMA',
+      link: { id: 60, page: null, anchor: null, url: 'https://joma.cz', file: null },
+      level: 'Úroveň 2',
+      sortOrder: 5,
+    };
+
+    expect(mapNavigation(raw)?.level).toBe(2);
+  });
+
+  it('treats a missing level (items created before the field) as level 1', () => {
+    const raw: StrapiRawNavigation = {
+      id: 7,
+      documentId: 'nav-7',
+      title: 'O klubu',
+      link: { id: 70, page: { slug: 'o-klubu' }, anchor: null, url: null, file: null },
+      level: null,
+      sortOrder: 0,
+    };
+
+    expect(mapNavigation(raw)?.level).toBe(1);
   });
 });

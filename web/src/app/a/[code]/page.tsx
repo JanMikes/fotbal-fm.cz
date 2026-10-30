@@ -70,7 +70,7 @@ export default async function DeepLinkPage({ params }: DeepLinkPageProps) {
     : null;
 
   return (
-    <main className="bg-surface-light pt-[72px] lg:pt-[126px]">
+    <main className="bg-surface-light pt-[72px] lg:pt-(--header-h)">
       <section className="pb-section">
         <div className="container mx-auto max-w-2xl px-4 lg:px-8">
           <Breadcrumb items={[{ label: 'Pozvánka do aplikace', href: canonicalCode ? `/a/${canonicalCode}` : '/a' }]} />

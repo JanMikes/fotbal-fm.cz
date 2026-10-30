@@ -199,6 +199,8 @@ export interface NavigationItem {
   title: string;
   href: string;
   external: boolean;
+  /** Header row: 1 = top row, 2 = the row below it (row 3 is the category groups). */
+  level: 1 | 2;
 }
 
 // Breadcrumbs

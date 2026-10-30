@@ -45,7 +45,7 @@ export default async function NovinkyPage({ searchParams }: NovinkyPageProps) {
   const baseHref = paginationQs ? `/novinky?${paginationQs}` : '/novinky';
 
   return (
-    <main className="bg-surface-light pt-[72px] lg:pt-[126px]">
+    <main className="bg-surface-light pt-[72px] lg:pt-(--header-h)">
     <section className="pb-section">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[

@@ -53,7 +53,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const sidebarArticles = await getSidebarArticles(article, categorySlug || undefined);
 
   return (
-    <main className="bg-surface-light pt-[72px] lg:pt-[126px]">
+    <main className="bg-surface-light pt-[72px] lg:pt-(--header-h)">
       <div className="container mx-auto px-4 lg:px-8">
         <Breadcrumb items={[
           { label: 'Novinky', href: '/novinky' },

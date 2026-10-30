@@ -79,9 +79,11 @@ export default async function RootLayout({
     getNavigationPages(),
     getFooter(),
   ]);
+  // Taller desktop header (--header-h in globals.css) only once the second menu row has items.
+  const hasSecondaryNav = navigation.some((item) => item.level === 2);
 
   return (
-    <html lang="cs" className={montserrat.variable}>
+    <html lang="cs" className={montserrat.variable} data-secondary-nav={hasSecondaryNav || undefined}>
       {process.env.NODE_ENV === 'production' && (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />

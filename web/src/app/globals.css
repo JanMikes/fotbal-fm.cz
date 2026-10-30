@@ -17,6 +17,15 @@
   --color-surface-dark: #1A1A1A;
 }
 
+/* Desktop height of the fixed Header — taller when the second menu row has items (layout.tsx). */
+:root {
+  --header-h: 126px;
+}
+
+:root[data-secondary-nav] {
+  --header-h: 166px;
+}
+
 @media (min-width: 1024px) {
   :root {
     --spacing-section: 5rem;

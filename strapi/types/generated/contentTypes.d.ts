@@ -967,6 +967,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
 export interface ApiNavigationNavigation extends Struct.CollectionTypeSchema {
   collectionName: 'navigations';
   info: {
+    description: '\u00DArove\u0148 1 = horn\u00ED \u0159\u00E1dek, \u00FArove\u0148 2 = \u0159\u00E1dek pod n\u00EDm. \u00DArove\u0148 3 jsou automaticky kategorie.';
     displayName: 'Hlavn\u00ED menu';
     pluralName: 'navigations';
     singularName: 'navigation';
@@ -978,6 +979,11 @@ export interface ApiNavigationNavigation extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    level: Schema.Attribute.Enumeration<
+      ['\u00DArove\u0148 1', '\u00DArove\u0148 2']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'\u00DArove\u0148 1'>;
     link: Schema.Attribute.Component<'elements.link', false> &
       Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;

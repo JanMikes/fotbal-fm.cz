@@ -10,7 +10,7 @@ export default function SidePanel({ children, sticky = true, className }: SidePa
   return (
     <aside
       className={clsx(
-        sticky && 'lg:sticky lg:top-36 lg:self-start',
+        sticky && 'lg:sticky lg:top-[calc(var(--header-h)+18px)] lg:self-start',
         className
       )}
     >

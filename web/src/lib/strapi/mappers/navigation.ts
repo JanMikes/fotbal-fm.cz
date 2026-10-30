@@ -10,5 +10,6 @@ export function mapNavigation(raw: StrapiRawNavigation): NavigationItem | null {
     title: raw.title,
     href: resolved.href,
     external: resolved.external,
+    level: raw.level === 'Úroveň 2' ? 2 : 1,
   };
 }

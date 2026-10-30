@@ -77,6 +77,8 @@ export interface StrapiRawNavigation {
   documentId: string;
   title: string;
   link: StrapiRawLink | null;
+  /** null for items created before the field existed — they are level 1. */
+  level: 'Úroveň 1' | 'Úroveň 2' | null;
   sortOrder: number;
 }
 

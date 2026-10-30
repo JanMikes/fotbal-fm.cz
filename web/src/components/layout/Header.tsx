@@ -43,6 +43,10 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
   const scrollRef = useRef<HTMLDivElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
+  const primaryNav = useMemo(() => navigation.filter((item) => item.level === 1), [navigation]);
+  const secondaryNav = useMemo(() => navigation.filter((item) => item.level === 2), [navigation]);
+  const isNavItemActive = (item: NavigationItem) => !item.external && pathname.startsWith(item.href);
+
   const activeGroup = useMemo(() => {
     return categoryGroups.find((g) => g.slug === activeGroupSlug);
   }, [categoryGroups, activeGroupSlug]);
@@ -138,11 +142,11 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
               <div className="flex items-center flex-1 lg:flex-none py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
                 {/* Desktop Navigation (left-aligned) */}
                 <nav className="hidden lg:flex items-center gap-6">
-                  {navigation.map((item, index) => {
+                  {primaryNav.map((item, index) => {
                     const linkProps = item.external
                       ? { target: '_blank' as const, rel: 'noopener noreferrer' }
                       : {};
-                    const isActive = !item.external && pathname.startsWith(item.href);
+                    const isActive = isNavItemActive(item);
                     return (
                       <Link
                         key={`${index}-${item.href}`}
@@ -245,7 +249,29 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
                 </div>
               </div>
 
-              {/* Level 2 - Category Tabs (hidden on mobile, shown in hamburger menu) */}
+              {/* Level 2 - Secondary Navigation (desktop only, 40px — keep --header-h in globals.css in sync) */}
+              {secondaryNav.length > 0 && (
+                <nav className="hidden lg:flex items-center gap-6 h-10 pl-6 border-b border-primary-border">
+                  {secondaryNav.map((item, index) => (
+                    <Link
+                      key={`${index}-${item.href}`}
+                      href={item.href}
+                      {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      className={clsx(
+                        'text-xs tracking-wide uppercase whitespace-nowrap transition-colors',
+                        isNavItemActive(item)
+                          ? 'font-bold text-accent'
+                          : 'font-medium text-white/60 hover:text-white',
+                        'link-hover'
+                      )}
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
+                </nav>
+              )}
+
+              {/* Level 3 - Category Tabs (hidden on mobile, shown in hamburger menu) */}
               <div className="relative hidden lg:block pl-6">
                 {/* Left scroll indicator */}
                 <div
@@ -362,7 +388,7 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
 
               {/* Mobile Navigation */}
               <nav className="space-y-2 mb-8">
-                {navigation.map((item, index) => (
+                {primaryNav.map((item, index) => (
                   <motion.div
                     key={`${index}-${item.href}`}
                     initial={{ opacity: 0, x: 20 }}
@@ -380,6 +406,28 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
                   </motion.div>
                 ))}
               </nav>
+
+              {secondaryNav.length > 0 && (
+                <nav className="space-y-1 mb-8 pt-6 border-t border-white/10">
+                  {secondaryNav.map((item, index) => (
+                    <motion.div
+                      key={`${index}-${item.href}`}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (primaryNav.length + index) * 0.1 }}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                        className="block py-2 text-base font-medium text-white/70 hover:text-accent transition-colors"
+                      >
+                        {item.title}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </nav>
+              )}
 
               {/* Mobile Social Links */}
               <div>

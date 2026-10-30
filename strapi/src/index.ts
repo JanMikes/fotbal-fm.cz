@@ -81,6 +81,41 @@ async function backfillPlayerDisplayNames(strapi: Core.Strapi) {
   strapi.log.info('Player displayName backfill complete');
 }
 
+// Admin label for the menu level field — only while it still has Strapi's default label.
+async function setNavigationLevelLabel(strapi: Core.Strapi) {
+  // store.get/set prefix the key with `<type>_<name>_`, so pass them separately.
+  const storeParams = { type: 'plugin', name: 'content_manager', key: 'configuration_content_types::api::navigation.navigation' };
+  const config = await strapi.store.get(storeParams) as any;
+  const level = config?.metadatas?.level;
+  if (!level || level.edit?.label !== 'level') return;
+
+  await strapi.store.set({
+    ...storeParams,
+    value: {
+      ...config,
+      metadatas: {
+        ...config.metadatas,
+        level: {
+          edit: { ...level.edit, label: 'Úroveň menu', description: 'Úroveň 1 = horní řádek, úroveň 2 = řádek pod ním' },
+          list: { ...level.list, label: 'Úroveň' },
+        },
+      },
+    },
+  });
+  strapi.log.info('Set menu level field labels');
+}
+
+// Menu items created before the `level` field existed belong to the top row.
+async function backfillNavigationLevel(strapi: Core.Strapi) {
+  const result = await strapi.db.query('api::navigation.navigation').updateMany({
+    where: { level: null },
+    data: { level: 'Úroveň 1' },
+  });
+  if (result.count > 0) {
+    strapi.log.info(`Backfilled level for ${result.count} menu items`);
+  }
+}
+
 /**
  * Content-API permissions that must stay OFF no matter what is clicked in the admin.
  * users-permissions stores an enabled action as a row, so deleting the row disables it.
@@ -128,6 +163,8 @@ export default {
     await seedCategories(strapi);
     await backfillPlayerDisplayNames(strapi);
     await setPlayerMainField(strapi);
+    await backfillNavigationLevel(strapi);
+    await setNavigationLevelLabel(strapi);
     await enforceUserPermissionPolicy(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },

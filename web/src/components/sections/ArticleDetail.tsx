@@ -211,7 +211,7 @@ export default function ArticleDetail({
         {/* Right column: sticky sidebar spanning full height */}
         {hasSidebar && (
           <div className="border-t lg:border-t-0 lg:border-l border-primary/10">
-            <div className="lg:sticky lg:top-[142px] p-4">
+            <div className="lg:sticky lg:top-[calc(var(--header-h)+16px)] p-4">
               <div className="mb-4">
                 <h3 className="text-section text-primary uppercase font-black leading-tight lg:text-xs lg:font-bold lg:text-primary/40 lg:tracking-wider lg:leading-normal">
                   Další články
