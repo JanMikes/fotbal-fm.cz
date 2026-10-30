@@ -182,6 +182,77 @@ describe('WboostClient', () => {
     });
   });
 
+  describe('documents', () => {
+    it('lists the project documents', async () => {
+      const raw = [{ id: 'd1', name: 'Nabídka', pages: [], fields: [] }];
+      mockFetch.mockResolvedValueOnce(mockJsonResponse(raw));
+      const client = new WboostClient(CFG, makeFakeTokenManager('tok') as never);
+
+      expect(await client.listDocuments()).toEqual(raw);
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe('http://wboost.test/api/projects/proj1/template-documents');
+      expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer tok');
+    });
+
+    it('previews one page with the whole fill body and no format', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1]), 'image/webp'));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      const fill = { fields: { f1: 'Lucie' }, pages: { p1: { inputs: { t: 'x' } } } };
+      const result = await client.renderDocument('d1', 'p1', fill);
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toBe('http://wboost.test/api/template-documents/d1/preview/p1');
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body as string)).toEqual(fill);
+      expect(result.contentType).toBe('image/webp');
+    });
+
+    it('exports the whole document in the given format (pdf-screen by default)', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ...mockBinaryResponse(new Uint8Array([37, 80]), 'application/pdf'),
+          headers: {
+            get: (h: string) =>
+              h === 'content-type'
+                ? 'application/pdf'
+                : h === 'content-disposition'
+                  ? 'attachment; filename="nabidka.pdf"'
+                  : null,
+          },
+        })
+        .mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([80, 75]), 'application/zip'));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      const fill = { fields: {}, pages: { p1: {} } };
+      const pdf = await client.renderDocument('d1', null, fill);
+      await client.renderDocument('d1', null, fill, 'png');
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-documents/d1/export');
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body as string)).toEqual({ ...fill, format: 'pdf-screen' });
+      expect(JSON.parse(mockFetch.mock.calls[1][1].body as string)).toEqual({ ...fill, format: 'png' });
+      expect(pdf.filename).toBe('nabidka.pdf');
+      expect(pdf.contentType).toBe('application/pdf');
+    });
+
+    it('carries the failing pageId and a Czech message for document codes', async () => {
+      mockFetch.mockResolvedValueOnce(
+        mockJsonResponse({ error: 'print only', code: 'pdf_not_available' }, 400)
+      );
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      const error = await client.renderDocument('d1', null, { fields: {}, pages: {} }, 'pdf').catch((e) => e);
+      expect(error).toBeInstanceOf(AppError);
+      expect(error.message).toContain('Tiskové PDF');
+
+      mockFetch.mockResolvedValueOnce(
+        mockJsonResponse({ error: 'too long', code: 'value_too_long', inputId: 'i1', pageId: 'p2' }, 400)
+      );
+      const valueError = await client.renderDocument('d1', null, { fields: {}, pages: {} }).catch((e) => e);
+      expect(valueError.details).toMatchObject({ code: 'value_too_long', inputId: 'i1', pageId: 'p2' });
+    });
+  });
+
   describe('export versions', () => {
     it('lists a group history, loads and patches a version', async () => {
       mockFetch

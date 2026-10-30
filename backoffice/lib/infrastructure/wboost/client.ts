@@ -19,8 +19,11 @@ import type {
   WboostRawProjectFont,
   WboostRawExportVersion,
   WboostRawExportVersionDetail,
+  WboostRawTemplateDocument,
 } from './types';
 import type {
+  DocumentExportFormat,
+  DocumentFillBody,
   GroupPlacements,
   RenderInputValue,
   RenderImageValue,
@@ -45,6 +48,8 @@ export interface WboostErrorBody {
   imageInputId?: string;
   shapeInputId?: string;
   variantId?: string;
+  /** Document renders: the page that failed. */
+  pageId?: string;
   maxLength?: number;
   transform?: string;
 }
@@ -68,6 +73,10 @@ const CODE_MESSAGES: Record<string, string> = {
   invalid_shape_color: 'Neplatná barva tvaru',
   shape_color_not_allowed: 'Zvolená barva není pro tento tvar povolená',
   render_unavailable: 'Generování obrázků je momentálně přetížené — zkuste to prosím za chvíli',
+  // Document exports
+  invalid_format: 'Neplatný formát exportu dokumentu',
+  pdf_not_available: 'Tiskové PDF je dostupné jen pro tiskové formáty — použijte PDF k odeslání',
+  document_empty: 'Dokument nemá žádné strany',
 };
 
 function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
@@ -266,6 +275,59 @@ export class WboostClient {
       images: fill.images ?? {},
       placements: fill.placements ?? {},
       ...(fill.shapeColors && Object.keys(fill.shapeColors).length > 0 ? { shapeColors: fill.shapeColors } : {}),
+    });
+  }
+
+  /**
+   * List the project's multi-page documents (pages with their variant in the
+   * templates-listing shape + shared fields). Older API deploys have no such
+   * endpoint (404) — the service treats that as "no documents".
+   */
+  async listDocuments(): Promise<WboostRawTemplateDocument[]> {
+    const url = `${this.config.apiBase}/api/projects/${this.config.projectId}/template-documents`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: 'Fetching template documents',
+      level: 'info',
+      data: { projectId: this.config.projectId },
+    });
+
+    const res = await this.authedFetch(url, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    return this.parseJson<WboostRawTemplateDocument[]>(res, 'template-documents');
+  }
+
+  /**
+   * Render a document fill: with `pageId` the unrecorded WebP preview of that
+   * page, without it the whole document as ONE file — `pdf-screen` / `pdf`
+   * (PDF) or `png` (ZIP of every page). The body always carries the shared
+   * `fields` + per-page `pages` entries keyed by page id.
+   */
+  async renderDocument(
+    documentId: string,
+    pageId: string | null,
+    fill: DocumentFillBody,
+    format?: DocumentExportFormat
+  ): Promise<WboostRenderedFile> {
+    const url = pageId
+      ? `${this.config.apiBase}/api/template-documents/${documentId}/preview/${pageId}`
+      : `${this.config.apiBase}/api/template-documents/${documentId}/export`;
+
+    Sentry.addBreadcrumb({
+      category: 'wboost',
+      message: pageId ? 'Previewing document page' : 'Exporting document',
+      level: 'info',
+      data: { documentId, pageId, format },
+    });
+
+    return this.postForFile(url, {
+      fields: fill.fields,
+      pages: fill.pages,
+      ...(pageId ? {} : { format: format ?? 'pdf-screen' }),
     });
   }
 

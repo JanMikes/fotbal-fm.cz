@@ -242,6 +242,8 @@ export interface RenderErrorDetails {
   shapeInputId?: string;
   /** Group renders: the member dimension that failed. */
   variantId?: string;
+  /** Document renders: the page that failed. */
+  pageId?: string;
   maxLength?: number;
 }
 
@@ -378,6 +380,105 @@ export interface TemplateDTO {
    * exported as a ZIP (or one dimension as PNG).
    */
   group: TemplateGroupRefDTO | null;
+  /**
+   * Non-null → this template is a PAGE of a multi-page document. Page
+   * templates are not offered on their own: the template picker hides them
+   * and lists the document (`DocumentDTO`) instead.
+   */
+  document: TemplateDocumentRefDTO | null;
+}
+
+/** The document a page template belongs to. */
+export interface TemplateDocumentRefDTO {
+  id: string;
+  name: string;
+  position: number;
+  pageId: string;
+}
+
+/** One page of a document: a template + its variant of the document size. */
+export interface DocumentPageDTO {
+  /** Page id — the key of `pages` in the fill body. */
+  id: string;
+  /** 0-based. */
+  position: number;
+  templateId: string;
+  templateName: string;
+  /** Same shape as a template variant — fills with the ordinary editor. */
+  variant: TemplateVariantDTO;
+}
+
+/** One input a shared field fills (only VALID bindings reach the browser). */
+export interface DocumentFieldBindingDTO {
+  pageId: string;
+  inputId: string;
+}
+
+/** A SHARED field: one value fills the bound input on every page. */
+export interface DocumentFieldDTO {
+  id: string;
+  name: string;
+  kind: 'text' | 'image';
+  bindings: DocumentFieldBindingDTO[];
+  /** Smallest maxLength of the bound text inputs (null = unlimited / image). */
+  maxLength: number | null;
+}
+
+/**
+ * A multi-page document — e.g. a 4-page offer. One page size; every page
+ * is filled separately (two pages may carry the SAME input id and still
+ * keep their own values); only shared fields join pages.
+ */
+export interface DocumentDTO {
+  id: string;
+  name: string;
+  position: number;
+  categoryId: string | null;
+  categoryName: string | null;
+  /** Page size label ("210 × 297 mm" / "4:5"). */
+  dimension: string;
+  width: number;
+  height: number;
+  /** True → the print PDF (`format: "pdf"`) is offered. */
+  printFormat: boolean;
+  /** In page order. */
+  pages: DocumentPageDTO[];
+  fields: DocumentFieldDTO[];
+}
+
+/** Response body of `GET /api/social-export/documents` (wrapped in apiSuccess). */
+export interface DocumentsResponse {
+  documents: DocumentDTO[];
+}
+
+/** `pdf-screen` = PDF for sending, `pdf` = print PDF (printFormat only), `png` = ZIP of pages. */
+export type DocumentExportFormat = 'pdf-screen' | 'pdf' | 'png';
+
+/** A shared field value: text → plain string; image → gallery image id (or `{imageId, hide}`). */
+export type DocumentFieldValue = string | { imageId?: string; hide?: boolean };
+
+/** One page's own fill — the single-variant render body of that page's variant. */
+export interface DocumentPageFill {
+  inputs?: Record<string, RenderInputValue>;
+  images?: Record<string, RenderImageValue>;
+  shapeColors?: Record<string, string>;
+}
+
+/** The document fill sent to WBoost: shared `fields` + per-page entries keyed by page id. */
+export interface DocumentFillBody {
+  fields: Record<string, DocumentFieldValue>;
+  pages: Record<string, DocumentPageFill>;
+}
+
+/**
+ * Request body of `POST /api/social-export/document-render`: `preview` one
+ * page (`pageId`, WebP) or `export` the whole document in `format`.
+ */
+export interface DocumentRenderRequest extends DocumentFillBody {
+  documentId: string;
+  mode: 'preview' | 'export';
+  pageId?: string;
+  format?: DocumentExportFormat;
 }
 
 /** Response body of `GET /api/social-export/templates` (wrapped in apiSuccess). */

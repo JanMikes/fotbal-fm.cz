@@ -1,34 +1,43 @@
 'use client';
 
-import { ImageIcon, Layers } from 'lucide-react';
-import { TemplateDTO } from '@/lib/social-export/api-types';
+import { FileText, ImageIcon, Layers } from 'lucide-react';
+import { DocumentDTO, TemplateDTO } from '@/lib/social-export/api-types';
+import { pagesWord } from '@/lib/social-export/document-fill';
 import SavedBadge from './SavedBadge';
 
 interface TemplateGridProps {
+  /** Ordinary templates — page templates of a document must be filtered out by the caller. */
   templates: TemplateDTO[];
   onSelect: (template: TemplateDTO) => void;
+  /** Multi-page documents, listed next to the templates of their category. */
+  documents?: DocumentDTO[];
+  onSelectDocument?: (document: DocumentDTO) => void;
   /** Variant ids that have a saved editing state for the current match. */
   savedVariantIds?: ReadonlySet<string>;
 }
 
-// Group templates by categoryName, with null grouped as "Ostatní"
-function groupTemplates(templates: TemplateDTO[]): Array<{ category: string; items: TemplateDTO[] }> {
-  const groupMap = new Map<string, TemplateDTO[]>();
+type GridEntry =
+  | { kind: 'template'; item: TemplateDTO }
+  | { kind: 'document'; item: DocumentDTO };
 
-  // Sort within each group by position then name
-  const sorted = [...templates].sort((a, b) => {
-    if (a.position !== b.position) return a.position - b.position;
-    return a.name.localeCompare(b.name, 'cs');
+// Group entries by categoryName, with null grouped as "Ostatní"
+function groupEntries(entries: GridEntry[]): Array<{ category: string; items: GridEntry[] }> {
+  const groupMap = new Map<string, GridEntry[]>();
+
+  // Sort within each group by position then name (documents share the templates' sort space)
+  const sorted = [...entries].sort((a, b) => {
+    if (a.item.position !== b.item.position) return a.item.position - b.item.position;
+    return a.item.name.localeCompare(b.item.name, 'cs');
   });
 
-  for (const t of sorted) {
-    const key = t.categoryName ?? 'Ostatní';
+  for (const entry of sorted) {
+    const key = entry.item.categoryName ?? 'Ostatní';
     if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(t);
+    groupMap.get(key)!.push(entry);
   }
 
   // Build ordered groups: named categories first (sorted), then "Ostatní" last
-  const groups: Array<{ category: string; items: TemplateDTO[] }> = [];
+  const groups: Array<{ category: string; items: GridEntry[] }> = [];
   const keys = Array.from(groupMap.keys()).sort((a, b) => {
     if (a === 'Ostatní') return 1;
     if (b === 'Ostatní') return -1;
@@ -46,8 +55,17 @@ function groupTemplates(templates: TemplateDTO[]): Array<{ category: string; ite
  * Responsive grid of template cards, grouped by category.
  * Templates with no variants are shown as disabled.
  */
-export default function TemplateGrid({ templates, onSelect, savedVariantIds }: TemplateGridProps) {
-  const groups = groupTemplates(templates);
+export default function TemplateGrid({
+  templates,
+  onSelect,
+  documents = [],
+  onSelectDocument,
+  savedVariantIds,
+}: TemplateGridProps) {
+  const groups = groupEntries([
+    ...templates.map((item): GridEntry => ({ kind: 'template', item })),
+    ...documents.map((item): GridEntry => ({ kind: 'document', item })),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -57,7 +75,17 @@ export default function TemplateGrid({ templates, onSelect, savedVariantIds }: T
             {category}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {items.map((template) => {
+            {items.map((entry) => {
+              if (entry.kind === 'document') {
+                return (
+                  <DocumentCard
+                    key={`document-${entry.item.id}`}
+                    document={entry.item}
+                    onSelect={() => onSelectDocument?.(entry.item)}
+                  />
+                );
+              }
+              const template = entry.item;
               const hasVariants = template.variants.length > 0;
               const thumbUrl = template.variants[0]?.thumbnailUrl ?? null;
               const dimensionList = template.variants.map((v) => v.dimension).join(', ');
@@ -130,6 +158,64 @@ export default function TemplateGrid({ templates, onSelect, savedVariantIds }: T
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
+
+/** A multi-page document: up to three page thumbnails fanned out, name, page count. */
+function DocumentCard({ document, onSelect }: { document: DocumentDTO; onSelect: () => void }) {
+  const hasPages = document.pages.length > 0;
+  const thumbs = document.pages.slice(0, 3);
+
+  return (
+    <button
+      type="button"
+      disabled={!hasPages}
+      onClick={() => hasPages && onSelect()}
+      className={`
+        group flex flex-col rounded-xl border overflow-hidden text-left transition-all duration-200
+        focus:outline-none focus:ring-2 focus:ring-ring-focus
+        ${hasPages
+          ? 'border-border bg-surface hover:border-accent hover:shadow-md cursor-pointer active:scale-[0.98]'
+          : 'border-border bg-surface opacity-50 cursor-not-allowed'}
+      `}
+    >
+      <div className="relative flex w-full aspect-video items-center justify-center gap-1.5 overflow-hidden bg-surface-hover p-2">
+        {thumbs.length > 0 ? (
+          thumbs.map((page) => (
+            <div
+              key={page.id}
+              className="h-full overflow-hidden rounded border border-border bg-white shadow-sm"
+              style={{ aspectRatio: `${page.variant.width}/${page.variant.height}` }}
+            >
+              {page.variant.thumbnailUrl ? (
+                <ThumbnailImage src={page.variant.thumbnailUrl} alt={page.templateName} />
+              ) : (
+                <PlaceholderTile />
+              )}
+            </div>
+          ))
+        ) : (
+          <PlaceholderTile />
+        )}
+        <span
+          className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full border border-border bg-white px-2 py-0.5 text-[10px] font-medium text-text-secondary"
+          title="Vícestránkový dokument — vyplníte stranu po straně, stáhnete jako jeden soubor"
+        >
+          <FileText className="h-3 w-3" />
+          Dokument
+        </span>
+      </div>
+
+      <div className="p-3 flex-1 flex flex-col gap-0.5">
+        <p className="text-sm font-semibold text-text-primary line-clamp-2 group-hover:text-accent transition-colors">
+          {document.name}
+        </p>
+        {document.categoryName && <p className="text-xs text-text-muted">{document.categoryName}</p>}
+        <p className="text-xs text-text-muted mt-1">
+          {document.pages.length} {pagesWord(document.pages.length)} · {document.dimension}
+        </p>
+      </div>
+    </button>
+  );
+}
 
 // Renders the thumbnail with an inline DOM fallback on image load error.
 function ThumbnailImage({ src, alt }: { src: string; alt: string }) {

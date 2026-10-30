@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  documentRenderRequestSchema,
   groupRenderRequestSchema,
   renderRequestSchema,
   saveStateRequestSchema,
@@ -88,5 +89,37 @@ describe('versionUpdateSchema', () => {
     expect(versionUpdateSchema.safeParse({}).success).toBe(false);
     expect(versionUpdateSchema.parse({ name: null })).toEqual({ name: null });
     expect(versionUpdateSchema.parse({ pinned: true })).toEqual({ pinned: true });
+  });
+});
+
+describe('documentRenderRequestSchema', () => {
+  const fill = {
+    fields: { f1: 'Lucie', f2: { imageId: 'img-1' } },
+    pages: {
+      p1: { inputs: { t: { runs: [{ text: 'A', color: '#000000' }] } }, images: { s: { imageId: 'img', scale: 2 } } },
+      p2: { shapeColors: { sh: '#ff0000' } },
+    },
+  };
+
+  it('accepts a page preview and a document export, keeping rich runs per page', () => {
+    const preview = documentRenderRequestSchema.parse({ documentId: 'd1', mode: 'preview', pageId: 'p1', ...fill });
+    expect(preview.pages.p1.inputs?.t).toEqual({
+      runs: [{ text: 'A', fontFamily: null, color: '#000000', underline: false }],
+    });
+
+    const exported = documentRenderRequestSchema.parse({ documentId: 'd1', mode: 'export', format: 'png', ...fill });
+    expect(exported.format).toBe('png');
+    expect(exported.fields.f2).toEqual({ imageId: 'img-1' });
+  });
+
+  it('refuses a preview without a page, an unknown format and unknown keys', () => {
+    expect(documentRenderRequestSchema.safeParse({ documentId: 'd1', mode: 'preview', ...fill }).success).toBe(false);
+    expect(
+      documentRenderRequestSchema.safeParse({ documentId: 'd1', mode: 'export', format: 'jpg', ...fill }).success
+    ).toBe(false);
+    expect(
+      documentRenderRequestSchema.safeParse({ documentId: 'd1', mode: 'export', ...fill, pages: { p1: { foo: 1 } } })
+        .success
+    ).toBe(false);
   });
 });

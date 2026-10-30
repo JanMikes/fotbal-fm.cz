@@ -25,6 +25,7 @@ import type {
   WboostRawProjectFont,
   WboostRawExportVersion,
   WboostRawExportVersionDetail,
+  WboostRawTemplateDocument,
 } from '@/lib/infrastructure/wboost/types';
 import type {
   TemplateDTO,
@@ -39,6 +40,9 @@ import type {
   ExportVersionDTO,
   ExportVersionDetailDTO,
   ExportVersionFillDTO,
+  DocumentDTO,
+  DocumentExportFormat,
+  DocumentFillBody,
 } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
@@ -221,7 +225,60 @@ function mapTemplate(raw: WboostRawTemplate, thumbnailsEnabled: boolean): Templa
     categoryName: raw.categoryName,
     variants: raw.variants.map((v) => mapVariant(v, thumbnailsEnabled)),
     group: raw.group ? { id: raw.group.id, name: raw.group.name } : null,
+    // Absent on pre-documents deploys → an ordinary template.
+    document: raw.document
+      ? {
+          id: raw.document.id,
+          name: raw.document.name,
+          position: raw.document.position,
+          pageId: raw.document.pageId,
+        }
+      : null,
   };
+}
+
+function mapDocument(raw: WboostRawTemplateDocument, thumbnailsEnabled: boolean): DocumentDTO {
+  const pages = raw.pages
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map((page) => ({
+      id: page.id,
+      position: page.position,
+      templateId: page.templateId,
+      templateName: page.templateName,
+      variant: mapVariant(page.variant, thumbnailsEnabled),
+    }));
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    position: raw.position,
+    categoryId: raw.categoryId,
+    categoryName: raw.categoryName,
+    dimension: raw.dimension,
+    width: raw.width,
+    height: raw.height,
+    printFormat: raw.printFormat === true,
+    pages,
+    fields: (raw.fields ?? []).map((field) => ({
+      id: field.id,
+      name: field.name,
+      kind: field.kind,
+      // `valid: false` = the input was deleted from its page: never fill it.
+      bindings: field.bindings
+        .filter((binding) => binding.valid)
+        .map((binding) => ({ pageId: binding.pageId, inputId: binding.inputId })),
+      maxLength: field.maxLength ?? null,
+    })),
+  };
+}
+
+function thumbnailsEnabledOrFalse(): boolean {
+  try {
+    return getWboostConfig().thumbnailsEnabled;
+  } catch {
+    return false;
+  }
 }
 
 function mapExportVersion(raw: WboostRawExportVersion): ExportVersionDTO {
@@ -306,6 +363,39 @@ export class SocialExportService {
       Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'getTemplates' } });
       return err(toAppError(e));
     }
+  }
+
+  /**
+   * The project's multi-page documents, sorted like the templates. An API
+   * deploy without documents (404) simply has none.
+   */
+  async getDocuments(): Promise<Result<DocumentDTO[], AppError>> {
+    try {
+      const raw = await this.client.listDocuments();
+      const thumbnailsEnabled = thumbnailsEnabledOrFalse();
+
+      return ok(
+        raw
+          .slice()
+          .sort((a, b) => (a.position !== b.position ? a.position - b.position : a.name.localeCompare(b.name, 'cs')))
+          .map((doc) => mapDocument(doc, thumbnailsEnabled))
+      );
+    } catch (e) {
+      if (e instanceof AppError && e.statusCode === 404) return ok([]);
+      if (e instanceof AppError) return err(e);
+      Sentry.captureException(e, { tags: { service: 'SocialExportService', method: 'getDocuments' } });
+      return err(toAppError(e));
+    }
+  }
+
+  /** Document fill: `pageId` → that page's WebP preview; null → the whole document in `format`. */
+  async renderDocument(
+    documentId: string,
+    pageId: string | null,
+    fill: DocumentFillBody,
+    format?: DocumentExportFormat
+  ): Promise<Result<WboostRenderedFile, AppError>> {
+    return this.attempt('renderDocument', () => this.client.renderDocument(documentId, pageId, fill, format));
   }
 
   /** `preview` = unrecorded WebP for the screen, `export` = the recorded PNG download. */

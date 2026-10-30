@@ -22,6 +22,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import {
   useSocialExportTemplates,
+  useSocialExportDocuments,
   useSavedExportStates,
   useExportVersions,
   saveExportState,
@@ -40,8 +41,10 @@ import ExportInputForm from '@/components/social-export/ExportInputForm';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import DimensionStrip from '@/components/social-export/DimensionStrip';
 import ExportHistoryMenu from '@/components/social-export/ExportHistoryMenu';
+import DocumentEditor from '@/components/social-export/DocumentEditor';
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
 import type {
+  DocumentDTO,
   ExportVersionDTO,
   RenderErrorDetails,
   TemplateDTO,
@@ -117,6 +120,10 @@ function SocialExportPageContent({ params }: PageProps) {
 
   // Templates
   const { templates, isLoading: templatesLoading, error: templatesError } = useSocialExportTemplates();
+  // Multi-page documents. Their PAGE templates (`template.document`) are not
+  // offered on their own — the picker lists the document instead.
+  const { documents, isLoading: documentsLoading, error: documentsError } = useSocialExportDocuments();
+  const pickerTemplates = useMemo(() => templates.filter((t) => t.document == null), [templates]);
 
   // Globally saved editor states for this match (one per fill surface —
   // variant or group), written after every change so an accidental refresh
@@ -131,6 +138,12 @@ function SocialExportPageContent({ params }: PageProps) {
   // refresh and is deep-linkable. `varianta=skupina` opens a template group.
   const selectedTemplateId = searchParams.get('sablona');
   const selectedVariantParam = searchParams.get('varianta');
+  // `?dokument=` opens a multi-page document (its own editor, no variant step).
+  const selectedDocumentId = searchParams.get('dokument');
+  const selectedDocument = useMemo(
+    () => documents.find((d) => d.id === selectedDocumentId) ?? null,
+    [documents, selectedDocumentId]
+  );
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === selectedTemplateId) ?? null,
@@ -468,6 +481,10 @@ function SocialExportPageContent({ params }: PageProps) {
     navigate(template.id, template.variants.length === 1 ? template.variants[0].id : null);
   }
 
+  function handleSelectDocument(document: DocumentDTO) {
+    router.push(`${pathname}?${new URLSearchParams({ dokument: document.id }).toString()}`, { scroll: false });
+  }
+
   function handleSelectVariant(variant: TemplateVariantDTO) {
     navigate(selectedTemplateId, variant.id);
   }
@@ -758,7 +775,14 @@ function SocialExportPageContent({ params }: PageProps) {
   const step: 1 | 2 | 3 = surface ? 3 : selectedTemplate ? 2 : 1;
   // True while a deep link / refresh is waiting for templates or the saved
   // editor states to load (the editor must not seed before both are in).
-  const restoring = !!selectedTemplateId && (templatesLoading || savedStatesLoading);
+  const restoring =
+    (!!selectedTemplateId && (templatesLoading || savedStatesLoading)) ||
+    (!!selectedDocumentId && documentsLoading);
+  // A document deep link takes over the wizard (step 1 → its editor).
+  const documentMode = !!selectedDocument && !selectedTemplateId;
+  const pickerLoading = templatesLoading || documentsLoading;
+  // Documents are optional: their failure alone never hides the templates.
+  const pickerError = templatesError ?? (pickerTemplates.length === 0 ? documentsError : null);
   const chips = match ? getMatchChips(match) : [];
   // Editable text inputs that can't be drawn as a preview box (no frame) — they
   // get a small fallback list under the preview so they stay reachable.
@@ -845,7 +869,17 @@ function SocialExportPageContent({ params }: PageProps) {
         </div>
 
         {/* Breadcrumb step navigation (also serves as back navigation) */}
-        {!restoring && (
+        {!restoring && documentMode && selectedDocument && (
+          <nav className="mb-5 flex items-center gap-2 text-sm flex-wrap">
+            <button type="button" onClick={handleBackToTemplates} className={crumbClass(false, true)}>
+              1. Šablona: {selectedDocument.name}
+            </button>
+            <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+            <span className={crumbClass(true, false)}>2. Vyplnění dokumentu</span>
+          </nav>
+        )}
+
+        {!restoring && !documentMode && (
           <nav className="mb-5 flex items-center gap-2 text-sm flex-wrap">
             <button
               type="button"
@@ -877,24 +911,38 @@ function SocialExportPageContent({ params }: PageProps) {
         )}
 
         {/* Step 1: Template grid */}
-        {!restoring && step === 1 && (
+        {!restoring && step === 1 && !documentMode && (
           <Card variant="elevated">
-            {templatesLoading && (
+            {pickerLoading && (
               <LoadingSpinner fullscreen={false} size="md" message="Načítání šablon..." />
             )}
-            {!templatesLoading && templatesError && (
-              <Alert variant="error">{templatesError}</Alert>
+            {!pickerLoading && pickerError && (
+              <Alert variant="error">{pickerError}</Alert>
             )}
-            {!templatesLoading && !templatesError && templates.length === 0 && (
+            {!pickerLoading && !pickerError && selectedDocumentId && !selectedDocument && (
+              <div className="mb-4">
+                <Alert variant="warning">Dokument už není k dispozici — vyberte jinou šablonu.</Alert>
+              </div>
+            )}
+            {!pickerLoading && !pickerError && pickerTemplates.length === 0 && documents.length === 0 && (
               <Alert variant="info">Žádné šablony nejsou k dispozici.</Alert>
             )}
-            {!templatesLoading && !templatesError && templates.length > 0 && (
+            {!pickerLoading && !pickerError && (pickerTemplates.length > 0 || documents.length > 0) && (
               <TemplateGrid
-                templates={templates}
+                templates={pickerTemplates}
                 onSelect={handleSelectTemplate}
+                documents={documents}
+                onSelectDocument={handleSelectDocument}
                 savedVariantIds={savedSubjectIds}
               />
             )}
+          </Card>
+        )}
+
+        {/* Multi-page document: fill page by page, export as one file. */}
+        {!restoring && documentMode && selectedDocument && (
+          <Card variant="elevated">
+            <DocumentEditor key={selectedDocument.id} document={selectedDocument} match={match} />
           </Card>
         )}
 

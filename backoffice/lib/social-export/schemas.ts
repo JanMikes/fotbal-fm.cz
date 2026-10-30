@@ -102,6 +102,39 @@ export const groupRenderRequestSchema = z
   })
   .strict();
 
+/** One page's own fill in a document body (the single-variant render body). */
+const documentPageFillSchema = z
+  .object({
+    inputs: z.record(z.string(), renderInputValueSchema).optional(),
+    images: z.record(z.string(), renderImageValueSchema).optional(),
+    shapeColors: shapeColorsSchema.optional(),
+  })
+  .strict();
+
+/** A shared field value: text → string, image → image id or `{ imageId?, hide? }`. */
+const documentFieldValueSchema = z.union([
+  z.string(),
+  z.object({ imageId: z.string().optional(), hide: z.boolean().optional() }).strict(),
+]);
+
+export const documentExportFormatSchema = z.enum(['pdf-screen', 'pdf', 'png']);
+
+export const documentRenderRequestSchema = z
+  .object({
+    documentId: z.string().min(1),
+    mode: renderModeSchema,
+    /** Required for `preview` (the page to render); ignored by `export`. */
+    pageId: z.string().min(1).optional(),
+    /** `export` only; defaults to `pdf-screen`. */
+    format: documentExportFormatSchema.optional(),
+    fields: z.record(z.string(), documentFieldValueSchema),
+    pages: z.record(z.string(), documentPageFillSchema),
+  })
+  .strict()
+  .refine((body) => body.mode !== 'preview' || body.pageId !== undefined, {
+    message: 'Náhled dokumentu vyžaduje pageId',
+  });
+
 const inputFieldStateSchema = z
   .object({
     value: z.string().max(10000),

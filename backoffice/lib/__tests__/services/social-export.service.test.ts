@@ -649,6 +649,97 @@ describe('SocialExportService', () => {
     });
   });
 
+  describe('documents', () => {
+    const makeRawDocument = (overrides = {}) => ({
+      id: 'd1',
+      name: 'Nabídka',
+      position: 3,
+      categoryId: 'c1',
+      categoryName: 'Obchod',
+      createdAt: '2026-10-30T00:00:00+00:00',
+      dimension: '210 × 297 mm',
+      preset: null,
+      unit: 'mm',
+      unitWidth: 210,
+      unitHeight: 297,
+      width: 2480,
+      height: 3508,
+      printFormat: true,
+      bleedMm: 3,
+      cropMarks: true,
+      pages: [
+        { id: 'p2', position: 1, templateId: 't2', templateName: 'Ceník', variant: makeRawVariant({ id: 'v2' }) },
+        { id: 'p1', position: 0, templateId: 't1', templateName: 'Úvod', variant: makeRawVariant({ id: 'v1' }) },
+      ],
+      fields: [
+        {
+          id: 'f1',
+          name: 'Klient',
+          kind: 'text',
+          bindings: [
+            { pageId: 'p1', templateId: 't1', inputId: 'inp-1', valid: true },
+            { pageId: 'p2', templateId: 't2', inputId: 'gone', valid: false },
+          ],
+          maxLength: 30,
+        },
+      ],
+      ...overrides,
+    });
+
+    it('maps documents: pages in order with mapped variants, only valid bindings', async () => {
+      const client = makeFakeClient({ listDocuments: vi.fn().mockResolvedValue([makeRawDocument()]) });
+      const result = await new SocialExportService(client as never).getDocuments();
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      const [doc] = result.data;
+      expect(doc).toMatchObject({ id: 'd1', name: 'Nabídka', printFormat: true, dimension: '210 × 297 mm' });
+      expect(doc.pages.map((p) => p.id)).toEqual(['p1', 'p2']);
+      expect(doc.pages[0].variant.inputs[0].id).toBe('inp-1');
+      expect(doc.pages[0].variant.imageInputs).toEqual([]);
+      expect(doc.fields).toEqual([
+        { id: 'f1', name: 'Klient', kind: 'text', bindings: [{ pageId: 'p1', inputId: 'inp-1' }], maxLength: 30 },
+      ]);
+    });
+
+    it('treats an API without documents (404) as none', async () => {
+      const client = makeFakeClient({
+        listDocuments: vi.fn().mockRejectedValue(new AppError('nf', ErrorCode.NOT_FOUND, 404)),
+      });
+      const result = await new SocialExportService(client as never).getDocuments();
+      expect(result).toEqual({ success: true, data: [] });
+    });
+
+    it('maps the template `document` ref (null when absent)', async () => {
+      const client = makeFakeClient({
+        listTemplates: vi.fn().mockResolvedValue([
+          makeRawTemplate({ id: 'page', document: { id: 'd1', name: 'Nabídka', position: 3, pageId: 'p1' } }),
+          makeRawTemplate({ id: 'plain' }),
+        ]),
+      });
+      const result = await new SocialExportService(client as never).getTemplates();
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      const byId = Object.fromEntries(result.data.map((t) => [t.id, t]));
+      expect(byId.page.document).toEqual({ id: 'd1', name: 'Nabídka', position: 3, pageId: 'p1' });
+      expect(byId.plain.document).toBeNull();
+    });
+
+    it('passes a document render through to the client', async () => {
+      const renderDocument = vi
+        .fn()
+        .mockResolvedValue({ body: new Uint8Array([1]), contentType: 'application/pdf', filename: 'x.pdf' });
+      const service = new SocialExportService(makeFakeClient({ renderDocument }) as never);
+
+      const fill = { fields: { f1: 'x' }, pages: { p1: {} } };
+      const result = await service.renderDocument('d1', null, fill, 'pdf');
+
+      expect(result.success).toBe(true);
+      expect(renderDocument).toHaveBeenCalledWith('d1', null, fill, 'pdf');
+    });
+  });
+
   describe('group render + export history', () => {
     it('passes a group fill through to the client', async () => {
       const renderGroup = vi.fn().mockResolvedValue({ body: new Uint8Array([1]), contentType: 'application/zip', filename: 'x.zip' });

@@ -341,6 +341,77 @@ export interface WboostRawTemplate {
   variants: WboostRawVariant[];
   /** Non-null → the template is a synchronized GROUP. Absent on older deploys. */
   group?: { id: string; name: string } | null;
+  /**
+   * Non-null → the template is a PAGE of a multi-page document: hide it from
+   * the template picker and offer the document instead. Absent on older deploys.
+   */
+  document?: WboostRawTemplateDocumentRef | null;
+}
+
+/** `templates[].document` — the document a page template belongs to. */
+export interface WboostRawTemplateDocumentRef {
+  id: string;
+  name: string;
+  /** The document's own sort position (shares the listing's sort space). */
+  position: number;
+  /** The page id (key of `pages` in the document fill body). */
+  pageId: string;
+}
+
+/** One page of a document: a template + its variant of the document size. */
+export interface WboostRawTemplateDocumentPage {
+  /** Page id — the key of `pages` in the preview / export body. */
+  id: string;
+  /** 0-based. */
+  position: number;
+  templateId: string;
+  templateName: string;
+  /** Exactly the `variants[]` shape of the templates listing. */
+  variant: WboostRawVariant;
+}
+
+/** Where a shared field writes: one input on one page. */
+export interface WboostRawTemplateDocumentFieldBinding {
+  pageId: string;
+  templateId: string;
+  /** `variant.inputs[].id` (text) / `variant.imageInputs[].id` (image) on that page. */
+  inputId: string;
+  /** false = the input was deleted from the page — ignore the binding. */
+  valid: boolean;
+}
+
+/** A SHARED field: one value (`fields[id]`) fills the bound input on every page. */
+export interface WboostRawTemplateDocumentField {
+  id: string;
+  name: string;
+  kind: 'text' | 'image';
+  bindings: WboostRawTemplateDocumentFieldBinding[];
+  /** Smallest `maxLength` of the bound text inputs (null = unlimited / image). */
+  maxLength: number | null;
+}
+
+/** A multi-page document (`GET /api/projects/{id}/template-documents`). */
+export interface WboostRawTemplateDocument {
+  id: string;
+  name: string;
+  position: number;
+  categoryId: string | null;
+  categoryName: string | null;
+  createdAt: string;
+  /** Page size label ("210 × 297 mm" / "4:5"), like a variant's `dimension`. */
+  dimension: string;
+  preset: string | null;
+  unit: string;
+  unitWidth: number;
+  unitHeight: number;
+  width: number;
+  height: number;
+  /** mm / cm → the print PDF (`format: "pdf"`) is available. */
+  printFormat: boolean;
+  bleedMm: number;
+  cropMarks: boolean;
+  pages: WboostRawTemplateDocumentPage[];
+  fields: WboostRawTemplateDocumentField[];
 }
 
 /** One entry of a fill surface's export history (`…/export-versions`). */

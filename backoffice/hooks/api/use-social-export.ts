@@ -15,6 +15,8 @@ import {
   GroupRenderRequest,
   ExportVersionDTO,
   ExportVersionDetailDTO,
+  DocumentDTO,
+  DocumentRenderRequest,
 } from '@/lib/social-export/api-types';
 import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
 
@@ -48,6 +50,37 @@ export function useSocialExportTemplates(): {
 
   return {
     templates: data ?? [],
+    isLoading,
+    error: error ? error.message : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Hook: useSocialExportDocuments (multi-page documents)
+// ---------------------------------------------------------------------------
+
+async function fetchDocuments(url: string): Promise<DocumentDTO[]> {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.error || 'Nepodařilo se načíst dokumenty');
+  }
+  return json.data.documents as DocumentDTO[];
+}
+
+export function useSocialExportDocuments(): {
+  documents: DocumentDTO[];
+  isLoading: boolean;
+  error: string | null;
+} {
+  const { data, error, isLoading } = useSWR<DocumentDTO[], Error>(
+    `${SOCIAL_EXPORT_API_BASE}/documents`,
+    fetchDocuments,
+    { revalidateOnFocus: false }
+  );
+
+  return {
+    documents: data ?? [],
     isLoading,
     error: error ? error.message : null,
   };
@@ -142,7 +175,11 @@ async function postRender(path: string, body: unknown): Promise<RenderResult> {
 
     if (res.ok) {
       const contentType = res.headers.get('content-type') ?? '';
-      if (contentType.startsWith('image/') || contentType.startsWith('application/zip')) {
+      if (
+        contentType.startsWith('image/') ||
+        contentType.startsWith('application/zip') ||
+        contentType.startsWith('application/pdf')
+      ) {
         return { blob: await res.blob(), filename: res.headers.get('x-export-filename') };
       }
     }
@@ -189,6 +226,14 @@ export function renderGroup(
   mode: RenderMode
 ): Promise<RenderResult> {
   return postRender('group-render', { ...request, mode });
+}
+
+/**
+ * Document fill render: `preview` one page (`pageId`, WebP) or `export` the
+ * whole document in `format` (PDF, or a ZIP of PNGs).
+ */
+export function renderDocument(request: DocumentRenderRequest): Promise<RenderResult> {
+  return postRender('document-render', request);
 }
 
 // ---------------------------------------------------------------------------
