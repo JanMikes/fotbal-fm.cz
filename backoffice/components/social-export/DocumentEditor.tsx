@@ -37,6 +37,7 @@ import {
   nextPreviewRenders,
   pagesWord,
   pickerSlotOf,
+  sharedFieldNamesOf,
   sharedImageOf,
   toSavedDocument,
   type DocumentFillState,
@@ -481,6 +482,8 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   }
 
   const activeOverflow = predictedOverflows[activePage.id] ?? null;
+  const activeSharedText = sharedFieldNamesOf(document, activePage.id, 'text');
+  const activeSharedImages = sharedFieldNamesOf(document, activePage.id, 'image');
   const pickerField = imageFields.find((f) => f.id === pickerFieldId) ?? null;
   const pickerTarget = pickerField ? pickerSlotOf(document, pickerField) : null;
   const exportDisabled = exportingFormat !== null || invalid || Object.keys(predictedOverflows).length > 0;
@@ -699,6 +702,8 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             : null
         }
         textFrames={textLayouts[activePage.id]?.frames ?? {}}
+        sharedTextFields={activeSharedText}
+        sharedImageFields={activeSharedImages}
       />
 
       {unplacedInputs.length > 0 && (
@@ -713,6 +718,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             state={fill.forms[activePage.id] ?? {}}
             onChange={handleFormChange}
             showActions={false}
+            sharedFieldNames={activeSharedText}
           />
         </div>
       )}

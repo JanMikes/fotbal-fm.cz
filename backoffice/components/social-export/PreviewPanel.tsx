@@ -64,6 +64,10 @@ interface PreviewPanelProps {
    * their designed frames.
    */
   textFrames: Record<string, ImageFrameDTO>;
+  /** Document pages: inputId → name of the shared text field that fills it. */
+  sharedTextFields?: Record<string, string>;
+  /** Document pages: image slotId → name of the shared image field that fills it. */
+  sharedImageFields?: Record<string, string>;
 }
 
 const NEUTRAL = NEUTRAL_PLACEMENT;
@@ -109,6 +113,8 @@ export default function PreviewPanel({
   overflowContainerId = null,
   overflowWarning = null,
   textFrames,
+  sharedTextFields,
+  sharedImageFields,
 }: PreviewPanelProps) {
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
@@ -397,6 +403,7 @@ export default function PreviewPanel({
                 richTextOptions={variant.richTextOptions}
                 onChange={(partial) => onFormChange(activeTextInput.id, partial)}
                 onClose={onCloseActive}
+                sharedFieldName={sharedTextFields?.[activeTextInput.id] ?? null}
               />
             </FloatingPanel>
           )}
@@ -422,6 +429,7 @@ export default function PreviewPanel({
                   setPickerImageId(activeImageInput.id);
                 }}
                 onClose={onCloseActive}
+                sharedFieldName={sharedImageFields?.[activeImageInput.id] ?? null}
               />
             </FloatingPanel>
           )}

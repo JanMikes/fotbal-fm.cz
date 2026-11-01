@@ -11,6 +11,7 @@ import {
 } from '@/lib/social-export/field-rules-image';
 import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import type { ImageInputDTO } from '@/lib/social-export/api-types';
+import SharedFieldBadge from './SharedFieldBadge';
 
 interface PlaceholderImagePanelProps {
   input: ImageInputDTO;
@@ -20,6 +21,8 @@ interface PlaceholderImagePanelProps {
   /** Open the gallery picker for this slot. */
   onReplace: () => void;
   onClose: () => void;
+  /** Name of the document's shared field that fills this slot, if any (the pick is shared, the placement is not). */
+  sharedFieldName?: string | null;
 }
 
 /**
@@ -39,6 +42,7 @@ export default function PlaceholderImagePanel({
   onChange,
   onReplace,
   onClose,
+  sharedFieldName = null,
 }: PlaceholderImagePanelProps) {
   const adjustable = hasAdjustments(input);
   const panned = state.offsetXRatio !== 0 || state.offsetYRatio !== 0;
@@ -57,6 +61,8 @@ export default function PlaceholderImagePanel({
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {sharedFieldName != null && <SharedFieldBadge name={sharedFieldName} kind="image" className="mb-2" />}
 
       <button
         type="button"

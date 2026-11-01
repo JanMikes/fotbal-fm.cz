@@ -19,6 +19,7 @@ import {
   pagesOfField,
   pagesWord,
   pickerSlotOf,
+  sharedFieldNamesOf,
   sharedImageOf,
   toSavedDocument,
 } from '@/lib/social-export/document-fill';
@@ -363,5 +364,13 @@ describe('pickerSlotOf', () => {
 
   it('is null when no binding resolves to a slot', () => {
     expect(pickerSlotOf({ ...doc, pages: [pageC] }, field)).toBeNull();
+  });
+});
+
+describe('sharedFieldNamesOf', () => {
+  it('names the shared field behind each bound input / slot of one page', () => {
+    expect(sharedFieldNamesOf(doc, 'p-b', 'text')).toEqual({ name: 'Jméno klienta' });
+    expect(sharedFieldNamesOf(doc, 'p-b', 'image')).toEqual({ 'img-1': 'Fotka' });
+    expect(sharedFieldNamesOf(doc, 'p-c', 'text')).toEqual({});
   });
 });

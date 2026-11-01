@@ -8,6 +8,7 @@ import Alert from '@/components/ui/Alert';
 import FieldInsertMenu from './FieldInsertMenu';
 import ChecklistEditor from './ChecklistEditor';
 import FontChoiceSelect from './FontChoiceSelect';
+import SharedFieldBadge from './SharedFieldBadge';
 import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { MatchChip } from '@/lib/social-export/prefill';
@@ -31,6 +32,8 @@ interface ExportInputFormProps {
   onDownload?: () => void;
   isRendering?: boolean;
   renderError?: string | null;
+  /** Document pages: inputId → name of the shared text field that fills it (edited as plain text). */
+  sharedFieldNames?: Record<string, string>;
 }
 
 /**
@@ -47,6 +50,7 @@ export default function ExportInputForm({
   onDownload,
   isRendering = false,
   renderError,
+  sharedFieldNames,
 }: ExportInputFormProps) {
   // Check if any editable field has a validation error
   const hasValidationErrors = variant.inputs.some((input) => {
@@ -83,9 +87,10 @@ export default function ExportInputForm({
           const isHidden = fieldState.hidden;
           const editable = isEditable(input);
           const validationError = editable ? validateInputValue(input, value) ?? undefined : undefined;
-          const isRich = input.richText && variant.richTextOptions != null;
+          const sharedFieldName = sharedFieldNames?.[input.id] ?? null;
+          const isRich = input.richText && variant.richTextOptions != null && sharedFieldName == null;
           // A dedicated checklist component gets per-item rows, never the WYSIWYG.
-          const isChecklist = input.checklist != null;
+          const isChecklist = input.checklist != null && sharedFieldName == null;
           const length = codePointLength(value);
 
           // Build hint text
@@ -121,6 +126,9 @@ export default function ExportInputForm({
               hint={hintText}
               error={validationError}
             >
+              {sharedFieldName != null && (
+                <SharedFieldBadge name={sharedFieldName} kind="text" className="mb-1.5" />
+              )}
               {/* Font choice for plain inputs the designer opened up; rich
                   inputs get the per-input faces as their editor menu. */}
               {(!isRich || isChecklist) && input.fontOptions && (

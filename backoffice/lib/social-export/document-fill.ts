@@ -174,6 +174,22 @@ export function fieldForInput(
   );
 }
 
+/** This page's inputs (or image slots) of `kind` that a shared field fills: inputId → field name. */
+export function sharedFieldNamesOf(
+  document: DocumentDTO,
+  pageId: string,
+  kind: DocumentFieldDTO['kind']
+): Record<string, string> {
+  const names: Record<string, string> = {};
+  for (const field of document.fields) {
+    if (field.kind !== kind) continue;
+    for (const binding of field.bindings) {
+      if (binding.pageId === pageId) names[binding.inputId] = field.name;
+    }
+  }
+  return names;
+}
+
 /** Pages a shared field fills (each at most once — WBoost allows one binding per page). */
 export function pagesOfField(field: DocumentFieldDTO): string[] {
   return [...new Set(field.bindings.map((binding) => binding.pageId))];
