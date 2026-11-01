@@ -274,6 +274,8 @@ function mapDocument(raw: WboostRawTemplateDocument, thumbnailsEnabled: boolean)
         .map((binding) => ({ pageId: binding.pageId, inputId: binding.inputId })),
       maxLength: field.maxLength ?? null,
       richText: field.richText === true,
+      // Older deploys: no textMode — rich when every bound input is.
+      textMode: field.textMode ?? (field.richText === true ? 'rich' : 'plain'),
       hidable: field.hidable === true,
       allowedDirectoryIds: Array.isArray(field.allowedDirectoryIds) ? field.allowedDirectoryIds : null,
     })),

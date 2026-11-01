@@ -9,8 +9,12 @@ import type {
 import {
   applySharedImage,
   applySharedText,
+  applySharedShape,
   applySharedTexts,
   applySavedDocument,
+  boundInputView,
+  boundShapeView,
+  sharedShapeOptions,
   buildDocumentFillBody,
   documentFillFromVersion,
   fieldForInput,
@@ -122,6 +126,7 @@ const doc: DocumentDTO = {
       ],
       maxLength: 40,
       richText: false,
+      textMode: 'plain',
       hidable: true,
       allowedDirectoryIds: null,
     },
@@ -135,6 +140,7 @@ const doc: DocumentDTO = {
       ],
       maxLength: null,
       richText: false,
+      textMode: 'plain',
       hidable: true,
       allowedDirectoryIds: null,
     },
@@ -232,7 +238,7 @@ describe('shared text fields', () => {
         makePage('p-a', 0, makeVariant('v-a', { inputs: [rich] })),
         makePage('p-b', 1, makeVariant('v-b', { inputs: [rich] })),
       ],
-      fields: [{ ...doc.fields[0], richText: true }],
+      fields: [{ ...doc.fields[0], richText: true, textMode: 'rich' }],
     };
     const runs = [{ text: 'Lucie', fontFamily: null, color: '#ff0000', underline: false }];
     const state = initDocumentFill(docRich, emptyPrefill);
@@ -409,8 +415,8 @@ describe('pickerSlotOf', () => {
 
 describe('sharedFieldsOf', () => {
   it('names the shared field behind each bound input / slot of one page', () => {
-    expect(sharedFieldsOf(doc, 'p-b', 'text')).toEqual({ name: { name: 'Jméno klienta', richText: false } });
-    expect(sharedFieldsOf(doc, 'p-b', 'image')).toEqual({ 'img-1': { name: 'Fotka', richText: false } });
+    expect(sharedFieldsOf(doc, 'p-b', 'text')).toEqual({ name: { name: 'Jméno klienta', richText: false, textMode: 'plain' } });
+    expect(sharedFieldsOf(doc, 'p-b', 'image')).toEqual({ 'img-1': { name: 'Fotka', richText: false, textMode: 'plain' } });
     expect(sharedFieldsOf(doc, 'p-c', 'text')).toEqual({});
   });
 });
@@ -472,5 +478,138 @@ describe('documentFillFromVersion', () => {
     // A page missing from the version starts from its design.
     expect(loaded.fill.forms['p-c'].other.value).toBe('');
     expect(Object.keys(loaded.fill.forms)).toEqual(['p-a', 'p-b', 'p-c']);
+  });
+});
+
+describe('shared text field modes', () => {
+  const listInput = makeInput({ id: 'name', richText: true, lists: true, listCheckboxes: true, listStyle: null });
+  const listDoc = (mode: DocumentDTO['fields'][number]['textMode'], other = listInput): DocumentDTO => ({
+    ...doc,
+    pages: [
+      makePage('p-a', 0, makeVariant('v-a', { inputs: [listInput] })),
+      makePage('p-b', 1, makeVariant('v-b', { inputs: [other] })),
+    ],
+    fields: [{ ...doc.fields[0], richText: mode === 'rich' || mode === 'list', textMode: mode }],
+  });
+
+  it('list mode: the field edits with lists, mirrors and sends its lines', () => {
+    const d = listDoc('list', makeInput({ id: 'name', richText: true, lists: true, listCheckboxes: false }));
+    const input = sharedFieldInput(d, d.fields[0]);
+    expect(input).toMatchObject({ richText: true, lists: true, listCheckboxes: false, checklist: null });
+
+    const shared = { value: 'A\nB', hidden: false, lines: ['ul', 'ul'] as ('ul')[] };
+    const state = initDocumentFill(d, emptyPrefill);
+    const forms = applySharedText(d, state.forms, 'f-name', shared);
+    expect(forms['p-b'].name.lines).toEqual(['ul', 'ul']);
+
+    const body = buildDocumentFillBody(d, state, { 'f-name': shared });
+    expect(body.fields['f-name']).toMatchObject({ lines: ['ul', 'ul'] });
+  });
+
+  it('plain / rich modes carry no lines; a bound input edits only what its field carries', () => {
+    const d = listDoc('rich');
+    expect(sharedFieldInput(d, d.fields[0])).toMatchObject({ richText: true, lists: false });
+    const forms = applySharedText(d, initDocumentFill(d, emptyPrefill).forms, 'f-name', {
+      value: 'A',
+      hidden: false,
+      lines: ['ul'],
+    });
+    expect(forms['p-a'].name.lines).toBeNull();
+
+    expect(boundInputView(listInput, { name: 'x', richText: false, textMode: 'plain' })).toMatchObject({
+      richText: false,
+      lists: false,
+      checklist: null,
+    });
+    expect(boundInputView(listInput, { name: 'x', richText: true, textMode: 'list' })).toMatchObject({
+      richText: true,
+      lists: true,
+    });
+    expect(boundInputView(listInput, null)).toBe(listInput);
+  });
+
+  it('checklist mode takes the bound checklist capabilities', () => {
+    const checklist = { toggle: true, editText: false, addItems: false, removeItems: false };
+    const cl = makeInput({ id: 'name', richText: true, lists: true, listCheckboxes: true, checklist });
+    const d = listDoc('checklist', cl);
+    d.pages[0] = makePage('p-a', 0, makeVariant('v-a', { inputs: [cl] }));
+    expect(sharedFieldInput(d, d.fields[0])).toMatchObject({ checklist, lists: true, listCheckboxes: true });
+  });
+});
+
+describe('shared shape fields', () => {
+  const shape = (id: string, over: Partial<DocumentDTO['pages'][number]['variant']['shapeInputs'][number]> = {}) => ({
+    id,
+    name: 'Pruh',
+    target: 'fill' as const,
+    defaultColor: '#111111',
+    colorOptions: ['#111111', '#ff0000', '#00ff00'],
+    freeColor: false,
+    frame: null,
+    layerIndex: null,
+    ...over,
+  });
+  const d: DocumentDTO = {
+    ...doc,
+    pages: [
+      makePage('p-a', 0, makeVariant('v-a', { shapeInputs: [shape('sh')] })),
+      makePage('p-b', 1, makeVariant('v-b', { shapeInputs: [shape('sh', { defaultColor: '#222222', colorOptions: ['#222222', '#ff0000'] })] })),
+      makePage('p-c', 2, makeVariant('v-c', { shapeInputs: [shape('sh')] })),
+    ],
+    fields: [
+      {
+        id: 'f-shape',
+        name: 'Barva pruhu',
+        kind: 'shape',
+        bindings: [
+          { pageId: 'p-a', inputId: 'sh' },
+          { pageId: 'p-b', inputId: 'sh' },
+        ],
+        maxLength: null,
+        richText: false,
+        textMode: 'plain',
+        hidable: false,
+        allowedDirectoryIds: null,
+      },
+    ],
+  };
+  const field = d.fields[0];
+
+  it('offers the colours every bound shape accepts; free only when all are free', () => {
+    expect(sharedShapeOptions(d, field)).toEqual({ colors: ['#ff0000'], free: false });
+    const ref = sharedFieldsOf(d, 'p-b', 'shape').sh;
+    expect(ref.shapeOptions).toEqual({ colors: ['#ff0000'], free: false });
+    expect(boundShapeView(d.pages[1].variant.shapeInputs[0], ref).colorOptions).toEqual(['#222222', '#ff0000']);
+  });
+
+  it('mirrors a pick into the bound pages only, sends it as the field value, and clears back to the designs', () => {
+    let state = initDocumentFill(d, emptyPrefill);
+    state.shapeColors['p-c'] = { sh: '#00ff00' };
+    state = applySharedShape(d, state, 'f-shape', '#ff0000');
+    expect(state.shapeColors['p-a']).toEqual({ sh: '#ff0000' });
+    expect(state.shapeColors['p-b']).toEqual({ sh: '#ff0000' });
+    expect(state.shapeColors['p-c']).toEqual({ sh: '#00ff00' });
+    expect(buildDocumentFillBody(d, state, {}).fields).toEqual({ 'f-shape': '#ff0000' });
+
+    state = applySharedShape(d, state, 'f-shape', null);
+    expect(state.shapeColors['p-a']).toEqual({});
+    expect(buildDocumentFillBody(d, state, {}).fields).toEqual({});
+  });
+
+  it('survives autosave and loads from a history version; disallowed colours are dropped', () => {
+    const state = applySharedShape(d, initDocumentFill(d, emptyPrefill), 'f-shape', '#ff0000');
+    const restored = applySavedDocument(d, initDocumentFill(d, emptyPrefill), {}, toSavedDocument(state, {}));
+    expect(restored.fill.sharedShapes).toEqual({ 'f-shape': '#ff0000' });
+    expect(restored.fill.shapeColors['p-b']).toEqual({ sh: '#ff0000' });
+
+    const bad = applySavedDocument(d, initDocumentFill(d, emptyPrefill), {}, { pages: {}, sharedText: {}, sharedShapes: { 'f-shape': '#00ff00' } });
+    expect(bad.fill.sharedShapes).toEqual({});
+
+    const loaded = documentFillFromVersion(d, {
+      fields: { 'f-shape': '#FF0000' },
+      pages: { 'p-a': { inputs: {}, images: {}, shapeColors: { sh: '#ff0000' } } },
+    });
+    expect(loaded.fill.sharedShapes).toEqual({ 'f-shape': '#ff0000' });
+    expect(loaded.fill.shapeColors['p-b']).toEqual({ sh: '#ff0000' });
   });
 });

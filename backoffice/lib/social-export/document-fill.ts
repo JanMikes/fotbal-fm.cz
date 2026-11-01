@@ -23,6 +23,7 @@ import type {
   DocumentExportVersionFillDTO,
   RenderInputValue,
   RichTextOptionsDTO,
+  ShapeInputDTO,
   TemplateInputDTO,
   DocumentFieldValue,
   DocumentPageDTO,
@@ -33,7 +34,7 @@ import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from '.
 import { fillToEditorState, inputValueToState } from './group-fill';
 import { NEUTRAL_PLACEMENT } from './image-placement';
 import { applySavedForm, applySavedImages, type SavedDocumentState } from './saved-state';
-import { sanitizeShapeColors, type ShapeColorState } from './shape-colors';
+import { normalizeHexColor, sanitizeShapeColors, type ShapeColorState } from './shape-colors';
 
 /** pageId → inputId → field state. */
 export type PageForms = Record<string, Record<string, InputFieldState>>;
@@ -51,6 +52,11 @@ export interface DocumentFillState {
   forms: PageForms;
   images: PageImages;
   shapeColors: PageShapeColors;
+  /**
+   * Shared SHAPE field id → picked `#rrggbb` (absent = every page keeps its
+   * own / designed colour). Mirrored into the bound shapes' `shapeColors`.
+   */
+  sharedShapes: Record<string, string>;
 }
 
 /**
@@ -76,7 +82,7 @@ export function initDocumentFill(
     shapeColors[page.id] = {};
   }
 
-  return { forms, images, shapeColors };
+  return { forms, images, shapeColors, sharedShapes: {} };
 }
 
 /**
@@ -113,9 +119,9 @@ export function boundTextInputs(document: DocumentDTO, field: DocumentFieldDTO):
  * A shared TEXT field as a template input, so it fills with the ordinary
  * editor (match chips, rich text, font choice, hide), validates and builds
  * its render value like any input. Its offers are what EVERY bound input
- * allows: `richText` / `hidable` / `maxLength` from WBoost, the font faces
- * and colours intersected here. No list structure (a shared value is text +
- * runs). Null when no binding resolves to an input.
+ * allows: `textMode` / `hidable` / `maxLength` from WBoost (plain, rich, rich
+ * with lists, or a checklist — the editor follows), the font faces and
+ * colours intersected here. Null when no binding resolves to an input.
  */
 export function sharedFieldInput(document: DocumentDTO, field: DocumentFieldDTO): TemplateInputDTO | null {
   const bound = boundTextInputs(document, field);
@@ -134,16 +140,65 @@ export function sharedFieldInput(document: DocumentDTO, field: DocumentFieldDTO)
     hidable: field.hidable,
     frame: null,
     containerId: null,
-    richText: field.richText,
-    lists: false,
-    listStyle: null,
-    listCheckboxes: false,
-    checklist: null,
+    ...textModeCapabilities(field.textMode, bound),
     sampleValue: null,
     layerIndex: null,
     fontOptions: intersectFontOptions(bound),
     colorOptions: intersectColorOptions(bound),
   };
+}
+
+/** The editor capabilities of a shared text field's `textMode` (lists / checklist from the bound inputs). */
+function textModeCapabilities(
+  mode: DocumentFieldDTO['textMode'],
+  bound: TemplateInputDTO[]
+): Pick<TemplateInputDTO, 'richText' | 'lists' | 'listStyle' | 'listCheckboxes' | 'checklist'> {
+  const first = bound[0];
+  switch (mode) {
+    case 'checklist':
+      // A checklist binds only checklists: the first one's capabilities.
+      return {
+        richText: first.richText,
+        lists: first.lists,
+        listStyle: first.listStyle,
+        listCheckboxes: first.listCheckboxes,
+        checklist: first.checklist,
+      };
+    case 'list':
+      return {
+        richText: true,
+        lists: true,
+        listStyle: first.listStyle,
+        listCheckboxes: bound.every((input) => input.listCheckboxes),
+        checklist: null,
+      };
+    case 'rich':
+      return { richText: true, lists: false, listStyle: null, listCheckboxes: false, checklist: null };
+    default:
+      return { richText: false, lists: false, listStyle: null, listCheckboxes: false, checklist: null };
+  }
+}
+
+/**
+ * A page input as its editor should treat it while a shared text field fills
+ * it: only what the field's `textMode` carries (no rich editor for a plain
+ * field, no lists unless list / checklist mode).
+ */
+export function boundInputView(input: TemplateInputDTO, ref: SharedFieldRef | null | undefined): TemplateInputDTO {
+  if (!ref) return input;
+  const lines = textModeHasLines(ref.textMode);
+  return {
+    ...input,
+    richText: input.richText && ref.textMode !== 'plain',
+    lists: input.lists && lines,
+    listCheckboxes: input.listCheckboxes && lines,
+    checklist: ref.textMode === 'checklist' ? input.checklist : null,
+  };
+}
+
+/** Whether a shared text field's value carries list lines (list / checklist mode). */
+export function textModeHasLines(mode: DocumentFieldDTO['textMode']): boolean {
+  return mode === 'list' || mode === 'checklist';
 }
 
 /** Faces every bound input offers (first input's order); null when any offers no choice. */
@@ -224,11 +279,14 @@ export function applySavedDocument(
     if (restored) sharedText[field.id] = restored;
   }
 
-  return {
-    fill: { forms: applySharedTexts(document, forms, sharedText), images, shapeColors },
-    sharedText,
-    restored: true,
-  };
+  let fill: DocumentFillState = { forms: applySharedTexts(document, forms, sharedText), images, shapeColors, sharedShapes: {} };
+  for (const field of document.fields) {
+    if (field.kind !== 'shape') continue;
+    const color = sanitizeSharedShapeColor(document, field, saved.sharedShapes?.[field.id]);
+    if (color) fill = applySharedShape(document, fill, field.id, color);
+  }
+
+  return { fill, sharedText, restored: true };
 }
 
 /**
@@ -256,6 +314,13 @@ export function documentFillFromVersion(
     fill.shapeColors[page.id] = loaded.shapeColors;
   }
 
+  let loadedFill: DocumentFillState = fill;
+  for (const field of document.fields) {
+    if (field.kind !== 'shape') continue;
+    const color = sanitizeSharedShapeColor(document, field, version.fields?.[field.id]);
+    if (color) loadedFill = applySharedShape(document, loadedFill, field.id, color);
+  }
+
   const sharedText: SharedTextValues = {};
   for (const field of document.fields) {
     const raw = version.fields?.[field.id];
@@ -267,7 +332,7 @@ export function documentFillFromVersion(
     if (restored) sharedText[field.id] = restored;
   }
 
-  return { fill, sharedText };
+  return { fill: loadedFill, sharedText };
 }
 
 /** The persisted form of a document fill (see {@link applySavedDocument}). */
@@ -281,7 +346,11 @@ export function toSavedDocument(state: DocumentFillState, sharedText: SharedText
       ...(Object.keys(colors).length > 0 ? { shapeColors: colors } : {}),
     };
   }
-  return { pages, sharedText };
+  return {
+    pages,
+    sharedText,
+    ...(Object.keys(state.sharedShapes ?? {}).length > 0 ? { sharedShapes: state.sharedShapes } : {}),
+  };
 }
 
 /** The shared field of `kind` bound to this page's input, or null. */
@@ -305,6 +374,24 @@ export interface SharedFieldRef {
   name: string;
   /** Text: the shared value may carry rich runs. */
   richText: boolean;
+  /** Text: the editor the shared value takes (plain / rich / list / checklist). */
+  textMode: DocumentFieldDTO['textMode'];
+  /** Shape: the colours every bound shape accepts (see {@link sharedShapeOptions}). */
+  shapeOptions?: { colors: string[]; free: boolean };
+}
+
+/**
+ * A page shape as its colour panel should offer it while a shared field
+ * colours it: its designed colour first (= back to every page's own design),
+ * then only the colours every bound shape accepts.
+ */
+export function boundShapeView(shape: ShapeInputDTO, ref: SharedFieldRef | null | undefined): ShapeInputDTO {
+  if (!ref?.shapeOptions) return shape;
+  return {
+    ...shape,
+    colorOptions: [shape.defaultColor, ...ref.shapeOptions.colors.filter((color) => color !== shape.defaultColor)],
+    freeColor: ref.shapeOptions.free,
+  };
 }
 
 /** This page's inputs (or image slots) of `kind` that a shared field fills: inputId → field. */
@@ -317,7 +404,12 @@ export function sharedFieldsOf(
   for (const field of document.fields) {
     if (field.kind !== kind) continue;
     for (const binding of field.bindings) {
-      if (binding.pageId === pageId) refs[binding.inputId] = { name: field.name, richText: field.richText };
+      if (binding.pageId === pageId) refs[binding.inputId] = {
+          name: field.name,
+          richText: field.richText,
+          textMode: field.textMode,
+          ...(kind === 'shape' ? { shapeOptions: sharedShapeOptions(document, field) } : {}),
+        };
     }
   }
   return refs;
@@ -329,10 +421,10 @@ export function pagesOfField(field: DocumentFieldDTO): string[] {
 }
 
 /**
- * Mirror a shared TEXT value into every bound input: its text (and its rich
- * runs where both the field and the input are rich). WBoost replaces only
- * the TEXT of a bound input, so the page's own hide / font pick for it stay;
- * list structure is dropped (a shared value carries none).
+ * Mirror a shared TEXT value into every bound input: its text, its rich runs
+ * where both the field and the input are rich, and its list lines in list /
+ * checklist mode. WBoost replaces only the TEXT of a bound input, so the
+ * page's own hide / font pick for it stay.
  */
 export function applySharedText(
   document: DocumentDTO,
@@ -351,12 +443,86 @@ export function applySharedText(
 
     const current = next[binding.pageId]?.[binding.inputId] ?? { value: '', hidden: false };
     const runs = field.richText && input.richText ? (shared.runs ?? null) : null;
+    const lines = textModeHasLines(field.textMode) ? (shared.lines ?? null) : null;
     next[binding.pageId] = {
       ...(next[binding.pageId] ?? {}),
-      [binding.inputId]: { ...current, value: shared.value, runs, lines: null },
+      [binding.inputId]: { ...current, value: shared.value, runs, lines },
     };
   }
   return next;
+}
+
+/** The recolourable shapes a shared SHAPE field binds, in binding order. */
+export function boundShapes(document: DocumentDTO, field: DocumentFieldDTO): ShapeInputDTO[] {
+  const shapes: ShapeInputDTO[] = [];
+  for (const binding of field.bindings) {
+    const page = document.pages.find((p) => p.id === binding.pageId);
+    const shape = page?.variant.shapeInputs.find((s) => s.id === binding.inputId);
+    if (shape) shapes.push(shape);
+  }
+  return shapes;
+}
+
+/**
+ * The colours a shared SHAPE field may take: the swatches EVERY bound shape
+ * offers (first shape's order), and a free picker only when every bound
+ * shape accepts any colour.
+ */
+export function sharedShapeOptions(
+  document: DocumentDTO,
+  field: DocumentFieldDTO
+): { colors: string[]; free: boolean } {
+  const shapes = boundShapes(document, field);
+  if (shapes.length === 0) return { colors: [], free: false };
+  const [first, ...rest] = shapes;
+  return {
+    colors: first.colorOptions.filter((color) => rest.every((shape) => shape.colorOptions.includes(color))),
+    free: shapes.every((shape) => shape.freeColor),
+  };
+}
+
+/** A shared shape colour that every bound shape accepts, normalised — else null. */
+export function sanitizeSharedShapeColor(
+  document: DocumentDTO,
+  field: DocumentFieldDTO,
+  raw: unknown
+): string | null {
+  if (typeof raw !== 'string' || raw === '') return null;
+  const color = normalizeHexColor(raw);
+  if (!color) return null;
+  const options = sharedShapeOptions(document, field);
+  return options.free || options.colors.includes(color) ? color : null;
+}
+
+/**
+ * Set (or clear with null) a shared SHAPE field's colour and mirror it into
+ * every bound shape's page `shapeColors` (a clear = each page's designed colour).
+ */
+export function applySharedShape(
+  document: DocumentDTO,
+  state: DocumentFillState,
+  fieldId: string,
+  color: string | null
+): DocumentFillState {
+  const field = document.fields.find((f) => f.id === fieldId && f.kind === 'shape');
+  if (!field) return state;
+
+  const sharedShapes = { ...state.sharedShapes };
+  if (color) sharedShapes[field.id] = color;
+  else delete sharedShapes[field.id];
+
+  const shapeColors: PageShapeColors = { ...state.shapeColors };
+  for (const binding of field.bindings) {
+    const page = document.pages.find((p) => p.id === binding.pageId);
+    const shape = page?.variant.shapeInputs.find((s) => s.id === binding.inputId);
+    if (!shape) continue;
+    const pageColors = { ...(shapeColors[binding.pageId] ?? {}) };
+    if (color && color !== shape.defaultColor) pageColors[shape.id] = color;
+    else delete pageColors[shape.id];
+    shapeColors[binding.pageId] = pageColors;
+  }
+
+  return { ...state, shapeColors, sharedShapes };
 }
 
 /**
@@ -463,6 +629,10 @@ export function buildDocumentFillBody(
       const input = state ? sharedFieldInput(document, field) : null;
       const value = input && state ? buildRenderInputs([input], { [field.id]: state })[field.id] : undefined;
       if (value !== undefined) fields[field.id] = value;
+    } else if (field.kind === 'shape') {
+      // Absent = every page keeps its own / designed colour.
+      const color = state.sharedShapes?.[field.id];
+      if (color) fields[field.id] = color;
     } else if (field.allowedDirectoryIds?.length !== 0) {
       // [] = no picture passes every bound slot: each page sends its own pick.
       const image = sharedImageOf(field, state.images);

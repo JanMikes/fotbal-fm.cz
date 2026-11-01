@@ -3,6 +3,7 @@
 import { Check, Palette, X } from 'lucide-react';
 import { shapeTargetLabel } from '@/lib/social-export/shape-colors';
 import type { ShapeInputDTO } from '@/lib/social-export/api-types';
+import SharedFieldBadge from './SharedFieldBadge';
 
 interface PlaceholderShapePanelProps {
   shape: ShapeInputDTO;
@@ -12,6 +13,8 @@ interface PlaceholderShapePanelProps {
   /** null = back to the designed colour. */
   onChange: (color: string | null) => void;
   onClose: () => void;
+  /** Name of the document's shared field that colours this shape on every bound page, if any. */
+  sharedFieldName?: string | null;
 }
 
 /**
@@ -20,7 +23,14 @@ interface PlaceholderShapePanelProps {
  * allows any colour, a free picker. Only colours WBoost will accept are ever
  * on screen, so a pick can never 400 the render.
  */
-export default function PlaceholderShapePanel({ shape, label, current, onChange, onClose }: PlaceholderShapePanelProps) {
+export default function PlaceholderShapePanel({
+  shape,
+  label,
+  current,
+  onChange,
+  onClose,
+  sharedFieldName = null,
+}: PlaceholderShapePanelProps) {
   return (
     <div>
       <div className="mb-1 flex items-start justify-between gap-2">
@@ -34,6 +44,7 @@ export default function PlaceholderShapePanel({ shape, label, current, onChange,
           <X className="h-4 w-4" />
         </button>
       </div>
+      {sharedFieldName != null && <SharedFieldBadge name={sharedFieldName} kind="shape" className="mb-1.5" />}
       <p className="mb-2 text-[11px] leading-snug text-text-muted">{shapeTargetLabel(shape.target)}</p>
 
       <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Barva tvaru">

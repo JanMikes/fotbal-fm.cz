@@ -8,6 +8,7 @@ import ExportInputForm from './ExportInputForm';
 import ExportHistoryMenu, { versionTitle } from './ExportHistoryMenu';
 import ImagePickerModal from './images/ImagePickerModal';
 import SaveStatusBadge, { type SaveStatus } from './SaveStatusBadge';
+import SharedShapeField from './SharedShapeField';
 import type { ActivePlaceholder } from './PlaceholderOverlay';
 import {
   downloadBlob,
@@ -41,7 +42,11 @@ import {
   nextPreviewRenders,
   pagesWord,
   pickerSlotOf,
+  applySharedShape,
+  boundShapes,
   documentFillFromVersion,
+  sharedShapeOptions,
+  textModeHasLines,
   documentRichTextOptions,
   sharedFieldInput,
   sharedFieldsOf,
@@ -180,6 +185,10 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
 
   const textFields = useMemo(() => document.fields.filter((f) => f.kind === 'text' && f.bindings.length > 0), [document]);
   const imageFields = useMemo(() => document.fields.filter((f) => f.kind === 'image' && f.bindings.length > 0), [document]);
+  const shapeFields = useMemo(
+    () => document.fields.filter((f) => f.kind === 'shape' && boundShapes(document, f).length > 0),
+    [document]
+  );
 
   // Live text frames + predicted container overflow, per page (see the
   // single-variant editor: trustworthy only once the real fonts are loaded).
@@ -313,10 +322,11 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const setSharedState = useCallback(
     (field: DocumentFieldDTO, partial: Partial<InputFieldState>) => {
       const current = sharedText[field.id] ?? { value: '', hidden: false };
-      const next: InputFieldState = { ...current, ...partial, lines: null };
+      const next: InputFieldState = { ...current, ...partial };
       if (!field.richText) next.runs = null;
+      if (!textModeHasLines(field.textMode)) next.lines = null;
       setSharedText((prev) => ({ ...prev, [field.id]: next }));
-      if ('value' in partial || 'runs' in partial) {
+      if ('value' in partial || 'runs' in partial || 'lines' in partial) {
         setFill((prev) => ({ ...prev, forms: applySharedText(document, prev.forms, field.id, next) }));
       }
       markEdited(pagesOfField(field));
@@ -341,12 +351,12 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       if (field) {
         // A bound input: its TEXT is the shared value (every page shows it),
         // its hide / font pick stay on this page.
-        const { value, runs, lines: _lines, ...pageOwn } = partial;
-        void _lines;
-        if (value !== undefined || runs !== undefined) {
+        const { value, runs, lines, ...pageOwn } = partial;
+        if (value !== undefined || runs !== undefined || lines !== undefined) {
           setSharedState(field, {
             ...(value !== undefined ? { value } : {}),
             ...(runs !== undefined ? { runs } : {}),
+            ...(lines !== undefined ? { lines } : {}),
           });
         }
         if (Object.keys(pageOwn).length > 0) {
@@ -400,6 +410,13 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     (shapeId: string, color: string | null) => {
       if (!activePage) return;
       const pageId = activePage.id;
+      // A bound shape recolours the SHARED field — every bound page.
+      const field = fieldForInput(document, pageId, shapeId, 'shape');
+      if (field) {
+        setFill((prev) => applySharedShape(document, prev, field.id, color));
+        markEdited(pagesOfField(field));
+        return;
+      }
       setFill((prev) => {
         const next = { ...(prev.shapeColors[pageId] ?? {}) };
         if (color) next[shapeId] = color;
@@ -408,7 +425,16 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       });
       markEdited([pageId]);
     },
-    [activePage, markEdited]
+    [activePage, document, markEdited]
+  );
+
+  /** The shared shape field's own pick (null = every page's designed colour). */
+  const setSharedShape = useCallback(
+    (field: DocumentFieldDTO, color: string | null) => {
+      setFill((prev) => applySharedShape(document, prev, field.id, color));
+      markEdited(pagesOfField(field));
+    },
+    [document, markEdited]
   );
 
   // ---------------------------------------------------------------------------
@@ -571,6 +597,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const activeOverflow = predictedOverflows[activePage.id] ?? null;
   const activeSharedText = sharedFieldsOf(document, activePage.id, 'text');
   const activeSharedImages = sharedFieldsOf(document, activePage.id, 'image');
+  const activeSharedShapes = sharedFieldsOf(document, activePage.id, 'shape');
   const pickerField = imageFields.find((f) => f.id === pickerFieldId) ?? null;
   const pickerTarget = pickerField ? pickerSlotOf(document, pickerField) : null;
   const exportDisabled = exportingFormat !== null || invalid || Object.keys(predictedOverflows).length > 0;
@@ -648,7 +675,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         </div>
       )}
 
-      {(textFields.length > 0 || imageFields.length > 0) && (
+      {(textFields.length > 0 || imageFields.length > 0 || shapeFields.length > 0) && (
         <section className="rounded-xl border border-border bg-surface p-4">
           <h3 className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary">
             <Link2 className="h-4 w-4" />
@@ -669,6 +696,16 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             />
           )}
           <div className="grid gap-3 sm:grid-cols-2">
+            {shapeFields.map((field) => (
+              <SharedShapeField
+                key={field.id}
+                name={field.name}
+                pageCount={pagesOfField(field).length}
+                options={sharedShapeOptions(document, field)}
+                current={fill.sharedShapes[field.id] ?? null}
+                onChange={(color) => setSharedShape(field, color)}
+              />
+            ))}
             {imageFields.map((field) => {
               const image = sharedImageOf(field, fill.images);
               const pageCount = pagesOfField(field).length;
@@ -817,6 +854,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         textFrames={textLayouts[activePage.id]?.frames ?? {}}
         sharedTextFields={activeSharedText}
         sharedImageFields={activeSharedImages}
+        sharedShapeFields={activeSharedShapes}
       />
 
       {unplacedInputs.length > 0 && (

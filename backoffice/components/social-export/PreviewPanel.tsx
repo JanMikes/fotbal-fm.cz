@@ -23,7 +23,7 @@ import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import { currentShapeColor, resolveShapeLabel, type ShapeColorState } from '@/lib/social-export/shape-colors';
 import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
-import type { SharedFieldRef } from '@/lib/social-export/document-fill';
+import { boundShapeView, type SharedFieldRef } from '@/lib/social-export/document-fill';
 import type { MatchChip } from '@/lib/social-export/prefill';
 import type { StrapiImage } from '@/types/match';
 
@@ -69,6 +69,8 @@ interface PreviewPanelProps {
   sharedTextFields?: Record<string, SharedFieldRef>;
   /** Document pages: image slotId → the shared image field that fills it. */
   sharedImageFields?: Record<string, SharedFieldRef>;
+  /** Document pages: shapeId → the shared shape field that colours it. */
+  sharedShapeFields?: Record<string, SharedFieldRef>;
 }
 
 const NEUTRAL = NEUTRAL_PLACEMENT;
@@ -116,6 +118,7 @@ export default function PreviewPanel({
   textFrames,
   sharedTextFields,
   sharedImageFields,
+  sharedShapeFields,
 }: PreviewPanelProps) {
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
@@ -446,11 +449,12 @@ export default function PreviewPanel({
               onClose={onCloseActive}
             >
               <PlaceholderShapePanel
-                shape={activeShape}
+                shape={boundShapeView(activeShape, sharedShapeFields?.[activeShape.id])}
                 label={resolveShapeLabel(activeShape, activeShapeIndex)}
                 current={currentShapeColor(activeShape, shapeColors)}
                 onChange={(color) => onShapeColorChange(activeShape.id, color)}
                 onClose={onCloseActive}
+                sharedFieldName={sharedShapeFields?.[activeShape.id]?.name ?? null}
               />
             </FloatingPanel>
           )}

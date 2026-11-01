@@ -194,6 +194,8 @@ export const saveStateRequestSchema = z
             ),
             /** Shared TEXT field id → its state (older records: a plain string). */
             sharedText: z.record(z.string(), z.union([z.string().max(10000), inputFieldStateSchema])),
+            /** Shared SHAPE field id → `#rrggbb`. */
+            sharedShapes: shapeColorsSchema.optional(),
           })
           .strict()
           .optional(),

@@ -10,7 +10,7 @@ import RichTextEditor from './RichTextEditor';
 import SharedFieldBadge from './SharedFieldBadge';
 import type { RichTextOptionsDTO, TemplateInputDTO } from '@/lib/social-export/api-types';
 import type { MatchChip } from '@/lib/social-export/prefill';
-import type { SharedFieldRef } from '@/lib/social-export/document-fill';
+import { boundInputView, type SharedFieldRef } from '@/lib/social-export/document-fill';
 import {
   resolveInputLabel,
   validateInputValue,
@@ -43,7 +43,7 @@ interface PlaceholderTextPanelProps {
  * auto-render keeps the preview in sync. Positioning/anchoring is the caller's job.
  */
 export default function PlaceholderTextPanel({
-  input,
+  input: rawInput,
   index,
   state,
   chips,
@@ -53,14 +53,15 @@ export default function PlaceholderTextPanel({
   sharedField = null,
 }: PlaceholderTextPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // A bound input edits only what its shared field carries.
+  const input = boundInputView(rawInput, sharedField);
   const label = resolveInputLabel(input, index);
   const value = state.value;
   const isHidden = state.hidden;
   const validationError = validateInputValue(input, value) ?? undefined;
-  const isShared = sharedField != null;
-  const isRich = input.richText && richTextOptions != null && (!isShared || sharedField.richText);
+  const isRich = input.richText && richTextOptions != null;
   // A dedicated checklist component gets per-item rows, never the WYSIWYG.
-  const isChecklist = input.checklist != null && !isShared;
+  const isChecklist = input.checklist != null;
   const length = codePointLength(value);
 
   // Focus the value input on open for keyboard-first editing (the rich editor

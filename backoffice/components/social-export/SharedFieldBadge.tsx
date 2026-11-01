@@ -13,7 +13,7 @@ export default function SharedFieldBadge({
 }: {
   /** The shared field's name. */
   name: string;
-  kind: 'text' | 'image';
+  kind: 'text' | 'image' | 'shape';
   className?: string;
 }) {
   return (
@@ -22,7 +22,9 @@ export default function SharedFieldBadge({
       title={
         kind === 'text'
           ? `Společné pole „${name}“ — text platí na všech stranách, kde je pole použito. Skrytí a písmo nastavíte pro každou stranu zvlášť.`
-          : `Společné pole „${name}“ — obrázek platí na všech stranách, kde je pole použito. Umístění je na každé straně vlastní.`
+          : kind === 'image'
+            ? `Společné pole „${name}“ — obrázek platí na všech stranách, kde je pole použito. Umístění je na každé straně vlastní.`
+            : `Společné pole „${name}“ — barva platí na všech stranách, kde je pole použito.`
       }
     >
       <Link2 className="h-3 w-3 shrink-0" />

@@ -384,12 +384,14 @@ export interface WboostRawTemplateDocumentFieldBinding {
 export interface WboostRawTemplateDocumentField {
   id: string;
   name: string;
-  kind: 'text' | 'image';
+  kind: 'text' | 'image' | 'shape';
   bindings: WboostRawTemplateDocumentFieldBinding[];
   /** Smallest `maxLength` of the bound text inputs (null = unlimited / image). */
   maxLength: number | null;
   /** Every valid bound input is rich (text). Absent on older deploys. */
   richText?: boolean;
+  /** Text: the richest value every bound input accepts. Absent on older deploys. */
+  textMode?: 'plain' | 'rich' | 'list' | 'checklist';
   /** Every valid bound input / slot is hidable. Absent on older deploys. */
   hidable?: boolean;
   /** Image: intersection of the bound slots' folders (null = any, [] = none). Absent on older deploys. */

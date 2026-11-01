@@ -12,7 +12,7 @@ import SharedFieldBadge from './SharedFieldBadge';
 import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { MatchChip } from '@/lib/social-export/prefill';
-import type { SharedFieldRef } from '@/lib/social-export/document-fill';
+import { boundInputView, type SharedFieldRef } from '@/lib/social-export/document-fill';
 import {
   resolveInputLabel,
   isEditable,
@@ -81,18 +81,19 @@ export default function ExportInputForm({
     <div>
       {/* Input fields */}
       <div className="space-y-1">
-        {variant.inputs.map((input, index) => {
+        {variant.inputs.map((rawInput, index) => {
+          const sharedField = sharedFields?.[rawInput.id] ?? null;
+          // A bound input edits only what its shared field carries.
+          const input = boundInputView(rawInput, sharedField);
           const label = resolveInputLabel(input, index);
           const fieldState = state[input.id] ?? { value: '', hidden: false };
           const value = fieldState.value;
           const isHidden = fieldState.hidden;
           const editable = isEditable(input);
           const validationError = editable ? validateInputValue(input, value) ?? undefined : undefined;
-          const sharedField = sharedFields?.[input.id] ?? null;
-          const isRich =
-            input.richText && variant.richTextOptions != null && (sharedField == null || sharedField.richText);
+          const isRich = input.richText && variant.richTextOptions != null;
           // A dedicated checklist component gets per-item rows, never the WYSIWYG.
-          const isChecklist = input.checklist != null && sharedField == null;
+          const isChecklist = input.checklist != null;
           const length = codePointLength(value);
 
           // Build hint text

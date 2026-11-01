@@ -414,16 +414,25 @@ export interface DocumentFieldBindingDTO {
   inputId: string;
 }
 
+export type DocumentFieldTextMode = 'plain' | 'rich' | 'list' | 'checklist';
+
 /** A SHARED field: one value fills the bound input on every page. */
 export interface DocumentFieldDTO {
   id: string;
   name: string;
-  kind: 'text' | 'image';
+  /** `shape` = a recolourable shape (`variant.shapeInputs`); its value is `#rrggbb`. */
+  kind: 'text' | 'image' | 'shape';
   bindings: DocumentFieldBindingDTO[];
   /** Smallest maxLength of the bound text inputs (null = unlimited / image). */
   maxLength: number | null;
   /** Text: EVERY bound input is rich → the field value may carry `{ runs }` (offer the rich editor). */
   richText: boolean;
+  /**
+   * Text: the richest value EVERY bound input accepts — `plain` (string),
+   * `rich` (`{runs}`), `list` (`{runs, lines}` with list blocks) or
+   * `checklist` (a checklist value; binds only checklists). Send that shape.
+   */
+  textMode: DocumentFieldTextMode;
   /** Every bound input / slot is hidable → `{ hide: true }` as the field value hides it on every page. */
   hidable: boolean;
   /**

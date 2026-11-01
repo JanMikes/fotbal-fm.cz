@@ -72,6 +72,8 @@ export interface SavedDocumentState {
    * live in the bound slots.
    */
   sharedText: Record<string, InputFieldState | string>;
+  /** Shared SHAPE field id → `#rrggbb` (absent = pages keep their own colours). */
+  sharedShapes?: Record<string, string>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */
