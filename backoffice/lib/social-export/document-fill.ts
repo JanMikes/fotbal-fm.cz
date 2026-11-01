@@ -307,6 +307,40 @@ export function buildDocumentFillBody(
   return { fields, pages };
 }
 
+/**
+ * Which page previews to start now. Two lanes, so at most two renders run at
+ * once and the page being edited never queues behind the others:
+ *  - the ACTIVE lane renders the active page whenever it is stale;
+ *  - the BACKGROUND lane renders one stale page whose thumbnail is visible,
+ *    in page order — only once the active page is up to date (or cannot
+ *    render), so opening a document shows the page being edited first.
+ * `blocked` = pages that must not auto-render now (invalid values, or their
+ * last render failed and nothing changed since). A page already rendering
+ * is never started twice.
+ */
+export function nextPreviewRenders(state: {
+  pageIds: readonly string[];
+  activeId: string;
+  dirty: ReadonlySet<string>;
+  rendering: ReadonlySet<string>;
+  blocked: ReadonlySet<string>;
+  visible: ReadonlySet<string>;
+  activeLaneBusy: boolean;
+  backgroundLaneBusy: boolean;
+}): { active: string | null; background: string | null } {
+  const { activeId, dirty, rendering, blocked } = state;
+  const startable = (id: string) => dirty.has(id) && !rendering.has(id) && !blocked.has(id);
+
+  const active = !state.activeLaneBusy && startable(activeId) ? activeId : null;
+  const activePending = dirty.has(activeId) && !blocked.has(activeId);
+  const background =
+    state.backgroundLaneBusy || activePending
+      ? null
+      : (state.pageIds.find((id) => id !== activeId && state.visible.has(id) && startable(id)) ?? null);
+
+  return { active, background };
+}
+
 /** Label of a page in lists / the page strip: "2. Ceník". */
 export function pageLabel(page: DocumentPageDTO, index: number): string {
   return `${index + 1}. ${page.templateName}`;

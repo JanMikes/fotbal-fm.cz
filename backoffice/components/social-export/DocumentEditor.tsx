@@ -33,6 +33,7 @@ import {
   initSharedText,
   pageLabel,
   pagesOfField,
+  nextPreviewRenders,
   pagesWord,
   sharedImageOf,
   toSavedDocument,
@@ -91,18 +92,32 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
 
   const [previews, setPreviews] = useState<Record<string, string | null>>({});
   const [renderingIds, setRenderingIds] = useState<ReadonlySet<string>>(new Set());
-  // Every page renders its initial state.
+  // Every page starts stale; the active page renders first, the others only
+  // once their thumbnail scrolls into view (see nextPreviewRenders).
   const [dirtyIds, setDirtyIds] = useState<ReadonlySet<string>>(() => new Set(pages.map((p) => p.id)));
-  const [renderError, setRenderError] = useState<string | null>(null);
-  const [renderErrorDetails, setRenderErrorDetails] = useState<RenderErrorDetails | null>(null);
+  // Pages whose last auto-render failed — not retried until edited / opened.
+  const [failedIds, setFailedIds] = useState<ReadonlySet<string>>(new Set());
+  // Pages whose thumbnail is on screen.
+  const [visibleIds, setVisibleIds] = useState<ReadonlySet<string>>(new Set());
+  // The last failed render / export: message + structured details (pageId…).
+  const [failure, setFailure] = useState<{ message: string; details: RenderErrorDetails } | null>(null);
+  const renderError = failure?.message ?? null;
+  const renderErrorDetails = failure?.details ?? null;
   const [exportingFormat, setExportingFormat] = useState<DocumentExportFormat | null>(null);
 
   const [highlightMode, setHighlightMode] = useState(true);
   const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
 
   const previewUrlsRef = useRef<Record<string, string>>({});
-  const autoPreviewBlockedRef = useRef(false);
-  const editSeqRef = useRef(0);
+  // Per-page edit counter: a finished render clears its page's stale flag only
+  // when no edit hit that page while it was in flight.
+  const pageSeqRef = useRef<Record<string, number>>({});
+  // When the last edit happened — the live preview waits 1 s after it.
+  const lastEditAtRef = useRef(0);
+  // The page each render lane is busy with (see nextPreviewRenders).
+  const lanesRef = useRef<{ active: string | null; background: string | null }>({ active: null, background: null });
+  const mountedRef = useRef(true);
+  const thumbRefs = useRef(new Map<string, HTMLElement>());
   // True while there are edits the autosave hasn't persisted yet — seeding /
   // prefill alone never creates a saved record.
   const hasUnsavedRef = useRef(false);
@@ -110,11 +125,35 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const latestSaveRef = useRef<SaveExportStatePayload | null>(null);
 
   useEffect(() => {
+    mountedRef.current = true;
     const urls = previewUrlsRef.current;
     return () => {
+      mountedRef.current = false;
       Object.values(urls).forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
+
+  // Track which page thumbnails are on screen (the strip scrolls sideways).
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisibleIds(new Set(pages.map((p) => p.id)));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      setVisibleIds((prev) => {
+        const next = new Set(prev);
+        for (const entry of entries) {
+          const id = (entry.target as HTMLElement).dataset.pageId;
+          if (!id) continue;
+          if (entry.isIntersecting) next.add(id);
+          else next.delete(id);
+        }
+        return next;
+      });
+    });
+    thumbRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [pages]);
 
   const textFields = useMemo(() => document.fields.filter((f) => f.kind === 'text' && f.bindings.length > 0), [document]);
   const imageFields = useMemo(() => document.fields.filter((f) => f.kind === 'image' && f.bindings.length > 0), [document]);
@@ -154,10 +193,19 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const invalid = invalidPageIds.size > 0 || sharedTooLong;
 
   const markEdited = useCallback((pageIds: string[]) => {
-    editSeqRef.current += 1;
+    for (const id of pageIds) pageSeqRef.current[id] = (pageSeqRef.current[id] ?? 0) + 1;
+    lastEditAtRef.current = Date.now();
     hasUnsavedRef.current = true;
-    autoPreviewBlockedRef.current = false;
     setDirtyIds((prev) => new Set([...prev, ...pageIds]));
+    // A fresh edit re-enables the live preview of those pages.
+    setFailedIds((prev) => (pageIds.some((id) => prev.has(id)) ? withoutIds(prev, pageIds) : prev));
+  }, []);
+
+  /** Open a page in the big editor (a page whose preview failed gets one more try). */
+  const openPage = useCallback((pageId: string) => {
+    setActivePageId(pageId);
+    setActivePlaceholder(null);
+    setFailedIds((prev) => (prev.has(pageId) ? withoutIds(prev, [pageId]) : prev));
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -300,13 +348,18 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   // Rendering
   // ---------------------------------------------------------------------------
 
-  function showRenderError(result: RenderResult, pageId: string | null) {
+  /**
+   * Show a failed render. `focus` jumps to the failing page + placeholder —
+   * not for a background thumbnail render, which must not pull the user off
+   * the page they are editing (its thumbnail is flagged instead).
+   */
+  function showRenderError(result: RenderResult, pageId: string | null, focus = true) {
+    if (!focus) return;
     const details: RenderErrorDetails = {
       ...(result.errorDetails ?? {}),
       ...(result.errorDetails?.pageId || !pageId ? {} : { pageId }),
     };
-    setRenderError(result.error ?? 'Generování selhalo');
-    setRenderErrorDetails(details);
+    setFailure({ message: result.error ?? 'Generování selhalo', details });
 
     if (details.pageId && pages.some((p) => p.id === details.pageId)) {
       setActivePageId(details.pageId);
@@ -318,70 +371,77 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     }
   }
 
-  async function renderDirtyPreviews(): Promise<void> {
-    if (!activePage) return;
-    const order = [activePage.id, ...pages.map((p) => p.id).filter((id) => id !== activePage.id)].filter((id) =>
-      dirtyIds.has(id)
+  async function renderPagePreview(pageId: string, lane: 'active' | 'background'): Promise<void> {
+    lanesRef.current[lane] = pageId;
+    const seq = pageSeqRef.current[pageId] ?? 0;
+    setRenderingIds((prev) => new Set([...prev, pageId]));
+
+    const result = await renderDocument({
+      documentId: document.id,
+      mode: 'preview',
+      pageId,
+      ...buildDocumentFillBody(document, fill, sharedText, [pageId]),
+    });
+
+    lanesRef.current[lane] = null;
+    if (!mountedRef.current) return;
+    setRenderingIds((prev) => withoutIds(prev, [pageId]));
+
+    if (result.error || !result.blob) {
+      setFailedIds((prev) => new Set([...prev, pageId]));
+      showRenderError(result, pageId, lane === 'active');
+      return;
+    }
+
+    const previous = previewUrlsRef.current[pageId];
+    if (previous) URL.revokeObjectURL(previous);
+    const url = URL.createObjectURL(result.blob);
+    previewUrlsRef.current[pageId] = url;
+    setPreviews((prev) => ({ ...prev, [pageId]: url }));
+    // This page's error is resolved; a page-less one (e.g. a network error) by
+    // the next good render of the active page.
+    setFailure((prev) =>
+      prev && (prev.details.pageId === pageId || (!prev.details.pageId && lane === 'active')) ? null : prev
     );
 
-    for (const pageId of order) {
-      const seq = editSeqRef.current;
-      setRenderingIds(new Set([pageId]));
-      const result = await renderDocument({
-        documentId: document.id,
-        mode: 'preview',
-        pageId,
-        ...buildDocumentFillBody(document, fill, sharedText, [pageId]),
-      });
-      setRenderingIds(new Set());
-
-      if (result.error || !result.blob) {
-        showRenderError(result, pageId);
-        autoPreviewBlockedRef.current = true;
-        return;
-      }
-
-      const previous = previewUrlsRef.current[pageId];
-      if (previous) URL.revokeObjectURL(previous);
-      const url = URL.createObjectURL(result.blob);
-      previewUrlsRef.current[pageId] = url;
-      setPreviews((prev) => ({ ...prev, [pageId]: url }));
-      setRenderError(null);
-      setRenderErrorDetails(null);
-
-      if (editSeqRef.current === seq) {
-        setDirtyIds((prev) => {
-          const next = new Set(prev);
-          next.delete(pageId);
-          return next;
-        });
-      } else {
-        // An edit landed meanwhile — let the debounce pick up the new state.
-        return;
-      }
+    // An edit that landed meanwhile keeps the page stale for the next round.
+    if ((pageSeqRef.current[pageId] ?? 0) === seq) {
+      setDirtyIds((prev) => withoutIds(prev, [pageId]));
     }
   }
 
-  // Live preview: debounced 1 s after the fill settles; dirty pages render one
-  // after another, the edited page first.
+  // Live preview: 1 s after the last edit, start what nextPreviewRenders
+  // picks — the active page first, then visible stale thumbnails, two at most.
   useEffect(() => {
-    if (dirtyIds.size === 0 || renderingIds.size > 0) return;
-    if (autoPreviewBlockedRef.current || invalid) return;
+    if (!activePage) return;
+    const blocked = new Set([...failedIds, ...invalidPageIds]);
+    if (sharedTooLong) pages.forEach((p) => blocked.add(p.id));
 
+    const delay = Math.max(0, lastEditAtRef.current + PREVIEW_DEBOUNCE_MS - Date.now());
     const timer = setTimeout(() => {
-      void renderDirtyPreviews();
-    }, 1000);
+      const next = nextPreviewRenders({
+        pageIds: pages.map((p) => p.id),
+        activeId: activePage.id,
+        dirty: dirtyIds,
+        rendering: renderingIds,
+        blocked,
+        visible: visibleIds,
+        activeLaneBusy: lanesRef.current.active !== null,
+        backgroundLaneBusy: lanesRef.current.background !== null,
+      });
+      if (next.active) void renderPagePreview(next.active, 'active');
+      if (next.background) void renderPagePreview(next.background, 'background');
+    }, delay);
     return () => clearTimeout(timer);
-    // renderDirtyPreviews is recreated each render; depending on it would reset the debounce.
+    // renderPagePreview is recreated each render; depending on it would reset the debounce.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fill, sharedText, dirtyIds, renderingIds, invalid]);
+  }, [fill, sharedText, dirtyIds, renderingIds, failedIds, visibleIds, invalidPageIds, sharedTooLong, activePage?.id]);
 
   async function handleExport(format: DocumentExportFormat) {
     if (invalid || exportingFormat) return;
 
     setExportingFormat(format);
-    setRenderError(null);
-    setRenderErrorDetails(null);
+    setFailure(null);
     try {
       const result = await renderDocument({
         documentId: document.id,
@@ -501,10 +561,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
                     <button
                       type="button"
                       className="text-left text-xs text-accent hover:underline"
-                      onClick={() => {
-                        setActivePageId(firstBinding.pageId);
-                        setActivePlaceholder(null);
-                      }}
+                      onClick={() => openPage(firstBinding.pageId)}
                     >
                       Obrázek vyberte na kterékoli straně — propíše se na všechny ({pagesOfField(field).length})
                     </button>
@@ -520,17 +577,20 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         {pages.map((page, index) => {
           const active = page.id === activePage.id;
           const preview = previews[page.id] ?? null;
-          const flagged = predictedOverflows[page.id] != null || invalidPageIds.has(page.id);
+          const flagged =
+            predictedOverflows[page.id] != null || invalidPageIds.has(page.id) || failedIds.has(page.id);
           return (
             <button
               key={page.id}
+              ref={(el) => {
+                if (el) thumbRefs.current.set(page.id, el);
+                else thumbRefs.current.delete(page.id);
+              }}
+              data-page-id={page.id}
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => {
-                setActivePageId(page.id);
-                setActivePlaceholder(null);
-              }}
+              onClick={() => openPage(page.id)}
               className={`flex w-32 shrink-0 flex-col overflow-hidden rounded-xl border bg-surface text-left transition-colors focus:outline-none focus:ring-2 focus:ring-ring-focus ${
                 active ? 'border-accent ring-2 ring-accent/30' : flagged ? 'border-danger' : 'border-border hover:border-accent'
               }`}
@@ -623,6 +683,15 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** The live preview waits this long after the last edit. */
+const PREVIEW_DEBOUNCE_MS = 1000;
+
+function withoutIds(set: ReadonlySet<string>, ids: readonly string[]): ReadonlySet<string> {
+  const next = new Set(set);
+  ids.forEach((id) => next.delete(id));
+  return next;
+}
 
 function withPageInput(
   state: DocumentFillState,

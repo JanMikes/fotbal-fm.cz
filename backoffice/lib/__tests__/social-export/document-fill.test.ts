@@ -15,6 +15,7 @@ import {
   fieldForInput,
   initDocumentFill,
   initSharedText,
+  nextPreviewRenders,
   pagesOfField,
   pagesWord,
   sharedImageOf,
@@ -289,5 +290,50 @@ describe('applySavedDocument / toSavedDocument', () => {
     expect(restored.restored).toBe(true);
     expect(restored.sharedText).toEqual({});
     expect(Object.keys(restored.fill.forms)).toEqual(['p-a', 'p-b', 'p-c']);
+  });
+});
+
+describe('nextPreviewRenders', () => {
+  const ids = ['p1', 'p2', 'p3', 'p4'];
+  const base = {
+    pageIds: ids,
+    activeId: 'p3',
+    dirty: new Set(ids),
+    rendering: new Set<string>(),
+    blocked: new Set<string>(),
+    visible: new Set(['p1', 'p2', 'p3']),
+    activeLaneBusy: false,
+    backgroundLaneBusy: false,
+  };
+
+  it('renders the stale active page first and holds the others back until it is done', () => {
+    expect(nextPreviewRenders(base)).toEqual({ active: 'p3', background: null });
+    expect(nextPreviewRenders({ ...base, rendering: new Set(['p3']), activeLaneBusy: true })).toEqual({
+      active: null,
+      background: null,
+    });
+  });
+
+  it('then renders visible stale thumbnails one at a time, in page order, never off-screen ones', () => {
+    const dirty = new Set(['p2', 'p4', 'p1']);
+    expect(nextPreviewRenders({ ...base, dirty })).toEqual({ active: null, background: 'p1' });
+    expect(
+      nextPreviewRenders({ ...base, dirty, rendering: new Set(['p1']), backgroundLaneBusy: true })
+    ).toEqual({ active: null, background: null });
+    expect(nextPreviewRenders({ ...base, dirty: new Set(['p4']) })).toEqual({ active: null, background: null });
+  });
+
+  it('never blocks the active page behind a background render', () => {
+    const state = { ...base, rendering: new Set(['p1']), backgroundLaneBusy: true };
+    expect(nextPreviewRenders(state)).toEqual({ active: 'p3', background: null });
+  });
+
+  it('skips blocked pages; a blocked active page lets the background lane go', () => {
+    expect(nextPreviewRenders({ ...base, blocked: new Set(['p3', 'p1']) })).toEqual({ active: null, background: 'p2' });
+  });
+
+  it('does not start a page twice when it becomes active mid-render', () => {
+    const state = { ...base, activeId: 'p1', rendering: new Set(['p1']), backgroundLaneBusy: true };
+    expect(nextPreviewRenders(state)).toEqual({ active: null, background: null });
   });
 });
