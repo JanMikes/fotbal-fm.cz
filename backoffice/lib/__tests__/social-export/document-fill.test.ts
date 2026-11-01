@@ -18,6 +18,7 @@ import {
   nextPreviewRenders,
   pagesOfField,
   pagesWord,
+  pickerSlotOf,
   sharedImageOf,
   toSavedDocument,
 } from '@/lib/social-export/document-fill';
@@ -335,5 +336,32 @@ describe('nextPreviewRenders', () => {
   it('does not start a page twice when it becomes active mid-render', () => {
     const state = { ...base, activeId: 'p1', rendering: new Set(['p1']), backgroundLaneBusy: true };
     expect(nextPreviewRenders(state)).toEqual({ active: null, background: null });
+  });
+});
+
+describe('pickerSlotOf', () => {
+  const field = doc.fields[1];
+
+  it('prefers an unrestricted bound slot (the whole gallery), else the first bound slot', () => {
+    const restricted = makeSlot({ includesRoot: false, directories: [{ id: 'd1', name: 'Hráči' }] });
+    const docMixed: DocumentDTO = {
+      ...doc,
+      pages: [
+        makePage('p-a', 0, makeVariant('v-a', { imageInputs: [restricted] })),
+        makePage('p-b', 1, makeVariant('v-b')),
+        pageC,
+      ],
+    };
+    expect(pickerSlotOf(docMixed, field)).toMatchObject({ page: { id: 'p-b' }, slot: { id: 'img-1' } });
+
+    const allRestricted: DocumentDTO = {
+      ...docMixed,
+      pages: [docMixed.pages[0], makePage('p-b', 1, makeVariant('v-b', { imageInputs: [restricted] })), pageC],
+    };
+    expect(pickerSlotOf(allRestricted, field)?.page.id).toBe('p-a');
+  });
+
+  it('is null when no binding resolves to a slot', () => {
+    expect(pickerSlotOf({ ...doc, pages: [pageC] }, field)).toBeNull();
   });
 });

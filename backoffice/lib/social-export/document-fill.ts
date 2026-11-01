@@ -16,6 +16,7 @@
 import type {
   DocumentDTO,
   DocumentFieldDTO,
+  ImageInputDTO,
   DocumentFillBody,
   DocumentFieldValue,
   DocumentPageDTO,
@@ -235,6 +236,27 @@ export function applySharedImage(
     };
   }
   return next;
+}
+
+/**
+ * The bound slot a shared IMAGE field's own picker lists and uploads through
+ * (the gallery endpoints are per slot): an unrestricted one (`includesRoot` —
+ * the whole project gallery) when there is one, else the first bound slot.
+ * Null when no binding resolves to a slot.
+ */
+export function pickerSlotOf(
+  document: DocumentDTO,
+  field: DocumentFieldDTO
+): { page: DocumentPageDTO; slot: ImageInputDTO } | null {
+  let fallback: { page: DocumentPageDTO; slot: ImageInputDTO } | null = null;
+  for (const binding of field.bindings) {
+    const page = document.pages.find((p) => p.id === binding.pageId);
+    const slot = page?.variant.imageInputs.find((s) => s.id === binding.inputId);
+    if (!page || !slot) continue;
+    if (slot.includesRoot) return { page, slot };
+    fallback ??= { page, slot };
+  }
+  return fallback;
 }
 
 /** The shared image a field currently shows: the first bound slot that has a pick. */

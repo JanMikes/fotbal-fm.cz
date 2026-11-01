@@ -1,11 +1,12 @@
 'use client';
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, FileDown, FileText, FolderArchive, ImageIcon, Link2, Loader2, Printer } from 'lucide-react';
+import { AlertTriangle, FileDown, FileText, FolderArchive, ImageIcon, Link2, Loader2, Printer, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PreviewPanel from './PreviewPanel';
 import ExportInputForm from './ExportInputForm';
+import ImagePickerModal from './images/ImagePickerModal';
 import SaveStatusBadge, { type SaveStatus } from './SaveStatusBadge';
 import type { ActivePlaceholder } from './PlaceholderOverlay';
 import {
@@ -35,6 +36,7 @@ import {
   pagesOfField,
   nextPreviewRenders,
   pagesWord,
+  pickerSlotOf,
   sharedImageOf,
   toSavedDocument,
   type DocumentFillState,
@@ -104,6 +106,9 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const renderError = failure?.message ?? null;
   const renderErrorDetails = failure?.details ?? null;
   const [exportingFormat, setExportingFormat] = useState<DocumentExportFormat | null>(null);
+
+  // The shared image field whose own gallery picker is open.
+  const [pickerFieldId, setPickerFieldId] = useState<string | null>(null);
 
   const [highlightMode, setHighlightMode] = useState(true);
   const [activePlaceholder, setActivePlaceholder] = useState<ActivePlaceholder | null>(null);
@@ -329,6 +334,15 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     [activePage, document, markEdited]
   );
 
+  /** The shared image field's own pick (null = remove): every bound slot, from its neutral placement. */
+  const setSharedImage = useCallback(
+    (field: DocumentFieldDTO, image: ImageSlotState['image']) => {
+      setFill((prev) => ({ ...prev, images: applySharedImage(document, prev.images, field.id, image) }));
+      markEdited(pagesOfField(field));
+    },
+    [document, markEdited]
+  );
+
   const handleShapeColorChange = useCallback(
     (shapeId: string, color: string | null) => {
       if (!activePage) return;
@@ -467,6 +481,8 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   }
 
   const activeOverflow = predictedOverflows[activePage.id] ?? null;
+  const pickerField = imageFields.find((f) => f.id === pickerFieldId) ?? null;
+  const pickerTarget = pickerField ? pickerSlotOf(document, pickerField) : null;
   const exportDisabled = exportingFormat !== null || invalid || Object.keys(predictedOverflows).length > 0;
   const failedOnActive =
     renderErrorDetails?.code === 'container_overflow' &&
@@ -546,25 +562,49 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             })}
             {imageFields.map((field) => {
               const image = sharedImageOf(field, fill.images);
-              const firstBinding = field.bindings[0];
+              const pageCount = pagesOfField(field).length;
               return (
                 <div key={field.id} className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-hover">
+                  <button
+                    type="button"
+                    onClick={() => setPickerFieldId(field.id)}
+                    disabled={!pickerSlotOf(document, field)}
+                    title="Vybrat obrázek"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-hover transition-colors hover:border-accent focus:outline-none focus:ring-2 focus:ring-ring-focus"
+                  >
                     {image ? (
                       <img src={image.url} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <ImageIcon className="h-5 w-5 text-text-muted" />
                     )}
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-medium text-text-secondary">{field.name}</span>
-                    <button
-                      type="button"
-                      className="text-left text-xs text-accent hover:underline"
-                      onClick={() => openPage(firstBinding.pageId)}
-                    >
-                      Obrázek vyberte na kterékoli straně — propíše se na všechny ({pagesOfField(field).length})
-                    </button>
+                  </button>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-xs font-medium text-text-secondary">
+                      {field.name}{' '}
+                      <span className="font-normal text-text-muted">
+                        ({pageCount} {pagesWord(pageCount)})
+                      </span>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                      <button
+                        type="button"
+                        className="text-accent hover:underline disabled:text-text-muted disabled:no-underline"
+                        onClick={() => setPickerFieldId(field.id)}
+                        disabled={!pickerSlotOf(document, field)}
+                      >
+                        {image ? 'Změnit obrázek' : 'Vybrat obrázek'}
+                      </button>
+                      {image && (
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-0.5 text-text-muted hover:text-danger-text"
+                          onClick={() => setSharedImage(field, null)}
+                        >
+                          <X className="h-3 w-3" />
+                          Odebrat
+                        </button>
+                      )}
+                    </span>
                   </div>
                 </div>
               );
@@ -675,6 +715,26 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             showActions={false}
           />
         </div>
+      )}
+
+      {/* A shared image field's own picker — lists / uploads through one bound
+          slot (pickerSlotOf), the pick fills every bound slot. */}
+      {pickerField && pickerTarget && (
+        <ImagePickerModal
+          open
+          onClose={() => setPickerFieldId(null)}
+          variantId={pickerTarget.page.variant.id}
+          imageInputId={pickerTarget.slot.id}
+          slotLabel={pickerField.name}
+          directories={pickerTarget.slot.directories}
+          includesRoot={pickerTarget.slot.includesRoot}
+          matchId={match.id}
+          matchImages={match.images}
+          onPick={(picked) => {
+            setSharedImage(pickerField, { id: picked.id, url: picked.url });
+            setPickerFieldId(null);
+          }}
+        />
       )}
     </div>
   );
