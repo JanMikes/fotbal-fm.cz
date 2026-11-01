@@ -436,3 +436,14 @@ describe('sharedFieldInput', () => {
     expect(restored.sharedText['f-name']).toEqual({ value: 'Old', hidden: false });
   });
 });
+
+describe('shared image field without a common folder', () => {
+  it('is not sent as a field value — every page sends its own pick', () => {
+    const d: DocumentDTO = { ...doc, fields: [doc.fields[0], { ...doc.fields[1], allowedDirectoryIds: [] }] };
+    const state = initDocumentFill(d, emptyPrefill);
+    state.images['p-a']['img-1'] = { ...state.images['p-a']['img-1'], image: { id: 'gal-1', url: 'u' } };
+    const body = buildDocumentFillBody(d, state, {});
+    expect(body.fields).toEqual({});
+    expect(body.pages['p-a'].images).toEqual({ 'img-1': 'gal-1' });
+  });
+});

@@ -421,7 +421,8 @@ export function buildDocumentFillBody(
       const input = state ? sharedFieldInput(document, field) : null;
       const value = input && state ? buildRenderInputs([input], { [field.id]: state })[field.id] : undefined;
       if (value !== undefined) fields[field.id] = value;
-    } else {
+    } else if (field.allowedDirectoryIds?.length !== 0) {
+      // [] = no picture passes every bound slot: each page sends its own pick.
       const image = sharedImageOf(field, state.images);
       if (image) fields[field.id] = image.id;
     }

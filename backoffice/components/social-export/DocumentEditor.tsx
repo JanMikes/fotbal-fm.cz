@@ -350,6 +350,8 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       if (!activePage) return;
       const pageId = activePage.id;
       const field = fieldForInput(document, pageId, slotId, 'image');
+      // Slots that share no folder ([]) are picked page by page, never mirrored.
+      const mirrored = field && field.allowedDirectoryIds?.length !== 0 ? field : null;
 
       setFill((prev) => {
         const current = prev.images[pageId]?.[slotId];
@@ -358,12 +360,12 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
           [slotId]: { ...(current ?? defaultImageSlotState()), ...partial },
         };
         let images = { ...prev.images, [pageId]: nextPage };
-        if (field && 'image' in partial) {
-          images = applySharedImage(document, images, field.id, partial.image ?? null, pageId);
+        if (mirrored && 'image' in partial) {
+          images = applySharedImage(document, images, mirrored.id, partial.image ?? null, pageId);
         }
         return { ...prev, images };
       });
-      markEdited(field && 'image' in partial ? pagesOfField(field) : [pageId]);
+      markEdited(mirrored && 'image' in partial ? pagesOfField(mirrored) : [pageId]);
     },
     [activePage, document, markEdited]
   );
@@ -588,12 +590,14 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             {imageFields.map((field) => {
               const image = sharedImageOf(field, fill.images);
               const pageCount = pagesOfField(field).length;
+              // [] = the bound slots share no gallery folder: no pick passes every page.
+              const pickable = pickerSlotOf(document, field) != null && field.allowedDirectoryIds?.length !== 0;
               return (
                 <div key={field.id} className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setPickerFieldId(field.id)}
-                    disabled={!pickerSlotOf(document, field)}
+                    disabled={!pickable}
                     title="Vybrat obrázek"
                     className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-hover transition-colors hover:border-accent focus:outline-none focus:ring-2 focus:ring-ring-focus"
                   >
@@ -615,10 +619,15 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
                         type="button"
                         className="text-accent hover:underline disabled:text-text-muted disabled:no-underline"
                         onClick={() => setPickerFieldId(field.id)}
-                        disabled={!pickerSlotOf(document, field)}
+                        disabled={!pickable}
                       >
                         {image ? 'Změnit obrázek' : 'Vybrat obrázek'}
                       </button>
+                      {!pickable && field.allowedDirectoryIds?.length === 0 && (
+                        <span className="text-text-muted">
+                          Strany nemají společnou složku obrázků — vyberte obrázek na každé straně.
+                        </span>
+                      )}
                       {image && (
                         <button
                           type="button"
@@ -756,6 +765,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
           slotLabel={pickerField.name}
           directories={pickerTarget.slot.directories}
           includesRoot={pickerTarget.slot.includesRoot}
+          allowedDirectoryIds={pickerField.allowedDirectoryIds}
           matchId={match.id}
           matchImages={match.images}
           onPick={(picked) => {

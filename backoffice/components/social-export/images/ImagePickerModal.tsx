@@ -25,6 +25,12 @@ interface ImagePickerModalProps {
   directories: PlaceholderDirectoryDTO[];
   /** Unrestricted slot — the gallery root is also a valid upload target. */
   includesRoot: boolean;
+  /**
+   * Narrows the slot's folders further (a document's shared image field: the
+   * folders EVERY bound slot accepts). Gallery images outside them are not
+   * listed and uploads go only into them. null / absent = the slot's own.
+   */
+  allowedDirectoryIds?: string[] | null;
   matchId: string | null;
   matchImages: StrapiImage[];
   onPick: (image: GalleryImageDTO) => void;
@@ -41,8 +47,9 @@ export default function ImagePickerModal({
   variantId,
   imageInputId,
   slotLabel,
-  directories,
-  includesRoot,
+  directories: slotDirectories,
+  includesRoot: slotIncludesRoot,
+  allowedDirectoryIds = null,
   matchId,
   matchImages,
   onPick,
@@ -59,6 +66,11 @@ export default function ImagePickerModal({
   // unrestricted slots, else to the slot's first (often only) allowed folder.
   // A restricted multi-folder slot REQUIRES a choice (the API 400s without
   // one), which the always-visible selector guarantees.
+  const directories = useMemo(
+    () => (allowedDirectoryIds ? slotDirectories.filter((d) => allowedDirectoryIds.includes(d.id)) : slotDirectories),
+    [slotDirectories, allowedDirectoryIds]
+  );
+  const includesRoot = slotIncludesRoot && allowedDirectoryIds == null;
   const defaultDirectoryId = includesRoot ? ROOT_OPTION : (directories[0]?.id ?? ROOT_OPTION);
   const fileRef = useRef<HTMLInputElement>(null);
   const [directoryId, setDirectoryId] = useState<string>(defaultDirectoryId);
@@ -81,7 +93,11 @@ export default function ImagePickerModal({
       try {
         const images = await fetchSlotImages(variantId, imageInputId);
         if (cancelled) return;
-        setGallery(images);
+        setGallery(
+          allowedDirectoryIds
+            ? images.filter((img) => img.directoryId != null && allowedDirectoryIds.includes(img.directoryId))
+            : images
+        );
       } catch (e) {
         if (!cancelled) setGalleryError((e as Error).message || 'Nepodařilo se načíst obrázky');
       } finally {
@@ -93,7 +109,7 @@ export default function ImagePickerModal({
     return () => {
       cancelled = true;
     };
-  }, [open, hasMatchPhotos, variantId, imageInputId, defaultDirectoryId]);
+  }, [open, hasMatchPhotos, variantId, imageInputId, defaultDirectoryId, allowedDirectoryIds]);
 
   // Folder choices for an upload: the slot's folders, plus the gallery root for
   // unrestricted slots. The selector renders only when there is a real choice.
