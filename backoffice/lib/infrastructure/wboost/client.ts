@@ -17,6 +17,8 @@ import type {
   WboostRawTemplate,
   WboostRawGalleryImage,
   WboostRawProjectFont,
+  WboostRawDocumentExportVersion,
+  WboostRawDocumentExportVersionDetail,
   WboostRawExportVersion,
   WboostRawExportVersionDetail,
   WboostRawTemplateDocument,
@@ -370,6 +372,43 @@ export class WboostClient {
     });
 
     return this.parseJson<WboostRawExportVersionDetail>(res, 'export-version');
+  }
+
+  /** A document's shared export history (every export + saved web drafts), pinned first. */
+  async listDocumentExportVersions(documentId: string): Promise<WboostRawDocumentExportVersion[]> {
+    const res = await this.authedFetch(
+      `${this.config.apiBase}/api/template-documents/${documentId}/export-versions`,
+      { method: 'GET', headers: { Accept: 'application/json' } }
+    );
+
+    return this.parseJson<WboostRawDocumentExportVersion[]>(res, 'document-export-versions');
+  }
+
+  /** One document export version with its fill (seeded against the current design). */
+  async getDocumentExportVersion(versionId: string): Promise<WboostRawDocumentExportVersionDetail> {
+    const res = await this.authedFetch(
+      `${this.config.apiBase}/api/template-document-export-versions/${versionId}`,
+      { method: 'GET', headers: { Accept: 'application/json' } }
+    );
+
+    return this.parseJson<WboostRawDocumentExportVersionDetail>(res, 'document-export-version');
+  }
+
+  /** Rename (`name`, null clears) and/or pin a document version; absent keys stay untouched. */
+  async updateDocumentExportVersion(
+    versionId: string,
+    patch: { name?: string | null; pinned?: boolean }
+  ): Promise<WboostRawDocumentExportVersionDetail> {
+    const res = await this.authedFetch(
+      `${this.config.apiBase}/api/template-document-export-versions/${versionId}`,
+      {
+        method: 'PATCH',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      }
+    );
+
+    return this.parseJson<WboostRawDocumentExportVersionDetail>(res, 'document-export-version');
   }
 
   /** List the gallery images an image slot can be filled with (its allowed folders only). */

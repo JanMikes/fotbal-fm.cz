@@ -593,9 +593,13 @@ export interface ExportVersionSummaryDTO {
  */
 export interface ExportVersionDTO {
   id: string;
-  subject: 'group' | 'variant';
+  subject: 'group' | 'variant' | 'document';
   groupId: string | null;
   variantId: string | null;
+  /** Document versions only. */
+  documentId?: string | null;
+  /** Document versions: saved work on the web, never exported. */
+  draft?: boolean;
   name: string | null;
   pinned: boolean;
   pinnedAt: string | null;
@@ -619,6 +623,27 @@ export interface ExportVersionFillDTO {
 
 export interface ExportVersionDetailDTO extends ExportVersionDTO {
   fill: ExportVersionFillDTO;
+}
+
+/**
+ * A DOCUMENT version's fill in the document export body's shape: `pages` is
+ * complete (shared values already fanned out), `fields` re-collects each
+ * shared field's value. Picked images carry their public `url`.
+ */
+export interface DocumentExportVersionFillDTO {
+  fields: Record<string, DocumentFieldValue & { url?: string }>;
+  pages: Record<
+    string,
+    {
+      inputs: Record<string, RenderInputValue>;
+      images: Record<string, RenderImageValue & { url?: string }>;
+      shapeColors: Record<string, string>;
+    }
+  >;
+}
+
+export interface DocumentExportVersionDetailDTO extends ExportVersionDTO {
+  fill: DocumentExportVersionFillDTO;
 }
 
 /** API route base path for the social-export feature. */

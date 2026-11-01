@@ -130,6 +130,11 @@ export default function ExportHistoryMenu(props: ExportHistoryMenuProps) {
   );
 }
 
+/** A version's display title: its name, else when it was last exported. */
+export function versionTitle(version: ExportVersionDTO): string {
+  return version.name ?? formatDate(version.lastExportedAt);
+}
+
 function SectionLabel({ children }: { children: string }) {
   return (
     <p className="px-2 pb-0.5 pt-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
@@ -223,6 +228,9 @@ function VersionRow({
               {version.pinned && <Pin className="h-3 w-3 shrink-0 text-accent" />}
               <span className="truncate text-xs font-semibold text-text-primary">{title}</span>
               {loadingVersionId === version.id && <Loader2 className="h-3 w-3 animate-spin text-accent" />}
+              {version.draft && (
+                <span className="shrink-0 rounded bg-surface-hover px-1 text-[10px] text-text-muted">rozpracováno</span>
+              )}
               {version.channel !== 'api' && (
                 <span className="shrink-0 rounded bg-surface-hover px-1 text-[10px] text-text-muted">
                   {CHANNEL_LABELS[version.channel] ?? version.channel}

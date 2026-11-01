@@ -23,6 +23,8 @@ import type {
   WboostRawImageInput,
   WboostRawGalleryImage,
   WboostRawProjectFont,
+  WboostRawDocumentExportVersion,
+  WboostRawDocumentExportVersionDetail,
   WboostRawExportVersion,
   WboostRawExportVersionDetail,
   WboostRawTemplateDocument,
@@ -37,6 +39,8 @@ import type {
   RenderImageValue,
   RichTextFontOptionDTO,
   GroupPlacements,
+  DocumentExportVersionDetailDTO,
+  DocumentExportVersionFillDTO,
   ExportVersionDTO,
   ExportVersionDetailDTO,
   ExportVersionFillDTO,
@@ -301,6 +305,40 @@ function mapExportVersion(raw: WboostRawExportVersion): ExportVersionDTO {
   };
 }
 
+function mapDocumentExportVersion(raw: WboostRawDocumentExportVersion): ExportVersionDTO {
+  return {
+    id: raw.id,
+    subject: 'document',
+    groupId: null,
+    variantId: null,
+    documentId: raw.documentId,
+    draft: raw.draft === true,
+    name: raw.name,
+    pinned: raw.pinned,
+    pinnedAt: raw.pinnedAt,
+    createdAt: raw.createdAt,
+    lastExportedAt: raw.lastExportedAt,
+    exportCount: raw.exportCount,
+    channel: raw.channel,
+    summary: raw.summary,
+  };
+}
+
+function mapDocumentExportVersionDetail(raw: WboostRawDocumentExportVersionDetail): DocumentExportVersionDetailDTO {
+  const pages: DocumentExportVersionFillDTO['pages'] = {};
+  for (const [pageId, page] of Object.entries(raw.fill?.pages ?? {})) {
+    pages[pageId] = {
+      inputs: (page?.inputs ?? {}) as DocumentExportVersionFillDTO['pages'][string]['inputs'],
+      images: (page?.images ?? {}) as DocumentExportVersionFillDTO['pages'][string]['images'],
+      shapeColors: page?.shapeColors ?? {},
+    };
+  }
+  return {
+    ...mapDocumentExportVersion(raw),
+    fill: { fields: (raw.fill?.fields ?? {}) as DocumentExportVersionFillDTO['fields'], pages },
+  };
+}
+
 function mapExportVersionDetail(raw: WboostRawExportVersionDetail): ExportVersionDetailDTO {
   return {
     ...mapExportVersion(raw),
@@ -434,6 +472,27 @@ export class SocialExportService {
   ): Promise<Result<ExportVersionDTO[], AppError>> {
     return this.attempt('listExportVersions', async () =>
       (await this.client.listExportVersions(subject)).map(mapExportVersion)
+    );
+  }
+
+  async listDocumentExportVersions(documentId: string): Promise<Result<ExportVersionDTO[], AppError>> {
+    return this.attempt('listDocumentExportVersions', async () =>
+      (await this.client.listDocumentExportVersions(documentId)).map(mapDocumentExportVersion)
+    );
+  }
+
+  async getDocumentExportVersion(versionId: string): Promise<Result<DocumentExportVersionDetailDTO, AppError>> {
+    return this.attempt('getDocumentExportVersion', async () =>
+      mapDocumentExportVersionDetail(await this.client.getDocumentExportVersion(versionId))
+    );
+  }
+
+  async updateDocumentExportVersion(
+    versionId: string,
+    patch: { name?: string | null; pinned?: boolean }
+  ): Promise<Result<DocumentExportVersionDetailDTO, AppError>> {
+    return this.attempt('updateDocumentExportVersion', async () =>
+      mapDocumentExportVersionDetail(await this.client.updateDocumentExportVersion(versionId, patch))
     );
   }
 

@@ -281,6 +281,24 @@ describe('WboostClient', () => {
 
       expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-variants/v1/export-versions');
     });
+
+    it('lists, reads and curates a DOCUMENT history', async () => {
+      mockFetch.mockResolvedValueOnce(mockJsonResponse([]));
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({}));
+      mockFetch.mockResolvedValueOnce(mockJsonResponse({}));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.listDocumentExportVersions('doc-1');
+      await client.getDocumentExportVersion('dv-1');
+      await client.updateDocumentExportVersion('dv-1', { name: 'Finál' });
+
+      expect(mockFetch.mock.calls[0][0]).toBe('http://wboost.test/api/template-documents/doc-1/export-versions');
+      expect(mockFetch.mock.calls[1][0]).toBe('http://wboost.test/api/template-document-export-versions/dv-1');
+      const [patchUrl, patchInit] = mockFetch.mock.calls[2];
+      expect(patchUrl).toBe('http://wboost.test/api/template-document-export-versions/dv-1');
+      expect(patchInit.method).toBe('PATCH');
+      expect(JSON.parse(patchInit.body as string)).toEqual({ name: 'Finál' });
+    });
   });
 
   describe('listPlaceholderImages', () => {

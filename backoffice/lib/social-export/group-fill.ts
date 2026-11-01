@@ -213,7 +213,7 @@ export function fillToEditorState(
   return { formState, imageStates, shapeColors: sanitizeShapeColors(unionShapeInputs(members), fill.shapeColors) };
 }
 
-function inputValueToState(value: RenderInputValue, fallback: InputFieldState): InputFieldState {
+export function inputValueToState(value: RenderInputValue, fallback: InputFieldState): InputFieldState {
   if (typeof value === 'string') {
     return { value, hidden: false };
   }

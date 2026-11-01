@@ -12,6 +12,7 @@ import {
   applySharedTexts,
   applySavedDocument,
   buildDocumentFillBody,
+  documentFillFromVersion,
   fieldForInput,
   initDocumentFill,
   initSharedText,
@@ -445,5 +446,31 @@ describe('shared image field without a common folder', () => {
     const body = buildDocumentFillBody(d, state, {});
     expect(body.fields).toEqual({});
     expect(body.pages['p-a'].images).toEqual({ 'img-1': 'gal-1' });
+  });
+});
+
+describe('documentFillFromVersion', () => {
+  it('loads every page like a variant version and the shared texts from `fields`', () => {
+    const loaded = documentFillFromVersion(doc, {
+      fields: { 'f-name': { value: 'Lucie', hide: true }, 'f-photo': { imageId: 'gal-1', url: 'u1' }, 'f-gone': 'x' },
+      pages: {
+        'p-a': {
+          inputs: { name: 'Lucie', 'txt-1': { hide: true } },
+          images: { 'img-1': { imageId: 'gal-1', url: 'u1', scale: 2 } },
+          shapeColors: {},
+        },
+        'p-b': { inputs: { name: 'Lucie' }, images: { 'img-1': { imageId: 'gal-1', url: 'u1' } }, shapeColors: {} },
+        'p-gone': { inputs: {}, images: {}, shapeColors: {} },
+      },
+    });
+
+    expect(loaded.sharedText).toEqual({ 'f-name': { value: 'Lucie', hidden: true } });
+    expect(loaded.fill.forms['p-a'].name.value).toBe('Lucie');
+    expect(loaded.fill.forms['p-a']['txt-1'].hidden).toBe(true);
+    expect(loaded.fill.images['p-a']['img-1']).toMatchObject({ image: { id: 'gal-1', url: 'u1' }, scale: 2 });
+    expect(sharedImageOf(doc.fields[1], loaded.fill.images)?.id).toBe('gal-1');
+    // A page missing from the version starts from its design.
+    expect(loaded.fill.forms['p-c'].other.value).toBe('');
+    expect(Object.keys(loaded.fill.forms)).toEqual(['p-a', 'p-b', 'p-c']);
   });
 });

@@ -448,6 +448,32 @@ export interface WboostRawExportVersionDetail extends WboostRawExportVersion {
   };
 }
 
+/** One entry of a DOCUMENT's export history (`/template-documents/{id}/export-versions`). */
+export interface WboostRawDocumentExportVersion {
+  id: string;
+  documentId: string;
+  name: string | null;
+  pinned: boolean;
+  pinnedAt: string | null;
+  /** Saved work on the web ("Uložit rozpracované"), never exported. */
+  draft: boolean;
+  createdAt: string;
+  lastExportedAt: string;
+  exportCount: number;
+  channel: string;
+  summary: { texts: { label: string; value: string }[]; pictures: number; hidden: number };
+}
+
+/** A document export version with its fill in the document export body's shape. */
+export interface WboostRawDocumentExportVersionDetail extends WboostRawDocumentExportVersion {
+  fill: {
+    /** Shared field id → value (text: string | {value|runs, …}; image: {imageId, url} | {hide: true}). */
+    fields: Record<string, unknown>;
+    /** Complete per page — shared values already fanned out into the bound inputs. */
+    pages: Record<string, { inputs?: Record<string, unknown>; images?: Record<string, unknown>; shapeColors?: Record<string, string> }>;
+  };
+}
+
 /** OAuth2 client_credentials token response. */
 export interface WboostTokenResponse {
   token_type: string;

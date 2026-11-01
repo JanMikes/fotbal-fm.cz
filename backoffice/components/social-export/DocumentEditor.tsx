@@ -1,10 +1,11 @@
 'use client';
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, FileDown, FileText, FolderArchive, ImageIcon, Link2, Loader2, Printer, X } from 'lucide-react';
+import { AlertTriangle, FileDown, FileText, FolderArchive, History, ImageIcon, Link2, Loader2, Printer, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import PreviewPanel from './PreviewPanel';
 import ExportInputForm from './ExportInputForm';
+import ExportHistoryMenu, { versionTitle } from './ExportHistoryMenu';
 import ImagePickerModal from './images/ImagePickerModal';
 import SaveStatusBadge, { type SaveStatus } from './SaveStatusBadge';
 import type { ActivePlaceholder } from './PlaceholderOverlay';
@@ -15,11 +16,15 @@ import {
   saveExportState,
   type SaveExportStatePayload,
   type RenderResult,
+  fetchDocumentExportVersion,
+  updateDocumentExportVersion,
+  useDocumentExportVersions,
 } from '@/hooks/api/use-social-export';
 import type {
   DocumentDTO,
   DocumentExportFormat,
   DocumentFieldDTO,
+  ExportVersionDTO,
   RenderErrorDetails,
 } from '@/lib/social-export/api-types';
 import {
@@ -36,6 +41,7 @@ import {
   nextPreviewRenders,
   pagesWord,
   pickerSlotOf,
+  documentFillFromVersion,
   documentRichTextOptions,
   sharedFieldInput,
   sharedFieldsOf,
@@ -70,8 +76,9 @@ interface DocumentEditorProps {
  * the print PDF (print formats only) or a ZIP of PNGs.
  *
  * The fill autosaves per match like the single-variant editor (one
- * `social-export-state` record keyed by the document id, `state.document`).
- * Not (yet) here: the export history — see the follow-up issue. Mount with
+ * `social-export-state` record keyed by the document id, `state.document`),
+ * and the document's shared WBoost export history can be loaded back,
+ * renamed and pinned (`ExportHistoryMenu`). Mount with
  * `key={document.id}` (after the saved states loaded) so a new document reseeds.
  */
 export default function DocumentEditor({ document, match, saved, onSaved }: DocumentEditorProps) {
@@ -107,6 +114,16 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const renderError = failure?.message ?? null;
   const renderErrorDetails = failure?.details ?? null;
   const [exportingFormat, setExportingFormat] = useState<DocumentExportFormat | null>(null);
+
+  // Export history (shared with WBoost): which version is loaded / loading.
+  const {
+    versions,
+    isLoading: versionsLoading,
+    error: versionsError,
+    mutate: mutateVersions,
+  } = useDocumentExportVersions(document.id);
+  const [loadedVersion, setLoadedVersion] = useState<{ id: string; title: string } | null>(null);
+  const [loadingVersionId, setLoadingVersionId] = useState<string | null>(null);
 
   // The shared image field whose own gallery picker is open.
   const [pickerFieldId, setPickerFieldId] = useState<string | null>(null);
@@ -507,9 +524,44 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         result.blob,
         result.filename ?? `${sanitizeFilename(document.name) || 'dokument'}.${format === 'png' ? 'zip' : 'pdf'}`
       );
+      // WBoost recorded the export as a version.
+      void mutateVersions();
     } finally {
       setExportingFormat(null);
     }
+  }
+
+  /** Load a history version: it replaces the fill and becomes this match's working draft (autosave). */
+  async function handleLoadVersion(version: ExportVersionDTO) {
+    setLoadingVersionId(version.id);
+    const result = await fetchDocumentExportVersion(version.id);
+    setLoadingVersionId(null);
+
+    if (!result.version) {
+      setFailure({ message: result.error ?? 'Verzi se nepodařilo načíst', details: {} });
+      return;
+    }
+
+    const loaded = documentFillFromVersion(document, result.version.fill);
+    setFill(loaded.fill);
+    setSharedText(loaded.sharedText);
+    setActivePlaceholder(null);
+    setFailure(null);
+    setLoadedVersion({ id: version.id, title: versionTitle(version) });
+    // Every page re-renders the loaded fill.
+    markEdited(pages.map((p) => p.id));
+  }
+
+  async function handleRenameVersion(version: ExportVersionDTO, name: string | null) {
+    const result = await updateDocumentExportVersion(version.id, { name });
+    if (result.error) setFailure({ message: result.error, details: {} });
+    void mutateVersions();
+  }
+
+  async function handleTogglePinVersion(version: ExportVersionDTO) {
+    const result = await updateDocumentExportVersion(version.id, { pinned: !version.pinned });
+    if (result.error) setFailure({ message: result.error, details: {} });
+    void mutateVersions();
   }
 
   if (!activePage) {
@@ -563,8 +615,38 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             Vyplňte každou stranu zvlášť. Společná pole nahoře se propíšou na všechny strany, kde jsou použita.
           </p>
         </div>
-        <SaveStatusBadge status={saveStatus} />
+        <div className="flex items-center gap-3">
+          <SaveStatusBadge status={saveStatus} />
+          <ExportHistoryMenu
+            versions={versions}
+            isLoading={versionsLoading}
+            error={versionsError}
+            loadedVersionId={loadedVersion?.id ?? null}
+            loadingVersionId={loadingVersionId}
+            onLoad={(version) => void handleLoadVersion(version)}
+            onRename={handleRenameVersion}
+            onTogglePin={handleTogglePinVersion}
+          />
+        </div>
       </div>
+
+      {loadedVersion && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-text-secondary">
+          <span className="inline-flex items-center gap-1.5">
+            <History className="h-3.5 w-3.5 text-accent" />
+            Načtena verze <strong className="text-text-primary">{loadedVersion.title}</strong> — úpravy se ukládají
+            jako rozpracovaný stav tohoto zápasu.
+          </span>
+          <button
+            type="button"
+            onClick={() => setLoadedVersion(null)}
+            className="rounded p-0.5 text-text-muted hover:bg-white"
+            aria-label="Skrýt"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {(textFields.length > 0 || imageFields.length > 0) && (
         <section className="rounded-xl border border-border bg-surface p-4">

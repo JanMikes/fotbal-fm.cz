@@ -38,7 +38,7 @@ import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import DimensionStrip from '@/components/social-export/DimensionStrip';
-import ExportHistoryMenu from '@/components/social-export/ExportHistoryMenu';
+import ExportHistoryMenu, { versionTitle } from '@/components/social-export/ExportHistoryMenu';
 import DocumentEditor from '@/components/social-export/DocumentEditor';
 import SaveStatusBadge, { type SaveStatus } from '@/components/social-export/SaveStatusBadge';
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
@@ -1146,19 +1146,6 @@ function savedImagesFor(
       slotId,
       { ...slot, ...NEUTRAL_PLACEMENT, offsetX: undefined, offsetY: undefined },
     ])
-  );
-}
-
-function versionTitle(version: ExportVersionDTO): string {
-  return (
-    version.name ??
-    new Date(version.lastExportedAt).toLocaleString('cs-CZ', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
   );
 }
 

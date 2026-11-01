@@ -13,6 +13,7 @@ import {
   GalleryImageDTO,
   RenderErrorDetails,
   GroupRenderRequest,
+  DocumentExportVersionDetailDTO,
   ExportVersionDTO,
   ExportVersionDetailDTO,
   DocumentDTO,
@@ -270,6 +271,63 @@ export function useExportVersions(subject: { groupId: string } | { variantId: st
   });
 
   return { versions: data ?? [], isLoading, error: error ? error.message : null, mutate };
+}
+
+async function fetchDocumentVersions(url: string): Promise<ExportVersionDTO[]> {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.error || 'Nepodařilo se načíst historii exportů');
+  }
+  return json.data.versions as ExportVersionDTO[];
+}
+
+/** The export history of a multi-page document; pass null to skip. */
+export function useDocumentExportVersions(documentId: string | null): {
+  versions: ExportVersionDTO[];
+  isLoading: boolean;
+  error: string | null;
+  mutate: KeyedMutator<ExportVersionDTO[]>;
+} {
+  const key = documentId
+    ? `${SOCIAL_EXPORT_API_BASE}/document-versions?${new URLSearchParams({ documentId }).toString()}`
+    : null;
+  const { data, error, isLoading, mutate } = useSWR<ExportVersionDTO[], Error>(key, fetchDocumentVersions, {
+    revalidateOnFocus: false,
+  });
+
+  return { versions: data ?? [], isLoading, error: error ? error.message : null, mutate };
+}
+
+export async function fetchDocumentExportVersion(
+  versionId: string
+): Promise<{ version?: DocumentExportVersionDetailDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/document-versions/${encodeURIComponent(versionId)}`);
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Verzi se nepodařilo načíst' };
+    return { version: json.data.version as DocumentExportVersionDetailDTO };
+  } catch {
+    return { error: 'Verzi se nepodařilo načíst — síťová chyba' };
+  }
+}
+
+export async function updateDocumentExportVersion(
+  versionId: string,
+  patch: { name?: string | null; pinned?: boolean }
+): Promise<{ version?: DocumentExportVersionDetailDTO; error?: string }> {
+  try {
+    const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/document-versions/${encodeURIComponent(versionId)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    const json = await res.json();
+    if (!json.success) return { error: json.error || 'Úprava verze se nezdařila' };
+    return { version: json.data.version as DocumentExportVersionDetailDTO };
+  } catch {
+    return { error: 'Úprava verze se nezdařila — síťová chyba' };
+  }
 }
 
 export async function fetchExportVersion(

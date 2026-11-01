@@ -20,6 +20,8 @@ import type {
   DocumentFieldDTO,
   ImageInputDTO,
   DocumentFillBody,
+  DocumentExportVersionFillDTO,
+  RenderInputValue,
   RichTextOptionsDTO,
   TemplateInputDTO,
   DocumentFieldValue,
@@ -28,6 +30,7 @@ import type {
 } from './api-types';
 import { buildRenderInputs, initialFieldState, type InputFieldState } from './field-rules';
 import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from './field-rules-image';
+import { fillToEditorState, inputValueToState } from './group-fill';
 import { NEUTRAL_PLACEMENT } from './image-placement';
 import { applySavedForm, applySavedImages, type SavedDocumentState } from './saved-state';
 import { sanitizeShapeColors, type ShapeColorState } from './shape-colors';
@@ -226,6 +229,45 @@ export function applySavedDocument(
     sharedText,
     restored: true,
   };
+}
+
+/**
+ * A document export version (WBoost history) as editor state. Its `pages`
+ * are complete (shared values already fanned out), so every page loads like
+ * a single-variant version; `fields` gives the shared text fields their
+ * state. Everything is checked against the current document (removed pages /
+ * inputs are dropped; a page added since starts from its design).
+ */
+export function documentFillFromVersion(
+  document: DocumentDTO,
+  version: DocumentExportVersionFillDTO
+): { fill: DocumentFillState; sharedText: SharedTextValues } {
+  const fill = initDocumentFill(document, () => ({}));
+
+  for (const page of document.pages) {
+    const entry = version.pages?.[page.id];
+    if (!entry) continue;
+    const loaded = fillToEditorState(
+      { inputs: entry.inputs ?? {}, images: entry.images ?? {}, placements: {}, shapeColors: entry.shapeColors ?? {} },
+      [page.variant]
+    );
+    fill.forms[page.id] = loaded.formState;
+    fill.images[page.id] = loaded.imageStates[page.variant.id] ?? fill.images[page.id];
+    fill.shapeColors[page.id] = loaded.shapeColors;
+  }
+
+  const sharedText: SharedTextValues = {};
+  for (const field of document.fields) {
+    const raw = version.fields?.[field.id];
+    if (field.kind !== 'text' || raw == null) continue;
+    const input = sharedFieldInput(document, field);
+    if (!input) continue;
+    const state = inputValueToState(raw as RenderInputValue, { value: '', hidden: false });
+    const restored = applySavedForm([input], {}, { [field.id]: state })[field.id];
+    if (restored) sharedText[field.id] = restored;
+  }
+
+  return { fill, sharedText };
 }
 
 /** The persisted form of a document fill (see {@link applySavedDocument}). */
