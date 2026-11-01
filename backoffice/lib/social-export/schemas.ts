@@ -177,6 +177,23 @@ export const saveStateRequestSchema = z
           .optional(),
         /** Recolourable shapes: shape inputId → `#rrggbb` (shared by every dimension). */
         shapeColors: shapeColorsSchema.optional(),
+        /** Multi-page document fills: per-page state (pageId → …) + the shared text values. */
+        document: z
+          .object({
+            pages: z.record(
+              z.string(),
+              z
+                .object({
+                  formState: z.record(z.string(), inputFieldStateSchema),
+                  imageState: z.record(z.string(), imageSlotStateSchema),
+                  shapeColors: shapeColorsSchema.optional(),
+                })
+                .strict()
+            ),
+            sharedText: z.record(z.string(), z.string().max(10000)),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
   })

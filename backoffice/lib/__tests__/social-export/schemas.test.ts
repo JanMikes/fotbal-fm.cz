@@ -82,6 +82,33 @@ describe('saveStateRequestSchema', () => {
     expect(parsed.state.formState.a.fontFamily).toBe('Rubik (Rubik Bold)');
     expect(parsed.state.dimensionImageStates?.v1.s).toEqual(slot);
   });
+
+  it('persists a document fill: per-page state + shared texts, and stays strict', () => {
+    const slot = { image: { id: 'i', url: 'u' }, scale: 1.5, offsetXRatio: 0.1, offsetYRatio: 0, rotation: 0, hidden: false };
+    const body = {
+      matchId: 'm1',
+      templateId: 'doc-1',
+      variantId: 'doc-1',
+      state: {
+        formState: {},
+        imageState: {},
+        document: {
+          pages: { p1: { formState: { a: { value: 'X', hidden: true } }, imageState: { s: slot }, shapeColors: { sh: '#ff0000' } } },
+          sharedText: { f1: 'Lucie' },
+        },
+      },
+    };
+
+    const parsed = saveStateRequestSchema.parse(body);
+    expect(parsed.state.document?.pages.p1.imageState.s).toEqual(slot);
+    expect(parsed.state.document?.sharedText).toEqual({ f1: 'Lucie' });
+    expect(
+      saveStateRequestSchema.safeParse({
+        ...body,
+        state: { ...body.state, document: { ...body.state.document, extra: 1 } },
+      }).success
+    ).toBe(false);
+  });
 });
 
 describe('versionUpdateSchema', () => {

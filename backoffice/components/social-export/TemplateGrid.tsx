@@ -82,6 +82,7 @@ export default function TemplateGrid({
                     key={`document-${entry.item.id}`}
                     document={entry.item}
                     onSelect={() => onSelectDocument?.(entry.item)}
+                    saved={savedVariantIds?.has(entry.item.id) === true}
                   />
                 );
               }
@@ -160,7 +161,16 @@ export default function TemplateGrid({
 // ---------------------------------------------------------------------------
 
 /** A multi-page document: up to three page thumbnails fanned out, name, page count. */
-function DocumentCard({ document, onSelect }: { document: DocumentDTO; onSelect: () => void }) {
+function DocumentCard({
+  document,
+  onSelect,
+  saved,
+}: {
+  document: DocumentDTO;
+  onSelect: () => void;
+  /** A saved fill exists for this match. */
+  saved: boolean;
+}) {
   const hasPages = document.pages.length > 0;
   const thumbs = document.pages.slice(0, 3);
 
@@ -202,6 +212,7 @@ function DocumentCard({ document, onSelect }: { document: DocumentDTO; onSelect:
           <FileText className="h-3 w-3" />
           Dokument
         </span>
+        {saved && <SavedBadge className="absolute top-1.5 right-1.5" />}
       </div>
 
       <div className="p-3 flex-1 flex flex-col gap-0.5">

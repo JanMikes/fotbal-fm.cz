@@ -47,6 +47,27 @@ export interface SavedExportState {
   dimensionImageStates?: Record<string, Record<string, StoredImageSlotState>>;
   /** Recolourable shapes: shapeId → `#rrggbb`, shared by every dimension. Absent on older records. */
   shapeColors?: Record<string, string>;
+  /**
+   * A multi-page DOCUMENT fill (then `variantId` of the record holds the
+   * document id and the single-surface `formState` / `imageState` stay empty):
+   * every page's own state keyed by page id + the shared text values.
+   */
+  document?: SavedDocumentState;
+}
+
+/** One document page's own state, as persisted. */
+export interface SavedDocumentPageState {
+  formState: Record<string, InputFieldState>;
+  imageState: Record<string, StoredImageSlotState>;
+  shapeColors?: Record<string, string>;
+}
+
+/** The persisted fill of a multi-page document (see {@link SavedExportState.document}). */
+export interface SavedDocumentState {
+  /** pageId → that page's own state. */
+  pages: Record<string, SavedDocumentPageState>;
+  /** Shared TEXT field id → value (absent = never touched). Shared image picks live in the bound slots. */
+  sharedText: Record<string, string>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */

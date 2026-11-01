@@ -118,6 +118,9 @@ export function useSavedExportStates(matchId: string | null): {
   return { states: data ?? [], isLoading, mutate };
 }
 
+/** Safely under the browsers' 64 KiB keepalive body quota (in UTF-8 bytes). */
+const KEEPALIVE_MAX_BODY_BYTES = 60_000;
+
 export interface SaveExportStatePayload {
   matchId: string;
   templateId: string;
@@ -134,11 +137,14 @@ export async function saveExportState(
   opts?: { keepalive?: boolean }
 ): Promise<{ state?: SavedExportStateDTO; error?: string }> {
   try {
+    const body = JSON.stringify(payload);
     const res = await fetch(`${SOCIAL_EXPORT_API_BASE}/state`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: opts?.keepalive ?? false,
+      body,
+      // Browsers reject a keepalive body over 64 KiB outright (a big document
+      // fill can get there) — such a flush is sent as a normal request instead.
+      keepalive: (opts?.keepalive ?? false) && new TextEncoder().encode(body).length < KEEPALIVE_MAX_BODY_BYTES,
     });
     const json = await res.json();
     if (!json.success) {

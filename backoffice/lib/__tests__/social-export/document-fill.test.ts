@@ -10,6 +10,7 @@ import {
   applySharedImage,
   applySharedText,
   applySharedTexts,
+  applySavedDocument,
   buildDocumentFillBody,
   fieldForInput,
   initDocumentFill,
@@ -17,6 +18,7 @@ import {
   pagesOfField,
   pagesWord,
   sharedImageOf,
+  toSavedDocument,
 } from '@/lib/social-export/document-fill';
 
 // ---------- Helpers ----------------------------------------------------------
@@ -244,5 +246,48 @@ describe('initSharedText', () => {
     expect(forms['p-a'].name.value).toBe('Lucie');
     expect(forms['p-b'].name.value).toBe('Lucie');
     expect(forms['p-a']['txt-1'].value).toBe(state.forms['p-a']['txt-1'].value);
+  });
+});
+
+describe('applySavedDocument / toSavedDocument', () => {
+  const picked = { id: 'img-9', url: 'https://x/9.jpg' };
+
+  function edited() {
+    const state = initDocumentFill(doc, emptyPrefill);
+    state.forms['p-a']['txt-1'] = { value: 'Jen A', hidden: true };
+    state.forms['p-c'].other = { value: 'Céčko', hidden: false };
+    state.images = applySharedImage(doc, state.images, 'f-photo', picked);
+    return state;
+  }
+
+  it('round-trips a fill: per-page values stay per page, shared texts win and are mirrored', () => {
+    const saved = toSavedDocument(edited(), { 'f-name': 'Lucie' });
+    const restored = applySavedDocument(doc, initDocumentFill(doc, emptyPrefill), { 'f-name': 'Prefill' }, saved);
+
+    expect(restored.restored).toBe(true);
+    expect(restored.sharedText).toEqual({ 'f-name': 'Lucie' });
+    expect(restored.fill.forms['p-a']['txt-1']).toEqual({ value: 'Jen A', hidden: true });
+    expect(restored.fill.forms['p-b']['txt-1'].value).toBe('');
+    expect(restored.fill.forms['p-c'].other.value).toBe('Céčko');
+    expect(restored.fill.forms['p-a'].name.value).toBe('Lucie');
+    expect(restored.fill.forms['p-b'].name.value).toBe('Lucie');
+    expect(restored.fill.images['p-b']['img-1'].image).toEqual(picked);
+  });
+
+  it('keeps the seed for a missing record and drops pages / fields that no longer exist', () => {
+    const base = initDocumentFill(doc, emptyPrefill);
+    expect(applySavedDocument(doc, base, { 'f-name': 'P' }, undefined)).toEqual({
+      fill: base,
+      sharedText: { 'f-name': 'P' },
+      restored: false,
+    });
+
+    const restored = applySavedDocument(doc, base, {}, {
+      pages: { gone: { formState: { x: { value: 'Y', hidden: false } }, imageState: {} } },
+      sharedText: { 'f-gone': 'Z', 'f-photo': 'not-a-text-field' },
+    });
+    expect(restored.restored).toBe(true);
+    expect(restored.sharedText).toEqual({});
+    expect(Object.keys(restored.fill.forms)).toEqual(['p-a', 'p-b', 'p-c']);
   });
 });

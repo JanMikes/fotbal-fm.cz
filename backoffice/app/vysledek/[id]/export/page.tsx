@@ -4,10 +4,8 @@ import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
-  CheckCircle2,
   ChevronRight,
   Download,
   FolderArchive,
@@ -42,6 +40,7 @@ import PreviewPanel from '@/components/social-export/PreviewPanel';
 import DimensionStrip from '@/components/social-export/DimensionStrip';
 import ExportHistoryMenu from '@/components/social-export/ExportHistoryMenu';
 import DocumentEditor from '@/components/social-export/DocumentEditor';
+import SaveStatusBadge, { type SaveStatus } from '@/components/social-export/SaveStatusBadge';
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
 import type {
   DocumentDTO,
@@ -205,7 +204,7 @@ function SocialExportPageContent({ params }: PageProps) {
 
   // Autosave status shown next to the editor title. 'saved' also means a
   // previously saved state was restored when the surface loaded.
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   // Export history (shared with WBoost): which version is loaded / loading.
   const [loadedVersion, setLoadedVersion] = useState<{ id: string; title: string } | null>(null);
@@ -484,6 +483,17 @@ function SocialExportPageContent({ params }: PageProps) {
   function handleSelectDocument(document: DocumentDTO) {
     router.push(`${pathname}?${new URLSearchParams({ dokument: document.id }).toString()}`, { scroll: false });
   }
+
+  /** A document autosave (or its unload flush) landed — keep the saved-states cache in step. */
+  const handleDocumentSaved = useCallback(
+    (saved: SavedExportStateDTO) => {
+      void mutateSavedStates(
+        (prev) => [...(prev ?? []).filter((s) => s.variantId !== saved.variantId), saved],
+        { revalidate: false }
+      );
+    },
+    [mutateSavedStates]
+  );
 
   function handleSelectVariant(variant: TemplateVariantDTO) {
     navigate(selectedTemplateId, variant.id);
@@ -777,7 +787,7 @@ function SocialExportPageContent({ params }: PageProps) {
   // editor states to load (the editor must not seed before both are in).
   const restoring =
     (!!selectedTemplateId && (templatesLoading || savedStatesLoading)) ||
-    (!!selectedDocumentId && documentsLoading);
+    (!!selectedDocumentId && (documentsLoading || savedStatesLoading));
   // A document deep link takes over the wizard (step 1 → its editor).
   const documentMode = !!selectedDocument && !selectedTemplateId;
   const pickerLoading = templatesLoading || documentsLoading;
@@ -942,7 +952,13 @@ function SocialExportPageContent({ params }: PageProps) {
         {/* Multi-page document: fill page by page, export as one file. */}
         {!restoring && documentMode && selectedDocument && (
           <Card variant="elevated">
-            <DocumentEditor key={selectedDocument.id} document={selectedDocument} match={match} />
+            <DocumentEditor
+              key={selectedDocument.id}
+              document={selectedDocument}
+              match={match}
+              saved={savedBySubject.get(selectedDocument.id)}
+              onSaved={handleDocumentSaved}
+            />
           </Card>
         )}
 
@@ -1153,37 +1169,4 @@ function fallbackFilename(surface: Surface, variantId: string | null): string {
   const variant = surface.members.find((m) => m.id === variantId);
   // Ratio dimensions ('1:1') become '1x1'; size labels ('210 × 297 mm') are sanitized.
   return `${base}-${sanitizeFilename((variant?.dimension ?? 'export').replace(':', 'x'))}.png`;
-}
-
-// ---------------------------------------------------------------------------
-// Autosave status badge ("Uloženo" = a saved state exists for this surface)
-// ---------------------------------------------------------------------------
-
-function SaveStatusBadge({ status }: { status: 'idle' | 'saving' | 'saved' | 'error' }) {
-  if (status === 'idle') return null;
-
-  if (status === 'saving') {
-    return (
-      <span role="status" className="inline-flex items-center gap-1.5 text-xs text-text-muted">
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        Ukládám…
-      </span>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <span role="status" className="inline-flex items-center gap-1.5 text-xs text-danger-text">
-        <AlertCircle className="w-3.5 h-3.5" />
-        Uložení selhalo — zkusíme to při další změně
-      </span>
-    );
-  }
-
-  return (
-    <span role="status" className="inline-flex items-center gap-1.5 text-xs text-success-text">
-      <CheckCircle2 className="w-3.5 h-3.5" />
-      Uloženo
-    </span>
-  );
 }

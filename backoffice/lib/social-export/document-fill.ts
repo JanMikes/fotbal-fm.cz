@@ -24,6 +24,7 @@ import type {
 import { buildRenderInputs, initialFieldState, type InputFieldState } from './field-rules';
 import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from './field-rules-image';
 import { NEUTRAL_PLACEMENT } from './image-placement';
+import { applySavedForm, applySavedImages, type SavedDocumentState } from './saved-state';
 import { sanitizeShapeColors, type ShapeColorState } from './shape-colors';
 
 /** pageId → inputId → field state. */
@@ -97,6 +98,63 @@ export function applySharedTexts(
     next = applySharedText(document, next, fieldId, value);
   }
   return next;
+}
+
+/**
+ * Overlay a saved document fill onto the freshly-seeded one. Only pages,
+ * inputs, slots, shapes and shared fields that still exist are taken (the
+ * document may have changed in WBoost since the save) and every value is
+ * shape-checked like a single-variant save. Saved shared texts win over the
+ * seeded (match-prefilled) ones and are mirrored into their bound inputs.
+ */
+export function applySavedDocument(
+  document: DocumentDTO,
+  base: DocumentFillState,
+  baseSharedText: SharedTextValues,
+  saved: SavedDocumentState | null | undefined
+): { fill: DocumentFillState; sharedText: SharedTextValues; restored: boolean } {
+  if (!saved || typeof saved !== 'object' || typeof saved.pages !== 'object' || saved.pages === null) {
+    return { fill: base, sharedText: baseSharedText, restored: false };
+  }
+
+  const forms: PageForms = { ...base.forms };
+  const images: PageImages = { ...base.images };
+  const shapeColors: PageShapeColors = { ...base.shapeColors };
+  for (const page of document.pages) {
+    const savedPage = saved.pages[page.id];
+    if (!savedPage) continue;
+    forms[page.id] = applySavedForm(page.variant.inputs, base.forms[page.id] ?? {}, savedPage.formState);
+    images[page.id] = applySavedImages(page.variant.imageInputs, base.images[page.id] ?? {}, savedPage.imageState);
+    shapeColors[page.id] = sanitizeShapeColors(page.variant.shapeInputs, savedPage.shapeColors);
+  }
+
+  const sharedText: SharedTextValues = { ...baseSharedText };
+  for (const field of document.fields) {
+    const value = saved.sharedText?.[field.id];
+    if (field.kind === 'text' && field.bindings.length > 0 && typeof value === 'string') {
+      sharedText[field.id] = value;
+    }
+  }
+
+  return {
+    fill: { forms: applySharedTexts(document, forms, sharedText), images, shapeColors },
+    sharedText,
+    restored: true,
+  };
+}
+
+/** The persisted form of a document fill (see {@link applySavedDocument}). */
+export function toSavedDocument(state: DocumentFillState, sharedText: SharedTextValues): SavedDocumentState {
+  const pages: SavedDocumentState['pages'] = {};
+  for (const pageId of Object.keys(state.forms)) {
+    const colors = state.shapeColors[pageId] ?? {};
+    pages[pageId] = {
+      formState: state.forms[pageId] ?? {},
+      imageState: state.images[pageId] ?? {},
+      ...(Object.keys(colors).length > 0 ? { shapeColors: colors } : {}),
+    };
+  }
+  return { pages, sharedText };
 }
 
 /** The shared field of `kind` bound to this page's input, or null. */

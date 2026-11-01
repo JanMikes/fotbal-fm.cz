@@ -6,11 +6,14 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PreviewPanel from './PreviewPanel';
 import ExportInputForm from './ExportInputForm';
+import SaveStatusBadge, { type SaveStatus } from './SaveStatusBadge';
 import type { ActivePlaceholder } from './PlaceholderOverlay';
 import {
   downloadBlob,
   renderDocument,
   sanitizeFilename,
+  saveExportState,
+  type SaveExportStatePayload,
   type RenderResult,
 } from '@/hooks/api/use-social-export';
 import type {
@@ -20,6 +23,7 @@ import type {
   RenderErrorDetails,
 } from '@/lib/social-export/api-types';
 import {
+  applySavedDocument,
   applySharedImage,
   applySharedText,
   applySharedTexts,
@@ -31,6 +35,7 @@ import {
   pagesOfField,
   pagesWord,
   sharedImageOf,
+  toSavedDocument,
   type DocumentFillState,
   type SharedTextValues,
 } from '@/lib/social-export/document-fill';
@@ -40,11 +45,16 @@ import { defaultImageSlotState, type ImageSlotState } from '@/lib/social-export/
 import { codePointLength } from '@/lib/social-export/rich-text';
 import { computeTextLayout } from '@/lib/social-export/text-layout';
 import { useWboostFonts } from '@/lib/social-export/use-wboost-fonts';
+import type { SavedExportStateDTO } from '@/lib/social-export/saved-state';
 import type { Match } from '@/types/match';
 
 interface DocumentEditorProps {
   document: DocumentDTO;
   match: Match;
+  /** The saved fill of this document for this match (read once, on mount). */
+  saved?: SavedExportStateDTO;
+  /** An autosave (or the unload flush) stored this record. */
+  onSaved: (saved: SavedExportStateDTO) => void;
 }
 
 /**
@@ -55,23 +65,27 @@ interface DocumentEditorProps {
  * endpoint (one page at a time); the export produces ONE file — PDF to send,
  * the print PDF (print formats only) or a ZIP of PNGs.
  *
- * Not (yet) here: autosave per match and the export history — see the
- * follow-up issue. Mount with `key={document.id}` so a new document reseeds.
+ * The fill autosaves per match like the single-variant editor (one
+ * `social-export-state` record keyed by the document id, `state.document`).
+ * Not (yet) here: the export history — see the follow-up issue. Mount with
+ * `key={document.id}` (after the saved states loaded) so a new document reseeds.
  */
-export default function DocumentEditor({ document, match }: DocumentEditorProps) {
+export default function DocumentEditor({ document, match, saved, onSaved }: DocumentEditorProps) {
   const pages = document.pages;
   const chips = useMemo(() => getMatchChips(match), [match]);
 
   // Seed once per mount: sample texts + the match prefill per page, then the
   // shared text fields whose name matches a match field, mirrored into their
-  // bound inputs.
+  // bound inputs — all overlaid with the saved fill of this match.
   const [seed] = useState(() => {
     const base = initDocumentFill(document, (page) => extractMatchPrefill(match, page.variant.inputs));
     const shared = initSharedText(document, (name) => matchValueForName(match, name));
-    return { fill: { ...base, forms: applySharedTexts(document, base.forms, shared) }, sharedText: shared };
+    const prefilled = { ...base, forms: applySharedTexts(document, base.forms, shared) };
+    return applySavedDocument(document, prefilled, shared, saved?.state.document);
   });
   const [fill, setFill] = useState<DocumentFillState>(seed.fill);
   const [sharedText, setSharedText] = useState<SharedTextValues>(seed.sharedText);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>(seed.restored ? 'saved' : 'idle');
   const [activePageId, setActivePageId] = useState<string | null>(pages[0]?.id ?? null);
   const activePage = pages.find((p) => p.id === activePageId) ?? pages[0] ?? null;
 
@@ -89,6 +103,11 @@ export default function DocumentEditor({ document, match }: DocumentEditorProps)
   const previewUrlsRef = useRef<Record<string, string>>({});
   const autoPreviewBlockedRef = useRef(false);
   const editSeqRef = useRef(0);
+  // True while there are edits the autosave hasn't persisted yet — seeding /
+  // prefill alone never creates a saved record.
+  const hasUnsavedRef = useRef(false);
+  // Latest savable payload, for the debounced autosave and the unload flush.
+  const latestSaveRef = useRef<SaveExportStatePayload | null>(null);
 
   useEffect(() => {
     const urls = previewUrlsRef.current;
@@ -136,9 +155,74 @@ export default function DocumentEditor({ document, match }: DocumentEditorProps)
 
   const markEdited = useCallback((pageIds: string[]) => {
     editSeqRef.current += 1;
+    hasUnsavedRef.current = true;
     autoPreviewBlockedRef.current = false;
     setDirtyIds((prev) => new Set([...prev, ...pageIds]));
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // Autosave (the single-variant editor's mechanism, one record per document)
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    latestSaveRef.current = {
+      matchId: match.id,
+      templateId: document.id,
+      variantId: document.id,
+      state: { formState: {}, imageState: {}, document: toSavedDocument(fill, sharedText) },
+    };
+  });
+
+  // Fire-and-forget save of edits the debounced autosave hasn't sent yet
+  // (refresh, tab close, navigating away). The cache is updated optimistically.
+  const flushPendingSave = useCallback(() => {
+    const payload = latestSaveRef.current;
+    if (!hasUnsavedRef.current || !payload) return;
+    hasUnsavedRef.current = false;
+    onSaved({
+      variantId: payload.variantId,
+      templateId: payload.templateId,
+      state: payload.state,
+      updatedAt: new Date().toISOString(),
+    });
+    void saveExportState(payload, { keepalive: true });
+  }, [onSaved]);
+
+  async function doSave(): Promise<void> {
+    const payload = latestSaveRef.current;
+    if (!payload) return;
+    setSaveStatus('saving');
+    hasUnsavedRef.current = false;
+
+    const result = await saveExportState(payload);
+    if (result.error || !result.state) {
+      // Unsaved again: the next edit (or the unload flush) retries.
+      hasUnsavedRef.current = true;
+      setSaveStatus('error');
+      return;
+    }
+    setSaveStatus('saved');
+    onSaved(result.state);
+  }
+
+  // Persist 800 ms after the fill settles.
+  useEffect(() => {
+    if (!hasUnsavedRef.current) return;
+    const timer = setTimeout(() => {
+      void doSave();
+    }, 800);
+    return () => clearTimeout(timer);
+    // doSave is recreated each render; depending on it would reset the debounce.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fill, sharedText]);
+
+  useEffect(() => {
+    window.addEventListener('pagehide', flushPendingSave);
+    return () => {
+      window.removeEventListener('pagehide', flushPendingSave);
+      flushPendingSave();
+    };
+  }, [flushPendingSave]);
 
   // ---------------------------------------------------------------------------
   // Edits
@@ -356,13 +440,16 @@ export default function DocumentEditor({ document, match }: DocumentEditorProps)
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h2 className="text-base font-semibold text-text-primary">
-          {document.name} — {pages.length} {pagesWord(pages.length)}, {document.dimension}
-        </h2>
-        <p className="text-xs text-text-muted">
-          Vyplňte každou stranu zvlášť. Společná pole nahoře se propíšou na všechny strany, kde jsou použita.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-text-primary">
+            {document.name} — {pages.length} {pagesWord(pages.length)}, {document.dimension}
+          </h2>
+          <p className="text-xs text-text-muted">
+            Vyplňte každou stranu zvlášť. Společná pole nahoře se propíšou na všechny strany, kde jsou použita.
+          </p>
+        </div>
+        <SaveStatusBadge status={saveStatus} />
       </div>
 
       {(textFields.length > 0 || imageFields.length > 0) && (
