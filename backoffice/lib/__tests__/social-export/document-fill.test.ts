@@ -19,7 +19,8 @@ import {
   pagesOfField,
   pagesWord,
   pickerSlotOf,
-  sharedFieldNamesOf,
+  sharedFieldInput,
+  sharedFieldsOf,
   sharedImageOf,
   toSavedDocument,
 } from '@/lib/social-export/document-fill';
@@ -119,6 +120,9 @@ const doc: DocumentDTO = {
         { pageId: 'p-b', inputId: 'name' },
       ],
       maxLength: 40,
+      richText: false,
+      hidable: true,
+      allowedDirectoryIds: null,
     },
     {
       id: 'f-photo',
@@ -129,6 +133,9 @@ const doc: DocumentDTO = {
         { pageId: 'p-b', inputId: 'img-1' },
       ],
       maxLength: null,
+      richText: false,
+      hidable: true,
+      allowedDirectoryIds: null,
     },
   ],
 };
@@ -178,7 +185,7 @@ describe('shared text fields', () => {
     expect(pagesOfField(doc.fields[0])).toEqual(['p-a', 'p-b']);
   });
 
-  it('mirrors the value into every bound input and drops page formatting', () => {
+  it('mirrors the TEXT into every bound input; the page keeps its own hide / font', () => {
     const state = initDocumentFill(doc, emptyPrefill);
     state.forms['p-a'].name = {
       value: 'Old',
@@ -186,10 +193,12 @@ describe('shared text fields', () => {
       runs: [{ text: 'Old', fontFamily: null, color: '#ff0000', underline: false }],
       fontFamily: 'Rubik',
     };
+    state.forms['p-b'].name = { value: 'B', hidden: true };
 
-    const forms = applySharedText(doc, state.forms, 'f-name', 'Lucie Svobodová');
+    const forms = applySharedText(doc, state.forms, 'f-name', { value: 'Lucie Svobodová', hidden: false });
 
-    expect(forms['p-a'].name).toMatchObject({ value: 'Lucie Svobodová', runs: null, fontFamily: null });
+    expect(forms['p-a'].name).toMatchObject({ value: 'Lucie Svobodová', runs: null, fontFamily: 'Rubik' });
+    expect(forms['p-b'].name).toMatchObject({ value: 'Lucie Svobodová', hidden: true });
     expect(forms['p-b'].name.value).toBe('Lucie Svobodová');
     // Unbound inputs with the same structure stay untouched.
     expect(forms['p-a']['txt-1'].value).toBe('');
@@ -199,8 +208,38 @@ describe('shared text fields', () => {
   it('sends a touched, non-empty shared value as `fields`; an empty one not at all', () => {
     const state = initDocumentFill(doc, emptyPrefill);
 
-    expect(buildDocumentFillBody(doc, state, { 'f-name': 'Lucie' }).fields).toEqual({ 'f-name': 'Lucie' });
-    expect(buildDocumentFillBody(doc, state, { 'f-name': '' }).fields).toEqual({});
+    expect(buildDocumentFillBody(doc, state, { 'f-name': { value: 'Lucie', hidden: false } }).fields).toEqual({
+      'f-name': 'Lucie',
+    });
+    expect(buildDocumentFillBody(doc, state, { 'f-name': { value: '', hidden: false } }).fields).toEqual({});
+  });
+
+  it('a field-wide hide rides the field value; a page-level hide of a bound input its page entry', () => {
+    const state = initDocumentFill(doc, emptyPrefill);
+    state.forms['p-b'].name = { value: 'Lucie', hidden: true };
+
+    const body = buildDocumentFillBody(doc, state, { 'f-name': { value: '', hidden: true } });
+    expect(body.fields).toEqual({ 'f-name': { hide: true } });
+    expect(body.pages['p-b'].inputs?.name).toEqual({ value: 'Lucie', hide: true });
+  });
+
+  it('a rich field mirrors its runs into rich bound inputs and sends them as the field value', () => {
+    const rich = makeInput({ id: 'name', name: 'Jméno', richText: true });
+    const docRich: DocumentDTO = {
+      ...doc,
+      pages: [
+        makePage('p-a', 0, makeVariant('v-a', { inputs: [rich] })),
+        makePage('p-b', 1, makeVariant('v-b', { inputs: [rich] })),
+      ],
+      fields: [{ ...doc.fields[0], richText: true }],
+    };
+    const runs = [{ text: 'Lucie', fontFamily: null, color: '#ff0000', underline: false }];
+    const state = initDocumentFill(docRich, emptyPrefill);
+    const forms = applySharedText(docRich, state.forms, 'f-name', { value: 'Lucie', hidden: false, runs });
+    expect(forms['p-b'].name.runs).toEqual(runs);
+
+    const body = buildDocumentFillBody(docRich, state, { 'f-name': { value: 'Lucie', hidden: false, runs } });
+    expect(body.fields).toEqual({ 'f-name': { runs } });
   });
 });
 
@@ -240,12 +279,12 @@ describe('pagesWord', () => {
 describe('initSharedText', () => {
   it('starts a text field whose name matches with that value, image fields and misses stay absent', () => {
     const shared = initSharedText(doc, (name) => (name === 'Jméno klienta' ? 'FK Fotbal FM' : name === 'Fotka' ? 'x' : ''));
-    expect(shared).toEqual({ 'f-name': 'FK Fotbal FM' });
+    expect(shared).toEqual({ 'f-name': { value: 'FK Fotbal FM', hidden: false } });
   });
 
   it('applySharedTexts mirrors every set value into the bound inputs only', () => {
     const state = initDocumentFill(doc, emptyPrefill);
-    const forms = applySharedTexts(doc, state.forms, { 'f-name': 'Lucie' });
+    const forms = applySharedTexts(doc, state.forms, { 'f-name': { value: 'Lucie', hidden: false } });
     expect(forms['p-a'].name.value).toBe('Lucie');
     expect(forms['p-b'].name.value).toBe('Lucie');
     expect(forms['p-a']['txt-1'].value).toBe(state.forms['p-a']['txt-1'].value);
@@ -264,11 +303,11 @@ describe('applySavedDocument / toSavedDocument', () => {
   }
 
   it('round-trips a fill: per-page values stay per page, shared texts win and are mirrored', () => {
-    const saved = toSavedDocument(edited(), { 'f-name': 'Lucie' });
-    const restored = applySavedDocument(doc, initDocumentFill(doc, emptyPrefill), { 'f-name': 'Prefill' }, saved);
+    const saved = toSavedDocument(edited(), { 'f-name': { value: 'Lucie', hidden: false } });
+    const restored = applySavedDocument(doc, initDocumentFill(doc, emptyPrefill), { 'f-name': { value: 'Prefill', hidden: false } }, saved);
 
     expect(restored.restored).toBe(true);
-    expect(restored.sharedText).toEqual({ 'f-name': 'Lucie' });
+    expect(restored.sharedText).toEqual({ 'f-name': { value: 'Lucie', hidden: false } });
     expect(restored.fill.forms['p-a']['txt-1']).toEqual({ value: 'Jen A', hidden: true });
     expect(restored.fill.forms['p-b']['txt-1'].value).toBe('');
     expect(restored.fill.forms['p-c'].other.value).toBe('Céčko');
@@ -279,9 +318,9 @@ describe('applySavedDocument / toSavedDocument', () => {
 
   it('keeps the seed for a missing record and drops pages / fields that no longer exist', () => {
     const base = initDocumentFill(doc, emptyPrefill);
-    expect(applySavedDocument(doc, base, { 'f-name': 'P' }, undefined)).toEqual({
+    expect(applySavedDocument(doc, base, { 'f-name': { value: 'P', hidden: false } }, undefined)).toEqual({
       fill: base,
-      sharedText: { 'f-name': 'P' },
+      sharedText: { 'f-name': { value: 'P', hidden: false } },
       restored: false,
     });
 
@@ -367,10 +406,33 @@ describe('pickerSlotOf', () => {
   });
 });
 
-describe('sharedFieldNamesOf', () => {
+describe('sharedFieldsOf', () => {
   it('names the shared field behind each bound input / slot of one page', () => {
-    expect(sharedFieldNamesOf(doc, 'p-b', 'text')).toEqual({ name: 'Jméno klienta' });
-    expect(sharedFieldNamesOf(doc, 'p-b', 'image')).toEqual({ 'img-1': 'Fotka' });
-    expect(sharedFieldNamesOf(doc, 'p-c', 'text')).toEqual({});
+    expect(sharedFieldsOf(doc, 'p-b', 'text')).toEqual({ name: { name: 'Jméno klienta', richText: false } });
+    expect(sharedFieldsOf(doc, 'p-b', 'image')).toEqual({ 'img-1': { name: 'Fotka', richText: false } });
+    expect(sharedFieldsOf(doc, 'p-c', 'text')).toEqual({});
+  });
+});
+
+describe('sharedFieldInput', () => {
+  it('offers what every bound input allows: fonts and colours intersected, no lists', () => {
+    const fontA = { family: 'A', url: '/a', fontName: 'A', faceName: 'A', weight: 400, style: 'normal' };
+    const fontB = { family: 'B', url: '/b', fontName: 'B', faceName: 'B', weight: 400, style: 'normal' };
+    const d: DocumentDTO = {
+      ...doc,
+      pages: [
+        makePage('p-a', 0, makeVariant('v-a', { inputs: [makeInput({ id: 'name', fontOptions: [fontA, fontB], colorOptions: ['#000000', '#ffffff'], lists: true })] })),
+        makePage('p-b', 1, makeVariant('v-b', { inputs: [makeInput({ id: 'name', fontOptions: [fontB], colorOptions: null })] })),
+      ],
+    };
+    const input = sharedFieldInput(d, d.fields[0]);
+    expect(input).toMatchObject({ id: 'f-name', name: 'Jméno klienta', maxLength: 40, hidable: true, lists: false, frame: null });
+    expect(input?.fontOptions?.map((f) => f.family)).toEqual(['B']);
+    expect(input?.colorOptions).toEqual(['#000000', '#ffffff']);
+  });
+
+  it('restores an older saved plain-string shared value', () => {
+    const restored = applySavedDocument(doc, initDocumentFill(doc, emptyPrefill), {}, { pages: {}, sharedText: { 'f-name': 'Old' } });
+    expect(restored.sharedText['f-name']).toEqual({ value: 'Old', hidden: false });
   });
 });

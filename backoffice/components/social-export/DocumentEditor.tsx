@@ -3,7 +3,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, FileDown, FileText, FolderArchive, ImageIcon, Link2, Loader2, Printer, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import PreviewPanel from './PreviewPanel';
 import ExportInputForm from './ExportInputForm';
 import ImagePickerModal from './images/ImagePickerModal';
@@ -37,7 +36,9 @@ import {
   nextPreviewRenders,
   pagesWord,
   pickerSlotOf,
-  sharedFieldNamesOf,
+  documentRichTextOptions,
+  sharedFieldInput,
+  sharedFieldsOf,
   sharedImageOf,
   toSavedDocument,
   type DocumentFillState,
@@ -46,7 +47,6 @@ import {
 import { extractMatchPrefill, getMatchChips, matchValueForName } from '@/lib/social-export/prefill';
 import { isEditable, validateInputValue, type InputFieldState } from '@/lib/social-export/field-rules';
 import { defaultImageSlotState, type ImageSlotState } from '@/lib/social-export/field-rules-image';
-import { codePointLength } from '@/lib/social-export/rich-text';
 import { computeTextLayout } from '@/lib/social-export/text-layout';
 import { useWboostFonts } from '@/lib/social-export/use-wboost-fonts';
 import type { SavedExportStateDTO } from '@/lib/social-export/saved-state';
@@ -193,8 +193,14 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     }
     return ids;
   }, [pages, fill.forms]);
-  const sharedTooLong = textFields.some(
-    (f) => f.maxLength != null && codePointLength(sharedText[f.id] ?? '') > f.maxLength
+  // The shared text fields as template inputs (editor, validation, render value).
+  const sharedInputs = useMemo(
+    () => textFields.map((f) => sharedFieldInput(document, f)).filter((i): i is NonNullable<typeof i> => i != null),
+    [document, textFields]
+  );
+  const sharedRichTextOptions = useMemo(() => documentRichTextOptions(document), [document]);
+  const sharedTooLong = sharedInputs.some(
+    (input) => validateInputValue(input, sharedText[input.id]?.value ?? '') !== null
   );
   const invalid = invalidPageIds.size > 0 || sharedTooLong;
 
@@ -282,13 +288,31 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   // Edits
   // ---------------------------------------------------------------------------
 
-  const setSharedValue = useCallback(
-    (field: DocumentFieldDTO, value: string) => {
-      setSharedText((prev) => ({ ...prev, [field.id]: value }));
-      setFill((prev) => ({ ...prev, forms: applySharedText(document, prev.forms, field.id, value) }));
+  /**
+   * Edit a shared TEXT field. A text change (value / runs) is mirrored into
+   * the bound inputs; the field-wide hide / font only ride the field value
+   * (WBoost applies them on every page).
+   */
+  const setSharedState = useCallback(
+    (field: DocumentFieldDTO, partial: Partial<InputFieldState>) => {
+      const current = sharedText[field.id] ?? { value: '', hidden: false };
+      const next: InputFieldState = { ...current, ...partial, lines: null };
+      if (!field.richText) next.runs = null;
+      setSharedText((prev) => ({ ...prev, [field.id]: next }));
+      if ('value' in partial || 'runs' in partial) {
+        setFill((prev) => ({ ...prev, forms: applySharedText(document, prev.forms, field.id, next) }));
+      }
       markEdited(pagesOfField(field));
     },
-    [document, markEdited]
+    [document, markEdited, sharedText]
+  );
+
+  const handleSharedFormChange = useCallback(
+    (fieldId: string, partial: Partial<InputFieldState>) => {
+      const field = textFields.find((f) => f.id === fieldId);
+      if (field) setSharedState(field, partial);
+    },
+    [textFields, setSharedState]
   );
 
   const handleFormChange = useCallback(
@@ -297,11 +321,20 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       const pageId = activePage.id;
       const field = fieldForInput(document, pageId, inputId, 'text');
 
-      // A bound input edits the SHARED value — every page shows it.
-      if (field && partial.value !== undefined) {
-        setSharedValue(field, partial.value);
-        if ('hidden' in partial) {
-          setFill((prev) => withPageInput(prev, pageId, inputId, { hidden: partial.hidden ?? false }));
+      if (field) {
+        // A bound input: its TEXT is the shared value (every page shows it),
+        // its hide / font pick stay on this page.
+        const { value, runs, lines: _lines, ...pageOwn } = partial;
+        void _lines;
+        if (value !== undefined || runs !== undefined) {
+          setSharedState(field, {
+            ...(value !== undefined ? { value } : {}),
+            ...(runs !== undefined ? { runs } : {}),
+          });
+        }
+        if (Object.keys(pageOwn).length > 0) {
+          setFill((prev) => withPageInput(prev, pageId, inputId, pageOwn));
+          markEdited([pageId]);
         }
         return;
       }
@@ -309,7 +342,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       setFill((prev) => withPageInput(prev, pageId, inputId, partial));
       markEdited([pageId]);
     },
-    [activePage, document, markEdited, setSharedValue]
+    [activePage, document, markEdited, setSharedState]
   );
 
   const handleImageChange = useCallback(
@@ -482,8 +515,8 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   }
 
   const activeOverflow = predictedOverflows[activePage.id] ?? null;
-  const activeSharedText = sharedFieldNamesOf(document, activePage.id, 'text');
-  const activeSharedImages = sharedFieldNamesOf(document, activePage.id, 'image');
+  const activeSharedText = sharedFieldsOf(document, activePage.id, 'text');
+  const activeSharedImages = sharedFieldsOf(document, activePage.id, 'image');
   const pickerField = imageFields.find((f) => f.id === pickerFieldId) ?? null;
   const pickerTarget = pickerField ? pickerSlotOf(document, pickerField) : null;
   const exportDisabled = exportingFormat !== null || invalid || Object.keys(predictedOverflows).length > 0;
@@ -537,32 +570,21 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             <Link2 className="h-4 w-4" />
             Společná pole
           </h3>
+          {sharedInputs.length > 0 && (
+            <ExportInputForm
+              variant={{
+                ...activePage.variant,
+                inputs: sharedInputs,
+                imageInputs: [],
+                richTextOptions: sharedRichTextOptions,
+              }}
+              chips={chips}
+              state={sharedText}
+              onChange={handleSharedFormChange}
+              showActions={false}
+            />
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
-            {textFields.map((field) => {
-              const value = sharedText[field.id] ?? '';
-              const tooLong = field.maxLength != null && codePointLength(value) > field.maxLength;
-              return (
-                <label key={field.id} className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-text-secondary">
-                    {field.name}{' '}
-                    <span className="font-normal text-text-muted">
-                      ({pagesOfField(field).length} {pagesWord(pagesOfField(field).length)})
-                    </span>
-                  </span>
-                  <Input
-                    value={value}
-                    placeholder="Ponechat texty jednotlivých stran"
-                    onChange={(e) => setSharedValue(field, e.target.value)}
-                    error={tooLong ? `Maximální délka je ${field.maxLength} znaků.` : undefined}
-                  />
-                  {field.maxLength != null && (
-                    <span className={`text-[11px] ${tooLong ? 'text-danger-text' : 'text-text-muted'}`}>
-                      {codePointLength(value)} / {field.maxLength}
-                    </span>
-                  )}
-                </label>
-              );
-            })}
             {imageFields.map((field) => {
               const image = sharedImageOf(field, fill.images);
               const pageCount = pagesOfField(field).length;
@@ -718,7 +740,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
             state={fill.forms[activePage.id] ?? {}}
             onChange={handleFormChange}
             showActions={false}
-            sharedFieldNames={activeSharedText}
+            sharedFields={activeSharedText}
           />
         </div>
       )}

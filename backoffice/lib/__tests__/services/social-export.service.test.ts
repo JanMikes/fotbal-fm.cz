@@ -681,6 +681,17 @@ describe('SocialExportService', () => {
             { pageId: 'p2', templateId: 't2', inputId: 'gone', valid: false },
           ],
           maxLength: 30,
+          richText: true,
+          hidable: true,
+          allowedDirectoryIds: null,
+        },
+        {
+          id: 'f2',
+          name: 'Fotka',
+          kind: 'image',
+          bindings: [{ pageId: 'p1', templateId: 't1', inputId: 'img-1', valid: true }],
+          maxLength: null,
+          allowedDirectoryIds: ['d1'],
         },
       ],
       ...overrides,
@@ -698,7 +709,27 @@ describe('SocialExportService', () => {
       expect(doc.pages[0].variant.inputs[0].id).toBe('inp-1');
       expect(doc.pages[0].variant.imageInputs).toEqual([]);
       expect(doc.fields).toEqual([
-        { id: 'f1', name: 'Klient', kind: 'text', bindings: [{ pageId: 'p1', inputId: 'inp-1' }], maxLength: 30 },
+        {
+          id: 'f1',
+          name: 'Klient',
+          kind: 'text',
+          bindings: [{ pageId: 'p1', inputId: 'inp-1' }],
+          maxLength: 30,
+          richText: true,
+          hidable: true,
+          allowedDirectoryIds: null,
+        },
+        // Older deploys omit the metadata: nothing rich / hidable, any folder.
+        {
+          id: 'f2',
+          name: 'Fotka',
+          kind: 'image',
+          bindings: [{ pageId: 'p1', inputId: 'img-1' }],
+          maxLength: null,
+          richText: false,
+          hidable: false,
+          allowedDirectoryIds: ['d1'],
+        },
       ]);
     });
 

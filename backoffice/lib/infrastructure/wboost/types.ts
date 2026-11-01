@@ -388,6 +388,12 @@ export interface WboostRawTemplateDocumentField {
   bindings: WboostRawTemplateDocumentFieldBinding[];
   /** Smallest `maxLength` of the bound text inputs (null = unlimited / image). */
   maxLength: number | null;
+  /** Every valid bound input is rich (text). Absent on older deploys. */
+  richText?: boolean;
+  /** Every valid bound input / slot is hidable. Absent on older deploys. */
+  hidable?: boolean;
+  /** Image: intersection of the bound slots' folders (null = any, [] = none). Absent on older deploys. */
+  allowedDirectoryIds?: string[] | null;
 }
 
 /** A multi-page document (`GET /api/projects/{id}/template-documents`). */

@@ -113,7 +113,9 @@ const documentPageFillSchema = z
 
 /** A shared field value: text → string, image → image id or `{ imageId?, hide? }`. */
 const documentFieldValueSchema = z.union([
-  z.string(),
+  // Text: string / rich `{runs}` / `{value?, hide?, fontFamily?}` (a page's own
+  // hide / font for a bound input are kept unless the field value sets them).
+  renderInputValueSchema,
   z.object({ imageId: z.string().optional(), hide: z.boolean().optional() }).strict(),
 ]);
 
@@ -190,7 +192,8 @@ export const saveStateRequestSchema = z
                 })
                 .strict()
             ),
-            sharedText: z.record(z.string(), z.string().max(10000)),
+            /** Shared TEXT field id → its state (older records: a plain string). */
+            sharedText: z.record(z.string(), z.union([z.string().max(10000), inputFieldStateSchema])),
           })
           .strict()
           .optional(),

@@ -269,6 +269,9 @@ function mapDocument(raw: WboostRawTemplateDocument, thumbnailsEnabled: boolean)
         .filter((binding) => binding.valid)
         .map((binding) => ({ pageId: binding.pageId, inputId: binding.inputId })),
       maxLength: field.maxLength ?? null,
+      richText: field.richText === true,
+      hidable: field.hidable === true,
+      allowedDirectoryIds: Array.isArray(field.allowedDirectoryIds) ? field.allowedDirectoryIds : null,
     })),
   };
 }

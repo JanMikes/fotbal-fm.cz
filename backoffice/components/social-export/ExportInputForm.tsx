@@ -12,6 +12,7 @@ import SharedFieldBadge from './SharedFieldBadge';
 import RichTextEditor from './RichTextEditor';
 import { TemplateVariantDTO } from '@/lib/social-export/api-types';
 import { MatchChip } from '@/lib/social-export/prefill';
+import type { SharedFieldRef } from '@/lib/social-export/document-fill';
 import {
   resolveInputLabel,
   isEditable,
@@ -32,8 +33,8 @@ interface ExportInputFormProps {
   onDownload?: () => void;
   isRendering?: boolean;
   renderError?: string | null;
-  /** Document pages: inputId → name of the shared text field that fills it (edited as plain text). */
-  sharedFieldNames?: Record<string, string>;
+  /** Document pages: inputId → the shared text field that fills it (its text is the shared value). */
+  sharedFields?: Record<string, SharedFieldRef>;
 }
 
 /**
@@ -50,7 +51,7 @@ export default function ExportInputForm({
   onDownload,
   isRendering = false,
   renderError,
-  sharedFieldNames,
+  sharedFields,
 }: ExportInputFormProps) {
   // Check if any editable field has a validation error
   const hasValidationErrors = variant.inputs.some((input) => {
@@ -87,10 +88,11 @@ export default function ExportInputForm({
           const isHidden = fieldState.hidden;
           const editable = isEditable(input);
           const validationError = editable ? validateInputValue(input, value) ?? undefined : undefined;
-          const sharedFieldName = sharedFieldNames?.[input.id] ?? null;
-          const isRich = input.richText && variant.richTextOptions != null && sharedFieldName == null;
+          const sharedField = sharedFields?.[input.id] ?? null;
+          const isRich =
+            input.richText && variant.richTextOptions != null && (sharedField == null || sharedField.richText);
           // A dedicated checklist component gets per-item rows, never the WYSIWYG.
-          const isChecklist = input.checklist != null && sharedFieldName == null;
+          const isChecklist = input.checklist != null && sharedField == null;
           const length = codePointLength(value);
 
           // Build hint text
@@ -126,8 +128,8 @@ export default function ExportInputForm({
               hint={hintText}
               error={validationError}
             >
-              {sharedFieldName != null && (
-                <SharedFieldBadge name={sharedFieldName} kind="text" className="mb-1.5" />
+              {sharedField != null && (
+                <SharedFieldBadge name={sharedField.name} kind="text" className="mb-1.5" />
               )}
               {/* Font choice for plain inputs the designer opened up; rich
                   inputs get the per-input faces as their editor menu. */}

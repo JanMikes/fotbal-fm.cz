@@ -66,8 +66,12 @@ export interface SavedDocumentPageState {
 export interface SavedDocumentState {
   /** pageId → that page's own state. */
   pages: Record<string, SavedDocumentPageState>;
-  /** Shared TEXT field id → value (absent = never touched). Shared image picks live in the bound slots. */
-  sharedText: Record<string, string>;
+  /**
+   * Shared TEXT field id → its state (absent = never touched). Records
+   * written before rich shared fields hold a plain string. Shared image picks
+   * live in the bound slots.
+   */
+  sharedText: Record<string, InputFieldState | string>;
 }
 
 /** One saved record as served by GET /api/social-export/state?matchId=. */

@@ -422,6 +422,16 @@ export interface DocumentFieldDTO {
   bindings: DocumentFieldBindingDTO[];
   /** Smallest maxLength of the bound text inputs (null = unlimited / image). */
   maxLength: number | null;
+  /** Text: EVERY bound input is rich → the field value may carry `{ runs }` (offer the rich editor). */
+  richText: boolean;
+  /** Every bound input / slot is hidable → `{ hide: true }` as the field value hides it on every page. */
+  hidable: boolean;
+  /**
+   * Image: the gallery folders a pick may come from — the INTERSECTION of
+   * the bound slots' folders. null = any folder (also always for text);
+   * [] = the slots share no folder (no pick passes every page).
+   */
+  allowedDirectoryIds: string[] | null;
 }
 
 /**
@@ -455,7 +465,7 @@ export interface DocumentsResponse {
 export type DocumentExportFormat = 'pdf-screen' | 'pdf' | 'png';
 
 /** A shared field value: text → plain string; image → gallery image id (or `{imageId, hide}`). */
-export type DocumentFieldValue = string | { imageId?: string; hide?: boolean };
+export type DocumentFieldValue = RenderInputValue | { imageId?: string; hide?: boolean };
 
 /** One page's own fill — the single-variant render body of that page's variant. */
 export interface DocumentPageFill {

@@ -7,10 +7,12 @@
  * their values never mix, because the state is always looked up per page.
  *
  * Only SHARED FIELDS join pages: one value is sent once as `fields[fieldId]`
- * and WBoost writes it into the bound input of every page (it WINS over the
- * page's own value). To keep the click-into-preview editor truthful, the
- * shared value is also mirrored into the bound inputs' page state, and an
- * edit of a bound input on any page updates the shared value.
+ * and WBoost writes its TEXT into the bound input of every page (it wins over
+ * the page's own text; the page's own hide / font for that input are kept
+ * unless the field value sets them). To keep the click-into-preview editor
+ * truthful, the shared text is also mirrored into the bound inputs' page
+ * state, and a text edit of a bound input on any page updates the shared
+ * value — while its hide / font stay per page.
  */
 
 import type {
@@ -18,6 +20,8 @@ import type {
   DocumentFieldDTO,
   ImageInputDTO,
   DocumentFillBody,
+  RichTextOptionsDTO,
+  TemplateInputDTO,
   DocumentFieldValue,
   DocumentPageDTO,
   DocumentPageFill,
@@ -34,8 +38,11 @@ export type PageForms = Record<string, Record<string, InputFieldState>>;
 export type PageImages = Record<string, Record<string, ImageSlotState>>;
 /** pageId → shapeId → colour. */
 export type PageShapeColors = Record<string, ShapeColorState>;
-/** Shared TEXT field id → value. Absent = never touched (pages keep their own values). */
-export type SharedTextValues = Record<string, string>;
+/**
+ * Shared TEXT field id → its state (value, rich runs, field-wide hide / font).
+ * Absent = never touched (pages keep their own values).
+ */
+export type SharedTextValues = Record<string, InputFieldState>;
 
 export interface DocumentFillState {
   forms: PageForms;
@@ -83,9 +90,82 @@ export function initSharedText(
   for (const field of document.fields) {
     if (field.kind !== 'text' || field.bindings.length === 0) continue;
     const value = valueForName(field.name);
-    if (value) values[field.id] = value;
+    if (value) values[field.id] = { value, hidden: false };
   }
   return values;
+}
+
+/** The valid inputs a shared TEXT field fills, in binding order. */
+export function boundTextInputs(document: DocumentDTO, field: DocumentFieldDTO): TemplateInputDTO[] {
+  const inputs: TemplateInputDTO[] = [];
+  for (const binding of field.bindings) {
+    const page = document.pages.find((p) => p.id === binding.pageId);
+    const input = page?.variant.inputs.find((i) => i.id === binding.inputId);
+    if (input) inputs.push(input);
+  }
+  return inputs;
+}
+
+/**
+ * A shared TEXT field as a template input, so it fills with the ordinary
+ * editor (match chips, rich text, font choice, hide), validates and builds
+ * its render value like any input. Its offers are what EVERY bound input
+ * allows: `richText` / `hidable` / `maxLength` from WBoost, the font faces
+ * and colours intersected here. No list structure (a shared value is text +
+ * runs). Null when no binding resolves to an input.
+ */
+export function sharedFieldInput(document: DocumentDTO, field: DocumentFieldDTO): TemplateInputDTO | null {
+  const bound = boundTextInputs(document, field);
+  const first = bound[0];
+  if (!first) return null;
+  const count = pagesOfField(field).length;
+
+  return {
+    ...first,
+    id: field.id,
+    name: field.name,
+    description: `Propíše se na ${count} ${pagesWord(count)}. Prázdné = strany si ponechají svůj text.`,
+    maxLength: field.maxLength,
+    locked: false,
+    uppercase: bound.every((input) => input.uppercase),
+    hidable: field.hidable,
+    frame: null,
+    containerId: null,
+    richText: field.richText,
+    lists: false,
+    listStyle: null,
+    listCheckboxes: false,
+    checklist: null,
+    sampleValue: null,
+    layerIndex: null,
+    fontOptions: intersectFontOptions(bound),
+    colorOptions: intersectColorOptions(bound),
+  };
+}
+
+/** Faces every bound input offers (first input's order); null when any offers no choice. */
+function intersectFontOptions(inputs: TemplateInputDTO[]): TemplateInputDTO['fontOptions'] {
+  if (inputs.length === 0 || inputs.some((input) => input.fontOptions == null)) return null;
+  const [first, ...rest] = inputs;
+  const common = (first.fontOptions ?? []).filter((font) =>
+    rest.every((input) => input.fontOptions?.some((other) => other.family === font.family))
+  );
+  return common.length > 0 ? common : null;
+}
+
+/** Colours every bound input allows: null = any (all unrestricted), [] = none in common. */
+function intersectColorOptions(inputs: TemplateInputDTO[]): string[] | null {
+  let allowed: string[] | null = null;
+  for (const input of inputs) {
+    if (input.colorOptions == null) continue;
+    allowed = allowed === null ? [...input.colorOptions] : allowed.filter((c) => input.colorOptions?.includes(c));
+  }
+  return allowed;
+}
+
+/** The rich-text swatches / faces for the shared fields' editor (the first page that has them). */
+export function documentRichTextOptions(document: DocumentDTO): RichTextOptionsDTO | null {
+  return document.pages.find((page) => page.variant.richTextOptions != null)?.variant.richTextOptions ?? null;
 }
 
 /** Mirror every set shared text into its bound inputs ({@link applySharedText} for all). */
@@ -131,10 +211,14 @@ export function applySavedDocument(
 
   const sharedText: SharedTextValues = { ...baseSharedText };
   for (const field of document.fields) {
-    const value = saved.sharedText?.[field.id];
-    if (field.kind === 'text' && field.bindings.length > 0 && typeof value === 'string') {
-      sharedText[field.id] = value;
-    }
+    const raw = saved.sharedText?.[field.id];
+    if (field.kind !== 'text' || raw == null) continue;
+    const input = sharedFieldInput(document, field);
+    if (!input) continue;
+    // Older records hold a plain string; a state is shape-checked like any input's.
+    const stored = typeof raw === 'string' ? { value: raw, hidden: false } : raw;
+    const restored = applySavedForm([input], {}, { [field.id]: stored })[field.id];
+    if (restored) sharedText[field.id] = restored;
   }
 
   return {
@@ -174,20 +258,27 @@ export function fieldForInput(
   );
 }
 
-/** This page's inputs (or image slots) of `kind` that a shared field fills: inputId → field name. */
-export function sharedFieldNamesOf(
+/** The shared field behind a page input / slot, as the editor panels show it. */
+export interface SharedFieldRef {
+  name: string;
+  /** Text: the shared value may carry rich runs. */
+  richText: boolean;
+}
+
+/** This page's inputs (or image slots) of `kind` that a shared field fills: inputId → field. */
+export function sharedFieldsOf(
   document: DocumentDTO,
   pageId: string,
   kind: DocumentFieldDTO['kind']
-): Record<string, string> {
-  const names: Record<string, string> = {};
+): Record<string, SharedFieldRef> {
+  const refs: Record<string, SharedFieldRef> = {};
   for (const field of document.fields) {
     if (field.kind !== kind) continue;
     for (const binding of field.bindings) {
-      if (binding.pageId === pageId) names[binding.inputId] = field.name;
+      if (binding.pageId === pageId) refs[binding.inputId] = { name: field.name, richText: field.richText };
     }
   }
-  return names;
+  return refs;
 }
 
 /** Pages a shared field fills (each at most once — WBoost allows one binding per page). */
@@ -196,16 +287,16 @@ export function pagesOfField(field: DocumentFieldDTO): string[] {
 }
 
 /**
- * Mirror a shared TEXT value into every bound input. The shared value is a
- * plain string that replaces the page value wholesale on the server, so any
- * page-level formatting / list structure / font pick of a bound input is
- * dropped here too (the editor shows what will render).
+ * Mirror a shared TEXT value into every bound input: its text (and its rich
+ * runs where both the field and the input are rich). WBoost replaces only
+ * the TEXT of a bound input, so the page's own hide / font pick for it stay;
+ * list structure is dropped (a shared value carries none).
  */
 export function applySharedText(
   document: DocumentDTO,
   forms: PageForms,
   fieldId: string,
-  value: string
+  shared: InputFieldState
 ): PageForms {
   const field = document.fields.find((f) => f.id === fieldId && f.kind === 'text');
   if (!field) return forms;
@@ -213,12 +304,14 @@ export function applySharedText(
   const next: PageForms = { ...forms };
   for (const binding of field.bindings) {
     const page = document.pages.find((p) => p.id === binding.pageId);
-    if (!page?.variant.inputs.some((input) => input.id === binding.inputId)) continue;
+    const input = page?.variant.inputs.find((i) => i.id === binding.inputId);
+    if (!input) continue;
 
     const current = next[binding.pageId]?.[binding.inputId] ?? { value: '', hidden: false };
+    const runs = field.richText && input.richText ? (shared.runs ?? null) : null;
     next[binding.pageId] = {
       ...(next[binding.pageId] ?? {}),
-      [binding.inputId]: { ...current, value, runs: null, lines: null, fontFamily: null },
+      [binding.inputId]: { ...current, value: shared.value, runs, lines: null },
     };
   }
   return next;
@@ -306,11 +399,12 @@ export function buildPageFill(
 }
 
 /**
- * The body WBoost renders: the touched, non-empty shared texts + the shared
- * image picks as `fields`, and each page's own fill under its page id.
- * `pageIds` limits `pages` (a preview needs only its own page's entry).
- * An empty shared text is NOT sent — like an empty page input, the bound
- * inputs then keep their own value / sample text.
+ * The body WBoost renders: the touched shared texts (built like an input's
+ * value — rich runs, field-wide hide / font) + the shared image picks as
+ * `fields`, and each page's own fill under its page id (incl. its per-page
+ * hide / font of bound inputs). `pageIds` limits `pages` (a preview needs
+ * only its own page's entry). An empty, visible shared text is NOT sent —
+ * like an empty page input, the bound inputs then keep their own text.
  */
 export function buildDocumentFillBody(
   document: DocumentDTO,
@@ -323,8 +417,10 @@ export function buildDocumentFillBody(
   for (const field of document.fields) {
     if (field.bindings.length === 0) continue;
     if (field.kind === 'text') {
-      const value = sharedText[field.id];
-      if (value !== undefined && value !== '') fields[field.id] = value;
+      const state = sharedText[field.id];
+      const input = state ? sharedFieldInput(document, field) : null;
+      const value = input && state ? buildRenderInputs([input], { [field.id]: state })[field.id] : undefined;
+      if (value !== undefined) fields[field.id] = value;
     } else {
       const image = sharedImageOf(field, state.images);
       if (image) fields[field.id] = image.id;

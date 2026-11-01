@@ -10,6 +10,7 @@ import RichTextEditor from './RichTextEditor';
 import SharedFieldBadge from './SharedFieldBadge';
 import type { RichTextOptionsDTO, TemplateInputDTO } from '@/lib/social-export/api-types';
 import type { MatchChip } from '@/lib/social-export/prefill';
+import type { SharedFieldRef } from '@/lib/social-export/document-fill';
 import {
   resolveInputLabel,
   validateInputValue,
@@ -28,11 +29,11 @@ interface PlaceholderTextPanelProps {
   onChange: (partial: Partial<InputFieldState>) => void;
   onClose: () => void;
   /**
-   * Name of the document's shared field that fills this input, if any. Its
-   * value is then the shared plain string on every bound page, so the input
-   * is edited as plain text (formatting / list structure would be dropped).
+   * The document's shared field that fills this input, if any: its TEXT is
+   * then the shared value on every bound page (formatted only when the field
+   * is rich; no list structure), while hide / font stay per page.
    */
-  sharedFieldName?: string | null;
+  sharedField?: SharedFieldRef | null;
 }
 
 /**
@@ -49,15 +50,15 @@ export default function PlaceholderTextPanel({
   richTextOptions,
   onChange,
   onClose,
-  sharedFieldName = null,
+  sharedField = null,
 }: PlaceholderTextPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const label = resolveInputLabel(input, index);
   const value = state.value;
   const isHidden = state.hidden;
   const validationError = validateInputValue(input, value) ?? undefined;
-  const isShared = sharedFieldName != null;
-  const isRich = input.richText && richTextOptions != null && !isShared;
+  const isShared = sharedField != null;
+  const isRich = input.richText && richTextOptions != null && (!isShared || sharedField.richText);
   // A dedicated checklist component gets per-item rows, never the WYSIWYG.
   const isChecklist = input.checklist != null && !isShared;
   const length = codePointLength(value);
@@ -95,7 +96,7 @@ export default function PlaceholderTextPanel({
         </button>
       </div>
 
-      {sharedFieldName != null && <SharedFieldBadge name={sharedFieldName} kind="text" className="mb-2" />}
+      {sharedField != null && <SharedFieldBadge name={sharedField.name} kind="text" className="mb-2" />}
 
       {input.description && (
         <p className="mb-2 text-xs text-text-muted">{input.description}</p>

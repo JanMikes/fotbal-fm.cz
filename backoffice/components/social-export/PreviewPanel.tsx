@@ -23,6 +23,7 @@ import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import { currentShapeColor, resolveShapeLabel, type ShapeColorState } from '@/lib/social-export/shape-colors';
 import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
+import type { SharedFieldRef } from '@/lib/social-export/document-fill';
 import type { MatchChip } from '@/lib/social-export/prefill';
 import type { StrapiImage } from '@/types/match';
 
@@ -64,10 +65,10 @@ interface PreviewPanelProps {
    * their designed frames.
    */
   textFrames: Record<string, ImageFrameDTO>;
-  /** Document pages: inputId → name of the shared text field that fills it. */
-  sharedTextFields?: Record<string, string>;
-  /** Document pages: image slotId → name of the shared image field that fills it. */
-  sharedImageFields?: Record<string, string>;
+  /** Document pages: inputId → the shared text field that fills it. */
+  sharedTextFields?: Record<string, SharedFieldRef>;
+  /** Document pages: image slotId → the shared image field that fills it. */
+  sharedImageFields?: Record<string, SharedFieldRef>;
 }
 
 const NEUTRAL = NEUTRAL_PLACEMENT;
@@ -403,7 +404,7 @@ export default function PreviewPanel({
                 richTextOptions={variant.richTextOptions}
                 onChange={(partial) => onFormChange(activeTextInput.id, partial)}
                 onClose={onCloseActive}
-                sharedFieldName={sharedTextFields?.[activeTextInput.id] ?? null}
+                sharedField={sharedTextFields?.[activeTextInput.id] ?? null}
               />
             </FloatingPanel>
           )}
@@ -429,7 +430,7 @@ export default function PreviewPanel({
                   setPickerImageId(activeImageInput.id);
                 }}
                 onClose={onCloseActive}
-                sharedFieldName={sharedImageFields?.[activeImageInput.id] ?? null}
+                sharedFieldName={sharedImageFields?.[activeImageInput.id]?.name ?? null}
               />
             </FloatingPanel>
           )}
