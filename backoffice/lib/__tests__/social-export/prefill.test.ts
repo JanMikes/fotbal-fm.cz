@@ -5,6 +5,7 @@ import {
   normalizeName,
   extractMatchPrefill,
   getMatchChips,
+  matchValueForName,
 } from '@/lib/social-export/prefill';
 
 // ---------- Test fixture -----------------------------------------------------
@@ -249,5 +250,22 @@ describe('getMatchChips', () => {
     const chips = getMatchChips(baseMatch);
     expect(chips.find((c) => c.key === 'lineup')).toBeUndefined();
     expect(chips.find((c) => c.key === 'match_report')).toBeUndefined();
+  });
+});
+
+// ---------- matchValueForName ------------------------------------------------
+
+describe('matchValueForName', () => {
+  it('alias-matches a name like an input name (case- and diacritics-insensitive)', () => {
+    expect(matchValueForName(baseMatch, 'Soupeř')).toBe('SK Soupeř');
+    expect(matchValueForName(baseMatch, 'DOMACI TYM')).toBe('FK Fotbal FM');
+    expect(matchValueForName(baseMatch, 'Datum zápasu')).toBe('3. 6. 2026');
+  });
+
+  it('answers "" for unknown / empty names and empty match values', () => {
+    expect(matchValueForName(baseMatch, 'Jméno klienta')).toBe('');
+    expect(matchValueForName(baseMatch, '')).toBe('');
+    expect(matchValueForName(baseMatch, null)).toBe('');
+    expect(matchValueForName(baseMatch, 'Sestava')).toBe('');
   });
 });

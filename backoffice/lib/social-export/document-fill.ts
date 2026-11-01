@@ -67,6 +67,38 @@ export function initDocumentFill(
   return { forms, images, shapeColors };
 }
 
+/**
+ * The starting values of the shared TEXT fields: a field whose NAME
+ * alias-matches a match field (as an input name would — "Soupeř", "Datum")
+ * starts with that match value. Fields without a match stay absent, so their
+ * bound inputs keep their own (prefilled / sample) texts.
+ */
+export function initSharedText(
+  document: DocumentDTO,
+  valueForName: (name: string) => string
+): SharedTextValues {
+  const values: SharedTextValues = {};
+  for (const field of document.fields) {
+    if (field.kind !== 'text' || field.bindings.length === 0) continue;
+    const value = valueForName(field.name);
+    if (value) values[field.id] = value;
+  }
+  return values;
+}
+
+/** Mirror every set shared text into its bound inputs ({@link applySharedText} for all). */
+export function applySharedTexts(
+  document: DocumentDTO,
+  forms: PageForms,
+  sharedText: SharedTextValues
+): PageForms {
+  let next = forms;
+  for (const [fieldId, value] of Object.entries(sharedText)) {
+    next = applySharedText(document, next, fieldId, value);
+  }
+  return next;
+}
+
 /** The shared field of `kind` bound to this page's input, or null. */
 export function fieldForInput(
   document: DocumentDTO,

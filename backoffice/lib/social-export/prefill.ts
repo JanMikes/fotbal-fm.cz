@@ -264,13 +264,22 @@ export function extractMatchPrefill(
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const input of inputs) {
-    if (input.locked || !input.name) continue;
-    const fieldKey = ALIAS_LOOKUP.get(normalizeName(input.name));
-    if (!fieldKey) continue;
-    const value = getMatchFieldValue(match, fieldKey);
+    if (input.locked) continue;
+    const value = matchValueForName(match, input.name);
     if (value) {
       result[input.id] = value;
     }
   }
   return result;
+}
+
+/**
+ * The match value for a NAME alias-matched exactly like an input name (see
+ * {@link extractMatchPrefill}) — e.g. a document's shared field "Soupeř".
+ * '' when the name matches no alias or the match has no value for it.
+ */
+export function matchValueForName(match: Match, name: string | null | undefined): string {
+  if (!name) return '';
+  const fieldKey = ALIAS_LOOKUP.get(normalizeName(name));
+  return fieldKey ? getMatchFieldValue(match, fieldKey) : '';
 }

@@ -9,9 +9,11 @@ import type {
 import {
   applySharedImage,
   applySharedText,
+  applySharedTexts,
   buildDocumentFillBody,
   fieldForInput,
   initDocumentFill,
+  initSharedText,
   pagesOfField,
   pagesWord,
   sharedImageOf,
@@ -227,5 +229,20 @@ describe('shared image fields', () => {
 describe('pagesWord', () => {
   it('declines "strana"', () => {
     expect([0, 1, 2, 4, 5, 30].map(pagesWord)).toEqual(['stran', 'strana', 'strany', 'strany', 'stran', 'stran']);
+  });
+});
+
+describe('initSharedText', () => {
+  it('starts a text field whose name matches with that value, image fields and misses stay absent', () => {
+    const shared = initSharedText(doc, (name) => (name === 'Jméno klienta' ? 'FK Fotbal FM' : name === 'Fotka' ? 'x' : ''));
+    expect(shared).toEqual({ 'f-name': 'FK Fotbal FM' });
+  });
+
+  it('applySharedTexts mirrors every set value into the bound inputs only', () => {
+    const state = initDocumentFill(doc, emptyPrefill);
+    const forms = applySharedTexts(doc, state.forms, { 'f-name': 'Lucie' });
+    expect(forms['p-a'].name.value).toBe('Lucie');
+    expect(forms['p-b'].name.value).toBe('Lucie');
+    expect(forms['p-a']['txt-1'].value).toBe(state.forms['p-a']['txt-1'].value);
   });
 });

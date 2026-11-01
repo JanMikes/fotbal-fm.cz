@@ -22,9 +22,11 @@ import type {
 import {
   applySharedImage,
   applySharedText,
+  applySharedTexts,
   buildDocumentFillBody,
   fieldForInput,
   initDocumentFill,
+  initSharedText,
   pageLabel,
   pagesOfField,
   pagesWord,
@@ -32,7 +34,7 @@ import {
   type DocumentFillState,
   type SharedTextValues,
 } from '@/lib/social-export/document-fill';
-import { extractMatchPrefill, getMatchChips } from '@/lib/social-export/prefill';
+import { extractMatchPrefill, getMatchChips, matchValueForName } from '@/lib/social-export/prefill';
 import { isEditable, validateInputValue, type InputFieldState } from '@/lib/social-export/field-rules';
 import { defaultImageSlotState, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import { codePointLength } from '@/lib/social-export/rich-text';
@@ -60,10 +62,16 @@ export default function DocumentEditor({ document, match }: DocumentEditorProps)
   const pages = document.pages;
   const chips = useMemo(() => getMatchChips(match), [match]);
 
-  const [fill, setFill] = useState<DocumentFillState>(() =>
-    initDocumentFill(document, (page) => extractMatchPrefill(match, page.variant.inputs))
-  );
-  const [sharedText, setSharedText] = useState<SharedTextValues>({});
+  // Seed once per mount: sample texts + the match prefill per page, then the
+  // shared text fields whose name matches a match field, mirrored into their
+  // bound inputs.
+  const [seed] = useState(() => {
+    const base = initDocumentFill(document, (page) => extractMatchPrefill(match, page.variant.inputs));
+    const shared = initSharedText(document, (name) => matchValueForName(match, name));
+    return { fill: { ...base, forms: applySharedTexts(document, base.forms, shared) }, sharedText: shared };
+  });
+  const [fill, setFill] = useState<DocumentFillState>(seed.fill);
+  const [sharedText, setSharedText] = useState<SharedTextValues>(seed.sharedText);
   const [activePageId, setActivePageId] = useState<string | null>(pages[0]?.id ?? null);
   const activePage = pages.find((p) => p.id === activePageId) ?? pages[0] ?? null;
 
