@@ -136,7 +136,7 @@ export interface WboostRawRichTextFontOption {
 /** Fonts whitelist + brand color swatches for a variant's rich-text inputs. */
 export interface WboostRawRichTextOptions {
   fonts: WboostRawRichTextFontOption[];
-  /** Lowercase `#rrggbb`, primary brand colors first. Suggestions, not a whitelist. */
+  /** Lowercase `#rrggbb`, the project palette in palette order. Suggestions, not a whitelist. */
   colors: string[];
 }
 
