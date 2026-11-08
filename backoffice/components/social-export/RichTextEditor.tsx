@@ -658,6 +658,8 @@ export default function RichTextEditor({
         // An IME uses Enter to commit its composition — leave it alone.
         if (event.nativeEvent.isComposing || composingRef.current) return;
         event.preventDefault();
+        // Ctrl/⌘+Enter is the surrounding panel's confirm shortcut, not a break.
+        if (event.ctrlKey || event.metaKey) return;
         insertBreak();
         return;
       }

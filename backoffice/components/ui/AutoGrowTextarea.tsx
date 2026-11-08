@@ -12,16 +12,23 @@ import {
 
 interface AutoGrowTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
+  /**
+   * Opt-in multi-line VALUE (template export text inputs, parity with the
+   * wboost fill page): plain Enter inserts a newline, pasted line breaks are
+   * kept (CRLF/CR canonicalized to "\n"). Ctrl/⌘+Enter never inserts one —
+   * it is the caller's confirm shortcut.
+   */
+  multiline?: boolean;
 }
 
 /**
- * A single-line-value textarea: it wraps and grows/shrinks with its content so
- * the whole text stays visible while typing, but the VALUE never contains
- * newlines — Enter is ignored and pasted line breaks become spaces (parity with
- * the plain <input> it replaces).
+ * A textarea that wraps and grows/shrinks with its content so the whole text
+ * stays visible while typing. By default the VALUE is single-line — Enter is
+ * ignored and pasted line breaks become spaces (parity with the plain <input>
+ * it replaces); `multiline` opts into real line breaks.
  */
 const AutoGrowTextarea = forwardRef<HTMLTextAreaElement, AutoGrowTextareaProps>(
-  ({ className = '', error, value, onChange, onKeyDown, ...props }, ref) => {
+  ({ className = '', error, multiline = false, value, onChange, onKeyDown, ...props }, ref) => {
     const innerRef = useRef<HTMLTextAreaElement>(null);
     useImperativeHandle(ref, () => innerRef.current as HTMLTextAreaElement);
 
@@ -35,11 +42,17 @@ const AutoGrowTextarea = forwardRef<HTMLTextAreaElement, AutoGrowTextareaProps>(
 
     function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
       onKeyDown?.(e);
-      if (e.key === 'Enter' && !e.defaultPrevented) e.preventDefault();
+      if (e.key !== 'Enter' || e.defaultPrevented) return;
+      if (multiline && !(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
     }
 
     function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
-      if (e.target.value.includes('\n')) {
+      if (multiline) {
+        if (e.target.value.includes('\r')) {
+          e.target.value = e.target.value.replace(/\r\n?/g, '\n');
+        }
+      } else if (e.target.value.includes('\n')) {
         e.target.value = e.target.value.replace(/\r?\n/g, ' ');
       }
       onChange?.(e);

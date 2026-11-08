@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
 import AutoGrowTextarea from '@/components/ui/AutoGrowTextarea';
 import FieldInsertMenu from './FieldInsertMenu';
@@ -82,8 +82,17 @@ export default function PlaceholderTextPanel({
     onChange({ value: next, runs: null, lines: null });
   }
 
+  // Ctrl/⌘+Enter = confirm (close the panel) from any editor inside it —
+  // plain Enter inserts a newline / list item / checklist row (wboost parity).
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Enter' || !(event.ctrlKey || event.metaKey)) return;
+    if (event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    onClose();
+  }
+
   return (
-    <div>
+    <div onKeyDown={handleKeyDown}>
       {/* Header */}
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className="text-sm font-semibold text-text-primary">{label}</span>
@@ -130,6 +139,7 @@ export default function PlaceholderTextPanel({
             />
           ) : (
             <AutoGrowTextarea
+              multiline
               ref={inputRef}
               value={value}
               disabled={isHidden}

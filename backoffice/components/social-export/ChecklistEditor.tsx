@@ -88,6 +88,8 @@ export default function ChecklistEditor({ input, state, disabled = false, onChan
                 onKeyDown={(event) => {
                   if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
                   event.preventDefault();
+                  // Ctrl/⌘+Enter is the surrounding panel's confirm shortcut.
+                  if (event.ctrlKey || event.metaKey) return;
                   if (flags.addItems) addItem(index + 1);
                 }}
                 className={`min-w-0 flex-1 rounded-lg border border-border px-2 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-ring-focus disabled:cursor-not-allowed ${

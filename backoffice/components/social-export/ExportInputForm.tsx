@@ -161,6 +161,7 @@ export default function ExportInputForm({
                     />
                   ) : (
                     <AutoGrowTextarea
+                      multiline
                       value={value}
                       disabled={isHidden}
                       maxLength={input.maxLength ?? undefined}
