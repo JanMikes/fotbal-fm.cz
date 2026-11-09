@@ -23,6 +23,8 @@ interface PlaceholderImagePanelProps {
   onClose: () => void;
   /** Name of the document's shared field that fills this slot, if any (the pick is shared, the placement is not). */
   sharedFieldName?: string | null;
+  /** Inside a container sheet: no own header (the sheet labels the field). */
+  embedded?: boolean;
 }
 
 /**
@@ -43,6 +45,7 @@ export default function PlaceholderImagePanel({
   onReplace,
   onClose,
   sharedFieldName = null,
+  embedded = false,
 }: PlaceholderImagePanelProps) {
   const adjustable = hasAdjustments(input);
   const panned = state.offsetXRatio !== 0 || state.offsetYRatio !== 0;
@@ -50,7 +53,7 @@ export default function PlaceholderImagePanel({
 
   return (
     <div>
-      <div className="mb-2 flex items-start justify-between gap-2">
+      <div className={`mb-2 flex items-start justify-between gap-2 ${embedded ? 'hidden' : ''}`}>
         <span className="text-sm font-semibold text-text-primary">{label}</span>
         <button
           type="button"
@@ -70,7 +73,7 @@ export default function PlaceholderImagePanel({
         className="mb-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
       >
         <ImageIcon className="h-4 w-4" />
-        Vyměnit obrázek
+        {state.image ? 'Vyměnit obrázek' : 'Vybrat obrázek'}
       </button>
 
       {adjustable ? (

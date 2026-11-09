@@ -126,6 +126,39 @@ describe('WboostClient', () => {
       const [, init] = mockFetch.mock.calls[0];
       expect(JSON.parse(init.body as string)).toEqual({ inputs: { t: 'x' } });
     });
+
+    it('sends repeatable rows (even an all-sample row) and moved elements', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.renderVariant('v1', { t: 'x' }, {}, 'preview', undefined, {
+        rows: { r: [{ m: '4 - 4' }, {}] },
+        offsets: { t: { x: 0, y: 12 } },
+      });
+
+      const [, init] = mockFetch.mock.calls[0];
+      expect(JSON.parse(init.body as string)).toEqual({
+        inputs: { t: 'x' },
+        rows: { r: [{ m: '4 - 4' }, {}] },
+        offsets: { t: { x: 0, y: 12 } },
+      });
+    });
+
+    it('sends rows + per-dimension offsets on a group render', async () => {
+      mockFetch.mockResolvedValueOnce(mockBinaryResponse(new Uint8Array([1])));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      await client.renderGroup('g1', 'v2', { inputs: {}, rows: { r: [{}] }, offsets: { v2: { t: { x: 1, y: 2 } } } }, 'preview');
+
+      const [, init] = mockFetch.mock.calls[0];
+      expect(JSON.parse(init.body as string)).toEqual({
+        inputs: {},
+        images: {},
+        placements: {},
+        rows: { r: [{}] },
+        offsets: { v2: { t: { x: 1, y: 2 } } },
+      });
+    });
   });
 
   describe('renderGroup', () => {

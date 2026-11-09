@@ -189,6 +189,40 @@ export interface WboostRawContainer {
   name?: string | null;
   /** Fillable IMAGE slots flowing in this container (2026-11); absent → []. */
   memberImageInputIds?: string[];
+  /** Non-null → a repeatable row (`variants[].repeatableRows`). */
+  repeat?: WboostRawRepeatSpec | null;
+  /** Repeatable rows only: designed estimate of how many rows fit. */
+  fitsRows?: number | null;
+}
+
+export interface WboostRawRepeatSpec {
+  max: number;
+  min: number;
+  default: number;
+}
+
+/** `variants[].repeatableRows[]` (WBoost 2026-11, consumer-prompt "Repeatable rows"). */
+export interface WboostRawRepeatableRow {
+  containerId: string;
+  parentContainerId: string | null;
+  name: string | null;
+  repeat: WboostRawRepeatSpec;
+  fitsRows: number | null;
+  members: { id: string; kind: 'text' | 'image' | 'shape' | 'container'; name: string | null }[];
+  slots: { index: number; containerId: string; ids: Record<string, string> }[];
+}
+
+/** `variants[].movableElements[]` (WBoost 2026-11, consumer-prompt "Movable elements"). */
+export interface WboostRawMovableElement {
+  id: string;
+  kind: 'text' | 'shape' | 'image' | 'container';
+  name: string | null;
+  frame: WboostRawFrame | null;
+  vertical: boolean;
+  horizontal: boolean;
+  limits: { up: number | null; down: number | null; left: number | null; right: number | null };
+  range: { minX: number; maxX: number; minY: number; maxY: number };
+  memberIds: string[];
 }
 
 /** A rectangle in the variant's canvas pixel space. */
@@ -259,6 +293,8 @@ export interface WboostRawImageInput {
    * older payloads (→ false).
    */
   isBackground?: boolean;
+  /** Container this slot flows in (2026-11); null = free-standing; absent on older deploys. */
+  containerId?: string | null;
 }
 
 /** One renderable variant (a specific dimension/ratio) of a template. */
@@ -304,6 +340,10 @@ export interface WboostRawVariant {
   groupMember?: boolean;
   /** Shapes the user may recolour (`shapeColors` on render). Absent on older deploys. */
   shapeInputs?: WboostRawShapeInput[];
+  /** Repeatable rows. Absent before 2026-11. */
+  repeatableRows?: WboostRawRepeatableRow[];
+  /** Movable elements. Absent before 2026-11. */
+  movableElements?: WboostRawMovableElement[];
 }
 
 /** A shape the designer opened up for recolouring (`variants[].shapeInputs[]`). */
@@ -349,7 +389,12 @@ export interface WboostRawTemplate {
   createdAt: string;
   variants: WboostRawVariant[];
   /** Non-null → the template is a synchronized GROUP. Absent on older deploys. */
-  group?: { id: string; name: string } | null;
+  group?: {
+    id: string;
+    name: string;
+    /** ONE shared count per row for every dimension; `fitsRows` = the smallest member's. */
+    repeatableRows?: { containerId: string; repeat: WboostRawRepeatSpec; fitsRows: number | null }[];
+  } | null;
   /**
    * Non-null → the template is a PAGE of a multi-page document: hide it from
    * the template picker and offer the document instead. Absent on older deploys.
@@ -456,6 +501,10 @@ export interface WboostRawExportVersionDetail extends WboostRawExportVersion {
     placements: Record<string, Record<string, Record<string, number>>>;
     /** Shape inputId → `#rrggbb`. Absent on older deploys. */
     shapeColors?: Record<string, string>;
+    /** Repeatable rows as the bodies send them. Absent before 2026-11. */
+    rows?: Record<string, Record<string, unknown>[]>;
+    /** Moved elements (variant: id → {x,y}; group: variantId → id → {x,y}). Absent before 2026-11. */
+    offsets?: Record<string, unknown>;
   };
 }
 
@@ -481,7 +530,16 @@ export interface WboostRawDocumentExportVersionDetail extends WboostRawDocumentE
     /** Shared field id → value (text: string | {value|runs, …}; image: {imageId, url} | {hide: true}). */
     fields: Record<string, unknown>;
     /** Complete per page — shared values already fanned out into the bound inputs. */
-    pages: Record<string, { inputs?: Record<string, unknown>; images?: Record<string, unknown>; shapeColors?: Record<string, string> }>;
+    pages: Record<
+      string,
+      {
+        inputs?: Record<string, unknown>;
+        images?: Record<string, unknown>;
+        shapeColors?: Record<string, string>;
+        rows?: Record<string, Record<string, unknown>[]>;
+        offsets?: Record<string, { x: number; y: number }>;
+      }
+    >;
   };
 }
 

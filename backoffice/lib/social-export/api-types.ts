@@ -114,6 +114,23 @@ export interface TemplateInputDTO {
    * have gaps; null when the object can't be located (or on older API deploys).
    */
   layerIndex: number | null;
+  /**
+   * Set on the copies `expandRepeatableRows` materialises for a repeatable
+   * row's slots ≥ 1 (and on the template row's own members, slot 0): which
+   * row, which 0-based slot, and the TEMPLATE row member id it copies. Absent
+   * on everything outside a repeatable row.
+   */
+  rowSlot?: RowSlotRef;
+}
+
+/** Where a field sits in a repeatable row (see `TemplateVariantDTO.repeatableRows`). */
+export interface RowSlotRef {
+  /** The row container id (the key of the render body's `rows`). */
+  rowId: string;
+  /** 0-based slot: 0 = the template row itself. */
+  slot: number;
+  /** The template row's member id this field copies (the key inside one row object). */
+  memberId: string;
 }
 
 /**
@@ -220,7 +237,99 @@ export interface TemplateContainerDTO {
    * payloads.
    */
   memberImageInputIds?: string[];
+  /** Non-null → a REPEATABLE ROW (see `TemplateVariantDTO.repeatableRows`). */
+  repeat?: RepeatSpecDTO | null;
+  /**
+   * Set on the copies `expandRepeatableRows` materialises for a repeatable
+   * row's slots ≥ 1 (and on the template row's own members, slot 0): which
+   * row, which 0-based slot, and the TEMPLATE row member id it copies. Absent
+   * on everything outside a repeatable row.
+   */
+  rowSlot?: RowSlotRef;
 }
+
+/** How often a repeatable row may show: `min`…`max`, `default` on a fresh fill. */
+export interface RepeatSpecDTO {
+  min: number;
+  max: number;
+  default: number;
+}
+
+/** One member of a repeatable row's TEMPLATE row (the keys of one row object). */
+export interface RepeatableRowMemberDTO {
+  id: string;
+  kind: 'text' | 'image' | 'shape' | 'container';
+  name: string | null;
+}
+
+/** The id every member carries in one row (index 0 = the template row's own ids). */
+export interface RepeatableRowSlotDTO {
+  index: number;
+  containerId: string;
+  /** template member id (and the row container id) → that slot's id */
+  ids: Record<string, string>;
+}
+
+/**
+ * A row the designer drew ONCE that the user may repeat (WBoost 2026-11):
+ * `repeat.min`…`repeat.max` rows flowing below each other inside
+ * `parentContainerId`. Rendered through the bodies' `rows` (one object per
+ * row, keyed by the template members' ids; the list length is the count).
+ * `fitsRows` is the designed-geometry estimate of how many fit — a warning,
+ * never a hard limit (real texts may wrap; the render 400s on overflow).
+ */
+export interface RepeatableRowDTO {
+  containerId: string;
+  parentContainerId: string | null;
+  name: string | null;
+  repeat: RepeatSpecDTO;
+  fitsRows: number | null;
+  members: RepeatableRowMemberDTO[];
+  slots: RepeatableRowSlotDTO[];
+}
+
+/** Offset range of a movable element, canvas px relative to its designed position. */
+export interface MoveRangeDTO {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+/**
+ * An element the user may MOVE (WBoost 2026-11): a text (locked ones too), a
+ * shape, a decorative image or a whole top-level container. Send
+ * `offsets[id] = { x, y }` clamped to `range` (the server's own bound);
+ * `limits` (designer max per direction, null = anywhere on the artwork) is
+ * informational. `frame` is the DESIGNED box — draw it at `frame + offset`.
+ */
+export interface MovableElementDTO {
+  id: string;
+  kind: 'text' | 'shape' | 'image' | 'container';
+  name: string | null;
+  frame: ImageFrameDTO | null;
+  vertical: boolean;
+  horizontal: boolean;
+  limits: { up: number | null; down: number | null; left: number | null; right: number | null };
+  range: MoveRangeDTO;
+  /** A container's member ids (they move with it). */
+  memberIds: string[];
+}
+
+/** One moved element's offset (canvas px). */
+export interface ElementOffset {
+  x: number;
+  y: number;
+}
+
+/** elementId → offset (the `offsets` body of ONE variant). */
+export type ElementOffsets = Record<string, ElementOffset>;
+
+/** One row object of a `rows` body: template member id → its value. */
+export type RenderRowValue = RenderInputValue | RenderImageValue;
+export type RenderRow = Record<string, RenderRowValue>;
+/** row container id → the shown rows, in order (length = count). */
+export type RenderRows = Record<string, RenderRow[]>;
 
 /**
  * A shape the designer opened up for RECOLOURING — one colour field. The
@@ -241,6 +350,13 @@ export interface ShapeInputDTO {
   frame: ImageFrameDTO | null;
   /** Stacking position — same index space as the text/image `layerIndex`. */
   layerIndex: number | null;
+  /**
+   * Set on the copies `expandRepeatableRows` materialises for a repeatable
+   * row's slots ≥ 1 (and on the template row's own members, slot 0): which
+   * row, which 0-based slot, and the TEMPLATE row member id it copies. Absent
+   * on everything outside a repeatable row.
+   */
+  rowSlot?: RowSlotRef;
 }
 
 /**
@@ -262,6 +378,11 @@ export interface RenderErrorDetails {
   /** Document renders: the page that failed. */
   pageId?: string;
   maxLength?: number;
+  /** Move errors (unknown_element, move_not_allowed, offset_out_of_range). */
+  elementId?: string;
+  /** A refused value inside `rows`: its row + 0-based index. */
+  rowContainerId?: string;
+  rowIndex?: number;
 }
 
 /** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
@@ -321,6 +442,15 @@ export interface ImageInputDTO {
    * only, plus `{ hide: true }` when `hidable`. False on older API payloads.
    */
   isBackground: boolean;
+  /** Container this slot flows in (`memberImageInputIds`), or null. */
+  containerId?: string | null;
+  /**
+   * Set on the copies `expandRepeatableRows` materialises for a repeatable
+   * row's slots ≥ 1 (and on the template row's own members, slot 0): which
+   * row, which 0-based slot, and the TEMPLATE row member id it copies. Absent
+   * on everything outside a repeatable row.
+   */
+  rowSlot?: RowSlotRef;
 }
 
 /** A pickable gallery image for an image slot (from the list/upload endpoints). */
@@ -375,12 +505,25 @@ export interface TemplateVariantDTO {
    * is edited on its own.
    */
   groupMember: boolean;
+  /**
+   * Repeatable rows (empty when none). The variant's inputs / imageInputs /
+   * shapeInputs / containers are EXPANDED to every row's `max` slots (see
+   * `expandRepeatableRows`) — each copy carries `rowSlot` and its slot id.
+   */
+  repeatableRows?: RepeatableRowDTO[];
+  /** Elements the user may move (empty / absent when none). */
+  movableElements?: MovableElementDTO[];
 }
 
 /** The synchronized group a template is (one design in several dimensions). */
 export interface TemplateGroupRefDTO {
   id: string;
   name: string;
+  /**
+   * The group's repeatable rows: ONE shared count for every dimension;
+   * `fitsRows` is the SMALLEST member's estimate. Empty when none.
+   */
+  repeatableRows?: { containerId: string; repeat: RepeatSpecDTO; fitsRows: number | null }[];
 }
 
 /** A social-network template, grouped/sorted-ready for display. */
@@ -498,6 +641,10 @@ export interface DocumentPageFill {
   inputs?: Record<string, RenderInputValue>;
   images?: Record<string, RenderImageValue>;
   shapeColors?: Record<string, string>;
+  /** The page's repeatable rows (never shared). */
+  rows?: RenderRows;
+  /** The page's moved elements (never shared). */
+  offsets?: ElementOffsets;
 }
 
 /** The document fill sent to WBoost: shared `fields` + per-page entries keyed by page id. */
@@ -579,6 +726,10 @@ export interface RenderRequest {
   images?: Record<string, RenderImageValue>;
   /** Keyed by shapeInput UUID → `#rrggbb`. Omitted shapes keep their designed colour. */
   shapeColors?: Record<string, string>;
+  /** Repeatable rows; once sent, a row's values live ONLY here. */
+  rows?: RenderRows;
+  /** Moved elements. */
+  offsets?: ElementOffsets;
 }
 
 /**
@@ -604,6 +755,10 @@ export interface GroupRenderRequest {
   placements?: GroupPlacements;
   /** Shared by every dimension (members share shape ids). */
   shapeColors?: Record<string, string>;
+  /** Shared rows — ONE count for every dimension. */
+  rows?: RenderRows;
+  /** Moves are PER DIMENSION: variantId → elementId → offset. */
+  offsets?: Record<string, ElementOffsets>;
 }
 
 /** Digest of a version's fill (what history lists show instead of a thumbnail). */
@@ -645,6 +800,13 @@ export interface ExportVersionFillDTO {
   placements: GroupPlacements;
   /** Shape inputId → `#rrggbb` ({} when no shape was recoloured). */
   shapeColors: Record<string, string>;
+  /** Repeatable rows as the bodies send them ({} without rows). Not repeated in inputs/images/shapeColors. */
+  rows?: RenderRows;
+  /**
+   * Moved elements: a VARIANT version `{ elementId: {x, y} }`, a GROUP
+   * version `{ variantId: { elementId: {x, y} } }`. {} when nothing moved.
+   */
+  offsets?: Record<string, ElementOffset> | Record<string, ElementOffsets>;
 }
 
 export interface ExportVersionDetailDTO extends ExportVersionDTO {
@@ -664,6 +826,8 @@ export interface DocumentExportVersionFillDTO {
       inputs: Record<string, RenderInputValue>;
       images: Record<string, RenderImageValue & { url?: string }>;
       shapeColors: Record<string, string>;
+      rows?: RenderRows;
+      offsets?: ElementOffsets;
     }
   >;
 }

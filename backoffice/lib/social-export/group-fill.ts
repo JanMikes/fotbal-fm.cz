@@ -27,7 +27,10 @@ import { restoreContainerHides, unionHidableContainers } from './container-hides
 import { applySavedForm, sanitizeSlotState, type StoredImageSlotState } from './saved-state';
 import { isStyled, normalizeRuns, plainText } from './rich-text';
 import { sanitizeShapeColors, unionShapeInputs, type ShapeColorState } from './shape-colors';
-import type { ListLineType } from './api-types';
+import type { ElementOffsets, ListLineType, RenderRows } from './api-types';
+import { buildRowsBody, defaultRowCounts, dropInactive, flattenFillRows, inactiveRowIds } from './repeatable-rows';
+import { sanitizeOffsets } from './element-move';
+import { surfaceRows } from './render-body';
 
 export type ImageState = Record<string, ImageSlotState>;
 /** variantId → that dimension's image state. */
@@ -134,13 +137,24 @@ export function dimensionsAffectedByImageChange(
 export function buildGroupRenderBody(
   members: TemplateVariantDTO[],
   formState: Record<string, InputFieldState>,
-  imageStates: DimensionImageStates
+  imageStates: DimensionImageStates,
+  extras: {
+    /** Shared shape colours (sanitized here when given). */
+    shapeColors?: ShapeColorState;
+    /** ONE count per repeatable row for every dimension. */
+    rowCounts?: Record<string, number>;
+    /** Per dimension: variantId → elementId → offset. */
+    offsets?: Record<string, ElementOffsets>;
+  } = {}
 ): {
   inputs: Record<string, RenderInputValue>;
   images: Record<string, RenderImageValue>;
   placements: GroupPlacements;
+  shapeColors?: Record<string, string>;
+  rows?: RenderRows;
+  offsets?: Record<string, ElementOffsets>;
 } {
-  const inputs = buildRenderInputs(unionInputs(members), formState, unionHidableContainers(members));
+  const rawInputs = buildRenderInputs(unionInputs(members), formState, unionHidableContainers(members));
   const images: Record<string, RenderImageValue> = {};
   const placements: GroupPlacements = {};
 
@@ -172,7 +186,34 @@ export function buildGroupRenderBody(
     }
   }
 
-  return { inputs, images, placements };
+  const rows = surfaceRows(members);
+  const colors = extras.shapeColors !== undefined ? sanitizeShapeColors(unionShapeInputs(members), extras.shapeColors) : {};
+  const counts = extras.rowCounts ?? defaultRowCounts(rows);
+  const split = buildRowsBody(rows, counts, { inputs: rawInputs, images, shapeColors: colors });
+  // A row's per-dimension placement stays keyed by its slot id; unused rows' go.
+  const inactive = inactiveRowIds(rows, counts);
+  const keptPlacements: GroupPlacements = {};
+  for (const [variantId, map] of Object.entries(placements)) {
+    const kept = dropInactive(map, inactive);
+    if (Object.keys(kept).length > 0) keptPlacements[variantId] = kept;
+  }
+
+  const body: ReturnType<typeof buildGroupRenderBody> = {
+    inputs: split.inputs,
+    images: split.images,
+    placements: keptPlacements,
+  };
+  if (extras.shapeColors !== undefined) body.shapeColors = split.shapeColors;
+  if (rows.length > 0) body.rows = split.rows;
+
+  const offsets: Record<string, ElementOffsets> = {};
+  for (const member of members) {
+    const clean = sanitizeOffsets(member.movableElements, extras.offsets?.[member.id]);
+    if (Object.keys(clean).length > 0) offsets[member.id] = clean;
+  }
+  if (Object.keys(offsets).length > 0) body.offsets = offsets;
+
+  return body;
 }
 
 /**
@@ -182,9 +223,28 @@ export function buildGroupRenderBody(
  * render used for them — never from the match prefill.
  */
 export function fillToEditorState(
-  fill: ExportVersionFillDTO,
+  rawFill: ExportVersionFillDTO,
   members: TemplateVariantDTO[]
-): { formState: Record<string, InputFieldState>; imageStates: DimensionImageStates; shapeColors: ShapeColorState } {
+): {
+  formState: Record<string, InputFieldState>;
+  imageStates: DimensionImageStates;
+  shapeColors: ShapeColorState;
+  rowCounts: Record<string, number>;
+  offsets: Record<string, ElementOffsets>;
+} {
+  // Repeatable rows come back in `rows` (not in inputs / images / shapeColors):
+  // flatten them onto their slot ids, then load like any other value.
+  const rows = surfaceRows(members);
+  const flat = flattenFillRows(rows, rawFill.rows);
+  const fill: ExportVersionFillDTO = {
+    ...rawFill,
+    inputs: { ...(rawFill.inputs ?? {}), ...flat.inputs },
+    images: { ...(rawFill.images ?? {}), ...flat.images },
+    shapeColors: { ...(rawFill.shapeColors ?? {}), ...flat.shapeColors },
+  };
+  const rowCounts = { ...defaultRowCounts(rows), ...flat.counts };
+  const offsets = versionOffsets(members, rawFill.offsets);
+
   const inputs = unionInputs(members);
   const base = initSurfaceForm(inputs, {});
   const loaded: Record<string, InputFieldState> = {};
@@ -212,7 +272,40 @@ export function fillToEditorState(
     }
   }
 
-  return { formState, imageStates, shapeColors: sanitizeShapeColors(unionShapeInputs(members), fill.shapeColors) };
+  return {
+    formState,
+    imageStates,
+    shapeColors: sanitizeShapeColors(unionShapeInputs(members), fill.shapeColors),
+    rowCounts,
+    offsets,
+  };
+}
+
+/**
+ * A version's `offsets` per dimension: a VARIANT version is `{ id: {x, y} }`
+ * (the one member's), a GROUP version `{ variantId: { id: {x, y} } }`.
+ * Re-clamped against the current ranges.
+ */
+function versionOffsets(
+  members: TemplateVariantDTO[],
+  raw: ExportVersionFillDTO['offsets']
+): Record<string, ElementOffsets> {
+  const result: Record<string, ElementOffsets> = {};
+  if (!raw || typeof raw !== 'object') return result;
+  const entries = Object.values(raw) as unknown[];
+  const variantShaped = entries.some(
+    (value) => value != null && typeof value === 'object' && typeof (value as { x?: unknown }).x === 'number'
+  );
+  for (const member of members) {
+    const source = variantShaped
+      ? members.length === 1
+        ? (raw as ElementOffsets)
+        : undefined
+      : (raw as Record<string, ElementOffsets>)[member.id];
+    const clean = sanitizeOffsets(member.movableElements, source);
+    if (Object.keys(clean).length > 0) result[member.id] = clean;
+  }
+  return result;
 }
 
 export function inputValueToState(value: RenderInputValue, fallback: InputFieldState): InputFieldState {

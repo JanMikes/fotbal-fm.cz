@@ -34,6 +34,10 @@ interface PlaceholderTextPanelProps {
    * is rich; no list structure), while hide / font stay per page.
    */
   sharedField?: SharedFieldRef | null;
+  /** Inside a container sheet: no own header (the sheet labels the field). */
+  embedded?: boolean;
+  /** Focus the editor on mount (only the first field of a sheet does). */
+  autoFocus?: boolean;
 }
 
 /**
@@ -51,6 +55,8 @@ export default function PlaceholderTextPanel({
   onChange,
   onClose,
   sharedField = null,
+  embedded = false,
+  autoFocus = true,
 }: PlaceholderTextPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   // A bound input edits only what its shared field carries.
@@ -67,9 +73,10 @@ export default function PlaceholderTextPanel({
   // Focus the value input on open for keyboard-first editing (the rich editor
   // focuses itself via autoFocus).
   useEffect(() => {
+    if (!autoFocus) return;
     inputRef.current?.focus();
     inputRef.current?.select();
-  }, []);
+  }, [autoFocus]);
 
   // Set the field to a chosen match-data value (replace), respecting maxLength.
   // Inserted match data is always PLAIN — clear any rich formatting and
@@ -94,7 +101,7 @@ export default function PlaceholderTextPanel({
   return (
     <div onKeyDown={handleKeyDown}>
       {/* Header */}
-      <div className="mb-2 flex items-start justify-between gap-2">
+      <div className={`mb-2 flex items-start justify-between gap-2 ${embedded ? 'hidden' : ''}`}>
         <span className="text-sm font-semibold text-text-primary">{label}</span>
         <button
           type="button"
@@ -134,7 +141,7 @@ export default function PlaceholderTextPanel({
               options={input.fontOptions ? { ...richTextOptions, fonts: input.fontOptions } : richTextOptions}
               state={state}
               disabled={isHidden}
-              autoFocus
+              autoFocus={autoFocus}
               onChange={onChange}
             />
           ) : (

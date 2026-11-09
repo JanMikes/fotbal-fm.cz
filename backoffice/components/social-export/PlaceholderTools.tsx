@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Pencil, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface PlaceholderToolsProps {
@@ -20,6 +21,10 @@ interface PlaceholderToolsProps {
   onEdit: () => void;
   /** Toggle the hidden state. */
   onToggleHidden: () => void;
+  /** False = no pencil / lock (a move-only box). */
+  showEdit?: boolean;
+  /** Extra tools after the pencil (the move handle). */
+  extra?: ReactNode;
 }
 
 /**
@@ -44,6 +49,8 @@ export default function PlaceholderTools({
   hidden,
   onEdit,
   onToggleHidden,
+  showEdit = true,
+  extra = null,
 }: PlaceholderToolsProps) {
   // Dark hairline ring keeps the white pills legible on bright/white artwork
   // (mirrors the dual-outline trick on the dashed box). focus:ring swaps it for
@@ -61,7 +68,7 @@ export default function PlaceholderTools({
       }`}
       style={{ left: `${left}px`, top: `${top}px` }}
     >
-      {readOnly ? (
+      {!showEdit ? null : readOnly ? (
         <span
           aria-label={`Uzamčeno: ${label}`}
           title={`Toto pole je uzamčené šablonou a nelze ho upravit.`}
@@ -83,6 +90,8 @@ export default function PlaceholderTools({
           <Pencil className="h-4 w-4" />
         </button>
       )}
+
+      {extra}
 
       {hidable && (
         <button

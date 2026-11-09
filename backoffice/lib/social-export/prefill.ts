@@ -265,6 +265,9 @@ export function extractMatchPrefill(
   const result: Record<string, string> = {};
   for (const input of inputs) {
     if (input.locked) continue;
+    // A repeatable row's copies share the template member's name: prefill
+    // reaches only the template row (row 1) — WBoost's rule.
+    if (input.rowSlot && input.rowSlot.slot > 0) continue;
     const value = matchValueForName(match, input.name);
     if (value) {
       result[input.id] = value;

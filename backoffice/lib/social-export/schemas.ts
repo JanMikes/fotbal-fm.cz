@@ -67,6 +67,22 @@ export const renderImageValueSchema = z.union([
 /** Shape inputId → `#rrggbb` ("" = designed colour). WBoost validates against the shape's options. */
 const shapeColorsSchema = z.record(z.string(), z.string().max(16));
 
+/** One moved element: canvas px from its designed position (WBoost clamps to its range). */
+const offsetSchema = z.object({ x: z.number().finite(), y: z.number().finite() }).strict();
+/** elementId → offset (one variant / one document page). */
+const offsetsSchema = z.record(z.string(), offsetSchema);
+
+/**
+ * Repeatable rows: row container id → one object per shown row (the list
+ * length is the count), keyed by the template row's member ids; values take
+ * the `inputs` / `images` / `shapeColors` shapes (a shape colour is a plain
+ * string, which the input branch already covers).
+ */
+const rowsSchema = z.record(
+  z.string(),
+  z.array(z.record(z.string(), z.union([renderInputValueSchema, renderImageValueSchema]))).max(30)
+);
+
 /** `preview` = unrecorded WebP for the screen (default), `export` = the recorded download. */
 export const renderModeSchema = z.enum(['preview', 'export']);
 
@@ -77,6 +93,8 @@ export const renderRequestSchema = z
     inputs: z.record(z.string(), renderInputValueSchema),
     images: z.record(z.string(), renderImageValueSchema).optional(),
     shapeColors: shapeColorsSchema.optional(),
+    rows: rowsSchema.optional(),
+    offsets: offsetsSchema.optional(),
   })
   .strict();
 
@@ -99,6 +117,10 @@ export const groupRenderRequestSchema = z
     images: z.record(z.string(), renderImageValueSchema).optional(),
     placements: z.record(z.string(), z.record(z.string(), placementSchema)).optional(),
     shapeColors: shapeColorsSchema.optional(),
+    /** Shared rows — ONE count for every dimension. */
+    rows: rowsSchema.optional(),
+    /** Per dimension: variantId → elementId → offset. */
+    offsets: z.record(z.string(), offsetsSchema).optional(),
   })
   .strict();
 
@@ -108,6 +130,8 @@ const documentPageFillSchema = z
     inputs: z.record(z.string(), renderInputValueSchema).optional(),
     images: z.record(z.string(), renderImageValueSchema).optional(),
     shapeColors: shapeColorsSchema.optional(),
+    rows: rowsSchema.optional(),
+    offsets: offsetsSchema.optional(),
   })
   .strict();
 
@@ -163,6 +187,9 @@ const imageSlotStateSchema = z
   })
   .strict();
 
+/** Repeatable row id → shown rows. */
+const rowCountsSchema = z.record(z.string(), z.number().int().min(0).max(30));
+
 export const saveStateRequestSchema = z
   .object({
     matchId: z.string().min(1),
@@ -179,6 +206,10 @@ export const saveStateRequestSchema = z
           .optional(),
         /** Recolourable shapes: shape inputId → `#rrggbb` (shared by every dimension). */
         shapeColors: shapeColorsSchema.optional(),
+        /** Repeatable rows: row id → shown rows (one count for a group). */
+        rowCounts: rowCountsSchema.optional(),
+        /** Moved elements: variantId → elementId → offset. */
+        offsets: z.record(z.string(), offsetsSchema).optional(),
         /** Multi-page document fills: per-page state (pageId → …) + the shared text values. */
         document: z
           .object({
@@ -189,6 +220,8 @@ export const saveStateRequestSchema = z
                   formState: z.record(z.string(), inputFieldStateSchema),
                   imageState: z.record(z.string(), imageSlotStateSchema),
                   shapeColors: shapeColorsSchema.optional(),
+                  rowCounts: rowCountsSchema.optional(),
+                  offsets: offsetsSchema.optional(),
                 })
                 .strict()
             ),

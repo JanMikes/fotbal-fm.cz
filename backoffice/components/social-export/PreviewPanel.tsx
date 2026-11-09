@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Frame, Loader2, Download, ZoomIn, ZoomOut } from 'lucide-react';
+import { Frame, Loader2, Download, X, ZoomIn, ZoomOut } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Alert from '@/components/ui/Alert';
 import PlaceholderOverlay, { type ActivePlaceholder } from './PlaceholderOverlay';
@@ -11,6 +11,11 @@ import PlaceholderShapePanel from './PlaceholderShapePanel';
 import PlaceholderTextPanel from './PlaceholderTextPanel';
 import ImagePickerModal from './images/ImagePickerModal';
 import LayersPanel from './LayersPanel';
+import ContainerPanel, { type RowControls } from './ContainerPanel';
+import PositionFields from './PositionFields';
+import { containerLabelOf, containerSheets } from '@/lib/social-export/container-sheets';
+import { defaultRowCounts, inactiveRowIds } from '@/lib/social-export/repeatable-rows';
+import { deltas } from '@/lib/social-export/element-move';
 import { canvasToDisplay } from '@/lib/social-export/geometry';
 import { buildLayerRows } from '@/lib/social-export/layers';
 import {
@@ -21,7 +26,13 @@ import {
 } from '@/lib/social-export/field-rules-image';
 import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import { currentShapeColor, resolveShapeLabel, type ShapeColorState } from '@/lib/social-export/shape-colors';
-import type { ImageFrameDTO, TemplateVariantDTO } from '@/lib/social-export/api-types';
+import type {
+  ElementOffset,
+  ElementOffsets,
+  ImageFrameDTO,
+  TemplateVariantDTO,
+} from '@/lib/social-export/api-types';
+import type { DisplayRect } from '@/lib/social-export/geometry';
 import type { InputFieldState } from '@/lib/social-export/field-rules';
 import { boundShapeView, type SharedFieldRef } from '@/lib/social-export/document-fill';
 import type { MatchChip } from '@/lib/social-export/prefill';
@@ -71,6 +82,24 @@ interface PreviewPanelProps {
   sharedImageFields?: Record<string, SharedFieldRef>;
   /** Document pages: shapeId → the shared shape field that colours it. */
   sharedShapeFields?: Record<string, SharedFieldRef>;
+  /** Repeatable rows: counts + add / remove / reorder (absent = defaults, no controls). */
+  rowControls?: RowControls;
+  /** Moved elements of THIS variant + their edit callback. */
+  offsets?: ElementOffsets;
+  onOffsetChange?: (elementId: string, offset: ElementOffset | null) => void;
+  /** Group surfaces: a move applies to this dimension only (said in the Poloha panel). */
+  perDimensionMoves?: boolean;
+}
+
+const NO_OFFSETS: ElementOffsets = {};
+
+function unionRect(rects: DisplayRect[]): DisplayRect | null {
+  if (rects.length === 0) return null;
+  const left = Math.min(...rects.map((r) => r.left));
+  const top = Math.min(...rects.map((r) => r.top));
+  const right = Math.max(...rects.map((r) => r.left + r.width));
+  const bottom = Math.max(...rects.map((r) => r.top + r.height));
+  return { left, top, width: right - left, height: bottom - top };
 }
 
 const NEUTRAL = NEUTRAL_PLACEMENT;
@@ -119,7 +148,21 @@ export default function PreviewPanel({
   sharedTextFields,
   sharedImageFields,
   sharedShapeFields,
+  rowControls,
+  offsets = NO_OFFSETS,
+  onOffsetChange,
+  perDimensionMoves = false,
 }: PreviewPanelProps) {
+  // Unused repeatable-row slots are never drawn / listed.
+  const rowCounts = useMemo(
+    () => rowControls?.counts ?? defaultRowCounts(variant.repeatableRows),
+    [rowControls?.counts, variant.repeatableRows]
+  );
+  const inactiveIds = useMemo(() => inactiveRowIds(variant.repeatableRows, rowCounts), [variant.repeatableRows, rowCounts]);
+  // One box + one pencil per top-level container with ≥ 2 editable fields.
+  const sheets = useMemo(() => containerSheets(variant), [variant]);
+  const movables = variant.movableElements ?? [];
+  const moves = useMemo(() => deltas(variant.containers, offsets), [variant.containers, offsets]);
   // The rendered image's display rect (== the aspect-ratio box rect, no letterbox).
   const imgRef = useRef<HTMLImageElement>(null);
   const [stageSize, setStageSize] = useState<{ width: number; height: number } | null>(null);
@@ -165,7 +208,7 @@ export default function PreviewPanel({
   // panel, from which "Vyměnit obrázek" still reaches the gallery.
   const handleSelect = useCallback(
     (p: ActivePlaceholder) => {
-      if (p.kind === 'text' || p.kind === 'shape') {
+      if (p.kind === 'text' || p.kind === 'shape' || p.kind === 'container' || p.kind === 'move') {
         onSelect(p);
         return;
       }
@@ -188,6 +231,8 @@ export default function PreviewPanel({
     (p: ActivePlaceholder) => {
       if (p.kind === 'text') {
         onFormChange(p.id, { hidden: !(formState[p.id]?.hidden ?? false) });
+      } else if (p.kind === 'container') {
+        onFormChange(p.id, { value: '', hidden: !(formState[p.id]?.hidden ?? false) });
       } else if (p.kind === 'image') {
         onImageChange(p.id, { hidden: !(imageState[p.id]?.hidden ?? false) });
       }
@@ -197,8 +242,18 @@ export default function PreviewPanel({
 
   // Layers panel rows: every placeholder in canvas stacking order, topmost first.
   const layerRows = useMemo(
-    () => buildLayerRows(variant, formState, imageState),
-    [variant, formState, imageState]
+    () =>
+      buildLayerRows(
+        {
+          ...variant,
+          inputs: variant.inputs.filter((i) => !inactiveIds.has(i.id)),
+          imageInputs: variant.imageInputs.filter((i) => !inactiveIds.has(i.id)),
+          shapeInputs: (variant.shapeInputs ?? []).filter((s) => !inactiveIds.has(s.id)),
+        },
+        formState,
+        imageState
+      ),
+    [variant, formState, imageState, inactiveIds]
   );
 
   // The open text panel.
@@ -213,6 +268,44 @@ export default function PreviewPanel({
   const activeTextIndex = activeTextInput
     ? variant.inputs.findIndex((i) => i.id === activeTextInput.id)
     : -1;
+
+  // The open container sheet / Poloha panel, anchored to the union of its
+  // shown members' live boxes (or the moved element's own box).
+  const activeSheet = active?.kind === 'container' ? sheets.find((sheet) => sheet.id === active.id) ?? null : null;
+  const activeSheetIndex = activeSheet ? sheets.indexOf(activeSheet) : -1;
+  const activeMovable =
+    active?.kind === 'move' ? movables.find((m) => m.id === active.id && (m.vertical || m.horizontal)) ?? null : null;
+  const fieldDisplayRect = (id: string): DisplayRect | null => {
+      const text = variant.inputs.find((i) => i.id === id);
+      if (text?.frame) return canvasToDisplay(textFrames[id] ?? text.frame, scale);
+      const frame = variant.imageInputs.find((i) => i.id === id)?.frame ?? variant.shapeInputs?.find((s) => s.id === id)?.frame;
+      if (!frame) return null;
+      const d = moves[id];
+      return canvasToDisplay(d ? { ...frame, x: frame.x + d[0], y: frame.y + d[1] } : frame, scale);
+  };
+  // Cheap: recomputed per render (a memo would pin stale frames).
+  const groupAnchorRect = ((): DisplayRect | null => {
+    if (!overlayReady) return null;
+    if (activeSheet) {
+      return unionRect(
+        [...activeSheet.textIds, ...activeSheet.imageIds, ...activeSheet.shapeIds]
+          .filter((id) => !inactiveIds.has(id))
+          .map(fieldDisplayRect)
+          .filter((r): r is DisplayRect => r != null)
+      );
+    }
+    if (activeMovable) {
+      const sheet = sheets.find((s) => s.id === activeMovable.id);
+      const own = sheet
+        ? unionRect([...sheet.textIds, ...sheet.imageIds].filter((id) => !inactiveIds.has(id)).map(fieldDisplayRect).filter((r): r is DisplayRect => r != null))
+        : fieldDisplayRect(activeMovable.id);
+      if (own) return own;
+      if (!activeMovable.frame) return null;
+      const offset = offsets[activeMovable.id] ?? { x: 0, y: 0 };
+      return canvasToDisplay({ ...activeMovable.frame, x: activeMovable.frame.x + offset.x, y: activeMovable.frame.y + offset.y }, scale);
+    }
+    return null;
+  })();
 
   // Anchor rect for the open text panel, from its live frame.
   const anchorRect = useMemo(() => {
@@ -384,7 +477,80 @@ export default function PreviewPanel({
               overflowContainerId={overflowContainerId}
               textFrames={textFrames}
               hovered={hovered}
+              inactiveIds={inactiveIds}
+              sheets={sheets}
+              movables={movables}
+              offsets={offsets}
+              onOffsetChange={onOffsetChange}
             />
+          )}
+
+          {/* ONE panel for a whole container: its fields stacked, nested
+              containers / repeatable rows as sections. */}
+          {overlayReady && active && activeSheet && groupAnchorRect && stageSize && (
+            <FloatingPanel
+              key={`${active.kind}:${active.id}`}
+              anchorRect={groupAnchorRect}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              label={containerLabelOf(activeSheet, variant, activeSheetIndex)}
+              onClose={onCloseActive}
+            >
+              <ContainerPanel
+                variant={variant}
+                sheet={activeSheet}
+                label={containerLabelOf(activeSheet, variant, activeSheetIndex)}
+                inactiveIds={inactiveIds}
+                formState={formState}
+                onFormChange={onFormChange}
+                chips={chips}
+                richTextOptions={variant.richTextOptions}
+                imageState={imageState}
+                onImageChange={onImageChange}
+                onPickImage={(slotId) => setPickerImageId(slotId)}
+                shapeColors={shapeColors}
+                onShapeColorChange={onShapeColorChange}
+                rows={rowControls}
+                movable={movables.find((m) => m.id === activeSheet.id && (m.vertical || m.horizontal)) ?? null}
+                offset={offsets[activeSheet.id]}
+                onOffsetChange={onOffsetChange ? (offset) => onOffsetChange(activeSheet.id, offset) : undefined}
+                perDimensionMoves={perDimensionMoves}
+                onClose={onCloseActive}
+                sharedTextFields={sharedTextFields}
+                sharedImageFields={sharedImageFields}
+                sharedShapeFields={sharedShapeFields}
+              />
+            </FloatingPanel>
+          )}
+
+          {/* "Poloha" — the exact position of a movable element. */}
+          {overlayReady && active && activeMovable && groupAnchorRect && stageSize && onOffsetChange && (
+            <FloatingPanel
+              key={`${active.kind}:${active.id}`}
+              anchorRect={groupAnchorRect}
+              stageWidth={stageSize.width}
+              stageHeight={stageSize.height}
+              label={`Poloha: ${activeMovable.name ?? 'prvek'}`}
+              onClose={onCloseActive}
+            >
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <span className="text-sm font-semibold text-text-primary">Poloha: {activeMovable.name ?? 'prvek'}</span>
+                <button
+                  type="button"
+                  onClick={onCloseActive}
+                  aria-label="Zavřít"
+                  className="-mr-1 -mt-1 shrink-0 rounded-lg p-1 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <PositionFields
+                element={activeMovable}
+                offset={offsets[activeMovable.id] ?? { x: 0, y: 0 }}
+                onChange={(offset) => onOffsetChange(activeMovable.id, offset)}
+                perDimensionNote={perDimensionMoves}
+              />
+            </FloatingPanel>
           )}
 
           {/* Floating editing panel anchored to the active TEXT box. Keyed by the

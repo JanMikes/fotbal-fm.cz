@@ -48,6 +48,10 @@ export interface SavedExportState {
   dimensionImageStates?: Record<string, Record<string, StoredImageSlotState>>;
   /** Recolourable shapes: shapeId → `#rrggbb`, shared by every dimension. Absent on older records. */
   shapeColors?: Record<string, string>;
+  /** Repeatable rows: row container id → shown rows (one count for a group). Absent on older records. */
+  rowCounts?: Record<string, number>;
+  /** Moved elements per dimension: variantId → elementId → {x, y}. Absent on older records. */
+  offsets?: Record<string, Record<string, { x: number; y: number }>>;
   /**
    * A multi-page DOCUMENT fill (then `variantId` of the record holds the
    * document id and the single-surface `formState` / `imageState` stay empty):
@@ -61,6 +65,10 @@ export interface SavedDocumentPageState {
   formState: Record<string, InputFieldState>;
   imageState: Record<string, StoredImageSlotState>;
   shapeColors?: Record<string, string>;
+  /** The page's repeatable rows: row id → shown rows. */
+  rowCounts?: Record<string, number>;
+  /** The page's moved elements: elementId → {x, y}. */
+  offsets?: Record<string, { x: number; y: number }>;
 }
 
 /** The persisted fill of a multi-page document (see {@link SavedExportState.document}). */

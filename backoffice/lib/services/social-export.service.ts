@@ -16,194 +16,35 @@ import {
   type RenderMode,
   type WboostRenderedFile,
 } from '@/lib/infrastructure/wboost/client';
-import type {
-  WboostRawTemplate,
-  WboostRawVariant,
-  WboostRawInput,
-  WboostRawImageInput,
-  WboostRawGalleryImage,
-  WboostRawProjectFont,
-  WboostRawDocumentExportVersion,
-  WboostRawDocumentExportVersionDetail,
-  WboostRawExportVersion,
-  WboostRawExportVersionDetail,
-  WboostRawTemplateDocument,
-} from '@/lib/infrastructure/wboost/types';
+import type { WboostRawProjectFont } from '@/lib/infrastructure/wboost/types';
+import {
+  fontProxyPath,
+  mapDocument,
+  mapDocumentExportVersion,
+  mapDocumentExportVersionDetail,
+  mapExportVersion,
+  mapExportVersionDetail,
+  mapGalleryImage,
+  mapTemplate,
+} from './social-export.mappers';
+
+export { mapGalleryImage } from './social-export.mappers';
 import type {
   TemplateDTO,
-  TemplateVariantDTO,
-  TemplateInputDTO,
-  ImageInputDTO,
   GalleryImageDTO,
   RenderInputValue,
   RenderImageValue,
   RichTextFontOptionDTO,
   GroupPlacements,
+  ElementOffsets,
+  RenderRows,
   DocumentExportVersionDetailDTO,
-  DocumentExportVersionFillDTO,
   ExportVersionDTO,
   ExportVersionDetailDTO,
-  ExportVersionFillDTO,
   DocumentDTO,
   DocumentExportFormat,
   DocumentFillBody,
 } from '@/lib/social-export/api-types';
-
-// --------------------------------------------------------------------------
-// Mappers
-// --------------------------------------------------------------------------
-
-function mapInput(raw: WboostRawInput): TemplateInputDTO {
-  return {
-    id: raw.id,
-    name: raw.name,
-    maxLength: raw.maxLength,
-    locked: raw.locked,
-    uppercase: raw.uppercase,
-    description: raw.description,
-    hidable: raw.hidable,
-    // Absent on older payloads → null (falls back to the flat form).
-    frame: raw.frame ?? null,
-    containerId: raw.containerId ?? null,
-    textStyle: raw.textStyle ?? null,
-    richText: raw.richText ?? false,
-    // Font choice: absent on pre-choice payloads → no switch. Font file URLs
-    // go through the same-origin proxy (see richTextOptions below).
-    fontOptions: raw.fontOptions
-      ? raw.fontOptions.map((font) => ({
-          family: font.family,
-          fontName: font.fontName,
-          faceName: font.faceName,
-          weight: font.weight,
-          style: font.style,
-          url: fontProxyPath(font.family),
-        }))
-      : null,
-    // Colour allowlist: absent on older payloads → any colour (as before).
-    colorOptions: raw.colorOptions === undefined ? null : raw.colorOptions,
-    // Lists + sample: absent on pre-lists payloads → disabled/none.
-    lists: raw.lists ?? false,
-    listStyle: raw.listStyle
-      ? {
-          ...raw.listStyle,
-          // Absent before checkbox lists shipped → default drawn checkbox.
-          checkboxImageUrl: raw.listStyle.checkboxImageUrl ?? null,
-          checkboxCheckedImageUrl: raw.listStyle.checkboxCheckedImageUrl ?? null,
-        }
-      : null,
-    listCheckboxes: raw.listCheckboxes ?? false,
-    checklist: raw.checklist ?? null,
-    sampleValue: raw.sampleValue ?? null,
-    // Absent on older payloads → null (the layers panel sinks it to the end).
-    layerIndex: raw.layerIndex ?? null,
-  };
-}
-
-function mapImageInput(raw: WboostRawImageInput): ImageInputDTO {
-  return {
-    id: raw.id,
-    name: raw.name,
-    description: raw.description,
-    allowMove: raw.allowMove,
-    allowResize: raw.allowResize,
-    allowRotate: raw.allowRotate,
-    hidable: raw.hidable,
-    // Fallbacks cover older API payloads without the upload-target fields.
-    directories: raw.directories ?? [],
-    includesRoot: raw.includesRoot ?? false,
-    frame: raw.frame,
-    // Presigned store URL, loadable directly by the browser (not behind the
-    // OAuth firewall, unlike the variant thumbnail endpoint).
-    defaultImageUrl: raw.defaultImageUrl,
-    // Absent on older payloads → null (the layers panel sinks it to the end).
-    layerIndex: raw.layerIndex ?? null,
-    // Absent on older payloads → a regular (contain-fit) slot.
-    isBackground: raw.isBackground ?? false,
-  };
-}
-
-/** Map a gallery image; the `url` is a presigned store URL passed through as-is. */
-export function mapGalleryImage(raw: WboostRawGalleryImage): GalleryImageDTO {
-  return {
-    id: raw.id,
-    url: raw.url,
-    // Null = gallery root (the API omits null fields, so it may be absent).
-    directoryId: raw.directoryId ?? null,
-    directoryName: raw.directoryName ?? null,
-    uploadedAt: raw.uploadedAt ?? null,
-  };
-}
-
-function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): TemplateVariantDTO {
-  const hasThumbnailSource = raw.previewImageUrl != null || raw.backgroundImageUrl != null;
-  const thumbnailUrl =
-    thumbnailsEnabled && hasThumbnailSource
-      ? `/api/social-export/thumbnail?variantId=${raw.id}`
-      : null;
-
-  return {
-    id: raw.id,
-    dimension: raw.dimension,
-    width: raw.width,
-    height: raw.height,
-    // Absent on older payloads → null (same as print / free-form variants).
-    preset: raw.preset ?? null,
-    thumbnailUrl,
-    hasDefaultPreview: raw.previewImageUrl != null,
-    inputs: raw.inputs.map(mapInput),
-    imageInputs: (raw.imageInputs ?? []).map(mapImageInput),
-    // Absent on older payloads → nothing recolourable.
-    shapeInputs: (raw.shapeInputs ?? []).map((shape) => ({
-      id: shape.id,
-      name: shape.name ?? null,
-      target: shape.target,
-      defaultColor: shape.defaultColor,
-      colorOptions: shape.colorOptions,
-      freeColor: shape.freeColor,
-      frame: shape.frame ?? null,
-      layerIndex: shape.layerIndex ?? null,
-    })),
-    // Absent on older payloads → no containers.
-    containers: (raw.containers ?? []).map((container) => ({
-      id: container.id,
-      maxHeight: container.maxHeight,
-      y: container.y,
-      memberInputIds: container.memberInputIds,
-      // Absent on pre-nesting API deploys → flat container, designed gaps.
-      memberContainerIds: container.memberContainerIds ?? [],
-      gap: container.gap ?? null,
-      spaceAfter: container.spaceAfter ?? null,
-      nested: container.nested ?? false,
-      // Whole-container hide (2026-11): without these the toggles never
-      // appear. Absent on older deploys → not hidable, unnamed.
-      hidable: container.hidable === true,
-      name: container.name ?? null,
-      memberImageInputIds: container.memberImageInputIds ?? [],
-    })),
-    // Rich-text toolbar data. Font file URLs point at the store host (may be
-    // `localhost` in dev) → rewrite to the same-origin font proxy so the
-    // browser can @font-face them (fonts hard-require CORS, images don't).
-    richTextOptions: raw.richTextOptions
-      ? {
-          fonts: raw.richTextOptions.fonts.map((font) => ({
-            family: font.family,
-            fontName: font.fontName,
-            faceName: font.faceName,
-            weight: font.weight,
-            style: font.style,
-            url: fontProxyPath(font.family),
-          })),
-          colors: raw.richTextOptions.colors,
-        }
-      : null,
-    groupMember: raw.groupMember === true,
-  };
-}
-
-/** Same-origin proxy path for one font face (keyed by the Fabric family string). */
-function fontProxyPath(family: string): string {
-  return `/api/social-export/font?family=${encodeURIComponent(family)}`;
-}
 
 /**
  * Make a WBoost store URL fetchable from THIS container. In dev the store URL
@@ -225,139 +66,12 @@ function reachableStoreUrl(url: string, apiBase: string): string {
   }
 }
 
-function mapTemplate(raw: WboostRawTemplate, thumbnailsEnabled: boolean): TemplateDTO {
-  return {
-    id: raw.id,
-    name: raw.name,
-    position: raw.position,
-    categoryId: raw.categoryId,
-    categoryName: raw.categoryName,
-    variants: raw.variants.map((v) => mapVariant(v, thumbnailsEnabled)),
-    group: raw.group ? { id: raw.group.id, name: raw.group.name } : null,
-    // Absent on pre-documents deploys → an ordinary template.
-    document: raw.document
-      ? {
-          id: raw.document.id,
-          name: raw.document.name,
-          position: raw.document.position,
-          pageId: raw.document.pageId,
-        }
-      : null,
-  };
-}
-
-function mapDocument(raw: WboostRawTemplateDocument, thumbnailsEnabled: boolean): DocumentDTO {
-  const pages = raw.pages
-    .slice()
-    .sort((a, b) => a.position - b.position)
-    .map((page) => ({
-      id: page.id,
-      position: page.position,
-      templateId: page.templateId,
-      templateName: page.templateName,
-      variant: mapVariant(page.variant, thumbnailsEnabled),
-    }));
-
-  return {
-    id: raw.id,
-    name: raw.name,
-    position: raw.position,
-    categoryId: raw.categoryId,
-    categoryName: raw.categoryName,
-    dimension: raw.dimension,
-    width: raw.width,
-    height: raw.height,
-    printFormat: raw.printFormat === true,
-    pages,
-    fields: (raw.fields ?? []).map((field) => ({
-      id: field.id,
-      name: field.name,
-      kind: field.kind,
-      // `valid: false` = the input was deleted from its page: never fill it.
-      bindings: field.bindings
-        .filter((binding) => binding.valid)
-        .map((binding) => ({ pageId: binding.pageId, inputId: binding.inputId })),
-      maxLength: field.maxLength ?? null,
-      richText: field.richText === true,
-      // Older deploys: no textMode — rich when every bound input is.
-      textMode: field.textMode ?? (field.richText === true ? 'rich' : 'plain'),
-      hidable: field.hidable === true,
-      allowedDirectoryIds: Array.isArray(field.allowedDirectoryIds) ? field.allowedDirectoryIds : null,
-    })),
-  };
-}
-
 function thumbnailsEnabledOrFalse(): boolean {
   try {
     return getWboostConfig().thumbnailsEnabled;
   } catch {
     return false;
   }
-}
-
-function mapExportVersion(raw: WboostRawExportVersion): ExportVersionDTO {
-  return {
-    id: raw.id,
-    subject: raw.subject,
-    groupId: raw.groupId,
-    variantId: raw.variantId,
-    name: raw.name,
-    pinned: raw.pinned,
-    pinnedAt: raw.pinnedAt,
-    createdAt: raw.createdAt,
-    lastExportedAt: raw.lastExportedAt,
-    exportCount: raw.exportCount,
-    channel: raw.channel,
-    summary: raw.summary,
-  };
-}
-
-function mapDocumentExportVersion(raw: WboostRawDocumentExportVersion): ExportVersionDTO {
-  return {
-    id: raw.id,
-    subject: 'document',
-    groupId: null,
-    variantId: null,
-    documentId: raw.documentId,
-    draft: raw.draft === true,
-    name: raw.name,
-    pinned: raw.pinned,
-    pinnedAt: raw.pinnedAt,
-    createdAt: raw.createdAt,
-    lastExportedAt: raw.lastExportedAt,
-    exportCount: raw.exportCount,
-    channel: raw.channel,
-    summary: raw.summary,
-  };
-}
-
-function mapDocumentExportVersionDetail(raw: WboostRawDocumentExportVersionDetail): DocumentExportVersionDetailDTO {
-  const pages: DocumentExportVersionFillDTO['pages'] = {};
-  for (const [pageId, page] of Object.entries(raw.fill?.pages ?? {})) {
-    pages[pageId] = {
-      inputs: (page?.inputs ?? {}) as DocumentExportVersionFillDTO['pages'][string]['inputs'],
-      images: (page?.images ?? {}) as DocumentExportVersionFillDTO['pages'][string]['images'],
-      shapeColors: page?.shapeColors ?? {},
-    };
-  }
-  return {
-    ...mapDocumentExportVersion(raw),
-    fill: { fields: (raw.fill?.fields ?? {}) as DocumentExportVersionFillDTO['fields'], pages },
-  };
-}
-
-function mapExportVersionDetail(raw: WboostRawExportVersionDetail): ExportVersionDetailDTO {
-  return {
-    ...mapExportVersion(raw),
-    // The fill is already in the render request shape; its image `url`s are
-    // public store URLs the browser loads directly (like gallery images).
-    fill: {
-      inputs: (raw.fill?.inputs ?? {}) as ExportVersionFillDTO['inputs'],
-      images: (raw.fill?.images ?? {}) as ExportVersionFillDTO['images'],
-      placements: (raw.fill?.placements ?? {}) as GroupPlacements,
-      shapeColors: raw.fill?.shapeColors ?? {},
-    },
-  };
 }
 
 // --------------------------------------------------------------------------
@@ -452,10 +166,11 @@ export class SocialExportService {
     inputs: Record<string, RenderInputValue>,
     images: Record<string, RenderImageValue> | undefined,
     mode: RenderMode,
-    shapeColors?: Record<string, string>
+    shapeColors?: Record<string, string>,
+    extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
   ): Promise<Result<WboostRenderedFile, AppError>> {
     return this.attempt('renderVariant', () =>
-      this.client.renderVariant(variantId, inputs, images, mode, shapeColors)
+      this.client.renderVariant(variantId, inputs, images, mode, shapeColors, extras)
     );
   }
 
@@ -468,6 +183,8 @@ export class SocialExportService {
       images?: Record<string, RenderImageValue>;
       placements?: GroupPlacements;
       shapeColors?: Record<string, string>;
+      rows?: RenderRows;
+      offsets?: Record<string, ElementOffsets>;
     },
     mode: RenderMode
   ): Promise<Result<WboostRenderedFile, AppError>> {

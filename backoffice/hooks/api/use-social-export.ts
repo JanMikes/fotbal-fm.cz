@@ -18,6 +18,8 @@ import {
   ExportVersionDetailDTO,
   DocumentDTO,
   DocumentRenderRequest,
+  ElementOffsets,
+  RenderRows,
 } from '@/lib/social-export/api-types';
 import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
 import { decodeExportFilenameHeader } from '@/lib/social-export/download-filename';
@@ -214,13 +216,16 @@ export function renderVariant(
   inputs: Record<string, RenderInputValue>,
   images: Record<string, RenderImageValue> | undefined,
   mode: RenderMode,
-  shapeColors?: Record<string, string>
+  shapeColors?: Record<string, string>,
+  extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
 ): Promise<RenderResult> {
   return postRender('render', {
     variantId,
     inputs,
     ...(images && Object.keys(images).length > 0 ? { images } : {}),
     ...(shapeColors && Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
+    ...(extras.rows && Object.keys(extras.rows).length > 0 ? { rows: extras.rows } : {}),
+    ...(extras.offsets && Object.keys(extras.offsets).length > 0 ? { offsets: extras.offsets } : {}),
     mode,
   });
 }

@@ -150,3 +150,45 @@ describe('documentRenderRequestSchema', () => {
     ).toBe(false);
   });
 });
+
+describe('rows + offsets (WBoost 2026-11)', () => {
+  it('pass through the variant, group and document bodies', () => {
+    const rows = { r: [{ m: '4 - 4', crest: { imageId: 'i', scale: 1.2 }, band: '#c8102e' }, {}, { m: { hide: true } }] };
+    const variant = renderRequestSchema.parse({ variantId: 'v', inputs: {}, rows, offsets: { t: { x: 0, y: 12.5 } } });
+    expect(variant.rows).toEqual(rows);
+    expect(variant.offsets).toEqual({ t: { x: 0, y: 12.5 } });
+
+    const group = groupRenderRequestSchema.parse({ groupId: 'g', inputs: {}, rows, offsets: { v1: { t: { x: 1, y: 2 } } } });
+    expect(group.offsets).toEqual({ v1: { t: { x: 1, y: 2 } } });
+
+    const doc = documentRenderRequestSchema.parse({
+      documentId: 'd',
+      mode: 'export',
+      fields: {},
+      pages: { p: { rows, offsets: { t: { x: 3, y: 4 } } } },
+    });
+    expect(doc.pages.p.rows).toEqual(rows);
+  });
+
+  it('refuses a malformed offset', () => {
+    expect(renderRequestSchema.safeParse({ variantId: 'v', inputs: {}, offsets: { t: { x: 1 } } }).success).toBe(false);
+    expect(renderRequestSchema.safeParse({ variantId: 'v', inputs: {}, offsets: { t: { x: 1, y: 2, z: 3 } } }).success).toBe(false);
+  });
+
+  it('persist row counts + offsets in the saved state (surface and document page)', () => {
+    const parsed = saveStateRequestSchema.parse({
+      matchId: 'm',
+      templateId: 't',
+      variantId: 'v',
+      state: {
+        formState: {},
+        imageState: {},
+        rowCounts: { r: 3 },
+        offsets: { v: { t: { x: 0, y: 5 } } },
+        document: { pages: { p: { formState: {}, imageState: {}, rowCounts: { r: 1 }, offsets: { t: { x: 1, y: 1 } } } }, sharedText: {} },
+      },
+    });
+    expect(parsed.state.rowCounts).toEqual({ r: 3 });
+    expect(parsed.state.document?.pages.p.offsets).toEqual({ t: { x: 1, y: 1 } });
+  });
+});

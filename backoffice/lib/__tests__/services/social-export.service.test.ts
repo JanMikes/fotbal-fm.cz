@@ -334,6 +334,7 @@ describe('SocialExportService', () => {
           hidable: false,
           name: null,
           memberImageInputIds: [],
+          repeat: null,
         },
       ]);
 
@@ -633,11 +634,15 @@ describe('SocialExportService', () => {
       const images = { slot1: 'img-9', slot2: { imageId: 'img-3', scale: 1.4 } };
       await service.renderVariant('v1', { inp: 'val' }, images, 'preview');
 
-      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images, 'preview', undefined);
+      expect(renderVariant).toHaveBeenCalledWith('v1', { inp: 'val' }, images, 'preview', undefined, {});
 
       await service.renderVariant('v1', { inp: 'val' }, undefined, 'export', { 'shape-1': '#c8102e' });
 
-      expect(renderVariant).toHaveBeenLastCalledWith('v1', { inp: 'val' }, undefined, 'export', { 'shape-1': '#c8102e' });
+      expect(renderVariant).toHaveBeenLastCalledWith('v1', { inp: 'val' }, undefined, 'export', { 'shape-1': '#c8102e' }, {});
+
+      const extras = { rows: { r: [{}] }, offsets: { t: { x: 0, y: 4 } } };
+      await service.renderVariant('v1', {}, undefined, 'preview', undefined, extras);
+      expect(renderVariant).toHaveBeenLastCalledWith('v1', {}, undefined, 'preview', undefined, extras);
     });
 
     it('propagates AppError from client', async () => {
@@ -816,7 +821,7 @@ describe('SocialExportService', () => {
 
       expect(list.success && list.data[0]).toEqual(raw);
       // A fill without shapeColors (older WBoost) still maps to the full DTO.
-      expect(detail.success && detail.data.fill).toEqual({ inputs: { t: 'x' }, images: {}, placements: {}, shapeColors: {} });
+      expect(detail.success && detail.data.fill).toEqual({ inputs: { t: 'x' }, images: {}, placements: {}, shapeColors: {}, rows: {}, offsets: {} });
     });
   });
 

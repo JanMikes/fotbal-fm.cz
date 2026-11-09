@@ -32,6 +32,7 @@
  */
 
 import type {
+  ElementOffsets,
   ImageFrameDTO,
   ListLineType,
   ListStyleDTO,
@@ -45,6 +46,7 @@ import { effectiveLines, type InputFieldState } from './field-rules';
 import { fitLines } from './list-lines';
 import { isStyled, plainText, truncateRuns } from './rich-text';
 import { containerHiddenInputIds } from './container-hides';
+import { deltas } from './element-move';
 
 /** Fabric's Text._fontSizeMult — part of every line's height. */
 const FONT_SIZE_MULT = 1.13;
@@ -502,6 +504,40 @@ function measuredHeight(
   return measure(value, input.frame.width, input.textStyle);
 }
 
+/** Extra inputs of {@link computeTextLayout}. */
+export interface TextLayoutOptions {
+  /** Text ids treated as hidden regardless of their state (unused row slots). */
+  hiddenIds?: ReadonlySet<string>;
+  /** Moved elements of THIS variant (already clamped). */
+  offsets?: ElementOffsets | null;
+}
+
+/**
+ * The variant with its moved elements baked into the designed frames
+ * (texts, image slots, shapes; a container key moves its whole tree). The
+ * same deltas WBoost's render applies.
+ */
+export function applyOffsetsToVariant(
+  variant: TemplateVariantDTO,
+  offsets: ElementOffsets | null | undefined
+): TemplateVariantDTO {
+  if (!offsets || Object.keys(offsets).length === 0) return variant;
+  const moves = deltas(variant.containers, offsets);
+  if (Object.keys(moves).length === 0) return variant;
+  const shift = <T extends { id: string; frame: ImageFrameDTO | null }>(field: T): T => {
+    const delta = moves[field.id];
+    return delta && field.frame
+      ? { ...field, frame: { ...field.frame, x: field.frame.x + delta[0], y: field.frame.y + delta[1] } }
+      : field;
+  };
+  return {
+    ...variant,
+    inputs: variant.inputs.map(shift),
+    imageInputs: variant.imageInputs.map(shift),
+    shapeInputs: (variant.shapeInputs ?? []).map(shift),
+  };
+}
+
 /** One container whose predicted flow exceeds its maxHeight. */
 export interface PredictedOverflow {
   containerId: string;
@@ -527,16 +563,25 @@ export interface TextLayoutResult {
  * when no canvas context is available.
  */
 export function computeTextLayout(
-  variant: TemplateVariantDTO,
+  designedVariant: TemplateVariantDTO,
   state: Record<string, InputFieldState>,
-  measure: MeasureTextHeight = measureWrappedTextHeight
+  measure: MeasureTextHeight = measureWrappedTextHeight,
+  options: TextLayoutOptions = {}
 ): TextLayoutResult {
+  // Moved elements are BAKED into the designed geometry before the reflow —
+  // WBoost's own order (expand rows, bake offsets, then lay out): a moved
+  // top-level container anchors lower / pushes siblings / overflows the page.
+  const variant = applyOffsetsToVariant(designedVariant, options.offsets);
   const frames: Record<string, ImageFrameDTO> = {};
   const overflows: PredictedOverflow[] = [];
   const inputById = new Map(variant.inputs.map((input) => [input.id, input]));
   // A switched-off hidable container hides its whole tree — its members
-  // collapse exactly like hidden members (the render's expansion).
-  const containerHidden = containerHiddenInputIds(variant.containers, state);
+  // collapse exactly like hidden members (the render's expansion). Unused
+  // repeatable-row slots (`hiddenIds`) collapse the same way.
+  const containerHidden = new Set([
+    ...containerHiddenInputIds(variant.containers, state),
+    ...(options.hiddenIds ?? []),
+  ]);
 
   for (const input of variant.inputs) {
     if (!input.frame) continue;

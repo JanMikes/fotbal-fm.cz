@@ -27,9 +27,19 @@ import type {
   DocumentDTO,
   DocumentExportFormat,
   DocumentFieldDTO,
+  ElementOffset,
   ExportVersionDTO,
   RenderErrorDetails,
 } from '@/lib/social-export/api-types';
+import {
+  applyRowPlan,
+  clampRowCount,
+  defaultRowCounts,
+  inactiveRowIds,
+  planRowAction,
+  rootOf,
+  type RowAction,
+} from '@/lib/social-export/repeatable-rows';
 import {
   applySavedDocument,
   applySharedImage,
@@ -58,7 +68,7 @@ import {
   type SharedTextValues,
 } from '@/lib/social-export/document-fill';
 import { extractMatchPrefill, getMatchChips, matchValueForName } from '@/lib/social-export/prefill';
-import { isEditable, validateInputValue, type InputFieldState } from '@/lib/social-export/field-rules';
+import { initialFieldState, isEditable, validateInputValue, type InputFieldState } from '@/lib/social-export/field-rules';
 import { defaultImageSlotState, type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import { computeTextLayout } from '@/lib/social-export/text-layout';
 import { useWboostFonts } from '@/lib/social-export/use-wboost-fonts';
@@ -195,10 +205,31 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   // Live text frames + predicted container overflow, per page (see the
   // single-variant editor: trustworthy only once the real fonts are loaded).
   const { fontsReady } = useWboostFonts();
+  // Per page: the shown row counts and the ids of the unused row slots.
+  const pageRowCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        pages.map((p) => [p.id, fill.rowCounts?.[p.id] ?? defaultRowCounts(p.variant.repeatableRows)])
+      ) as Record<string, Record<string, number>>,
+    [pages, fill.rowCounts]
+  );
+  const pageInactiveIds = useMemo(
+    () => Object.fromEntries(pages.map((p) => [p.id, inactiveRowIds(p.variant.repeatableRows, pageRowCounts[p.id])])),
+    [pages, pageRowCounts]
+  );
   const textLayouts = useMemo(
-    () => Object.fromEntries(pages.map((p) => [p.id, computeTextLayout(p.variant, fill.forms[p.id] ?? {})])),
+    () =>
+      Object.fromEntries(
+        pages.map((p) => [
+          p.id,
+          computeTextLayout(p.variant, fill.forms[p.id] ?? {}, undefined, {
+            hiddenIds: pageInactiveIds[p.id],
+            offsets: fill.offsets?.[p.id],
+          }),
+        ])
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pages, fill.forms, fontsReady]
+    [pages, fill.forms, fill.offsets, pageInactiveIds, fontsReady]
   );
   const predictedOverflows = useMemo(() => {
     const result: Record<string, { containerId: string; overflowPx: number }> = {};
@@ -215,12 +246,15 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     for (const page of pages) {
       const form = fill.forms[page.id] ?? {};
       const bad = page.variant.inputs.some(
-        (input) => isEditable(input) && validateInputValue(input, form[input.id]?.value ?? '') !== null
+        (input) =>
+          isEditable(input) &&
+          !pageInactiveIds[page.id]?.has(input.id) &&
+          validateInputValue(input, form[input.id]?.value ?? '') !== null
       );
       if (bad) ids.add(page.id);
     }
     return ids;
-  }, [pages, fill.forms]);
+  }, [pages, fill.forms, pageInactiveIds]);
   // The shared text fields as template inputs (editor, validation, render value).
   const sharedInputs = useMemo(
     () => textFields.map((f) => sharedFieldInput(document, f)).filter((i): i is NonNullable<typeof i> => i != null),
@@ -430,6 +464,62 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     [activePage, document, markEdited]
   );
 
+  /** A repeatable-row action on the ACTIVE page (rows are per page, never shared). */
+  const handleRowAction = useCallback(
+    (rowId: string, action: RowAction, slot: number | null) => {
+      if (!activePage) return;
+      const pageId = activePage.id;
+      const row = (activePage.variant.repeatableRows ?? []).find((r) => r.containerId === rowId);
+      if (!row) return;
+      const count = clampRowCount(row, pageRowCounts[pageId]?.[rowId] ?? row.repeat.default);
+      const plan = planRowAction(row, count, action, slot);
+      if (!plan) return;
+      setFill((prev) => {
+        const next = applyRowPlan(
+          {
+            formState: prev.forms[pageId] ?? {},
+            imageStates: { [pageId]: prev.images[pageId] ?? {} },
+            shapeColors: prev.shapeColors[pageId] ?? {},
+          },
+          row,
+          plan,
+          {
+            text: (memberId) => {
+              const input = activePage.variant.inputs.find((i) => i.id === memberId);
+              return input ? initialFieldState(input) : { value: '', hidden: false };
+            },
+          }
+        );
+        return {
+          ...prev,
+          forms: { ...prev.forms, [pageId]: next.formState },
+          images: { ...prev.images, [pageId]: next.imageStates[pageId] ?? {} },
+          shapeColors: { ...prev.shapeColors, [pageId]: next.shapeColors },
+          rowCounts: { ...(prev.rowCounts ?? {}), [pageId]: { ...(pageRowCounts[pageId] ?? {}), [rowId]: plan.count } },
+        };
+      });
+      setFailure(null);
+      markEdited([pageId]);
+    },
+    [activePage, pageRowCounts, markEdited]
+  );
+
+  /** Move an element on the ACTIVE page (null = back to its designed spot). */
+  const handleOffsetChange = useCallback(
+    (elementId: string, offset: ElementOffset | null) => {
+      if (!activePage) return;
+      const pageId = activePage.id;
+      setFill((prev) => {
+        const page = { ...(prev.offsets?.[pageId] ?? {}) };
+        if (offset && (offset.x !== 0 || offset.y !== 0)) page[elementId] = offset;
+        else delete page[elementId];
+        return { ...prev, offsets: { ...(prev.offsets ?? {}), [pageId]: page } };
+      });
+      markEdited([pageId]);
+    },
+    [activePage, markEdited]
+  );
+
   /** The shared shape field's own pick (null = every page's designed colour). */
   const setSharedShape = useCallback(
     (field: DocumentFieldDTO, color: string | null) => {
@@ -459,10 +549,18 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     if (details.pageId && pages.some((p) => p.id === details.pageId)) {
       setActivePageId(details.pageId);
     }
+    // A value refused inside `rows` names the TEMPLATE member: open its slot.
+    const page = pages.find((p) => p.id === details.pageId) ?? activePage;
+    const rowSlotId = (memberId: string) => {
+      const row = page?.variant.repeatableRows?.find((r) => r.containerId === details.rowContainerId);
+      return row?.slots.find((s) => s.index === details.rowIndex)?.ids[memberId] ?? memberId;
+    };
     if (details.inputId) {
-      setActivePlaceholder({ kind: 'text', id: details.inputId });
+      setActivePlaceholder({ kind: 'text', id: rowSlotId(details.inputId) });
     } else if (details.shapeInputId) {
-      setActivePlaceholder({ kind: 'shape', id: details.shapeInputId });
+      setActivePlaceholder({ kind: 'shape', id: rowSlotId(details.shapeInputId) });
+    } else if (details.elementId) {
+      setActivePlaceholder({ kind: 'move', id: details.elementId });
     }
   }
 
@@ -606,7 +704,18 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   const failedOnActive =
     renderErrorDetails?.code === 'container_overflow' &&
     (renderErrorDetails.pageId ?? activePage.id) === activePage.id;
-  const unplacedInputs = activePage.variant.inputs.filter((input) => isEditable(input) && !input.frame);
+  const unplacedInputs = activePage.variant.inputs.filter(
+    (input) => isEditable(input) && !input.frame && !pageInactiveIds[activePage.id]?.has(input.id)
+  );
+  // "+ Přidat řádek" waits while the row's container overflows (predicted or reported).
+  const rowAddBlockedReason = (rowId: string): string | null => {
+    const root = rootOf(activePage.variant.containers, rowId)?.id;
+    if (!root) return null;
+    const failed = failedOnActive && renderErrorDetails?.containerId === root;
+    return failed || activeOverflow?.containerId === root
+      ? 'Řádky se už nevejdou — zkraťte texty nebo řádek odeberte'
+      : null;
+  };
   const errorPage =
     renderErrorDetails?.pageId && renderErrorDetails.pageId !== activePage.id
       ? pages.findIndex((p) => p.id === renderErrorDetails.pageId)
@@ -857,11 +966,23 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         sharedTextFields={activeSharedText}
         sharedImageFields={activeSharedImages}
         sharedShapeFields={activeSharedShapes}
+        rowControls={
+          (activePage.variant.repeatableRows ?? []).length > 0
+            ? {
+                counts: pageRowCounts[activePage.id] ?? {},
+                onAction: handleRowAction,
+                addBlockedReason: rowAddBlockedReason,
+                fitsRows: (rowId) => activePage.variant.repeatableRows?.find((r) => r.containerId === rowId)?.fitsRows ?? null,
+              }
+            : undefined
+        }
+        offsets={fill.offsets?.[activePage.id]}
+        onOffsetChange={handleOffsetChange}
       />
 
       {/* Whole-container hides of the active page (per page, never shared). */}
       <ContainerHideToggles
-        containers={hidableContainers(activePage.variant.containers)}
+        containers={hidableContainers(activePage.variant.containers).filter((container) => !container.rowSlot)}
         state={fill.forms[activePage.id] ?? {}}
         onChange={handleFormChange}
       />

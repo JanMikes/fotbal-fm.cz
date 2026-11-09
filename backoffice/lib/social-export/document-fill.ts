@@ -16,6 +16,7 @@
  */
 
 import type {
+  ElementOffsets,
   DocumentDTO,
   DocumentFieldDTO,
   ImageInputDTO,
@@ -30,11 +31,13 @@ import type {
   DocumentPageFill,
 } from './api-types';
 import { buildRenderInputs, initialFieldState, type InputFieldState } from './field-rules';
-import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from './field-rules-image';
+import { defaultImageSlotState, type ImageSlotState } from './field-rules-image';
 import { fillToEditorState, inputValueToState } from './group-fill';
 import { NEUTRAL_PLACEMENT } from './image-placement';
 import { applySavedForm, applySavedImages, type SavedDocumentState } from './saved-state';
 import { normalizeHexColor, sanitizeShapeColors, type ShapeColorState } from './shape-colors';
+import { defaultRowCounts } from './repeatable-rows';
+import { buildVariantRenderBody, restoreRowsAndOffsets } from './render-body';
 
 /** pageId → inputId → field state. */
 export type PageForms = Record<string, Record<string, InputFieldState>>;
@@ -57,6 +60,10 @@ export interface DocumentFillState {
    * own / designed colour). Mirrored into the bound shapes' `shapeColors`.
    */
   sharedShapes: Record<string, string>;
+  /** pageId → repeatable row id → shown rows (never shared). Absent = defaults. */
+  rowCounts?: Record<string, Record<string, number>>;
+  /** pageId → elementId → offset (never shared). Absent = nothing moved. */
+  offsets?: Record<string, ElementOffsets>;
 }
 
 /**
@@ -70,8 +77,10 @@ export function initDocumentFill(
   const forms: PageForms = {};
   const images: PageImages = {};
   const shapeColors: PageShapeColors = {};
+  const rowCounts: Record<string, Record<string, number>> = {};
 
   for (const page of document.pages) {
+    rowCounts[page.id] = defaultRowCounts(page.variant.repeatableRows);
     const prefill = prefillFor(page);
     forms[page.id] = Object.fromEntries(
       page.variant.inputs.map((input) => [input.id, initialFieldState(input, prefill[input.id])])
@@ -82,7 +91,7 @@ export function initDocumentFill(
     shapeColors[page.id] = {};
   }
 
-  return { forms, images, shapeColors, sharedShapes: {} };
+  return { forms, images, shapeColors, sharedShapes: {}, rowCounts, offsets: {} };
 }
 
 /**
@@ -259,9 +268,22 @@ export function applySavedDocument(
   const forms: PageForms = { ...base.forms };
   const images: PageImages = { ...base.images };
   const shapeColors: PageShapeColors = { ...base.shapeColors };
+  const rowCounts: Record<string, Record<string, number>> = { ...(base.rowCounts ?? {}) };
+  const offsets: Record<string, ElementOffsets> = { ...(base.offsets ?? {}) };
   for (const page of document.pages) {
     const savedPage = saved.pages[page.id];
     if (!savedPage) continue;
+    const restored = restoreRowsAndOffsets([page.variant], {
+      formState: savedPage.formState,
+      imageKeys: Object.keys(savedPage.imageState ?? {}),
+      shapeColors: savedPage.shapeColors,
+      rowCounts: savedPage.rowCounts,
+      offsets: savedPage.offsets ? { [page.variant.id]: savedPage.offsets } : null,
+    });
+    rowCounts[page.id] = restored.rowCounts;
+    const pageOffsets = restored.offsets[page.variant.id];
+    if (pageOffsets) offsets[page.id] = pageOffsets;
+    else delete offsets[page.id];
     forms[page.id] = applySavedForm(page.variant.inputs, base.forms[page.id] ?? {}, savedPage.formState, page.variant.containers);
     images[page.id] = applySavedImages(page.variant.imageInputs, base.images[page.id] ?? {}, savedPage.imageState);
     shapeColors[page.id] = sanitizeShapeColors(page.variant.shapeInputs, savedPage.shapeColors);
@@ -279,7 +301,14 @@ export function applySavedDocument(
     if (restored) sharedText[field.id] = restored;
   }
 
-  let fill: DocumentFillState = { forms: applySharedTexts(document, forms, sharedText), images, shapeColors, sharedShapes: {} };
+  let fill: DocumentFillState = {
+    forms: applySharedTexts(document, forms, sharedText),
+    images,
+    shapeColors,
+    sharedShapes: {},
+    rowCounts,
+    offsets,
+  };
   for (const field of document.fields) {
     if (field.kind !== 'shape') continue;
     const color = sanitizeSharedShapeColor(document, field, saved.sharedShapes?.[field.id]);
@@ -306,10 +335,20 @@ export function documentFillFromVersion(
     const entry = version.pages?.[page.id];
     if (!entry) continue;
     const loaded = fillToEditorState(
-      { inputs: entry.inputs ?? {}, images: entry.images ?? {}, placements: {}, shapeColors: entry.shapeColors ?? {} },
+      {
+        inputs: entry.inputs ?? {},
+        images: entry.images ?? {},
+        placements: {},
+        shapeColors: entry.shapeColors ?? {},
+        rows: entry.rows ?? {},
+        offsets: entry.offsets ?? {},
+      },
       [page.variant]
     );
     fill.forms[page.id] = loaded.formState;
+    fill.rowCounts = { ...(fill.rowCounts ?? {}), [page.id]: loaded.rowCounts };
+    const pageOffsets = loaded.offsets[page.variant.id];
+    if (pageOffsets) fill.offsets = { ...(fill.offsets ?? {}), [page.id]: pageOffsets };
     fill.images[page.id] = loaded.imageStates[page.variant.id] ?? fill.images[page.id];
     fill.shapeColors[page.id] = loaded.shapeColors;
   }
@@ -340,10 +379,14 @@ export function toSavedDocument(state: DocumentFillState, sharedText: SharedText
   const pages: SavedDocumentState['pages'] = {};
   for (const pageId of Object.keys(state.forms)) {
     const colors = state.shapeColors[pageId] ?? {};
+    const counts = state.rowCounts?.[pageId] ?? {};
+    const moved = state.offsets?.[pageId] ?? {};
     pages[pageId] = {
       formState: state.forms[pageId] ?? {},
       imageState: state.images[pageId] ?? {},
       ...(Object.keys(colors).length > 0 ? { shapeColors: colors } : {}),
+      ...(Object.keys(counts).length > 0 ? { rowCounts: counts } : {}),
+      ...(Object.keys(moved).length > 0 ? { offsets: moved } : {}),
     };
   }
   return {
@@ -593,16 +636,24 @@ export function buildPageFill(
   page: DocumentPageDTO,
   form: Record<string, InputFieldState> | undefined,
   images: Record<string, ImageSlotState> | undefined,
-  shapeColors: ShapeColorState | undefined
+  shapeColors: ShapeColorState | undefined,
+  rowCounts?: Record<string, number>,
+  offsets?: ElementOffsets
 ): DocumentPageFill {
   const fill: DocumentPageFill = {};
-  const inputs = buildRenderInputs(page.variant.inputs, form ?? {}, page.variant.containers);
-  const pageImages = buildRenderImages(page.variant.imageInputs, images ?? {});
-  const colors = sanitizeShapeColors(page.variant.shapeInputs, shapeColors);
+  const body = buildVariantRenderBody(page.variant, {
+    formState: form ?? {},
+    imageState: images ?? {},
+    shapeColors: shapeColors ?? {},
+    rowCounts: rowCounts ?? defaultRowCounts(page.variant.repeatableRows),
+    offsets,
+  });
 
-  if (Object.keys(inputs).length > 0) fill.inputs = inputs;
-  if (Object.keys(pageImages).length > 0) fill.images = pageImages;
-  if (Object.keys(colors).length > 0) fill.shapeColors = colors;
+  if (Object.keys(body.inputs).length > 0) fill.inputs = body.inputs;
+  if (Object.keys(body.images).length > 0) fill.images = body.images;
+  if (Object.keys(body.shapeColors).length > 0) fill.shapeColors = body.shapeColors;
+  if (body.rows && Object.keys(body.rows).length > 0) fill.rows = body.rows;
+  if (body.offsets) fill.offsets = body.offsets;
   return fill;
 }
 
@@ -647,7 +698,9 @@ export function buildDocumentFillBody(
       page,
       state.forms[page.id],
       state.images[page.id],
-      state.shapeColors[page.id]
+      state.shapeColors[page.id],
+      state.rowCounts?.[page.id],
+      state.offsets?.[page.id]
     );
   }
 

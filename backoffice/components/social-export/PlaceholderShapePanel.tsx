@@ -16,6 +16,8 @@ interface PlaceholderShapePanelProps {
   onClose: () => void;
   /** Name of the document's shared field that colours this shape on every bound page, if any. */
   sharedFieldName?: string | null;
+  /** Inside a container sheet: no own header (the sheet labels the field). */
+  embedded?: boolean;
 }
 
 /**
@@ -31,10 +33,11 @@ export default function PlaceholderShapePanel({
   onChange,
   onClose,
   sharedFieldName = null,
+  embedded = false,
 }: PlaceholderShapePanelProps) {
   return (
     <div>
-      <div className="mb-1 flex items-start justify-between gap-2">
+      <div className={`mb-1 flex items-start justify-between gap-2 ${embedded ? 'hidden' : ''}`}>
         <span className="text-sm font-semibold text-text-primary">{label}</span>
         <button
           type="button"

@@ -46,14 +46,25 @@ import SaveStatusBadge, { type SaveStatus } from '@/components/social-export/Sav
 import type { ActivePlaceholder } from '@/components/social-export/PlaceholderOverlay';
 import type {
   DocumentDTO,
+  ElementOffset,
+  ElementOffsets,
   ExportVersionDTO,
   RenderErrorDetails,
   TemplateDTO,
   TemplateVariantDTO,
 } from '@/lib/social-export/api-types';
+import {
+  applyRowPlan,
+  clampRowCount,
+  inactiveRowIds,
+  planRowAction,
+  rootOf,
+  type RowAction,
+} from '@/lib/social-export/repeatable-rows';
+import { buildVariantRenderBody, restoreRowsAndOffsets, surfaceRows } from '@/lib/social-export/render-body';
 import { extractMatchPrefill, getMatchChips } from '@/lib/social-export/prefill';
-import { buildRenderInputs, InputFieldState, validateInputValue, isEditable } from '@/lib/social-export/field-rules';
-import { buildRenderImages, type ImageSlotState } from '@/lib/social-export/field-rules-image';
+import { InputFieldState, validateInputValue, isEditable, initialFieldState } from '@/lib/social-export/field-rules';
+import { type ImageSlotState } from '@/lib/social-export/field-rules-image';
 import { NEUTRAL_PLACEMENT } from '@/lib/social-export/image-placement';
 import {
   applySavedForm,
@@ -169,7 +180,6 @@ function SocialExportPageContent({ params }: PageProps) {
 
   const members = useMemo(() => surface?.members ?? [], [surface]);
   const inputs = useMemo(() => unionInputs(members), [members]);
-  const shapeInputs = useMemo(() => unionShapeInputs(members), [members]);
 
   // The dimension edited in the big preview (a group shows every dimension in
   // the strip; texts are shared, picture placement is per dimension).
@@ -192,6 +202,13 @@ function SocialExportPageContent({ params }: PageProps) {
   const [imageStates, setImageStates] = useState<DimensionImageStates>({});
   // Recolourable shapes (shapeId → picked colour), shared by every dimension
   const [shapeColors, setShapeColors] = useState<ShapeColorState>({});
+  // Repeatable rows: row id → shown rows (ONE count for every dimension).
+  const [rowCounts, setRowCounts] = useState<Record<string, number>>({});
+  // Moved elements, per dimension: variantId → elementId → offset.
+  const [offsets, setOffsets] = useState<Record<string, ElementOffsets>>({});
+  const rows = useMemo(() => surfaceRows(members), [members]);
+  // The unused row slots: never drawn, validated or sent.
+  const inactiveIds = useMemo(() => inactiveRowIds(rows, rowCounts), [rows, rowCounts]);
 
   // Render state — per dimension
   const [previews, setPreviews] = useState<Record<string, string | null>>({});
@@ -241,9 +258,12 @@ function SocialExportPageContent({ params }: PageProps) {
   // fontsReady is a legitimate extra dependency: the same inputs measure
   // differently once the real fonts land in document.fonts.
   const textLayouts = useMemo(
-    () => Object.fromEntries(members.map((m) => [m.id, computeTextLayout(m, formState)])),
+    () =>
+      Object.fromEntries(
+        members.map((m) => [m.id, computeTextLayout(m, formState, undefined, { hiddenIds: inactiveIds, offsets: offsets[m.id] })])
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [members, formState, fontsReady]
+    [members, formState, fontsReady, inactiveIds, offsets]
   );
 
   // The overflow pre-check (red zone + blocked download BEFORE the render
@@ -382,6 +402,25 @@ function SocialExportPageContent({ params }: PageProps) {
     );
     setImageStates(seededImages);
     setShapeColors(sanitizeShapeColors(unionShapeInputs(surface.members), saved?.state.shapeColors));
+    // Row counts (an old record without them: inferred from the slot ids it
+    // addresses — a hand-numbered row's old id IS its slot id) + moves.
+    const restoredExtras = restoreRowsAndOffsets(
+      surface.members,
+      saved
+        ? {
+            formState: saved.state.formState,
+            imageKeys: [
+              ...Object.keys(saved.state.imageState ?? {}),
+              ...Object.values(saved.state.dimensionImageStates ?? {}).flatMap((dim) => Object.keys(dim)),
+            ],
+            shapeColors: saved.state.shapeColors,
+            rowCounts: saved.state.rowCounts,
+            offsets: saved.state.offsets,
+          }
+        : null
+    );
+    setRowCounts(restoredExtras.rowCounts);
+    setOffsets(restoredExtras.offsets);
     setSaveStatus(saved ? 'saved' : 'idle');
     hasUnsavedRef.current = false;
     revokeAllPreviews();
@@ -413,6 +452,8 @@ function SocialExportPageContent({ params }: PageProps) {
               imageState: imageStates[surface.members[0]?.id] ?? {},
               ...(surface.kind === 'group' ? { dimensionImageStates: imageStates } : {}),
               ...(Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
+              ...(rows.length > 0 ? { rowCounts } : {}),
+              ...(Object.keys(offsets).length > 0 ? { offsets } : {}),
             },
           }
         : null;
@@ -427,7 +468,7 @@ function SocialExportPageContent({ params }: PageProps) {
     return () => clearTimeout(timer);
     // doSave is recreated each render; depending on it would reset the debounce.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState, imageStates, shapeColors]);
+  }, [formState, imageStates, shapeColors, rowCounts, offsets]);
 
   // Flush pending edits when the page unloads (refresh, tab close) or the
   // component unmounts (SPA navigation back to the match page).
@@ -454,7 +495,7 @@ function SocialExportPageContent({ params }: PageProps) {
     // renderDirtyPreviews/hasValidationErrors are recreated each render;
     // depending on them would reset the debounce on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState, imageStates, shapeColors, dirtyIds, renderingIds, surface]);
+  }, [formState, imageStates, shapeColors, rowCounts, offsets, dirtyIds, renderingIds, surface]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -558,13 +599,61 @@ function SocialExportPageContent({ params }: PageProps) {
     [members, markEdited]
   );
 
+  /**
+   * A repeatable-row action (add / remove / ↑ / ↓): the values of the slots
+   * are permuted in every map (texts, hides, pictures of every dimension,
+   * shape colours) and the count changes — shared by every dimension.
+   */
+  const handleRowAction = useCallback(
+    (rowId: string, action: RowAction, slot: number | null) => {
+      const row = rows.find((r) => r.containerId === rowId);
+      if (!row) return;
+      const count = clampRowCount(row, rowCounts[rowId] ?? row.repeat.default);
+      const plan = planRowAction(row, count, action, slot);
+      if (!plan) return;
+      const next = applyRowPlan({ formState, imageStates, shapeColors }, row, plan, {
+        text: (memberId) => {
+          const input = inputs.find((i) => i.id === memberId);
+          return input ? initialFieldState(input) : { value: '', hidden: false };
+        },
+      });
+      setFormState(next.formState);
+      setImageStates(next.imageStates);
+      setShapeColors(next.shapeColors);
+      setRowCounts((prev) => ({ ...prev, [rowId]: plan.count }));
+      // A failed render no longer describes the new row list.
+      setRenderError(null);
+      setRenderErrorDetails(null);
+      markEdited(members.map((m) => m.id));
+    },
+    [rows, rowCounts, formState, imageStates, shapeColors, inputs, members, markEdited]
+  );
+
+  /** Move an element in the ACTIVE dimension only (null = back to its designed spot). */
+  const handleOffsetChange = useCallback(
+    (elementId: string, offset: ElementOffset | null) => {
+      if (!activeId) return;
+      setOffsets((prev) => {
+        const dimension = { ...(prev[activeId] ?? {}) };
+        if (offset && (offset.x !== 0 || offset.y !== 0)) dimension[elementId] = offset;
+        else delete dimension[elementId];
+        const next = { ...prev };
+        if (Object.keys(dimension).length > 0) next[activeId] = dimension;
+        else delete next[activeId];
+        return next;
+      });
+      markEdited([activeId]);
+    },
+    [activeId, markEdited]
+  );
+
   const handleToggleHighlight = useCallback(() => {
     setHighlightMode((on) => !on);
   }, []);
 
   function hasValidationErrors(): boolean {
     return inputs.some((input) => {
-      if (!isEditable(input)) return false;
+      if (!isEditable(input) || inactiveIds.has(input.id)) return false;
       const value = formState[input.id]?.value ?? '';
       return validateInputValue(input, value) !== null;
     });
@@ -602,21 +691,24 @@ function SocialExportPageContent({ params }: PageProps) {
         {
           groupId: surface.id,
           ...(variantId ? { variantId } : {}),
-          ...buildGroupRenderBody(surface.members, formState, imageStates),
-          shapeColors: sanitizeShapeColors(shapeInputs, shapeColors),
+          ...buildGroupRenderBody(surface.members, formState, imageStates, { shapeColors, rowCounts, offsets }),
         },
         mode
       );
     }
 
     const variant = surface.members[0];
-    return renderVariant(
-      variant.id,
-      buildRenderInputs(variant.inputs, formState, variant.containers),
-      buildRenderImages(variant.imageInputs, imageStates[variant.id] ?? {}),
-      mode,
-      sanitizeShapeColors(variant.shapeInputs, shapeColors)
-    );
+    const body = buildVariantRenderBody(variant, {
+      formState,
+      imageState: imageStates[variant.id] ?? {},
+      shapeColors,
+      rowCounts,
+      offsets: offsets[variant.id],
+    });
+    return renderVariant(variant.id, body.inputs, body.images, mode, body.shapeColors, {
+      rows: body.rows,
+      offsets: body.offsets,
+    });
   }
 
   /** Surface a failed render / export: message + structured details (+ jump to it). */
@@ -632,10 +724,18 @@ function SocialExportPageContent({ params }: PageProps) {
     if (details.variantId && members.some((m) => m.id === details.variantId)) {
       setActiveDimensionId(details.variantId);
     }
+    // A value refused inside `rows` names the TEMPLATE member: open its slot.
+    const rowSlotId = (memberId: string) => {
+      const row = rows.find((r) => r.containerId === details.rowContainerId);
+      const slot = row?.slots.find((s) => s.index === details.rowIndex);
+      return slot?.ids[memberId] ?? memberId;
+    };
     if (details.inputId) {
-      setActivePlaceholder({ kind: 'text', id: details.inputId });
+      setActivePlaceholder({ kind: 'text', id: rowSlotId(details.inputId) });
     } else if (details.shapeInputId) {
-      setActivePlaceholder({ kind: 'shape', id: details.shapeInputId });
+      setActivePlaceholder({ kind: 'shape', id: rowSlotId(details.shapeInputId) });
+    } else if (details.elementId) {
+      setActivePlaceholder({ kind: 'move', id: details.elementId });
     }
   }
 
@@ -719,6 +819,8 @@ function SocialExportPageContent({ params }: PageProps) {
     setFormState(loaded.formState);
     setImageStates(loaded.imageStates);
     setShapeColors(loaded.shapeColors);
+    setRowCounts(loaded.rowCounts);
+    setOffsets(loaded.offsets);
     setActivePlaceholder(null);
     setRenderError(null);
     setRenderErrorDetails(null);
@@ -801,8 +903,27 @@ function SocialExportPageContent({ params }: PageProps) {
   // Editable text inputs that can't be drawn as a preview box (no frame) — they
   // get a small fallback list under the preview so they stay reachable.
   const unplacedInputs = activeVariant
-    ? activeVariant.inputs.filter((input) => isEditable(input) && !input.frame)
+    ? activeVariant.inputs.filter((input) => isEditable(input) && !input.frame && !inactiveIds.has(input.id))
     : [];
+
+  // "+ Přidat řádek" also waits while the row's container overflows (predicted
+  // here or reported by the last render, in ANY dimension — the smallest size
+  // decides); the designed estimate (the group's smallest `fitsRows`) is a hint.
+  const rowAddBlockedReason = (rowId: string): string | null => {
+    for (const member of members) {
+      const root = rootOf(member.containers, rowId)?.id;
+      if (!root) continue;
+      const failed = failedDimensionId === member.id && renderErrorDetails?.containerId === root;
+      if (failed || predictedOverflows[member.id]?.containerId === root) {
+        return `Řádky se už nevejdou${members.length > 1 ? ` (rozměr ${member.dimension})` : ''} — zkraťte texty nebo řádek odeberte`;
+      }
+    }
+    return null;
+  };
+  const rowFitsRows = (rowId: string): number | null => {
+    const groupRow = surface?.kind === 'group' ? surface.template.group?.repeatableRows?.find((r) => r.containerId === rowId) : null;
+    return groupRow ? groupRow.fitsRows : (rows.find((r) => r.containerId === rowId)?.fitsRows ?? null);
+  };
 
   const invalid = step === 3 && hasValidationErrors();
   const activeOverflow = activeId ? predictedOverflows[activeId] ?? null : null;
@@ -1082,12 +1203,20 @@ function SocialExportPageContent({ params }: PageProps) {
                   : null
               }
               textFrames={textLayouts[activeVariant.id]?.frames ?? {}}
+              rowControls={
+                rows.length > 0
+                  ? { counts: rowCounts, onAction: handleRowAction, addBlockedReason: rowAddBlockedReason, fitsRows: rowFitsRows }
+                  : undefined
+              }
+              offsets={offsets[activeVariant.id]}
+              onOffsetChange={handleOffsetChange}
+              perDimensionMoves={surface.kind === 'group'}
             />
 
             {/* Whole-container hides — one toggle per group the designer let the
                 user hide (shared across the group's dimensions). */}
             <ContainerHideToggles
-              containers={unionHidableContainers(surface.members)}
+              containers={unionHidableContainers(surface.members).filter((container) => !container.rowSlot)}
               state={formState}
               onChange={handleFormChange}
             />

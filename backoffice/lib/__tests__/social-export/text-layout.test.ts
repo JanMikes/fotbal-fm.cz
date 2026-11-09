@@ -724,3 +724,47 @@ describe('computeTextLayout container parity fixes', () => {
     expect(overflows).toEqual([]);
   });
 });
+
+// ---------- repeatable rows + moved elements (WBoost 2026-11) ---------------
+
+describe('computeTextLayout with repeatable rows and offsets', () => {
+  // A root (gap 10) holding a row container R (two slots: R and R#1) and a footer text.
+  const rows = () =>
+    makeVariant({
+      height: 1000,
+      inputs: [
+        makeInput({ id: 'a', frame: frame(0, 100, 200, 20), containerId: 'R' }),
+        makeInput({ id: 'a#1', frame: frame(0, 130, 200, 20), containerId: 'R#1' }),
+        makeInput({ id: 'foot', frame: frame(0, 160, 200, 20), containerId: 'root' }),
+        makeInput({ id: 'free', frame: frame(500, 500, 100, 20) }),
+      ],
+      containers: [
+        { id: 'root', maxHeight: 200, y: 100, memberInputIds: ['foot'], memberContainerIds: ['R', 'R#1'], gap: 10, spaceAfter: null, nested: false },
+        { id: 'R', maxHeight: 20, y: 100, memberInputIds: ['a'], memberContainerIds: [], gap: null, spaceAfter: null, nested: true },
+        { id: 'R#1', maxHeight: 20, y: 130, memberInputIds: ['a#1'], memberContainerIds: [], gap: null, spaceAfter: null, nested: true },
+      ],
+    });
+
+  it('an inactive slot collapses like a hidden member (the footer moves up)', () => {
+    const shown = computeTextLayout(rows(), {}, () => null);
+    expect(shown.frames.foot.y).toBe(160);
+    const one = computeTextLayout(rows(), {}, () => null, { hiddenIds: new Set(['a#1', 'R#1']) });
+    expect(one.frames.foot.y).toBe(130);
+    expect(one.frames['a#1'].height).toBe(0);
+  });
+
+  it('a moved top-level container takes its whole tree along (and overflows past the canvas bottom)', () => {
+    const moved = computeTextLayout(rows(), {}, () => null, { offsets: { root: { x: 15, y: 40 } } });
+    expect(moved.frames.a).toMatchObject({ x: 15, y: 140 });
+    expect(moved.frames.foot).toMatchObject({ x: 15, y: 200 });
+    expect(moved.frames.free).toMatchObject({ x: 500, y: 500 });
+
+    const off = computeTextLayout(rows(), {}, () => null, { offsets: { root: { x: 0, y: 900 } } });
+    expect(off.overflows[0]?.containerId).toBe('root');
+  });
+
+  it('a moved free text keeps its size at the new spot', () => {
+    const moved = computeTextLayout(rows(), {}, () => null, { offsets: { free: { x: -20, y: 5 } } });
+    expect(moved.frames.free).toEqual(frame(480, 505, 100, 20));
+  });
+});

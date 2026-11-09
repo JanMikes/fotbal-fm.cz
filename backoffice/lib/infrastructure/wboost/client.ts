@@ -30,6 +30,8 @@ import type {
   GroupPlacements,
   RenderInputValue,
   RenderImageValue,
+  RenderRows,
+  ElementOffsets,
 } from '@/lib/social-export/api-types';
 
 // --------------------------------------------------------------------------
@@ -55,6 +57,16 @@ export interface WboostErrorBody {
   pageId?: string;
   maxLength?: number;
   transform?: string;
+  /** Move errors. */
+  elementId?: string;
+  reason?: string;
+  axis?: string;
+  /** A refused value inside `rows`. */
+  rowContainerId?: string;
+  rowIndex?: number;
+  count?: number;
+  min?: number;
+  max?: number;
 }
 
 /** Czech message per WBoost error `code` (the fields themselves are highlighted by id). */
@@ -80,6 +92,16 @@ const CODE_MESSAGES: Record<string, string> = {
   invalid_format: 'Neplatný formát exportu dokumentu',
   pdf_not_available: 'Tiskové PDF je dostupné jen pro tiskové formáty — použijte PDF k odeslání',
   document_empty: 'Dokument nemá žádné strany',
+  // Moved elements
+  unknown_element: 'Posunutý prvek už v šabloně není — vraťte ho prosím na původní místo',
+  move_not_allowed: 'Tento prvek už šablona nedovoluje posouvat — vraťte ho prosím na původní místo',
+  offset_out_of_range: 'Prvek je posunutý mimo povolený rozsah',
+  // Repeatable rows
+  not_repeatable: 'Opakovaný řádek už šablona nemá',
+  too_many_rows: 'Řádků je víc, než šablona dovoluje — některý odeberte',
+  too_few_rows: 'Řádků je méně, než šablona vyžaduje — přidejte řádek',
+  unknown_row_input: 'Pole řádku už v šabloně není',
+  ambiguous_row_value: 'Hodnota řádku byla odeslána dvakrát',
 };
 
 function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
@@ -213,7 +235,8 @@ export class WboostClient {
     inputs: Record<string, RenderInputValue>,
     images: Record<string, RenderImageValue> | undefined,
     mode: RenderMode,
-    shapeColors?: Record<string, string>
+    shapeColors?: Record<string, string>,
+    extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
   ): Promise<WboostRenderedFile> {
     const url = `${this.config.apiBase}/api/template-variants/${variantId}/${mode}`;
 
@@ -229,6 +252,10 @@ export class WboostClient {
       inputs,
       ...(images && Object.keys(images).length > 0 ? { images } : {}),
       ...(shapeColors && Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
+      // Repeatable rows (the list length IS the count — sent even when a row
+      // object is empty) and moved elements, only when there are any.
+      ...(extras.rows && Object.keys(extras.rows).length > 0 ? { rows: extras.rows } : {}),
+      ...(extras.offsets && Object.keys(extras.offsets).length > 0 ? { offsets: extras.offsets } : {}),
     };
 
     return this.postForFile(url, body);
@@ -247,6 +274,8 @@ export class WboostClient {
       images?: Record<string, RenderImageValue>;
       placements?: GroupPlacements;
       shapeColors?: Record<string, string>;
+      rows?: RenderRows;
+      offsets?: Record<string, ElementOffsets>;
     },
     mode: RenderMode
   ): Promise<WboostRenderedFile> {
@@ -274,6 +303,8 @@ export class WboostClient {
       images: fill.images ?? {},
       placements: fill.placements ?? {},
       ...(fill.shapeColors && Object.keys(fill.shapeColors).length > 0 ? { shapeColors: fill.shapeColors } : {}),
+      ...(fill.rows && Object.keys(fill.rows).length > 0 ? { rows: fill.rows } : {}),
+      ...(fill.offsets && Object.keys(fill.offsets).length > 0 ? { offsets: fill.offsets } : {}),
     });
   }
 
