@@ -2,6 +2,7 @@
 
 import { Check, Palette, RotateCcw } from 'lucide-react';
 import { pagesWord } from '@/lib/social-export/document-fill';
+import HexColorInput from './HexColorInput';
 
 interface SharedShapeFieldProps {
   name: string;
@@ -78,6 +79,7 @@ export default function SharedShapeField({ name, pageCount, options, current, on
             />
           </label>
         )}
+        {options.free && <HexColorInput value={current} onCommit={(color) => onChange(color)} />}
       </div>
     </div>
   );

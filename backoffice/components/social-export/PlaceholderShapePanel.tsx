@@ -4,6 +4,7 @@ import { Check, Palette, X } from 'lucide-react';
 import { shapeTargetLabel } from '@/lib/social-export/shape-colors';
 import type { ShapeInputDTO } from '@/lib/social-export/api-types';
 import SharedFieldBadge from './SharedFieldBadge';
+import HexColorInput from './HexColorInput';
 
 interface PlaceholderShapePanelProps {
   shape: ShapeInputDTO;
@@ -88,6 +89,12 @@ export default function PlaceholderShapePanel({
               }}
             />
           </label>
+        )}
+        {shape.freeColor && (
+          <HexColorInput
+            value={current}
+            onCommit={(color) => onChange(color === shape.defaultColor ? null : color)}
+          />
         )}
       </div>
     </div>

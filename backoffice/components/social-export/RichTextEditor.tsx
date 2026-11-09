@@ -65,6 +65,7 @@ import {
   runsFromPlain,
   truncateRuns,
 } from '@/lib/social-export/rich-text';
+import HexColorInput from './HexColorInput';
 
 interface RichTextEditorProps {
   input: TemplateInputDTO;
@@ -1023,6 +1024,19 @@ export default function RichTextEditor({
             }}
           />
         </label>
+        )}
+        {freeColor && (
+          <HexColorInput
+            value={null}
+            disabled={disabled}
+            onCommit={(color) => {
+              // Typing here moved the document selection out of the editor;
+              // put the last one back so only the selected words get coloured.
+              const last = lastSelectionRef.current;
+              if (last) restoreSelection(last.start, last.end);
+              applyStyle((run) => ({ ...run, color }));
+            }}
+          />
         )}
       </div>
       )}
