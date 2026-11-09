@@ -214,6 +214,12 @@ export interface TemplateContainerDTO {
   hidable?: boolean;
   /** Label of that toggle; null/absent = unnamed. */
   name?: string | null;
+  /**
+   * Fillable IMAGE slots flowing in this container (WBoost 2026-11) — they
+   * are NOT in `memberInputIds`, which stays text-only. Absent/empty on older
+   * payloads.
+   */
+  memberImageInputIds?: string[];
 }
 
 /**

@@ -1,0 +1,1566 @@
+[
+ {
+  "id": "019fe590-25cc-70c5-8070-f5dfc9a8e197",
+  "name": "Výsledek",
+  "position": 5,
+  "categoryId": "019ff1f8-4567-7313-b408-1292907a020d",
+  "categoryName": "Výsledky",
+  "createdAt": "2026-08-09T08:07:37+00:00",
+  "variants": [
+   {
+    "id": "019fe590-25cd-72ff-82a3-293eaeeda229",
+    "dimension": "9:16",
+    "preset": "9:16",
+    "unit": "px",
+    "unitWidth": 1080.0,
+    "unitHeight": 1920.0,
+    "width": 1080,
+    "height": 1920,
+    "previewImageUrl": "http://store.test/wboost/custom-templates/preview/019fe590-25cd-72ff-82a3-293eaeeda229.png",
+    "backgroundImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/01a04975-c026-7308-9243-c7f9bca70066.png",
+    "thumbnailUrl": "http://store.test/api/template-variants/019fe590-25cd-72ff-82a3-293eaeeda229/thumbnail",
+    "exportUrl": "http://store.test/api/template-variants/019fe590-25cd-72ff-82a3-293eaeeda229/export",
+    "inputs": [
+     {
+      "id": "830a61dd-190f-4b6e-a645-40e9d2294a33",
+      "name": "D - Střelec 1 ",
+      "maxLength": null,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": true,
+      "frame": {
+       "x": 256.2613,
+       "y": 1159.1559,
+       "width": 253.3589,
+       "height": 32.77
+      },
+      "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 29.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 3,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "12cb5a4d-5258-407a-bbbd-abe7998df9f5",
+      "name": "H - Střelec 1 ",
+      "maxLength": null,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": true,
+      "frame": {
+       "x": 582.4525,
+       "y": 1159.1559,
+       "width": 253.3589,
+       "height": 32.77
+      },
+      "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 29.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 4,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "7c7af9a1-abdf-4226-a46b-d0135f8ba242",
+      "name": "Konec utkání",
+      "maxLength": null,
+      "locked": true,
+      "uppercase": true,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 374.2216,
+       "y": 719.9614,
+       "width": 330.5568,
+       "height": 37.29
+      },
+      "containerId": null,
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 33.00000000000001,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 7,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "2d763e40-0353-47ad-8bd5-5961f95c9715",
+      "name": "-",
+      "maxLength": null,
+      "locked": true,
+      "uppercase": false,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 502.4779,
+       "y": 857.235,
+       "width": 74.0441,
+       "height": 204.53
+      },
+      "containerId": null,
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Black)",
+       "fontSize": 181.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": null,
+      "layerIndex": 12,
+      "fontOptions": null,
+      "colorOptions": null
+     }
+    ],
+    "imageInputs": [
+     {
+      "id": "8db118f4-dc3d-4f17-b58e-f05986da46db",
+      "name": null,
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe76e-4fb9-71c2-ab41-bd3d7bc3a0d7"
+      ],
+      "directories": [
+       {
+        "id": "019fe76e-4fb9-71c2-ab41-bd3d7bc3a0d7",
+        "name": "Kategorie"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 382.5,
+       "y": 186.959,
+       "width": 295.0,
+       "height": 374.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe76e-78c1-71eb-ac14-e0038a46f799.png",
+      "layerIndex": 2,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "95e9fe6a-b82c-479f-8f5d-af8e62b3164f",
+      "name": "Logo hosté",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019f0a0d-e3b2-71c4-a388-56fa6f831610"
+      ],
+      "directories": [
+       {
+        "id": "019f0a0d-e3b2-71c4-a388-56fa6f831610",
+        "name": "Logotypy klubů"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 823.3899,
+       "y": 650.6064,
+       "width": 177.0,
+       "height": 177.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe593-9741-71aa-99a2-c98d22e4ec4e.png",
+      "layerIndex": 5,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "23816ea0-6ac1-4975-8932-7f5d93d750cb",
+      "name": "Logo domácí",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019f0a0d-e3b2-71c4-a388-56fa6f831610"
+      ],
+      "directories": [
+       {
+        "id": "019f0a0d-e3b2-71c4-a388-56fa6f831610",
+        "name": "Logotypy klubů"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 91.4407,
+       "y": 650.6064,
+       "width": 177.0,
+       "height": 177.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe593-9741-71aa-99a2-c98d22e4ec4e.png",
+      "layerIndex": 6,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "dc2b5637-533e-4dfd-bc62-a743ce8d7155",
+      "name": "Skóre hosté",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe59d-8a4b-70a1-920f-5f6b49b5792c"
+      ],
+      "directories": [
+       {
+        "id": "019fe59d-8a4b-70a1-920f-5f6b49b5792c",
+        "name": "Skóre"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 584.2105,
+       "y": 810.5,
+       "width": 220.0,
+       "height": 299.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe59d-ae65-7317-b593-b19d8405b02c.png",
+      "layerIndex": 10,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "746a9b63-bd99-4a97-8ac4-613baac305f0",
+      "name": "Skóre domácí",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe59d-8a4b-70a1-920f-5f6b49b5792c"
+      ],
+      "directories": [
+       {
+        "id": "019fe59d-8a4b-70a1-920f-5f6b49b5792c",
+        "name": "Skóre"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 273.4407,
+       "y": 810.5,
+       "width": 220.0,
+       "height": 299.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe59d-ae65-7317-b593-b19d8405b02c.png",
+      "layerIndex": 11,
+      "isBackground": false,
+      "containerId": null
+     }
+    ],
+    "containers": [
+     {
+      "id": "6573ac4d-5d3b-4be4-9455-12b2f0c76fa7",
+      "maxHeight": 312.8888888888889,
+      "y": 1159.1559,
+      "memberInputIds": [],
+      "memberContainerIds": [
+       "dd32945e-d109-4f04-af88-55cdd07f1a5b"
+      ],
+      "gap": 21.3,
+      "spaceAfter": 0.0,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     },
+     {
+      "id": "e2ade5b7-a8ea-4e92-ac4d-8972b7b2c83b",
+      "maxHeight": 312.8888888888889,
+      "y": 1159.1559,
+      "memberInputIds": [],
+      "memberContainerIds": [
+       "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58"
+      ],
+      "gap": 21.3,
+      "spaceAfter": null,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     },
+     {
+      "id": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "maxHeight": 33.0,
+      "y": 1159.1559,
+      "memberInputIds": [
+       "830a61dd-190f-4b6e-a645-40e9d2294a33"
+      ],
+      "memberContainerIds": [],
+      "gap": null,
+      "spaceAfter": null,
+      "nested": true,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4
+     },
+     {
+      "id": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "maxHeight": 33.0,
+      "y": 1159.1559,
+      "memberInputIds": [
+       "12cb5a4d-5258-407a-bbbd-abe7998df9f5"
+      ],
+      "memberContainerIds": [],
+      "gap": null,
+      "spaceAfter": null,
+      "nested": true,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4
+     }
+    ],
+    "richTextOptions": null,
+    "groupMember": true,
+    "shapeInputs": [
+     {
+      "id": "7aa1cd45-9b25-421a-801f-318836e8cc2d",
+      "name": "Ob - domácí",
+      "target": "fill",
+      "defaultColor": "#ffcd00",
+      "colorOptions": [
+       "#ffcd00",
+       "#0099d5",
+       "#031c45",
+       "#035990",
+       "#d1d1d1",
+       "#f6f6f6",
+       "#ffffff"
+      ],
+      "freeColor": false,
+      "frame": {
+       "x": -83.4141,
+       "y": 900.241,
+       "width": 447.768,
+       "height": 119.502
+      },
+      "layerIndex": 8
+     }
+    ],
+    "printFormat": false,
+    "bleedMm": 0.0,
+    "cropMarks": false,
+    "movableElements": [],
+    "repeatableRows": [
+     {
+      "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "parentContainerId": "6573ac4d-5d3b-4be4-9455-12b2f0c76fa7",
+      "name": null,
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4,
+      "members": [
+       {
+        "id": "830a61dd-190f-4b6e-a645-40e9d2294a33",
+        "kind": "text",
+        "name": "D - Střelec 1 "
+       }
+      ],
+      "slots": [
+       {
+        "index": 0,
+        "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "830a61dd-190f-4b6e-a645-40e9d2294a33"
+        }
+       },
+       {
+        "index": 1,
+        "containerId": "068d3377-5527-5c39-b1ec-873cbd2ef564",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "068d3377-5527-5c39-b1ec-873cbd2ef564",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "ba8514f1-4745-47b6-89d8-65c6a8a4a25a"
+        }
+       },
+       {
+        "index": 2,
+        "containerId": "946e5d22-31fe-5dec-83af-05bec58db408",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "946e5d22-31fe-5dec-83af-05bec58db408",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "7375f8f3-1781-42e5-b5af-c7cb357ae763"
+        }
+       },
+       {
+        "index": 3,
+        "containerId": "0ac39aa3-51de-56b5-9fb4-1c5fd291422a",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "0ac39aa3-51de-56b5-9fb4-1c5fd291422a",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "dc856a12-b515-4229-a1df-8500fd370dbd"
+        }
+       }
+      ]
+     },
+     {
+      "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "parentContainerId": "e2ade5b7-a8ea-4e92-ac4d-8972b7b2c83b",
+      "name": null,
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4,
+      "members": [
+       {
+        "id": "12cb5a4d-5258-407a-bbbd-abe7998df9f5",
+        "kind": "text",
+        "name": "H - Střelec 1 "
+       }
+      ],
+      "slots": [
+       {
+        "index": 0,
+        "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "12cb5a4d-5258-407a-bbbd-abe7998df9f5"
+        }
+       },
+       {
+        "index": 1,
+        "containerId": "b59ef154-ab7a-567e-a385-9ee350fc6232",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "b59ef154-ab7a-567e-a385-9ee350fc6232",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "84de0fcf-e88b-4c44-8591-23f4a018f4d1"
+        }
+       },
+       {
+        "index": 2,
+        "containerId": "118f0430-926c-5000-b631-5fdf3374c36d",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "118f0430-926c-5000-b631-5fdf3374c36d",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "be81bb30-3a64-4f43-aeb2-e2bdcd4bfb36"
+        }
+       },
+       {
+        "index": 3,
+        "containerId": "2d22aa26-a1b8-505d-81f9-825e9eff70e8",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "2d22aa26-a1b8-505d-81f9-825e9eff70e8",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "b1b3f383-dd8f-4292-8865-8560943aaf08"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "019fe590-25cd-72ff-82a3-293eae1e20d1",
+    "dimension": "4:5",
+    "preset": "4:5",
+    "unit": "px",
+    "unitWidth": 1080.0,
+    "unitHeight": 1350.0,
+    "width": 1080,
+    "height": 1350,
+    "previewImageUrl": "http://store.test/wboost/custom-templates/preview/019fe590-25cd-72ff-82a3-293eae1e20d1.png",
+    "backgroundImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/01a04975-c026-7308-9243-c7f9bca70066.png",
+    "thumbnailUrl": "http://store.test/api/template-variants/019fe590-25cd-72ff-82a3-293eae1e20d1/thumbnail",
+    "exportUrl": "http://store.test/api/template-variants/019fe590-25cd-72ff-82a3-293eae1e20d1/export",
+    "inputs": [
+     {
+      "id": "830a61dd-190f-4b6e-a645-40e9d2294a33",
+      "name": "D - Střelec 1 ",
+      "maxLength": null,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": true,
+      "frame": {
+       "x": 259.3332,
+       "y": 949.0647,
+       "width": 253.3589,
+       "height": 32.77
+      },
+      "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 29.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 3,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "12cb5a4d-5258-407a-bbbd-abe7998df9f5",
+      "name": "H - Střelec 1 ",
+      "maxLength": null,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": true,
+      "frame": {
+       "x": 582.4525,
+       "y": 949.0647,
+       "width": 253.3589,
+       "height": 32.77
+      },
+      "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 29.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 4,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "7c7af9a1-abdf-4226-a46b-d0135f8ba242",
+      "name": "Konec utkání",
+      "maxLength": null,
+      "locked": true,
+      "uppercase": true,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 374.2216,
+       "y": 506.2228,
+       "width": 330.5568,
+       "height": 37.29
+      },
+      "containerId": null,
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Regular)",
+       "fontSize": 33.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "center"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "23\" Rejda",
+      "layerIndex": 7,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "2d763e40-0353-47ad-8bd5-5961f95c9715",
+      "name": "-",
+      "maxLength": null,
+      "locked": true,
+      "uppercase": false,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 502.4779,
+       "y": 652.2689,
+       "width": 74.0441,
+       "height": 204.53
+      },
+      "containerId": null,
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Black)",
+       "fontSize": 181.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": null,
+      "layerIndex": 12,
+      "fontOptions": null,
+      "colorOptions": null
+     }
+    ],
+    "imageInputs": [
+     {
+      "id": "8db118f4-dc3d-4f17-b58e-f05986da46db",
+      "name": "Kategorie",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe76e-4fb9-71c2-ab41-bd3d7bc3a0d7"
+      ],
+      "directories": [
+       {
+        "id": "019fe76e-4fb9-71c2-ab41-bd3d7bc3a0d7",
+        "name": "Kategorie"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 389.5,
+       "y": 0.0,
+       "width": 295.0,
+       "height": 374.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe76e-78c1-71eb-ac14-e0038a46f799.png",
+      "layerIndex": 2,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "95e9fe6a-b82c-479f-8f5d-af8e62b3164f",
+      "name": "Logo hosté",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019f0a0d-e3b2-71c4-a388-56fa6f831610"
+      ],
+      "directories": [
+       {
+        "id": "019f0a0d-e3b2-71c4-a388-56fa6f831610",
+        "name": "Logotypy klubů"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 823.3899,
+       "y": 457.4576,
+       "width": 177.0,
+       "height": 177.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe593-9741-71aa-99a2-c98d22e4ec4e.png",
+      "layerIndex": 5,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "23816ea0-6ac1-4975-8932-7f5d93d750cb",
+      "name": "Logo domácí",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019f0a0d-e3b2-71c4-a388-56fa6f831610"
+      ],
+      "directories": [
+       {
+        "id": "019f0a0d-e3b2-71c4-a388-56fa6f831610",
+        "name": "Logotypy klubů"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 78.3332,
+       "y": 457.4576,
+       "width": 177.0,
+       "height": 177.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe79d-9978-7365-8b33-e52a52cda7b8.png",
+      "layerIndex": 6,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "dc2b5637-533e-4dfd-bc62-a743ce8d7155",
+      "name": "Skóre hosté",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe59d-8a4b-70a1-920f-5f6b49b5792c"
+      ],
+      "directories": [
+       {
+        "id": "019fe59d-8a4b-70a1-920f-5f6b49b5792c",
+        "name": "Skóre"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 599.632,
+       "y": 605.5339,
+       "width": 220.0,
+       "height": 299.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe59d-aee4-7358-8b47-4b7f0af9f632.png",
+      "layerIndex": 10,
+      "isBackground": false,
+      "containerId": null
+     },
+     {
+      "id": "746a9b63-bd99-4a97-8ac4-613baac305f0",
+      "name": "Skóre domácí",
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [
+       "019fe59d-8a4b-70a1-920f-5f6b49b5792c"
+      ],
+      "directories": [
+       {
+        "id": "019fe59d-8a4b-70a1-920f-5f6b49b5792c",
+        "name": "Skóre"
+       }
+      ],
+      "includesRoot": false,
+      "frame": {
+       "x": 268.4407,
+       "y": 605.5339,
+       "width": 220.0,
+       "height": 299.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/019fe59d-aee4-7358-8b47-4b7f0af9f632.png",
+      "layerIndex": 11,
+      "isBackground": false,
+      "containerId": null
+     }
+    ],
+    "containers": [
+     {
+      "id": "6573ac4d-5d3b-4be4-9455-12b2f0c76fa7",
+      "maxHeight": 220.0,
+      "y": 949.0647,
+      "memberInputIds": [],
+      "memberContainerIds": [
+       "dd32945e-d109-4f04-af88-55cdd07f1a5b"
+      ],
+      "gap": 15.0,
+      "spaceAfter": 0.0,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     },
+     {
+      "id": "e2ade5b7-a8ea-4e92-ac4d-8972b7b2c83b",
+      "maxHeight": 220.0,
+      "y": 949.0647,
+      "memberInputIds": [],
+      "memberContainerIds": [
+       "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58"
+      ],
+      "gap": 15.0,
+      "spaceAfter": null,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     },
+     {
+      "id": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "maxHeight": 33.0,
+      "y": 949.0647,
+      "memberInputIds": [
+       "830a61dd-190f-4b6e-a645-40e9d2294a33"
+      ],
+      "memberContainerIds": [],
+      "gap": null,
+      "spaceAfter": null,
+      "nested": true,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4
+     },
+     {
+      "id": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "maxHeight": 33.0,
+      "y": 949.0647,
+      "memberInputIds": [
+       "12cb5a4d-5258-407a-bbbd-abe7998df9f5"
+      ],
+      "memberContainerIds": [],
+      "gap": null,
+      "spaceAfter": null,
+      "nested": true,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4
+     }
+    ],
+    "richTextOptions": null,
+    "groupMember": true,
+    "shapeInputs": [
+     {
+      "id": "7aa1cd45-9b25-421a-801f-318836e8cc2d",
+      "name": "Ob - domácí",
+      "target": "fill",
+      "defaultColor": "#ffcd00",
+      "colorOptions": [
+       "#ffcd00",
+       "#0099d5",
+       "#031c45",
+       "#035990",
+       "#d1d1d1",
+       "#f6f6f6",
+       "#ffffff"
+      ],
+      "freeColor": false,
+      "frame": {
+       "x": -86.0285,
+       "y": 695.2829,
+       "width": 447.768,
+       "height": 119.502
+      },
+      "layerIndex": 8
+     }
+    ],
+    "printFormat": false,
+    "bleedMm": 0.0,
+    "cropMarks": false,
+    "movableElements": [],
+    "repeatableRows": [
+     {
+      "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+      "parentContainerId": "6573ac4d-5d3b-4be4-9455-12b2f0c76fa7",
+      "name": null,
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4,
+      "members": [
+       {
+        "id": "830a61dd-190f-4b6e-a645-40e9d2294a33",
+        "kind": "text",
+        "name": "D - Střelec 1 "
+       }
+      ],
+      "slots": [
+       {
+        "index": 0,
+        "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "830a61dd-190f-4b6e-a645-40e9d2294a33"
+        }
+       },
+       {
+        "index": 1,
+        "containerId": "068d3377-5527-5c39-b1ec-873cbd2ef564",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "068d3377-5527-5c39-b1ec-873cbd2ef564",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "ba8514f1-4745-47b6-89d8-65c6a8a4a25a"
+        }
+       },
+       {
+        "index": 2,
+        "containerId": "946e5d22-31fe-5dec-83af-05bec58db408",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "946e5d22-31fe-5dec-83af-05bec58db408",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "7375f8f3-1781-42e5-b5af-c7cb357ae763"
+        }
+       },
+       {
+        "index": 3,
+        "containerId": "0ac39aa3-51de-56b5-9fb4-1c5fd291422a",
+        "ids": {
+         "dd32945e-d109-4f04-af88-55cdd07f1a5b": "0ac39aa3-51de-56b5-9fb4-1c5fd291422a",
+         "830a61dd-190f-4b6e-a645-40e9d2294a33": "dc856a12-b515-4229-a1df-8500fd370dbd"
+        }
+       }
+      ]
+     },
+     {
+      "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+      "parentContainerId": "e2ade5b7-a8ea-4e92-ac4d-8972b7b2c83b",
+      "name": null,
+      "repeat": {
+       "max": 4,
+       "min": 1,
+       "default": 4
+      },
+      "fitsRows": 4,
+      "members": [
+       {
+        "id": "12cb5a4d-5258-407a-bbbd-abe7998df9f5",
+        "kind": "text",
+        "name": "H - Střelec 1 "
+       }
+      ],
+      "slots": [
+       {
+        "index": 0,
+        "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "12cb5a4d-5258-407a-bbbd-abe7998df9f5"
+        }
+       },
+       {
+        "index": 1,
+        "containerId": "b59ef154-ab7a-567e-a385-9ee350fc6232",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "b59ef154-ab7a-567e-a385-9ee350fc6232",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "84de0fcf-e88b-4c44-8591-23f4a018f4d1"
+        }
+       },
+       {
+        "index": 2,
+        "containerId": "118f0430-926c-5000-b631-5fdf3374c36d",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "118f0430-926c-5000-b631-5fdf3374c36d",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "be81bb30-3a64-4f43-aeb2-e2bdcd4bfb36"
+        }
+       },
+       {
+        "index": 3,
+        "containerId": "2d22aa26-a1b8-505d-81f9-825e9eff70e8",
+        "ids": {
+         "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58": "2d22aa26-a1b8-505d-81f9-825e9eff70e8",
+         "12cb5a4d-5258-407a-bbbd-abe7998df9f5": "b1b3f383-dd8f-4292-8865-8560943aaf08"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "group": {
+   "id": "019fe590-25c9-73de-8adb-1556bede98ff",
+   "name": "Výsledek",
+   "repeatableRows": [
+    {
+     "containerId": "dd32945e-d109-4f04-af88-55cdd07f1a5b",
+     "repeat": {
+      "max": 4,
+      "min": 1,
+      "default": 4
+     },
+     "fitsRows": 4
+    },
+    {
+     "containerId": "c1db649b-9b67-49ca-aa58-cfb6ac8b8f58",
+     "repeat": {
+      "max": 4,
+      "min": 1,
+      "default": 4
+     },
+     "fitsRows": 4
+    }
+   ]
+  },
+  "document": null
+ },
+ {
+  "id": "01a19c02-7326-71d4-b4b8-268523c44ec9",
+  "name": "Výsledky turnaje",
+  "position": 6,
+  "categoryId": "01a19c01-d780-72bd-ab99-0d15de040ed2",
+  "categoryName": "Turnaje",
+  "createdAt": "2026-11-02T11:26:08+00:00",
+  "variants": [
+   {
+    "id": "01a19c02-7326-71d4-b4b8-26852417d17d",
+    "dimension": "4:5",
+    "preset": "4:5",
+    "unit": "px",
+    "unitWidth": 1080.0,
+    "unitHeight": 1350.0,
+    "width": 1080,
+    "height": 1350,
+    "previewImageUrl": "http://store.test/wboost/custom-templates/preview/01a19c02-7326-71d4-b4b8-26852417d17d.png",
+    "backgroundImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/01a04c43-a02f-70e4-9c31-f742e4ff6107.png",
+    "thumbnailUrl": "http://store.test/api/template-variants/01a19c02-7326-71d4-b4b8-26852417d17d/thumbnail",
+    "exportUrl": "http://store.test/api/template-variants/01a19c02-7326-71d4-b4b8-26852417d17d/export",
+    "inputs": [
+     {
+      "id": "a1249eae-2182-4ef2-aaa8-2bbecb864465",
+      "name": "Výsledky turnaje",
+      "maxLength": 26,
+      "locked": false,
+      "uppercase": true,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 113.0,
+       "y": 158.0,
+       "width": 850.0,
+       "height": 58.76
+      },
+      "containerId": null,
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Black)",
+       "fontSize": 52.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "VÝSLEDKY TURNAJE",
+      "layerIndex": 1,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297",
+      "name": "Skóre 1",
+      "maxLength": 7,
+      "locked": false,
+      "uppercase": false,
+      "description": "Př.: 4 - 4",
+      "hidable": true,
+      "frame": {
+       "x": 267.069,
+       "y": 351.8333,
+       "width": 150.0,
+       "height": 50.85
+      },
+      "containerId": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Black)",
+       "fontSize": 45.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": true,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "4 - 4",
+      "layerIndex": 2,
+      "fontOptions": [
+       {
+        "family": "Montserrat (Montserrat Bold)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Bold",
+        "weight": 700,
+        "style": "Bold",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Bold-1780569520.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Regular)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Regular",
+        "weight": 400,
+        "style": "Regular",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Regular-1780569582.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Black)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Black",
+        "weight": 900,
+        "style": "Regular",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Black-1780569603.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Medium Italic)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Medium Italic",
+        "weight": 500,
+        "style": "Italic",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Medium Italic-1788712139.ttf"
+       }
+      ],
+      "colorOptions": null
+     },
+     {
+      "id": "aa3dc632-f4bc-4f2d-9ffc-ad52da560589",
+      "name": "Soupeř 1",
+      "maxLength": 34,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": true,
+      "frame": {
+       "x": 444.069,
+       "y": 358.0483,
+       "width": 620.0,
+       "height": 38.42
+      },
+      "containerId": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Bold)",
+       "fontSize": 34.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "Fotbal TJ Kelč",
+      "layerIndex": 3,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "318d2075-13cf-4cfb-aaf0-d6ccacda8e26",
+      "name": "Sestava a branky",
+      "maxLength": 30,
+      "locked": true,
+      "uppercase": false,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 112.0,
+       "y": 857.8333,
+       "width": 870.0,
+       "height": 33.9
+      },
+      "containerId": "text-blok",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Black)",
+       "fontSize": 30.0,
+       "lineHeight": 1.16,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": false,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": "Sestava:",
+      "layerIndex": 4,
+      "fontOptions": null,
+      "colorOptions": null
+     },
+     {
+      "id": "812fbf9c-19b2-4d1b-9d10-20d5d373dfd7",
+      "name": "Sestava",
+      "maxLength": null,
+      "locked": false,
+      "uppercase": false,
+      "description": "",
+      "hidable": false,
+      "frame": {
+       "x": 112.0,
+       "y": 917.7333,
+       "width": 870.0,
+       "height": 35.03
+      },
+      "containerId": "text-blok",
+      "textStyle": {
+       "fontFamily": "Montserrat (Montserrat Medium Italic)",
+       "fontSize": 31.0,
+       "lineHeight": 1.2,
+       "charSpacing": 0.0,
+       "textAlign": "left"
+      },
+      "richText": true,
+      "lists": false,
+      "listStyle": null,
+      "listCheckboxes": false,
+      "checklist": null,
+      "sampleValue": null,
+      "layerIndex": 5,
+      "fontOptions": [
+       {
+        "family": "Montserrat (Montserrat Bold)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Bold",
+        "weight": 700,
+        "style": "Bold",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Bold-1780569520.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Regular)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Regular",
+        "weight": 400,
+        "style": "Regular",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Regular-1780569582.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Black)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Black",
+        "weight": 900,
+        "style": "Regular",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Black-1780569603.ttf"
+       },
+       {
+        "family": "Montserrat (Montserrat Medium Italic)",
+        "fontName": "Montserrat",
+        "faceName": "Montserrat Medium Italic",
+        "weight": 500,
+        "style": "Italic",
+        "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Medium Italic-1788712139.ttf"
+       }
+      ],
+      "colorOptions": null
+     }
+    ],
+    "imageInputs": [
+     {
+      "id": "53334ce6-c5f2-4192-81af-699ecf287bfe",
+      "name": null,
+      "description": null,
+      "allowMove": false,
+      "allowResize": false,
+      "allowRotate": false,
+      "hidable": false,
+      "allowedDirectoryIds": [],
+      "directories": [
+       {
+        "id": "019f94e5-111b-730a-a82c-9f4a5969b131",
+        "name": "Grafika"
+       },
+       {
+        "id": "01a04c4f-eedd-7145-9e0a-f0741cbe1d13",
+        "name": "Hrajeme"
+       },
+       {
+        "id": "019fe76e-4fb9-71c2-ab41-bd3d7bc3a0d7",
+        "name": "Kategorie"
+       },
+       {
+        "id": "019f0a0d-e3b2-71c4-a388-56fa6f831610",
+        "name": "Logotypy klubů"
+       },
+       {
+        "id": "019fdb65-482c-7039-872a-5ca05b2a4fa1",
+        "name": "Pozadí"
+       },
+       {
+        "id": "019f13c5-6d7c-727a-8128-80160a535af9",
+        "name": "Pozadí Fotbal"
+       },
+       {
+        "id": "019f7dd6-363d-73cb-9c0f-2595dd5f4c32",
+        "name": "Pozadí fotografie"
+       },
+       {
+        "id": "019fe59d-8a4b-70a1-920f-5f6b49b5792c",
+        "name": "Skóre"
+       },
+       {
+        "id": "01a07003-3829-73b0-acdc-6ea52774b149",
+        "name": "Soupiska"
+       },
+       {
+        "id": "01a07003-7a76-714a-a3bf-a7cdff04580b",
+        "name": "\"A\" Tým"
+       },
+       {
+        "id": "01a07003-95a8-738e-9538-14b6a3928db9",
+        "name": "\"B\" Tým"
+       },
+       {
+        "id": "01a0851c-c1c1-7137-a8a7-65e84bd230e0",
+        "name": "Trenéři"
+       }
+      ],
+      "includesRoot": true,
+      "frame": {
+       "x": 0.0,
+       "y": 0.0,
+       "width": 1080.0,
+       "height": 1350.0
+      },
+      "defaultImageUrl": "http://store.test/wboost/file-upload/019e8e30-fd40-7332-a8fb-dc0a1ba49952/01a04c43-a02f-70e4-9c31-f742e4ff6107.png",
+      "layerIndex": 0,
+      "isBackground": true,
+      "containerId": null
+     }
+    ],
+    "containers": [
+     {
+      "id": "text-blok",
+      "maxHeight": 357.0,
+      "y": 857.8333,
+      "memberInputIds": [
+       "318d2075-13cf-4cfb-aaf0-d6ccacda8e26",
+       "812fbf9c-19b2-4d1b-9d10-20d5d373dfd7"
+      ],
+      "memberContainerIds": [],
+      "gap": 26.0,
+      "spaceAfter": null,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     },
+     {
+      "id": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+      "maxHeight": 64.0,
+      "y": 351.8333,
+      "memberInputIds": [
+       "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297",
+       "aa3dc632-f4bc-4f2d-9ffc-ad52da560589"
+      ],
+      "memberContainerIds": [],
+      "gap": null,
+      "spaceAfter": null,
+      "nested": true,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": {
+       "max": 6,
+       "min": 1,
+       "default": 5
+      },
+      "fitsRows": 6
+     },
+     {
+      "id": "de5f8b49-7d6d-481f-97e2-a840ce873f93",
+      "maxHeight": 419.0,
+      "y": 351.8333,
+      "memberInputIds": [],
+      "memberContainerIds": [
+       "7a221de8-68c3-430b-a3be-92f3fb7dac7f"
+      ],
+      "gap": 25.0,
+      "spaceAfter": null,
+      "nested": false,
+      "hidable": false,
+      "name": null,
+      "memberImageInputIds": [],
+      "repeat": null,
+      "fitsRows": null
+     }
+    ],
+    "richTextOptions": {
+     "fonts": [
+      {
+       "family": "Montserrat (Montserrat Bold)",
+       "fontName": "Montserrat",
+       "faceName": "Montserrat Bold",
+       "weight": 700,
+       "style": "Bold",
+       "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Bold-1780569520.ttf"
+      },
+      {
+       "family": "Montserrat (Montserrat Regular)",
+       "fontName": "Montserrat",
+       "faceName": "Montserrat Regular",
+       "weight": 400,
+       "style": "Regular",
+       "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Regular-1780569582.ttf"
+      },
+      {
+       "family": "Montserrat (Montserrat Black)",
+       "fontName": "Montserrat",
+       "faceName": "Montserrat Black",
+       "weight": 900,
+       "style": "Regular",
+       "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Black-1780569603.ttf"
+      },
+      {
+       "family": "Montserrat (Montserrat Medium Italic)",
+       "fontName": "Montserrat",
+       "faceName": "Montserrat Medium Italic",
+       "weight": 500,
+       "style": "Italic",
+       "url": "http://store.test/wboost/fonts/019e8e30-fd40-7332-a8fb-dc0a1ba49952/Montserrat Medium Italic-1788712139.ttf"
+      }
+     ],
+     "colors": [
+      "#0099d5",
+      "#031c45",
+      "#035990",
+      "#d1d1d1",
+      "#f6f6f6",
+      "#ffffff"
+     ]
+    },
+    "groupMember": false,
+    "shapeInputs": [],
+    "printFormat": false,
+    "bleedMm": 0.0,
+    "cropMarks": false,
+    "movableElements": [],
+    "repeatableRows": [
+     {
+      "containerId": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+      "parentContainerId": "de5f8b49-7d6d-481f-97e2-a840ce873f93",
+      "name": null,
+      "repeat": {
+       "max": 6,
+       "min": 1,
+       "default": 5
+      },
+      "fitsRows": 6,
+      "members": [
+       {
+        "id": "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297",
+        "kind": "text",
+        "name": "Skóre 1"
+       },
+       {
+        "id": "aa3dc632-f4bc-4f2d-9ffc-ad52da560589",
+        "kind": "text",
+        "name": "Soupeř 1"
+       }
+      ],
+      "slots": [
+       {
+        "index": 0,
+        "containerId": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "7a221de8-68c3-430b-a3be-92f3fb7dac7f",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "aa3dc632-f4bc-4f2d-9ffc-ad52da560589"
+        }
+       },
+       {
+        "index": 1,
+        "containerId": "bd12fdd8-1e82-4828-8aea-c18533e49d54",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "bd12fdd8-1e82-4828-8aea-c18533e49d54",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "a2ee3f44-168c-48c2-a8b5-20b1594b62cd",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "57bcb667-9b3d-4e5a-8e0a-16f305911c7c"
+        }
+       },
+       {
+        "index": 2,
+        "containerId": "c0d9c23d-d90c-401c-aa72-5d43f8778bd8",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "c0d9c23d-d90c-401c-aa72-5d43f8778bd8",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "44d77b20-3237-4af5-b063-9b3c23744855",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "e791a08e-9d60-49ba-bc4e-71043d8a62d1"
+        }
+       },
+       {
+        "index": 3,
+        "containerId": "62234dae-6252-456a-a134-c8e56ade0722",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "62234dae-6252-456a-a134-c8e56ade0722",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "8a84977c-d780-4703-8417-7488816a0af6",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "bee44187-3271-4c55-a4bf-3d93acdb3481"
+        }
+       },
+       {
+        "index": 4,
+        "containerId": "4bf268ac-3512-4ed3-b713-d57b55f840a3",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "4bf268ac-3512-4ed3-b713-d57b55f840a3",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "feea24bf-ceb2-45fa-9594-2ceac445b4e5",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "3516822e-dedc-447e-b182-311939c2a302"
+        }
+       },
+       {
+        "index": 5,
+        "containerId": "16eb96a6-046c-5da4-a9f5-b0a0aa63dd67",
+        "ids": {
+         "7a221de8-68c3-430b-a3be-92f3fb7dac7f": "16eb96a6-046c-5da4-a9f5-b0a0aa63dd67",
+         "5a191f3b-0ba9-4a95-b09f-d9cb1bab8297": "30772004-a37a-511d-976b-b90be71c08ab",
+         "aa3dc632-f4bc-4f2d-9ffc-ad52da560589": "caddf231-62b9-5d13-af02-61f8b8a3eef2"
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "group": null,
+  "document": null
+ }
+]

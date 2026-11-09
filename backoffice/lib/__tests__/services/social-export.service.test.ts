@@ -330,6 +330,10 @@ describe('SocialExportService', () => {
           gap: null,
           spaceAfter: null,
           nested: false,
+          // Whole-container hide + image members, defaulted for older payloads.
+          hidable: false,
+          name: null,
+          memberImageInputIds: [],
         },
       ]);
 

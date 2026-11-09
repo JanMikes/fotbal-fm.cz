@@ -180,6 +180,15 @@ export interface WboostRawContainer {
   spaceAfter?: number | null;
   /** True → nested inside a parent (its own maxHeight is not enforced). */
   nested?: boolean;
+  /**
+   * True → the user may hide the WHOLE container with one toggle
+   * (`inputs[<container id>] = { hide: true }`). Absent before 2026-11.
+   */
+  hidable?: boolean;
+  /** The toggle's label; null/absent = unnamed ("Skupina prvků N"). */
+  name?: string | null;
+  /** Fillable IMAGE slots flowing in this container (2026-11); absent → []. */
+  memberImageInputIds?: string[];
 }
 
 /** A rectangle in the variant's canvas pixel space. */

@@ -174,6 +174,11 @@ function mapVariant(raw: WboostRawVariant, thumbnailsEnabled: boolean): Template
       gap: container.gap ?? null,
       spaceAfter: container.spaceAfter ?? null,
       nested: container.nested ?? false,
+      // Whole-container hide (2026-11): without these the toggles never
+      // appear. Absent on older deploys → not hidable, unnamed.
+      hidable: container.hidable === true,
+      name: container.name ?? null,
+      memberImageInputIds: container.memberImageInputIds ?? [],
     })),
     // Rich-text toolbar data. Font file URLs point at the store host (may be
     // `localhost` in dev) → rewrite to the same-origin font proxy so the
