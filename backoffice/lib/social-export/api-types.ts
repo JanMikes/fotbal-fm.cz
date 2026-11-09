@@ -208,6 +208,8 @@ export interface TemplateContainerDTO {
    * 2026-11): one toggle, sent as `inputs[<container id>] = { hide: true }`.
    * The container and everything in its tree (texts, decorative images,
    * shapes, nested containers) disappear; the members' own states are kept.
+   * A hidable container may have `memberInputIds: []` (images / shapes only):
+   * it is listed for its toggle and has nothing to reflow.
    */
   hidable?: boolean;
   /** Label of that toggle; null/absent = unnamed. */

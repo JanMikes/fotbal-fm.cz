@@ -154,4 +154,20 @@ describe('container hides', () => {
     // Hidden bubble → `after` anchors at the flow top (the bubble's place).
     expect(computeTextLayout(variant, { ...state, bubble: { value: '', hidden: true } }, measureByLength).frames['after'].y).toBe(100);
   });
+
+  it('offers and sends a decoration-only container (no fillable members)', () => {
+    const badge: TemplateContainerDTO = { id: 'badge', maxHeight: 200, y: 700, memberInputIds: [], hidable: true, name: 'Odznak' };
+    const variant = makeVariant({
+      inputs: [makeInput({ id: 'quote', frame: frame(0, 100, 200, 40), textStyle: STYLE })],
+      containers: [badge],
+    });
+    const state = { quote: { value: 'Ahoj', hidden: false }, badge: { value: '', hidden: true } };
+
+    expect(hidableContainers(variant.containers).map((c) => c.id)).toEqual(['badge']);
+    expect(buildRenderInputs(variant.inputs, state, variant.containers)).toEqual({ badge: { hide: true }, quote: 'Ahoj' });
+    // Nothing to reflow — the layout mirror ignores it and keeps the frames.
+    const layout = computeTextLayout(variant, state, measureByLength);
+    expect(layout.frames['quote'].y).toBe(100);
+    expect(layout.overflows).toEqual([]);
+  });
 });
