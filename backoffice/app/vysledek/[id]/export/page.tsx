@@ -29,10 +29,10 @@ import {
   fetchExportVersion,
   updateExportVersion,
   downloadBlob,
-  sanitizeFilename,
   type RenderResult,
   type SaveExportStatePayload,
 } from '@/hooks/api/use-social-export';
+import { exportFilename } from '@/lib/social-export/download-filename';
 import TemplateGrid from '@/components/social-export/TemplateGrid';
 import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
@@ -1149,11 +1149,16 @@ function savedImagesFor(
   );
 }
 
-/** Download name when WBoost sent none (it normally does). */
+/**
+ * Download name when WBoost sent none (it normally does) — WBoost's scheme:
+ * `<template>[ - <size>].png`, the size only when there are several.
+ */
 function fallbackFilename(surface: Surface, variantId: string | null): string {
-  const base = sanitizeFilename(surface.template.name);
-  if (!variantId) return `${base}.zip`;
+  if (!variantId) return exportFilename([surface.template.name], 'zip', 'sablona');
   const variant = surface.members.find((m) => m.id === variantId);
-  // Ratio dimensions ('1:1') become '1x1'; size labels ('210 × 297 mm') are sanitized.
-  return `${base}-${sanitizeFilename((variant?.dimension ?? 'export').replace(':', 'x'))}.png`;
+  return exportFilename(
+    [surface.template.name, surface.members.length > 1 ? variant?.dimension : null],
+    'png',
+    'sablona'
+  );
 }

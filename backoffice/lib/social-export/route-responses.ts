@@ -5,6 +5,7 @@
 import { ApiErrors, apiError, apiBinary } from '@/lib/api';
 import type { AppError } from '@/lib/core/errors';
 import type { WboostRenderedFile } from '@/lib/infrastructure/wboost/client';
+import { contentDisposition, encodeExportFilenameHeader } from '@/lib/social-export/download-filename';
 
 /**
  * A failed WBoost call → our API error. 400 forwards the structured WBoost
@@ -26,12 +27,16 @@ export function wboostErrorResponse(error: AppError) {
   }
 }
 
-/** Stream a rendered file back, keeping WBoost's content type + download filename. */
+/**
+ * Stream a rendered file back, keeping WBoost's content type + download
+ * filename. The name is UTF-8 (Czech diacritics): headers carry it as
+ * `filename*` + an ASCII fallback, and `X-Export-Filename` percent-encoded.
+ */
 export function renderedFileResponse(file: WboostRenderedFile) {
   const headers: Record<string, string> = { 'Cache-Control': 'no-store' };
   if (file.filename) {
-    headers['Content-Disposition'] = `attachment; filename="${file.filename}"`;
-    headers['X-Export-Filename'] = file.filename;
+    headers['Content-Disposition'] = contentDisposition(file.filename);
+    headers['X-Export-Filename'] = encodeExportFilenameHeader(file.filename);
   }
 
   return apiBinary(file.body, { contentType: file.contentType, headers });

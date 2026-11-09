@@ -20,6 +20,7 @@ import {
   DocumentRenderRequest,
 } from '@/lib/social-export/api-types';
 import type { SavedExportState, SavedExportStateDTO } from '@/lib/social-export/saved-state';
+import { decodeExportFilenameHeader } from '@/lib/social-export/download-filename';
 
 // ---------------------------------------------------------------------------
 // Fetcher helper for SWR
@@ -166,7 +167,7 @@ export type RenderMode = 'preview' | 'export';
 
 export interface RenderResult {
   blob?: Blob;
-  /** WBoost's download filename (`{group}.zip`, `{group}-{dimension}.png`), when sent. */
+  /** WBoost's download filename (`{group}.zip`, `{group} - {dimension}.png`), UTF-8, when sent. */
   filename?: string | null;
   error?: string;
   errorDetails?: RenderErrorDetails;
@@ -187,7 +188,7 @@ async function postRender(path: string, body: unknown): Promise<RenderResult> {
         contentType.startsWith('application/zip') ||
         contentType.startsWith('application/pdf')
       ) {
-        return { blob: await res.blob(), filename: res.headers.get('x-export-filename') };
+        return { blob: await res.blob(), filename: decodeExportFilenameHeader(res.headers.get('x-export-filename')) };
       }
     }
 
@@ -446,16 +447,3 @@ export function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-// ---------------------------------------------------------------------------
-// sanitizeFilename: strip characters unsafe for filenames
-// ---------------------------------------------------------------------------
-
-export function sanitizeFilename(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // strip diacritics
-    .replace(/[^a-zA-Z0-9_\-]/g, '-') // replace unsafe chars with dash
-    .replace(/-{2,}/g, '-') // collapse multiple dashes
-    .replace(/^-|-$/g, '') // trim leading/trailing dashes
-    .toLowerCase();
-}

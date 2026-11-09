@@ -9,6 +9,7 @@
  * downstream call triggers token invalidation + a single retry.
  */
 
+import { filenameFromDisposition } from '@/lib/social-export/download-filename';
 import * as Sentry from '@sentry/nextjs';
 import { AppError, ErrorCode, NetworkError } from '@/lib/core/errors';
 import { getWboostConfig, WboostConfig } from '@/lib/config';
@@ -129,16 +130,12 @@ export type RenderMode = 'preview' | 'export';
 export interface WboostRenderedFile {
   body: Uint8Array;
   contentType: string;
-  /** From Content-Disposition (`{group}-{dimension}.png`, `{group}.zip`), when sent. */
+  /** From Content-Disposition (`{group} - {dimension}.png`, `{group}.zip`), UTF-8, when sent. */
   filename: string | null;
 }
 
-/** `attachment; filename="x.zip"` → `x.zip` (null when absent). */
-export function filenameFromDisposition(header: string | null): string | null {
-  if (!header) return null;
-  const match = /filename="?([^";]+)"?/i.exec(header);
-  return match ? match[1] : null;
-}
+/** `filename*=utf-8''…` (preferred) or `filename="…"` → the name (null when absent). */
+export { filenameFromDisposition };
 
 export class WboostClient {
   constructor(

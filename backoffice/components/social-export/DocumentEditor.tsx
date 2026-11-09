@@ -13,7 +13,6 @@ import type { ActivePlaceholder } from './PlaceholderOverlay';
 import {
   downloadBlob,
   renderDocument,
-  sanitizeFilename,
   saveExportState,
   type SaveExportStatePayload,
   type RenderResult,
@@ -21,6 +20,7 @@ import {
   updateDocumentExportVersion,
   useDocumentExportVersions,
 } from '@/hooks/api/use-social-export';
+import { exportFilename } from '@/lib/social-export/download-filename';
 import type {
   DocumentDTO,
   DocumentExportFormat,
@@ -548,7 +548,7 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
       }
       downloadBlob(
         result.blob,
-        result.filename ?? `${sanitizeFilename(document.name) || 'dokument'}.${format === 'png' ? 'zip' : 'pdf'}`
+        result.filename ?? exportFilename([document.name], format === 'png' ? 'zip' : 'pdf', 'dokument')
       );
       // WBoost recorded the export as a version.
       void mutateVersions();
