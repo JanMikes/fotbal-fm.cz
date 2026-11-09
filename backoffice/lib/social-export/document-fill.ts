@@ -262,7 +262,7 @@ export function applySavedDocument(
   for (const page of document.pages) {
     const savedPage = saved.pages[page.id];
     if (!savedPage) continue;
-    forms[page.id] = applySavedForm(page.variant.inputs, base.forms[page.id] ?? {}, savedPage.formState);
+    forms[page.id] = applySavedForm(page.variant.inputs, base.forms[page.id] ?? {}, savedPage.formState, page.variant.containers);
     images[page.id] = applySavedImages(page.variant.imageInputs, base.images[page.id] ?? {}, savedPage.imageState);
     shapeColors[page.id] = sanitizeShapeColors(page.variant.shapeInputs, savedPage.shapeColors);
   }
@@ -596,7 +596,7 @@ export function buildPageFill(
   shapeColors: ShapeColorState | undefined
 ): DocumentPageFill {
   const fill: DocumentPageFill = {};
-  const inputs = buildRenderInputs(page.variant.inputs, form ?? {});
+  const inputs = buildRenderInputs(page.variant.inputs, form ?? {}, page.variant.containers);
   const pageImages = buildRenderImages(page.variant.imageInputs, images ?? {});
   const colors = sanitizeShapeColors(page.variant.shapeInputs, shapeColors);
 

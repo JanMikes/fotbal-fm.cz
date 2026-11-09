@@ -44,6 +44,7 @@ import type {
 import { effectiveLines, type InputFieldState } from './field-rules';
 import { fitLines } from './list-lines';
 import { isStyled, plainText, truncateRuns } from './rich-text';
+import { containerHiddenInputIds } from './container-hides';
 
 /** Fabric's Text._fontSizeMult — part of every line's height. */
 const FONT_SIZE_MULT = 1.13;
@@ -533,6 +534,9 @@ export function computeTextLayout(
   const frames: Record<string, ImageFrameDTO> = {};
   const overflows: PredictedOverflow[] = [];
   const inputById = new Map(variant.inputs.map((input) => [input.id, input]));
+  // A switched-off hidable container hides its whole tree — its members
+  // collapse exactly like hidden members (the render's expansion).
+  const containerHidden = containerHiddenInputIds(variant.containers, state);
 
   for (const input of variant.inputs) {
     if (!input.frame) continue;
@@ -637,7 +641,7 @@ export function computeTextLayout(
       } else {
         const input = inputById.get(item.id)!;
         item.height = frames[item.id].height;
-        item.hidden = input.hidable && (state[item.id]?.hidden ?? false);
+        item.hidden = (input.hidable && (state[item.id]?.hidden ?? false)) || containerHidden.has(item.id);
       }
       if (item.hidden) {
         item.extTop = null;

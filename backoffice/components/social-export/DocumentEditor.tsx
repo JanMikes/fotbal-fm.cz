@@ -5,6 +5,8 @@ import { AlertTriangle, FileDown, FileText, FolderArchive, History, ImageIcon, L
 import Button from '@/components/ui/Button';
 import PreviewPanel from './PreviewPanel';
 import ExportInputForm from './ExportInputForm';
+import ContainerHideToggles from './ContainerHideToggles';
+import { hidableContainers } from '@/lib/social-export/container-hides';
 import ExportHistoryMenu, { versionTitle } from './ExportHistoryMenu';
 import ImagePickerModal from './images/ImagePickerModal';
 import SaveStatusBadge, { type SaveStatus } from './SaveStatusBadge';
@@ -855,6 +857,13 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         sharedTextFields={activeSharedText}
         sharedImageFields={activeSharedImages}
         sharedShapeFields={activeSharedShapes}
+      />
+
+      {/* Whole-container hides of the active page (per page, never shared). */}
+      <ContainerHideToggles
+        containers={hidableContainers(activePage.variant.containers)}
+        state={fill.forms[activePage.id] ?? {}}
+        onChange={handleFormChange}
       />
 
       {unplacedInputs.length > 0 && (

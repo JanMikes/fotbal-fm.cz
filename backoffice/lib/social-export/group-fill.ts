@@ -23,6 +23,7 @@ import type {
 } from './api-types';
 import { buildRenderImages, defaultImageSlotState, type ImageSlotState } from './field-rules-image';
 import { buildRenderInputs, initialFieldState, type InputFieldState } from './field-rules';
+import { restoreContainerHides, unionHidableContainers } from './container-hides';
 import { applySavedForm, sanitizeSlotState, type StoredImageSlotState } from './saved-state';
 import { isStyled, normalizeRuns, plainText } from './rich-text';
 import { sanitizeShapeColors, unionShapeInputs, type ShapeColorState } from './shape-colors';
@@ -139,7 +140,7 @@ export function buildGroupRenderBody(
   images: Record<string, RenderImageValue>;
   placements: GroupPlacements;
 } {
-  const inputs = buildRenderInputs(unionInputs(members), formState);
+  const inputs = buildRenderInputs(unionInputs(members), formState, unionHidableContainers(members));
   const images: Record<string, RenderImageValue> = {};
   const placements: GroupPlacements = {};
 
@@ -194,7 +195,8 @@ export function fillToEditorState(
     loaded[input.id] = inputValueToState(value, base[input.id]);
   }
 
-  const formState = applySavedForm(inputs, base, loaded);
+  // A version records a container hide as `inputs[<containerId>] = { hide: true }`.
+  const formState = { ...applySavedForm(inputs, base, loaded), ...restoreContainerHides(unionHidableContainers(members), fill.inputs) };
   const imageStates = initDimensionImages(members);
 
   for (const member of members) {

@@ -203,6 +203,15 @@ export interface TemplateContainerDTO {
   spaceAfter?: number | null;
   /** True → flows inside a parent; its own maxHeight is NOT enforced. */
   nested?: boolean;
+  /**
+   * True → the designer lets the user hide the WHOLE container (WBoost
+   * 2026-11): one toggle, sent as `inputs[<container id>] = { hide: true }`.
+   * The container and everything in its tree (texts, decorative images,
+   * shapes, nested containers) disappear; the members' own states are kept.
+   */
+  hidable?: boolean;
+  /** Label of that toggle; null/absent = unnamed. */
+  name?: string | null;
 }
 
 /**

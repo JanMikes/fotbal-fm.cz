@@ -7,8 +7,9 @@
  * Client-safe (types + pure merge helpers only).
  */
 
-import type { ImageFrameDTO, ListLineType, TemplateVariantDTO } from './api-types';
+import type { ImageFrameDTO, ListLineType, TemplateContainerDTO, TemplateVariantDTO } from './api-types';
 import type { InputFieldState } from './field-rules';
+import { restoreContainerHides } from './container-hides';
 import { normalizeRuns, plainText, isStyled } from './rich-text';
 import {
   type ImageSlotState,
@@ -110,7 +111,7 @@ export function applySavedState(
   }
 
   return {
-    formState: applySavedForm(variant.inputs, baseForm, saved.formState),
+    formState: applySavedForm(variant.inputs, baseForm, saved.formState, variant.containers),
     imageState: applySavedImages(variant.imageInputs, baseImages, saved.imageState),
     restored: true,
   };
@@ -123,9 +124,12 @@ export function applySavedState(
 export function applySavedForm(
   inputs: TemplateVariantDTO['inputs'],
   baseForm: Record<string, InputFieldState>,
-  savedForm: Record<string, InputFieldState> | null | undefined
+  savedForm: Record<string, InputFieldState> | null | undefined,
+  containers: TemplateContainerDTO[] = []
 ): Record<string, InputFieldState> {
-  const formState = { ...baseForm };
+  // Whole-container hide toggles ride the same form state, keyed by the
+  // container id — restored only while the container is still hidable.
+  const formState = { ...baseForm, ...restoreContainerHides(containers, savedForm) };
   for (const input of inputs) {
     const field = savedForm?.[input.id];
     if (field && typeof field.value === 'string' && typeof field.hidden === 'boolean') {

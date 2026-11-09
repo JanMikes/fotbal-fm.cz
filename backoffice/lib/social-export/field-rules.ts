@@ -16,8 +16,10 @@ import type {
   ListLineType,
   RenderInputValue,
   RichRunDTO,
+  TemplateContainerDTO,
   TemplateInputDTO,
 } from './api-types';
+import { buildContainerHides } from './container-hides';
 import { codePointLength, isStyled, normalizeRuns, plainText } from './rich-text';
 
 /** Resolve the field label: name, else description, else a generic "Text N". */
@@ -153,15 +155,18 @@ export function effectiveLines(input: TemplateInputDTO, state: InputFieldState):
  *  - a hidden, hidable input is sent as `{ value?, hide: true }`
  *  - a non-empty value is sent as a plain string
  *  - an empty, non-hidden value is omitted (keeps the template default)
+ *  - a switched-off HIDABLE container (form state keyed by its id) is sent as
+ *    `{ hide: true }` under the container id — pass the variant's containers
  *
  * Over-length values are caller's responsibility to block first (see
  * `validateInputValue`) — they would otherwise return 400 from the API.
  */
 export function buildRenderInputs(
   inputs: TemplateInputDTO[],
-  state: Record<string, InputFieldState>
+  state: Record<string, InputFieldState>,
+  containers: TemplateContainerDTO[] = []
 ): Record<string, RenderInputValue> {
-  const payload: Record<string, RenderInputValue> = {};
+  const payload: Record<string, RenderInputValue> = buildContainerHides(containers, state);
 
   for (const input of inputs) {
     if (input.locked) continue;

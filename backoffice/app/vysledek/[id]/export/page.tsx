@@ -36,6 +36,8 @@ import { exportFilename } from '@/lib/social-export/download-filename';
 import TemplateGrid from '@/components/social-export/TemplateGrid';
 import VariantChooser from '@/components/social-export/VariantChooser';
 import ExportInputForm from '@/components/social-export/ExportInputForm';
+import ContainerHideToggles from '@/components/social-export/ContainerHideToggles';
+import { unionHidableContainers } from '@/lib/social-export/container-hides';
 import PreviewPanel from '@/components/social-export/PreviewPanel';
 import DimensionStrip from '@/components/social-export/DimensionStrip';
 import ExportHistoryMenu, { versionTitle } from '@/components/social-export/ExportHistoryMenu';
@@ -375,7 +377,9 @@ function SocialExportPageContent({ params }: PageProps) {
       );
     }
 
-    setFormState(applySavedForm(inputs, initSurfaceForm(inputs, prefill), saved?.state.formState));
+    setFormState(
+      applySavedForm(inputs, initSurfaceForm(inputs, prefill), saved?.state.formState, unionHidableContainers(surface.members))
+    );
     setImageStates(seededImages);
     setShapeColors(sanitizeShapeColors(unionShapeInputs(surface.members), saved?.state.shapeColors));
     setSaveStatus(saved ? 'saved' : 'idle');
@@ -608,7 +612,7 @@ function SocialExportPageContent({ params }: PageProps) {
     const variant = surface.members[0];
     return renderVariant(
       variant.id,
-      buildRenderInputs(variant.inputs, formState),
+      buildRenderInputs(variant.inputs, formState, variant.containers),
       buildRenderImages(variant.imageInputs, imageStates[variant.id] ?? {}),
       mode,
       sanitizeShapeColors(variant.shapeInputs, shapeColors)
@@ -1078,6 +1082,14 @@ function SocialExportPageContent({ params }: PageProps) {
                   : null
               }
               textFrames={textLayouts[activeVariant.id]?.frames ?? {}}
+            />
+
+            {/* Whole-container hides — one toggle per group the designer let the
+                user hide (shared across the group's dimensions). */}
+            <ContainerHideToggles
+              containers={unionHidableContainers(surface.members)}
+              state={formState}
+              onChange={handleFormChange}
             />
 
             {/* Fallback for any editable text fields that have no position in the
