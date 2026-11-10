@@ -33,6 +33,11 @@ export interface LayerRow {
   layerIndex: number | null;
 }
 
+/** A repeatable row's copies share the template member's name: say which row. */
+function withRow(label: string, slot: { slot: number } | undefined): string {
+  return slot ? `${label} · řádek ${slot.slot + 1}` : label;
+}
+
 export function buildLayerRows(
   variant: TemplateVariantDTO,
   formState: Record<string, InputFieldState>,
@@ -45,7 +50,7 @@ export function buildLayerRows(
     rows.push({
       kind: 'text',
       id: input.id,
-      label: resolveInputLabel(input, index),
+      label: withRow(resolveInputLabel(input, index), input.rowSlot),
       editable,
       clickable: editable && input.frame != null,
       hidable: input.hidable && editable,
@@ -59,7 +64,7 @@ export function buildLayerRows(
     rows.push({
       kind: 'image',
       id: input.id,
-      label: resolveImageLabel(input, index),
+      label: withRow(resolveImageLabel(input, index), input.rowSlot),
       editable: true,
       clickable: true,
       hidable: input.hidable,
@@ -75,7 +80,7 @@ export function buildLayerRows(
     rows.push({
       kind: 'shape',
       id: shape.id,
-      label: resolveShapeLabel(shape, index),
+      label: withRow(resolveShapeLabel(shape, index), shape.rowSlot),
       editable: true,
       clickable: shape.frame != null,
       hidable: false,

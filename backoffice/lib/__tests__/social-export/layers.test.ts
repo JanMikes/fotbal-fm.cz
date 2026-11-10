@@ -180,3 +180,15 @@ describe('buildLayerRows', () => {
     });
   });
 });
+
+describe('buildLayerRows with repeatable rows', () => {
+  it('names the row of a repeatable row member', async () => {
+    const { mapRawVariant } = await import('@/lib/services/social-export.mappers');
+    const listing = (await import('../fixtures/wboost-listing-rows.json')).default as unknown as { name: string; variants: unknown[] }[];
+    const variant = mapRawVariant(listing.find((t) => t.name === 'Výsledky turnaje')!.variants[0] as never, false);
+    const labels = buildLayerRows(variant, {}, {}).map((row) => row.label);
+    expect(labels).toContain('Soupeř 1 · řádek 1');
+    expect(labels).toContain('Soupeř 1 · řádek 6');
+    expect(labels).toContain('Výsledky turnaje');
+  });
+});
