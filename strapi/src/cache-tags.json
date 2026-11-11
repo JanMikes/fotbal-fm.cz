@@ -16,6 +16,7 @@
     "partner-category": ["partner-category"],
     "player": ["player"],
     "player-highlight": ["player-highlight"],
+    "social-network": ["social-network"],
     "standing": ["standing"],
     "team": ["team"],
     "tournament": ["tournament"]

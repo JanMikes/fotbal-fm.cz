@@ -3,7 +3,7 @@ import { Montserrat } from 'next/font/google';
 import Script from 'next/script';
 import { Header, Footer } from '@/components/layout';
 import { ScrollToTop } from '@/components/ScrollToTop';
-import { getCategoryGroups, getFooter, getNavigation, getNavigationPages } from '@/lib/strapi/data';
+import { getCategoryGroups, getFooter, getNavigation, getNavigationPages, getSocialLinks } from '@/lib/strapi/data';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 import './globals.css';
 
@@ -73,13 +73,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [categoryGroups, navigation, navigationPages, footer] = await Promise.all([
+  const [categoryGroups, navigation, navigationPages, footer, socialLinks] = await Promise.all([
     getCategoryGroups(),
     getNavigation(),
     getNavigationPages(),
     getFooter(),
+    getSocialLinks(),
   ]);
-  // Taller desktop header (--header-h in globals.css) only once the second menu row has items.
+  // Taller desktop header (--header-h in globals.css) only once the level 2 row (beside the logo) has items.
   const hasSecondaryNav = navigation.some((item) => item.level === 2);
 
   return (
@@ -97,9 +98,9 @@ gtag('config', '${GA_ID}');`}
       )}
       <body className="font-sans">
         <ScrollToTop />
-        <Header categoryGroups={categoryGroups} navigation={navigation} navigationPages={navigationPages} />
+        <Header categoryGroups={categoryGroups} navigation={navigation} navigationPages={navigationPages} socialLinks={socialLinks} />
         {children}
-        <Footer footer={footer} />
+        <Footer footer={footer} socialLinks={socialLinks} />
       </body>
     </html>
   );

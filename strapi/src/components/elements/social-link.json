@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_elements_social_links",
+  "info": {
+    "displayName": "Sociální síť",
+    "description": "Ikona sociální sítě s odkazem"
+  },
+  "attributes": {
+    "network": {
+      "type": "enumeration",
+      "enum": ["Facebook", "Instagram", "YouTube", "TikTok", "X", "LinkedIn", "Threads", "WhatsApp", "Eshop", "Web"],
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

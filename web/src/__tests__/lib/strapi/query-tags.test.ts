@@ -164,6 +164,7 @@ const SAMPLES: { [K in keyof typeof QUERIES]: Parameters<(typeof QUERIES)[K]> } 
   getPlayersByCategory: ['muzi-a'],
   getNavigation: [],
   getFooter: [],
+  getSocialLinks: [],
   getNavigationPages: [],
   getPageBySlug: ['o-klubu'],
   getPageSlugIndex: [],

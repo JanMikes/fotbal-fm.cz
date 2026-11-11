@@ -123,7 +123,7 @@ describe('the latch asks Strapi whether it accepts the API token (P0-V11)', () =
     expect((strapiInit.headers as Record<string, string>).Authorization).toBe('Bearer test-token');
   });
 
-  it('asks every endpoint for one row: upload/files with ?limit=1 (its API ignores pagination), the footer single type unqualified (D-V1)', async () => {
+  it('asks every endpoint for one row: upload/files with ?limit=1 (its API ignores pagination), the single types (footer, social-network) unqualified (D-V1)', async () => {
     const { STRAPI_READ_ENDPOINTS } = await import('@/lib/strapi/auth-probe');
     smoke.mockResolvedValue(page(200, RENDERED));
     expect((await GET()).status).toBe(200);
@@ -131,9 +131,10 @@ describe('the latch asks Strapi whether it accepts the API token (P0-V11)', () =
     expect(urls).toHaveLength(STRAPI_READ_ENDPOINTS.length);
     expect(urls).toContain('http://strapi:1337/api/upload/files?limit=1');
     expect(urls).toContain('http://strapi:1337/api/footer');
+    expect(urls).toContain('http://strapi:1337/api/social-network');
     expect(urls).toContain('http://strapi:1337/api/matches?pagination[pageSize]=1');
     for (const url of urls) {
-      if (!url.endsWith('/footer')) expect(url).toMatch(/\?(limit=1|pagination\[pageSize\]=1)$/);
+      if (!url.endsWith('/footer') && !url.endsWith('/social-network')) expect(url).toMatch(/\?(limit=1|pagination\[pageSize\]=1)$/);
     }
   });
 
@@ -166,6 +167,7 @@ describe('the latch asks Strapi whether it accepts the API token (P0-V11)', () =
     strapiStatus.set('categories', 'down');
     strapiStatus.set('pages', 503);
     strapiStatus.set('footer', 404);
+    strapiStatus.set('social-network', 404);
 
     expect((await GET()).status).toBe(200);
   });

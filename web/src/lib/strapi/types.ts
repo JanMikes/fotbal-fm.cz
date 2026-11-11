@@ -72,6 +72,18 @@ export interface StrapiRawTextLink extends StrapiRawLink {
   disabled: boolean;
 }
 
+export interface StrapiRawSocialLink {
+  id: number;
+  network: string | null;
+  url: string | null;
+}
+
+export interface StrapiRawSocialNetwork {
+  id: number;
+  documentId: string;
+  links: StrapiRawSocialLink[] | null;
+}
+
 export interface StrapiRawNavigation {
   id: number;
   documentId: string;

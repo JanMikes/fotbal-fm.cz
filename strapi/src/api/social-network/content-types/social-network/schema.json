@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "social_networks",
+  "info": {
+    "singularName": "social-network",
+    "pluralName": "social-networks",
+    "displayName": "Sociální sítě",
+    "description": "Ikony sociálních sítí v hlavičce (vpravo nahoře) a v patičce. Pořadí = pořadí v seznamu, maximálně 5."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "links": {
+      "type": "component",
+      "component": "elements.social-link",
+      "repeatable": true,
+      "max": 5
+    }
+  }
+}

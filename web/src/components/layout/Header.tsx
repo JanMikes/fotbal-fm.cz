@@ -6,13 +6,9 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown, ChevronLeft, ChevronRight, Facebook, Instagram } from 'lucide-react';
-import type { CategoryGroup, NavigationItem } from '@/lib/types';
-
-const socialLinks = [
-  { icon: Facebook, href: 'https://www.facebook.com/fotbalfm', label: 'Facebook' },
-  { icon: Instagram, href: 'https://www.instagram.com/fotbal_fm/', label: 'Instagram' },
-];
+import { Menu, X, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { CategoryGroup, NavigationItem, SocialLink } from '@/lib/types';
+import SocialIcon from '@/components/ui/SocialIcon';
 
 interface NavigationPage {
   title: string;
@@ -23,9 +19,10 @@ interface HeaderProps {
   categoryGroups: CategoryGroup[];
   navigation?: NavigationItem[];
   navigationPages?: NavigationPage[];
+  socialLinks?: SocialLink[];
 }
 
-export default function Header({ categoryGroups, navigation = [], navigationPages = [] }: HeaderProps) {
+export default function Header({ categoryGroups, navigation = [], navigationPages = [], socialLinks = [] }: HeaderProps) {
   const pathname = usePathname();
   const activeCategorySlug = useMemo(() => {
     const match = pathname.match(/^\/kategorie\/([^/]+)/);
@@ -121,9 +118,50 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1727] shadow-lg'
         )}
       >
+        {/* Level 1 - full-width top row above the logo, social icons on the right (desktop only;
+            40px + border — keep --header-h in globals.css in sync) */}
+        <div className="hidden lg:flex items-center gap-6 h-10 px-8 border-b border-primary-border">
+          <nav className="flex items-center gap-6 min-w-0 overflow-x-auto scrollbar-hide" aria-label="Hlavní menu">
+            {primaryNav.map((item, index) => (
+              <Link
+                key={`${index}-${item.href}`}
+                href={item.href}
+                {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className={clsx(
+                  'text-xs tracking-wide uppercase whitespace-nowrap transition-colors',
+                  isNavItemActive(item)
+                    ? 'font-bold text-accent'
+                    : 'font-medium text-white/70 hover:text-white',
+                  'link-hover'
+                )}
+              >
+                {item.title}
+              </Link>
+            ))}
+          </nav>
+
+          {socialLinks.length > 0 && (
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+              {socialLinks.map((social) => (
+                <a
+                  key={`${social.network}-${social.href}`}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-colors text-white/60 hover:text-white hover:bg-white/10"
+                  aria-label={social.label}
+                  title={social.label}
+                >
+                  <SocialIcon network={social.network} className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="w-full px-4 lg:px-8">
           <div className="flex items-stretch">
-            {/* Logo - spans both nav levels via row-span */}
+            {/* Logo - spans the level 2 row and the category row */}
             <Link href="/" className="flex items-center shrink-0 z-20 group py-2 pr-6 lg:border-r lg:border-primary-border">
               <div className="relative w-14 h-14 lg:w-24 lg:h-24">
                 <Image
@@ -136,132 +174,85 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
               </div>
             </Link>
 
-            {/* Right side: two rows */}
-            <div className="flex flex-col flex-1 min-w-0">
-              {/* Level 1 - Main Navigation */}
-              <div className="flex items-center flex-1 lg:flex-none py-2.5 lg:py-3.5 pl-6 lg:border-b lg:border-primary-border">
-                {/* Desktop Navigation (left-aligned) */}
-                <nav className="hidden lg:flex items-center gap-6">
-                  {primaryNav.map((item, index) => {
-                    const linkProps = item.external
-                      ? { target: '_blank' as const, rel: 'noopener noreferrer' }
-                      : {};
-                    const isActive = isNavItemActive(item);
-                    return (
-                      <Link
-                        key={`${index}-${item.href}`}
-                        href={item.href}
-                        {...linkProps}
-                        className={clsx(
-                          'flex items-center gap-1 py-2 text-sm tracking-wide uppercase transition-colors',
-                          isActive
-                            ? 'font-bold text-accent'
-                            : 'font-medium text-white/80 hover:text-white',
-                          'link-hover'
-                        )}
-                      >
-                        {item.title}
-                      </Link>
-                    );
-                  })}
-                </nav>
-
-                {/* Social Icons & Mobile Menu Button */}
-                <div className="flex items-center gap-3 ml-auto">
-                  {/* Desktop Social Links */}
-                  <div className="hidden lg:flex items-center gap-2">
-                    {socialLinks.map((social) => (
-                      <a
-                        key={social.label}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-white/60 hover:text-white hover:bg-white/10"
-                        aria-label={social.label}
-                      >
-                        <social.icon className="w-4 h-4" />
-                      </a>
-                    ))}
-                  </div>
-
-                  {/* Mobile Category Dropdown */}
-                  <div ref={categoryDropdownRef} className="relative lg:hidden">
-                    <button
-                      onClick={() => setIsCategoryDropdownOpen((v) => !v)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white border border-white/30 rounded-full uppercase transition-colors hover:bg-white/10"
-                    >
-                      {activeGroup?.name ?? 'Týmy'}
-                      <ChevronDown className={clsx('w-3.5 h-3.5 transition-transform', isCategoryDropdownOpen && 'rotate-180')} />
-                    </button>
-
-                    <AnimatePresence>
-                      {isCategoryDropdownOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 min-w-[10rem] bg-[#0d1727] border border-white/20 rounded-xl p-2 shadow-xl z-50"
-                        >
-                          {categoryGroups.map((group) => (
-                            <Link
-                              key={group.slug}
-                              href={`/kategorie/${group.firstCategorySlug}`}
-                              onClick={() => setIsCategoryDropdownOpen(false)}
-                              className={clsx(
-                                'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
-                                activeGroupSlug === group.slug
-                                  ? 'bg-accent text-white'
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
-                              )}
-                            >
-                              {group.name}
-                            </Link>
-                          ))}
-                          {navigationPages.map((page) => (
-                            <Link
-                              key={`page-${page.slug}`}
-                              href={`/${page.slug}`}
-                              onClick={() => setIsCategoryDropdownOpen(false)}
-                              className={clsx(
-                                'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
-                                pathname === `/${page.slug}`
-                                  ? 'bg-accent text-white'
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
-                              )}
-                            >
-                              {page.title}
-                            </Link>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Mobile Menu Button */}
+            {/* Right side: level 2 + category rows */}
+            <div className="flex flex-col flex-1 min-w-0 lg:justify-center">
+              {/* Mobile: category dropdown & menu button */}
+              <div className="flex lg:hidden items-center justify-end gap-3 flex-1 py-2.5 pl-6">
+                <div ref={categoryDropdownRef} className="relative">
                   <button
-                    onClick={() => setIsMobileMenuOpen(true)}
-                    className="lg:hidden w-10 h-10 rounded-full border border-white/30 flex items-center justify-center transition-colors text-white hover:bg-white/10"
-                    aria-label="Otevřít menu"
+                    onClick={() => setIsCategoryDropdownOpen((v) => !v)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white border border-white/30 rounded-full uppercase transition-colors hover:bg-white/10"
                   >
-                    <Menu className="w-6 h-6" />
+                    {activeGroup?.name ?? 'Týmy'}
+                    <ChevronDown className={clsx('w-3.5 h-3.5 transition-transform', isCategoryDropdownOpen && 'rotate-180')} />
                   </button>
+
+                  <AnimatePresence>
+                    {isCategoryDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-2 min-w-[10rem] bg-[#0d1727] border border-white/20 rounded-xl p-2 shadow-xl z-50"
+                      >
+                        {categoryGroups.map((group) => (
+                          <Link
+                            key={group.slug}
+                            href={`/kategorie/${group.firstCategorySlug}`}
+                            onClick={() => setIsCategoryDropdownOpen(false)}
+                            className={clsx(
+                              'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
+                              activeGroupSlug === group.slug
+                                ? 'bg-accent text-white'
+                                : 'text-white/70 hover:text-white hover:bg-white/10'
+                            )}
+                          >
+                            {group.name}
+                          </Link>
+                        ))}
+                        {navigationPages.map((page) => (
+                          <Link
+                            key={`page-${page.slug}`}
+                            href={`/${page.slug}`}
+                            onClick={() => setIsCategoryDropdownOpen(false)}
+                            className={clsx(
+                              'block px-3 py-2 text-xs font-medium uppercase rounded-lg transition-colors',
+                              pathname === `/${page.slug}`
+                                ? 'bg-accent text-white'
+                                : 'text-white/70 hover:text-white hover:bg-white/10'
+                            )}
+                          >
+                            {page.title}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
+
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center transition-colors text-white hover:bg-white/10"
+                  aria-label="Otevřít menu"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
               </div>
 
-              {/* Level 2 - Secondary Navigation (desktop only, 40px — keep --header-h in globals.css in sync) */}
+              {/* Level 2 - beside the logo (desktop only, 56px + border — keep --header-h in globals.css in sync) */}
               {secondaryNav.length > 0 && (
-                <nav className="hidden lg:flex items-center gap-6 h-10 pl-6 border-b border-primary-border">
+                <nav className="hidden lg:flex items-center gap-6 h-14 pl-6 border-b border-primary-border overflow-x-auto scrollbar-hide" aria-label="Vedlejší menu">
                   {secondaryNav.map((item, index) => (
                     <Link
                       key={`${index}-${item.href}`}
                       href={item.href}
                       {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                       className={clsx(
-                        'text-xs tracking-wide uppercase whitespace-nowrap transition-colors',
+                        'flex items-center gap-1 py-2 text-sm tracking-wide uppercase whitespace-nowrap transition-colors',
                         isNavItemActive(item)
                           ? 'font-bold text-accent'
-                          : 'font-medium text-white/60 hover:text-white',
+                          : 'font-medium text-white/80 hover:text-white',
                         'link-hover'
                       )}
                     >
@@ -430,6 +421,7 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
               )}
 
               {/* Mobile Social Links */}
+              {socialLinks.length > 0 && (
               <div>
                 <p className="text-small text-white/50 uppercase tracking-wider mb-3">
                   Sledujte nás
@@ -437,18 +429,19 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
                 <div className="flex gap-3">
                   {socialLinks.map((social) => (
                     <a
-                      key={social.label}
+                      key={`${social.network}-${social.href}`}
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-accent transition-colors"
                       aria-label={social.label}
                     >
-                      <social.icon className="w-5 h-5" />
+                      <SocialIcon network={social.network} className="w-5 h-5" />
                     </a>
                   ))}
                 </div>
               </div>
+              )}
             </motion.div>
           </motion.div>
         )}

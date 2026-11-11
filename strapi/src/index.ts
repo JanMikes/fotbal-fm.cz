@@ -107,6 +107,50 @@ async function setNavigationLevelLabel(strapi: Core.Strapi) {
   strapi.log.info('Set menu level field labels');
 }
 
+// The header and footer icons were hard-coded before "Sociální sítě" existed: seed them once, so the
+// site keeps them until someone edits the list. Never runs again once the document exists.
+async function seedSocialNetworks(strapi: Core.Strapi) {
+  const existing = await strapi.documents('api::social-network.social-network').findFirst();
+  if (existing) return;
+
+  await strapi.documents('api::social-network.social-network').create({
+    data: {
+      links: [
+        { network: 'Facebook', url: 'https://www.facebook.com/fotbalfm' },
+        { network: 'Instagram', url: 'https://www.instagram.com/fotbal_fm/' },
+      ],
+    },
+  });
+  strapi.log.info('Seeded social networks');
+}
+
+// Czech labels for the social link fields in the content manager (only while they are the defaults).
+async function setSocialLinkLabels(strapi: Core.Strapi) {
+  const storeParams = { type: 'plugin', name: 'content_manager', key: 'configuration_components::elements.social-link' };
+  const config = await strapi.store.get(storeParams) as any;
+  const { network, url } = config?.metadatas ?? {};
+  if (!network || !url || network.edit?.label !== 'network') return;
+
+  await strapi.store.set({
+    ...storeParams,
+    value: {
+      ...config,
+      metadatas: {
+        ...config.metadatas,
+        network: {
+          edit: { ...network.edit, label: 'Ikona', description: 'Síť, jejíž ikona se zobrazí' },
+          list: { ...network.list, label: 'Ikona' },
+        },
+        url: {
+          edit: { ...url.edit, label: 'Odkaz', description: 'Celá adresa včetně https://', placeholder: 'https://' },
+          list: { ...url.list, label: 'Odkaz' },
+        },
+      },
+    },
+  });
+  strapi.log.info('Set social link field labels');
+}
+
 // Menu items created before the `level` field existed belong to the top row.
 async function backfillNavigationLevel(strapi: Core.Strapi) {
   const result = await strapi.db.query('api::navigation.navigation').updateMany({
@@ -167,6 +211,8 @@ export default {
     await setPlayerMainField(strapi);
     await backfillNavigationLevel(strapi);
     await setNavigationLevelLabel(strapi);
+    await seedSocialNetworks(strapi);
+    await setSocialLinkLabels(strapi);
     await enforceUserPermissionPolicy(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },

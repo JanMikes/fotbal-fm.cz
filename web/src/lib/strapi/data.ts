@@ -6,6 +6,7 @@ import type {
   Footer,
   Match,
   NavigationItem,
+  SocialLink,
   NewsArticle,
   NewsArticleSummary,
   NewsArticleType,
@@ -25,6 +26,7 @@ import type {
   StrapiRawFooter,
   StrapiRawMatch,
   StrapiRawNavigation,
+  StrapiRawSocialNetwork,
   StrapiRawNewsArticle,
   StrapiRawNewsArticleType,
   StrapiRawPage,
@@ -42,6 +44,7 @@ import { mapDeepLink } from './mappers/deep-link';
 import { mapFooter } from './mappers/footer';
 import { mapMatch } from './mappers/match';
 import { mapNavigation } from './mappers/navigation';
+import { mapSocialLinks } from './mappers/social-network';
 import { mapNewsArticle, mapNewsArticleSummary } from './mappers/news-article';
 import { mapPage } from './mappers/page';
 import { mapPartner, mapPartnerDetail } from './mappers/partner';
@@ -304,6 +307,13 @@ export const QUERIES = {
     // Its partner sections are footer components with their own logos, not partner relations (U1).
     tags: [TAGS.footer, TAGS.page, TAGS.media],
     options: { populate: buildFooterPopulate() },
+  }),
+
+  getSocialLinks: (): Query => ({
+    contentType: 'social-network',
+    kind: 'single',
+    tags: [TAGS.socialNetwork],
+    options: { populate: { links: true } },
   }),
 
   getNavigationPages: (): Query => ({
@@ -694,6 +704,11 @@ export async function getNavigation(): Promise<NavigationItem[]> {
 export async function getFooter(): Promise<Footer | null> {
   const raw = await readSingle<StrapiRawFooter>('getFooter', QUERIES.getFooter());
   return raw ? mapFooter(raw) : null;
+}
+
+export async function getSocialLinks(): Promise<SocialLink[]> {
+  const raw = await readSingle<StrapiRawSocialNetwork>('getSocialLinks', QUERIES.getSocialLinks());
+  return raw ? mapSocialLinks(raw) : [];
 }
 
 export async function getNavigationPages(): Promise<{ title: string; slug: string }[]> {

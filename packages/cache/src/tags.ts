@@ -23,6 +23,7 @@ export const TAGS = {
   partnerCategory: 'partner-category',
   player: 'player',
   playerHighlight: 'player-highlight',
+  socialNetwork: 'social-network',
   standing: 'standing',
   team: 'team',
   tournament: 'tournament',

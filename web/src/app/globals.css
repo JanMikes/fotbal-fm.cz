@@ -17,13 +17,14 @@
   --color-surface-dark: #1A1A1A;
 }
 
-/* Desktop height of the fixed Header — taller when the second menu row has items (layout.tsx). */
+/* Desktop height of the fixed Header (Header.tsx): the 40px level 1 row above the logo + the logo row —
+   112px (logo), or 118px once the level 2 row beside the logo has items (56px + 62px category row). */
 :root {
-  --header-h: 126px;
+  --header-h: 152px;
 }
 
 :root[data-secondary-nav] {
-  --header-h: 166px;
+  --header-h: 158px;
 }
 
 @media (min-width: 1024px) {

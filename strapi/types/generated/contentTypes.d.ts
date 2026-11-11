@@ -1425,6 +1425,41 @@ export interface ApiSocialExportStateSocialExportState
   };
 }
 
+export interface ApiSocialNetworkSocialNetwork extends Struct.SingleTypeSchema {
+  collectionName: 'social_networks';
+  info: {
+    description: 'Ikony soci\u00E1ln\u00EDch s\u00EDt\u00ED v hlavi\u010Dce (vpravo naho\u0159e) a v pati\u010Dce. Po\u0159ad\u00ED = po\u0159ad\u00ED v seznamu, maxim\u00E1ln\u011B 5.';
+    displayName: 'Soci\u00E1ln\u00ED s\u00EDt\u011B';
+    pluralName: 'social-networks';
+    singularName: 'social-network';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    links: Schema.Attribute.Component<'elements.social-link', true> &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+        },
+        number
+      >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::social-network.social-network'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
   collectionName: 'standings';
   info: {
@@ -2106,6 +2141,7 @@ declare module '@strapi/strapi' {
       'api::player-highlight.player-highlight': ApiPlayerHighlightPlayerHighlight;
       'api::player.player': ApiPlayerPlayer;
       'api::social-export-state.social-export-state': ApiSocialExportStateSocialExportState;
+      'api::social-network.social-network': ApiSocialNetworkSocialNetwork;
       'api::standing.standing': ApiStandingStanding;
       'api::team.team': ApiTeamTeam;
       'api::tournament.tournament': ApiTournamentTournament;

@@ -20,6 +20,7 @@ export const STRAPI_READ_ENDPOINTS = [
   'partners',
   'player-highlights',
   'players',
+  'social-network',
   'standings',
   'teams',
   'tournaments',
@@ -34,7 +35,7 @@ const PROBE_TIMEOUT_MS = 5000;
  * (D-V1/C-V4, verified on Strapi 5.39). A single type takes no query.
  */
 export function probeQuery(endpoint: (typeof STRAPI_READ_ENDPOINTS)[number]): string {
-  if (endpoint === 'footer') return '';
+  if (endpoint === 'footer' || endpoint === 'social-network') return '';
   if (endpoint === 'upload/files') return '?limit=1';
   return '?pagination[pageSize]=1';
 }

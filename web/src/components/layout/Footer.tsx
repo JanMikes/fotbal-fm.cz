@@ -1,20 +1,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Facebook, Instagram, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
-import type { Footer as FooterType } from '@/lib/types';
-
-const socialLinks = [
-  { icon: Facebook, href: 'https://www.facebook.com/fotbalfm', label: 'Facebook' },
-  { icon: Instagram, href: 'https://www.instagram.com/fotbal_fm/', label: 'Instagram' },
-  // { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
-  // { icon: Twitter, href: 'https://twitter.com', label: 'X (Twitter)' },
-];
+import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import type { Footer as FooterType, SocialLink } from '@/lib/types';
+import SocialIcon from '@/components/ui/SocialIcon';
 
 interface FooterProps {
   footer: FooterType | null;
+  /** Strapi → Sociální sítě (the same list as the header's top row). */
+  socialLinks?: SocialLink[];
 }
 
-export default function Footer({ footer }: FooterProps) {
+export default function Footer({ footer, socialLinks = [] }: FooterProps) {
   const contactItems = [
     footer?.address ? { icon: MapPin, text: footer.address } : null,
     footer?.mail ? { icon: Mail, text: footer.mail, href: `mailto:${footer.mail}` } : null,
@@ -49,14 +45,14 @@ export default function Footer({ footer }: FooterProps) {
             <div className="flex items-center gap-3">
               {socialLinks.map((social) => (
                 <a
-                  key={social.label}
+                  key={`${social.network}-${social.href}`}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-accent hover:text-white transition-colors"
                   aria-label={social.label}
                 >
-                  <social.icon className="w-5 h-5" />
+                  <SocialIcon network={social.network} className="w-5 h-5" />
                 </a>
               ))}
             </div>

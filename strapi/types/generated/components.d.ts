@@ -481,6 +481,32 @@ export interface ElementsSlide extends Struct.ComponentSchema {
   };
 }
 
+export interface ElementsSocialLink extends Struct.ComponentSchema {
+  collectionName: 'components_elements_social_links';
+  info: {
+    description: 'Ikona soci\u00E1ln\u00ED s\u00EDt\u011B s odkazem';
+    displayName: 'Soci\u00E1ln\u00ED s\u00ED\u0165';
+  };
+  attributes: {
+    network: Schema.Attribute.Enumeration<
+      [
+        'Facebook',
+        'Instagram',
+        'YouTube',
+        'TikTok',
+        'X',
+        'LinkedIn',
+        'Threads',
+        'WhatsApp',
+        'Eshop',
+        'Web',
+      ]
+    > &
+      Schema.Attribute.Required;
+    url: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface ElementsStatItem extends Struct.ComponentSchema {
   collectionName: 'components_elements_stat_items';
   info: {
@@ -684,6 +710,7 @@ declare module '@strapi/strapi' {
       'elements.partner-logo': ElementsPartnerLogo;
       'elements.photo': ElementsPhoto;
       'elements.slide': ElementsSlide;
+      'elements.social-link': ElementsSocialLink;
       'elements.stat-item': ElementsStatItem;
       'elements.stat-value': ElementsStatValue;
       'elements.text-link': ElementsTextLink;

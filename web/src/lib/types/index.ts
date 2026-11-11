@@ -203,6 +203,18 @@ export interface NavigationItem {
   level: 1 | 2;
 }
 
+// Social networks (header top row + footer, edited in Strapi → Sociální sítě)
+
+export const SOCIAL_NETWORKS = ['Facebook', 'Instagram', 'YouTube', 'TikTok', 'X', 'LinkedIn', 'Threads', 'WhatsApp', 'Eshop', 'Web'] as const;
+export type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
+
+export interface SocialLink {
+  network: SocialNetwork;
+  href: string;
+  /** Accessible name, e.g. "Facebook". */
+  label: string;
+}
+
 // Breadcrumbs
 
 export interface BreadcrumbItem {
