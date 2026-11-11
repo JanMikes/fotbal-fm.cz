@@ -1,4 +1,4 @@
-# Strapi — on push to main build+push the CMS image and deploy to lily via the
+# Strapi — test on PRs + pushes; on push to main build+push the CMS image and deploy to lily via the
 # shared TheDevs-cz/ci ship workflow (D23 webhook). Same hook as the other four
 # callers (`app: fotbal-fm`) — see api.yml.
 name: Strapi
@@ -14,13 +14,41 @@ on:
         paths:
             - 'strapi/**'
             - '.github/workflows/strapi.yml'
+    pull_request:
+        paths:
+            - 'strapi/**'
+            - 'packages/cache/**'
+            - '.github/workflows/strapi.yml'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: false
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+    # Strapi is not an npm workspace: its tests run from the repo root (vitest project `strapi`),
+    # because they compare against packages/cache (type → tags map, Redis client options).
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v6
+
+            -   name: Setup Node.js
+                uses: actions/setup-node@v6
+                with:
+                    node-version: '24'
+                    cache: 'npm'
+
+            -   name: Install dependencies
+                run: npm ci
+
+            -   name: Run tests
+                run: npx vitest run --project strapi --project cache
+
     ship:
+        needs:
+            - test
+        if: github.event_name == 'push'
         uses: TheDevs-cz/ci/.github/workflows/_ship.yml@v1
         secrets:
             DEPLOY_WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
