@@ -167,7 +167,7 @@ docker compose exec api npx tsx src/cli/sync-tournaments.ts
 ```
 
 **Step 2: Manual - pair category codes in Strapi admin**
-Go to Strapi admin → Category Codes. For each FAČR competition code (e.g. `A1A`, `E1A`), create an entry linking it to the appropriate category. This mapping determines which competitions/matches/standings appear under which category on the website. Only needs to be done once per new competition code.
+Go to Strapi admin → Kód soutěže FAČR (`api::category-code`). For each FAČR competition code (e.g. `A1A`, `E1A`), create an entry linking it to the appropriate category. This mapping determines which competitions/matches/standings appear under which category on the website. Only needs to be done once per new competition code.
 
 **Step 3: Sync matches from FAČR**
 ```bash
@@ -262,6 +262,9 @@ When creating new content types:
    - `routes/`: API endpoints
    - `services/`: Business logic
 
+### Strapi Admin Language
+The admin is Czech by default (`src/admin/app.tsx`: `locales: ['cs']`, default set in localStorage; each admin can switch in their profile). Content-type and component names are Czech `info.displayName`s — the API ids (`singularName`, `pluralName`, `collectionName`) stay English, so renaming a display name changes no URL, table or cache tag. `src/admin/translations/cs.json` fills the gaps in Strapi's own Czech (the media library ships none); after a Strapi upgrade, re-check for new untranslated keys.
+
 ### Strapi Configuration Files
 - `config/admin.ts`: Admin panel settings
 - `config/api.ts`: API configuration
@@ -272,10 +275,10 @@ When creating new content types:
 
 ## Tech Stack Versions
 
-- Node.js: 24.x (via Docker)
+- Node.js: 24.x (dev containers, CI and all production images)
 - Next.js: 16.0.3
 - React: 19.2.0
-- Strapi: 5.56.0
+- Strapi: 5.61.1
 - PostgreSQL: 17.0
 - TypeScript: 5.x
 - Tailwind CSS: 4.x

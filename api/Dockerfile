@@ -1,4 +1,4 @@
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 # ---
 
-FROM node:22-alpine
+FROM node:24-alpine
 
 # sentry-cli wraps the host-cron sync runs (`sentry-cli monitors run`) so Sentry
 # Crons flags a missed or failed run. Static binary; same version as the other
