@@ -4,7 +4,7 @@
   "info": {
     "singularName": "category-group",
     "pluralName": "category-groups",
-    "displayName": "Category Group",
+    "displayName": "Skupina kategorií",
     "description": "Groups of football team categories"
   },
   "options": {

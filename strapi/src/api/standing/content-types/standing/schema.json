@@ -4,7 +4,7 @@
   "info": {
     "singularName": "standing",
     "pluralName": "standings",
-    "displayName": "Standing",
+    "displayName": "Řádek tabulky",
     "description": "Competition standings/table rows scraped from FAČR IS"
   },
   "options": {

@@ -4,7 +4,7 @@
   "info": {
     "singularName": "comment",
     "pluralName": "comments",
-    "displayName": "Comment",
+    "displayName": "Komentář",
     "description": "User comments on records"
   },
   "options": {

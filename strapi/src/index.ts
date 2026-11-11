@@ -151,6 +151,29 @@ async function setSocialLinkLabels(strapi: Core.Strapi) {
   strapi.log.info('Set social link field labels');
 }
 
+// The single type's own list field, labelled "links" by default.
+async function setSocialNetworksLabel(strapi: Core.Strapi) {
+  const storeParams = { type: 'plugin', name: 'content_manager', key: 'configuration_content_types::api::social-network.social-network' };
+  const config = await strapi.store.get(storeParams) as any;
+  const links = config?.metadatas?.links;
+  if (!links || links.edit?.label !== 'links') return;
+
+  await strapi.store.set({
+    ...storeParams,
+    value: {
+      ...config,
+      metadatas: {
+        ...config.metadatas,
+        links: {
+          edit: { ...links.edit, label: 'Ikony v hlavičce a patičce', description: 'Nejvýše 5. Pořadí změníte přetažením.' },
+          list: { ...links.list, label: 'Ikony' },
+        },
+      },
+    },
+  });
+  strapi.log.info('Set social networks field label');
+}
+
 // Menu items created before the `level` field existed belong to the top row.
 async function backfillNavigationLevel(strapi: Core.Strapi) {
   const result = await strapi.db.query('api::navigation.navigation').updateMany({
@@ -213,6 +236,7 @@ export default {
     await setNavigationLevelLabel(strapi);
     await seedSocialNetworks(strapi);
     await setSocialLinkLabels(strapi);
+    await setSocialNetworksLabel(strapi);
     await enforceUserPermissionPolicy(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },

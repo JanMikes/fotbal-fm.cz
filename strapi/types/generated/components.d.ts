@@ -31,7 +31,7 @@ export interface ComponentsBadges extends Struct.ComponentSchema {
   collectionName: 'components_components_badges';
   info: {
     description: 'Group of badge labels';
-    displayName: 'Badges';
+    displayName: '\u0160t\u00EDtky';
   };
   attributes: {
     alignment: Schema.Attribute.Enumeration<['L', 'C', 'R']> &
@@ -321,7 +321,7 @@ export interface ElementsBadge extends Struct.ComponentSchema {
   collectionName: 'components_elements_badges';
   info: {
     description: 'Colored label badge';
-    displayName: 'Badge';
+    displayName: '\u0160t\u00EDtek';
   };
   attributes: {
     label: Schema.Attribute.String & Schema.Attribute.Required;
@@ -470,7 +470,7 @@ export interface ElementsSlide extends Struct.ComponentSchema {
   collectionName: 'components_elements_slides';
   info: {
     description: 'Slide with title, description, link and images';
-    displayName: 'Slide';
+    displayName: 'Sn\u00EDmek';
   };
   attributes: {
     background_image: Schema.Attribute.Media<'images'>;
@@ -524,7 +524,7 @@ export interface ElementsStatValue extends Struct.ComponentSchema {
   collectionName: 'components_elements_stat_values';
   info: {
     description: 'Numeric stat with label';
-    displayName: 'Stat Value';
+    displayName: 'Hodnota statistiky';
   };
   attributes: {
     label: Schema.Attribute.String & Schema.Attribute.Required;
@@ -665,7 +665,7 @@ export interface TournamentPlayer extends Struct.ComponentSchema {
   collectionName: 'components_tournament_players';
   info: {
     description: 'Tournament player recognition';
-    displayName: 'Player';
+    displayName: 'Hr\u00E1\u010D';
   };
   attributes: {
     playerName: Schema.Attribute.String & Schema.Attribute.Required;

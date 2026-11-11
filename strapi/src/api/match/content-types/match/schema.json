@@ -4,7 +4,7 @@
   "info": {
     "singularName": "match",
     "pluralName": "matches",
-    "displayName": "Match",
+    "displayName": "Zápas",
     "description": "Football matches (both standalone and tournament)"
   },
   "options": {

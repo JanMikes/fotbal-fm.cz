@@ -4,7 +4,7 @@
   "info": {
     "singularName": "deep-link-claim",
     "pluralName": "deep-link-claims",
-    "displayName": "Deep Link Claim",
+    "displayName": "Použití odkazu do aplikace",
     "description": "One row per user who came through a deep link — written by the API, read-only for admins"
   },
   "options": {

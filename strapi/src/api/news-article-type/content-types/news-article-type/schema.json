@@ -4,7 +4,7 @@
   "info": {
     "singularName": "news-article-type",
     "pluralName": "news-article-types",
-    "displayName": "News Article Type",
+    "displayName": "Typ článku",
     "description": "Types/badges for news articles (e.g. Akademie, Fanshop, Rozhovor)"
   },
   "options": {

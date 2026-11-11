@@ -448,7 +448,7 @@ export interface ApiAudienceCategoryAudienceCategory
   collectionName: 'audience_categories';
   info: {
     description: 'Named audience group assigned to app users (N:M) \u2014 used by deep links and later by push-notification targeting';
-    displayName: 'Audience Category';
+    displayName: 'C\u00EDlov\u00E1 skupina';
     pluralName: 'audience-categories';
     singularName: 'audience-category';
   };
@@ -494,7 +494,7 @@ export interface ApiCategoryCodeCategoryCode
   collectionName: 'category_codes';
   info: {
     description: 'Maps FA\u010CR competition codes to categories';
-    displayName: 'Category Code';
+    displayName: 'K\u00F3d sout\u011B\u017Ee FA\u010CR';
     pluralName: 'category-codes';
     singularName: 'category-code';
   };
@@ -527,7 +527,7 @@ export interface ApiCategoryGroupCategoryGroup
   collectionName: 'category_groups';
   info: {
     description: 'Groups of football team categories';
-    displayName: 'Category Group';
+    displayName: 'Skupina kategori\u00ED';
     pluralName: 'category-groups';
     singularName: 'category-group';
   };
@@ -565,7 +565,7 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   collectionName: 'categories';
   info: {
     description: 'Football team categories';
-    displayName: 'Category';
+    displayName: 'Kategorie';
     pluralName: 'categories';
     singularName: 'category';
   };
@@ -631,7 +631,7 @@ export interface ApiCommentComment extends Struct.CollectionTypeSchema {
   collectionName: 'comments';
   info: {
     description: 'User comments on records';
-    displayName: 'Comment';
+    displayName: 'Koment\u00E1\u0159';
     pluralName: 'comments';
     singularName: 'comment';
   };
@@ -676,7 +676,7 @@ export interface ApiDeepLinkClaimDeepLinkClaim
   collectionName: 'deep_link_claims';
   info: {
     description: 'One row per user who came through a deep link \u2014 written by the API, read-only for admins';
-    displayName: 'Deep Link Claim';
+    displayName: 'Pou\u017Eit\u00ED odkazu do aplikace';
     pluralName: 'deep-link-claims';
     singularName: 'deep-link-claim';
   };
@@ -719,7 +719,7 @@ export interface ApiDeepLinkDeepLink extends Struct.CollectionTypeSchema {
   collectionName: 'deep_links';
   info: {
     description: 'Shareable app link (fotbal-fm.cz/a/<code>) that assigns audience categories to whoever registers or signs in through it';
-    displayName: 'Deep Link';
+    displayName: 'Odkaz do aplikace';
     pluralName: 'deep-links';
     singularName: 'deep-link';
   };
@@ -771,7 +771,7 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   collectionName: 'events';
   info: {
     description: 'Club events and activities';
-    displayName: 'Event';
+    displayName: 'Akce';
     pluralName: 'events';
     singularName: 'event';
   };
@@ -891,7 +891,7 @@ export interface ApiMatchMatch extends Struct.CollectionTypeSchema {
   collectionName: 'matches';
   info: {
     description: 'Football matches (both standalone and tournament)';
-    displayName: 'Match';
+    displayName: 'Z\u00E1pas';
     pluralName: 'matches';
     singularName: 'match';
   };
@@ -1006,7 +1006,7 @@ export interface ApiNewsArticleTypeNewsArticleType
   collectionName: 'news_article_types';
   info: {
     description: 'Types/badges for news articles (e.g. Akademie, Fanshop, Rozhovor)';
-    displayName: 'News Article Type';
+    displayName: 'Typ \u010Dl\u00E1nku';
     pluralName: 'news-article-types';
     singularName: 'news-article-type';
   };
@@ -1042,7 +1042,7 @@ export interface ApiNewsArticleNewsArticle extends Struct.CollectionTypeSchema {
   collectionName: 'news_articles';
   info: {
     description: 'News articles (aktuality)';
-    displayName: 'News Article';
+    displayName: '\u010Cl\u00E1nek';
     pluralName: 'news-articles';
     singularName: 'news-article';
   };
@@ -1177,7 +1177,7 @@ export interface ApiPartnerCategoryPartnerCategory
   extends Struct.CollectionTypeSchema {
   collectionName: 'partner_categories';
   info: {
-    displayName: 'Partner Category';
+    displayName: 'Kategorie partner\u016F';
     pluralName: 'partner-categories';
     singularName: 'partner-category';
   };
@@ -1295,7 +1295,7 @@ export interface ApiPlayerHighlightPlayerHighlight
   collectionName: 'player_highlights';
   info: {
     description: 'Highlighted player stats per category';
-    displayName: 'Player Highlight';
+    displayName: 'Zv\u00FDrazn\u011Bn\u00FD hr\u00E1\u010D';
     pluralName: 'player-highlights';
     singularName: 'player-highlight';
   };
@@ -1333,7 +1333,7 @@ export interface ApiPlayerPlayer extends Struct.CollectionTypeSchema {
   collectionName: 'players';
   info: {
     description: 'Team players and coaching staff';
-    displayName: 'Player';
+    displayName: 'Hr\u00E1\u010D';
     pluralName: 'players';
     singularName: 'player';
   };
@@ -1397,7 +1397,7 @@ export interface ApiSocialExportStateSocialExportState
   collectionName: 'social_export_states';
   info: {
     description: 'Saved editing state for social-network exports, one record per match + template variant (shared by all users)';
-    displayName: 'Social Export State';
+    displayName: 'Stav exportu na soci\u00E1ln\u00ED s\u00EDt\u011B';
     pluralName: 'social-export-states';
     singularName: 'social-export-state';
   };
@@ -1464,7 +1464,7 @@ export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
   collectionName: 'standings';
   info: {
     description: 'Competition standings/table rows scraped from FA\u010CR IS';
-    displayName: 'Standing';
+    displayName: '\u0158\u00E1dek tabulky';
     pluralName: 'standings';
     singularName: 'standing';
   };
@@ -1510,7 +1510,7 @@ export interface ApiStandingStanding extends Struct.CollectionTypeSchema {
 export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
   collectionName: 'teams';
   info: {
-    displayName: 'Team';
+    displayName: 'T\u00FDm';
     pluralName: 'teams';
     singularName: 'team';
   };
@@ -1542,7 +1542,7 @@ export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
   collectionName: 'tournaments';
   info: {
     description: 'Football tournaments and competitions';
-    displayName: 'Tournament';
+    displayName: 'Sout\u011B\u017E / turnaj';
     pluralName: 'tournaments';
     singularName: 'tournament';
   };
@@ -2045,7 +2045,7 @@ export interface PluginUsersPermissionsUser
   collectionName: 'up_users';
   info: {
     description: '';
-    displayName: 'User';
+    displayName: 'U\u017Eivatel';
     name: 'user';
     pluralName: 'users';
     singularName: 'user';

@@ -4,7 +4,7 @@
   "info": {
     "singularName": "player",
     "pluralName": "players",
-    "displayName": "Player",
+    "displayName": "Hráč",
     "description": "Team players and coaching staff"
   },
   "options": {

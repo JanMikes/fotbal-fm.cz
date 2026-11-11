@@ -4,7 +4,7 @@
   "info": {
     "singularName": "audience-category",
     "pluralName": "audience-categories",
-    "displayName": "Audience Category",
+    "displayName": "Cílová skupina",
     "description": "Named audience group assigned to app users (N:M) — used by deep links and later by push-notification targeting"
   },
   "options": {

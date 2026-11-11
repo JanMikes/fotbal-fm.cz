@@ -1,7 +1,7 @@
 {
   "collectionName": "components_elements_stat_values",
   "info": {
-    "displayName": "Stat Value",
+    "displayName": "Hodnota statistiky",
     "description": "Numeric stat with label"
   },
   "attributes": {

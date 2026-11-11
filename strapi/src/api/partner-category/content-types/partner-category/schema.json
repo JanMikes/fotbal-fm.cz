@@ -4,7 +4,7 @@
   "info": {
     "singularName": "partner-category",
     "pluralName": "partner-categories",
-    "displayName": "Partner Category"
+    "displayName": "Kategorie partnerů"
   },
   "options": {
     "draftAndPublish": false

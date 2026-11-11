@@ -4,7 +4,7 @@
   "info": {
     "singularName": "deep-link",
     "pluralName": "deep-links",
-    "displayName": "Deep Link",
+    "displayName": "Odkaz do aplikace",
     "description": "Shareable app link (fotbal-fm.cz/a/<code>) that assigns audience categories to whoever registers or signs in through it"
   },
   "options": {

@@ -4,7 +4,7 @@
   "info": {
     "singularName": "category-code",
     "pluralName": "category-codes",
-    "displayName": "Category Code",
+    "displayName": "Kód soutěže FAČR",
     "description": "Maps FAČR competition codes to categories"
   },
   "options": {

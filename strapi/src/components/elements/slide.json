@@ -1,7 +1,7 @@
 {
   "collectionName": "components_elements_slides",
   "info": {
-    "displayName": "Slide",
+    "displayName": "Snímek",
     "description": "Slide with title, description, link and images"
   },
   "attributes": {

@@ -4,7 +4,7 @@
   "info": {
     "singularName": "player-highlight",
     "pluralName": "player-highlights",
-    "displayName": "Player Highlight",
+    "displayName": "Zvýrazněný hráč",
     "description": "Highlighted player stats per category"
   },
   "options": {
