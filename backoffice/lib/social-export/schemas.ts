@@ -95,6 +95,8 @@ export const renderRequestSchema = z
     shapeColors: shapeColorsSchema.optional(),
     rows: rowsSchema.optional(),
     offsets: offsetsSchema.optional(),
+    /** `export` only: go through despite grey stand-in pictures (WBoost 400 `unfilled_pictures`). */
+    allowUnfilled: z.boolean().optional(),
   })
   .strict();
 
@@ -121,6 +123,8 @@ export const groupRenderRequestSchema = z
     rows: rowsSchema.optional(),
     /** Per dimension: variantId → elementId → offset. */
     offsets: z.record(z.string(), offsetsSchema).optional(),
+    /** `export` only: go through despite grey stand-in pictures (WBoost 400 `unfilled_pictures`). */
+    allowUnfilled: z.boolean().optional(),
   })
   .strict();
 
@@ -155,6 +159,8 @@ export const documentRenderRequestSchema = z
     format: documentExportFormatSchema.optional(),
     fields: z.record(z.string(), documentFieldValueSchema),
     pages: z.record(z.string(), documentPageFillSchema),
+    /** `export` only: go through despite grey stand-in pictures (WBoost 400 `unfilled_pictures`). */
+    allowUnfilled: z.boolean().optional(),
   })
   .strict()
   .refine((body) => body.mode !== 'preview' || body.pageId !== undefined, {

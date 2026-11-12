@@ -22,7 +22,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     return ApiErrors.validationFailed(parsed.error.issues[0]?.message ?? 'Neplatná data požadavku');
   }
 
-  const { groupId, variantId, inputs, images, placements, shapeColors, rows, offsets, mode } = parsed.data;
+  const { groupId, variantId, inputs, images, placements, shapeColors, rows, offsets, mode, allowUnfilled } = parsed.data;
   const renderMode = mode ?? 'preview';
 
   if (renderMode === 'preview' && !variantId) {
@@ -34,7 +34,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   const result = await getSocialExportService().renderGroup(
     groupId,
     variantId ?? null,
-    { inputs, images, placements, shapeColors, rows, offsets },
+    { inputs, images, placements, shapeColors, rows, offsets, allowUnfilled },
     renderMode
   );
 

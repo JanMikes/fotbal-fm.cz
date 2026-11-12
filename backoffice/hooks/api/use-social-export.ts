@@ -217,7 +217,7 @@ export function renderVariant(
   images: Record<string, RenderImageValue> | undefined,
   mode: RenderMode,
   shapeColors?: Record<string, string>,
-  extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
+  extras: { rows?: RenderRows; offsets?: ElementOffsets; allowUnfilled?: boolean } = {}
 ): Promise<RenderResult> {
   return postRender('render', {
     variantId,
@@ -226,6 +226,7 @@ export function renderVariant(
     ...(shapeColors && Object.keys(shapeColors).length > 0 ? { shapeColors } : {}),
     ...(extras.rows && Object.keys(extras.rows).length > 0 ? { rows: extras.rows } : {}),
     ...(extras.offsets && Object.keys(extras.offsets).length > 0 ? { offsets: extras.offsets } : {}),
+    ...(mode === 'export' && extras.allowUnfilled ? { allowUnfilled: true } : {}),
     mode,
   });
 }

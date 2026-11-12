@@ -286,6 +286,51 @@ describe('WboostClient', () => {
     });
   });
 
+  describe('unfilled pictures (AI scan stand-ins)', () => {
+    it('maps the 400 to the Czech plural message and keeps count + editorUrl in details', async () => {
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+
+      for (const [count, expected] of [
+        [1, 'Šablona má 1 nedoplněný obrázek. V exportu bude na jeho místě šedý zástupný obrázek.'],
+        [3, 'Šablona má 3 nedoplněné obrázky. V exportu budou na jejich místě šedé zástupné obrázky.'],
+        [6, 'Šablona má 6 nedoplněných obrázků. V exportu bude na jejich místě 6 šedých zástupných obrázků.'],
+      ] as const) {
+        mockFetch.mockResolvedValueOnce(
+          mockJsonResponse(
+            { error: 'grey', code: 'unfilled_pictures', count, variantId: 'v1', editorUrl: 'http://wboost.test/e' },
+            400
+          )
+        );
+        const error = await client.renderVariant('v1', {}, undefined, 'export').catch((e) => e);
+        expect(error).toBeInstanceOf(AppError);
+        expect(error.message).toContain(expected);
+        expect(error.details).toMatchObject({ code: 'unfilled_pictures', count, editorUrl: 'http://wboost.test/e' });
+      }
+    });
+
+    it('sends allowUnfilled only on exports that were confirmed', async () => {
+      mockFetch.mockResolvedValue(mockBinaryResponse(new Uint8Array([1]), 'image/png'));
+      const client = new WboostClient(CFG, makeFakeTokenManager() as never);
+      const bodyOf = (call: number) => JSON.parse(mockFetch.mock.calls[call][1].body as string);
+
+      await client.renderVariant('v1', {}, undefined, 'export');
+      await client.renderVariant('v1', {}, undefined, 'export', undefined, { allowUnfilled: true });
+      await client.renderVariant('v1', {}, undefined, 'preview', undefined, { allowUnfilled: true });
+      await client.renderGroup('g1', null, { inputs: {}, allowUnfilled: true }, 'export');
+      await client.renderGroup('g1', 'v1', { inputs: {}, allowUnfilled: true }, 'preview');
+      await client.renderDocument('d1', null, { fields: {}, pages: {} }, 'png', true);
+      await client.renderDocument('d1', 'p1', { fields: {}, pages: {} }, undefined, true);
+
+      expect(bodyOf(0)).not.toHaveProperty('allowUnfilled');
+      expect(bodyOf(1).allowUnfilled).toBe(true);
+      expect(bodyOf(2)).not.toHaveProperty('allowUnfilled');
+      expect(bodyOf(3).allowUnfilled).toBe(true);
+      expect(bodyOf(4)).not.toHaveProperty('allowUnfilled');
+      expect(bodyOf(5).allowUnfilled).toBe(true);
+      expect(bodyOf(6)).not.toHaveProperty('allowUnfilled');
+    });
+  });
+
   describe('export versions', () => {
     it('lists a group history, loads and patches a version', async () => {
       mockFetch

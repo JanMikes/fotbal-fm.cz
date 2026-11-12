@@ -66,6 +66,8 @@ interface PreviewPanelProps {
   /** Replaces the default "Stáhnout PNG" CTA (the group editor's ZIP + per-dimension PNG). */
   actions?: ReactNode;
   renderError?: string | null;
+  /** A way out offered with the error (e.g. "Exportovat přesto" for `unfilled_pictures`). */
+  renderErrorAction?: { label: string; onClick: () => void; disabled?: boolean } | null;
   /** Container whose filled texts overflowed on the last render (highlights its fields). */
   overflowContainerId?: string | null;
   /** Predicted-overflow warning (shown before the render would 400), or null. */
@@ -142,6 +144,7 @@ export default function PreviewPanel({
   actionsDisabled,
   actions,
   renderError,
+  renderErrorAction = null,
   overflowContainerId = null,
   overflowWarning = null,
   textFrames,
@@ -654,7 +657,23 @@ export default function PreviewPanel({
       </div>
 
       {overflowWarning && <Alert variant="warning">{overflowWarning}</Alert>}
-      {renderError && <Alert variant="error">{renderError}</Alert>}
+      {renderError && (
+        <Alert variant="error">
+          {renderError}
+          {renderErrorAction && (
+            <div className="mt-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={renderErrorAction.onClick}
+                disabled={renderErrorAction.disabled}
+              >
+                {renderErrorAction.label}
+              </Button>
+            </div>
+          )}
+        </Alert>
+      )}
 
       {/* The same download CTA as the header, centered under the preview. */}
       <div className="flex justify-center pt-1">{downloadButton}</div>

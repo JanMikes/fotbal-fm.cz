@@ -23,7 +23,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     return ApiErrors.validationFailed(parsed.error.issues[0]?.message ?? 'Neplatná data požadavku');
   }
 
-  const { documentId, mode, pageId, format, fields, pages } = parsed.data;
+  const { documentId, mode, pageId, format, fields, pages, allowUnfilled } = parsed.data;
 
   addApiBreadcrumb('Rendering social-export document', { documentId, pageId, mode, format });
 
@@ -31,7 +31,8 @@ export const POST = withAuth(async (request: NextRequest) => {
     documentId,
     mode === 'preview' ? (pageId ?? null) : null,
     { fields, pages },
-    format
+    format,
+    mode === 'export' && allowUnfilled === true
   );
 
   if (!result.success) {

@@ -64,9 +64,27 @@ export interface WboostErrorBody {
   /** A refused value inside `rows`. */
   rowContainerId?: string;
   rowIndex?: number;
+  /** Rows: the sent row count; `unfilled_pictures`: how many grey stand-ins the export would show. */
   count?: number;
   min?: number;
   max?: number;
+  /** `unfilled_pictures`: the WBoost editor of the first affected variant. */
+  editorUrl?: string;
+}
+
+/**
+ * Czech message of the `unfilled_pictures` 400: a template made from an AI
+ * scan still shows `count` grey stand-in pictures. The export page offers
+ * "Exportovat přesto" next to it (resends with `allowUnfilled: true`).
+ */
+export function unfilledPicturesMessage(count: number): string {
+  if (count === 1) {
+    return 'Šablona má 1 nedoplněný obrázek. V exportu bude na jeho místě šedý zástupný obrázek. Doplňte ho v editoru, nebo exportujte přesto.';
+  }
+  if (count >= 2 && count <= 4) {
+    return `Šablona má ${count} nedoplněné obrázky. V exportu budou na jejich místě šedé zástupné obrázky. Doplňte je v editoru, nebo exportujte přesto.`;
+  }
+  return `Šablona má ${count} nedoplněných obrázků. V exportu bude na jejich místě ${count} šedých zástupných obrázků. Doplňte je v editoru, nebo exportujte přesto.`;
 }
 
 /** Czech message per WBoost error `code` (the fields themselves are highlighted by id). */
@@ -105,6 +123,9 @@ const CODE_MESSAGES: Record<string, string> = {
 };
 
 function mapStatusToMessage(status: number, body?: WboostErrorBody): string {
+  if (body?.code === 'unfilled_pictures') {
+    return unfilledPicturesMessage(typeof body.count === 'number' && body.count > 0 ? body.count : 1);
+  }
   if (body?.code && CODE_MESSAGES[body.code]) {
     return CODE_MESSAGES[body.code];
   }
@@ -236,7 +257,7 @@ export class WboostClient {
     images: Record<string, RenderImageValue> | undefined,
     mode: RenderMode,
     shapeColors?: Record<string, string>,
-    extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
+    extras: { rows?: RenderRows; offsets?: ElementOffsets; allowUnfilled?: boolean } = {}
   ): Promise<WboostRenderedFile> {
     const url = `${this.config.apiBase}/api/template-variants/${variantId}/${mode}`;
 
@@ -256,6 +277,9 @@ export class WboostClient {
       // object is empty) and moved elements, only when there are any.
       ...(extras.rows && Object.keys(extras.rows).length > 0 ? { rows: extras.rows } : {}),
       ...(extras.offsets && Object.keys(extras.offsets).length > 0 ? { offsets: extras.offsets } : {}),
+      // Exports only: the user confirmed "Exportovat přesto" after a 400
+      // `unfilled_pictures` (grey stand-ins left by an AI scan).
+      ...(mode === 'export' && extras.allowUnfilled ? { allowUnfilled: true } : {}),
     };
 
     return this.postForFile(url, body);
@@ -276,6 +300,8 @@ export class WboostClient {
       shapeColors?: Record<string, string>;
       rows?: RenderRows;
       offsets?: Record<string, ElementOffsets>;
+      /** Exports only: go through despite grey stand-in pictures (`unfilled_pictures`). */
+      allowUnfilled?: boolean;
     },
     mode: RenderMode
   ): Promise<WboostRenderedFile> {
@@ -305,6 +331,7 @@ export class WboostClient {
       ...(fill.shapeColors && Object.keys(fill.shapeColors).length > 0 ? { shapeColors: fill.shapeColors } : {}),
       ...(fill.rows && Object.keys(fill.rows).length > 0 ? { rows: fill.rows } : {}),
       ...(fill.offsets && Object.keys(fill.offsets).length > 0 ? { offsets: fill.offsets } : {}),
+      ...(mode === 'export' && fill.allowUnfilled ? { allowUnfilled: true } : {}),
     });
   }
 
@@ -341,7 +368,8 @@ export class WboostClient {
     documentId: string,
     pageId: string | null,
     fill: DocumentFillBody,
-    format?: DocumentExportFormat
+    format?: DocumentExportFormat,
+    allowUnfilled = false
   ): Promise<WboostRenderedFile> {
     const url = pageId
       ? `${this.config.apiBase}/api/template-documents/${documentId}/preview/${pageId}`
@@ -358,6 +386,8 @@ export class WboostClient {
       fields: fill.fields,
       pages: fill.pages,
       ...(pageId ? {} : { format: format ?? 'pdf-screen' }),
+      // Export only: the user confirmed "Exportovat přesto" (`unfilled_pictures`).
+      ...(!pageId && allowUnfilled ? { allowUnfilled: true } : {}),
     });
   }
 

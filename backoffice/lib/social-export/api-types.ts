@@ -383,6 +383,14 @@ export interface RenderErrorDetails {
   /** A refused value inside `rows`: its row + 0-based index. */
   rowContainerId?: string;
   rowIndex?: number;
+  /**
+   * `unfilled_pictures` (exports only): how many grey stand-in pictures an AI
+   * scan left in the template(s) — offer "Exportovat přesto", which resends
+   * the export with `allowUnfilled: true`. `editorUrl` is the WBoost editor of
+   * the first affected variant (`variantId`).
+   */
+  count?: number;
+  editorUrl?: string;
 }
 
 /** A rectangle in the variant's canvas pixel space (used to size a positioning UI). */
@@ -662,6 +670,8 @@ export interface DocumentRenderRequest extends DocumentFillBody {
   mode: 'preview' | 'export';
   pageId?: string;
   format?: DocumentExportFormat;
+  /** `export` only: go through despite grey stand-in pictures (`unfilled_pictures`). */
+  allowUnfilled?: boolean;
 }
 
 /** Response body of `GET /api/social-export/templates` (wrapped in apiSuccess). */
@@ -759,6 +769,8 @@ export interface GroupRenderRequest {
   rows?: RenderRows;
   /** Moves are PER DIMENSION: variantId → elementId → offset. */
   offsets?: Record<string, ElementOffsets>;
+  /** `export` only: go through despite grey stand-in pictures (`unfilled_pictures`). */
+  allowUnfilled?: boolean;
 }
 
 /** Digest of a version's fill (what history lists show instead of a thumbnail). */

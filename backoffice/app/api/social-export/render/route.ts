@@ -19,10 +19,10 @@ export const POST = withAuth(async (request: NextRequest) => {
     return ApiErrors.validationFailed(parsed.error.issues[0]?.message ?? 'Neplatná data požadavku');
   }
 
-  const { variantId, inputs, images, shapeColors, rows, offsets, mode } = parsed.data;
+  const { variantId, inputs, images, shapeColors, rows, offsets, mode, allowUnfilled } = parsed.data;
 
   const service = getSocialExportService();
-  const result = await service.renderVariant(variantId, inputs, images, mode ?? 'preview', shapeColors, { rows, offsets });
+  const result = await service.renderVariant(variantId, inputs, images, mode ?? 'preview', shapeColors, { rows, offsets, allowUnfilled });
 
   if (!result.success) {
     return wboostErrorResponse(result.error);

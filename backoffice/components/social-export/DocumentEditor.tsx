@@ -129,6 +129,9 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
   // The last failed render / export: message + structured details (pageId…).
   const [failure, setFailure] = useState<{ message: string; details: RenderErrorDetails } | null>(null);
   const renderError = failure?.message ?? null;
+  // The export WBoost refused with `unfilled_pictures` (grey stand-ins left by
+  // an AI scan): the format "Exportovat přesto" resends with `allowUnfilled`.
+  const [unfilledExport, setUnfilledExport] = useState<DocumentExportFormat | null>(null);
   const renderErrorDetails = failure?.details ?? null;
   const [exportingFormat, setExportingFormat] = useState<DocumentExportFormat | null>(null);
 
@@ -630,19 +633,22 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fill, sharedText, dirtyIds, renderingIds, failedIds, visibleIds, invalidPageIds, sharedTooLong, activePage?.id]);
 
-  async function handleExport(format: DocumentExportFormat) {
+  async function handleExport(format: DocumentExportFormat, allowUnfilled = false) {
     if (invalid || exportingFormat) return;
 
     setExportingFormat(format);
     setFailure(null);
+    setUnfilledExport(null);
     try {
       const result = await renderDocument({
         documentId: document.id,
         mode: 'export',
         format,
         ...buildDocumentFillBody(document, fill, sharedText),
+        ...(allowUnfilled ? { allowUnfilled: true } : {}),
       });
       if (result.error || !result.blob) {
+        if (result.errorDetails?.code === 'unfilled_pictures') setUnfilledExport(format);
         showRenderError(result, null);
         return;
       }
@@ -954,6 +960,15 @@ export default function DocumentEditor({ document, match, saved, onSaved }: Docu
         actionsDisabled={exportDisabled}
         actions={actions}
         renderError={renderError && errorPage >= 0 ? `${renderError} (strana ${errorPage + 1})` : renderError}
+        renderErrorAction={
+          unfilledExport && renderErrorDetails?.code === 'unfilled_pictures'
+            ? {
+                label: 'Exportovat přesto',
+                onClick: () => void handleExport(unfilledExport, true),
+                disabled: exportingFormat !== null,
+              }
+            : null
+        }
         overflowContainerId={
           (failedOnActive ? (renderErrorDetails?.containerId ?? null) : null) ?? activeOverflow?.containerId ?? null
         }

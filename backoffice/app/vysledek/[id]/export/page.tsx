@@ -219,6 +219,9 @@ function SocialExportPageContent({ params }: PageProps) {
   // → the offending container; value errors → inputId / imageInputId; group →
   // the variantId of the dimension that failed).
   const [renderErrorDetails, setRenderErrorDetails] = useState<RenderErrorDetails | null>(null);
+  // The export WBoost refused with `unfilled_pictures` (grey stand-ins left by
+  // an AI scan): what "Exportovat přesto" resends with `allowUnfilled`.
+  const [unfilledExport, setUnfilledExport] = useState<{ variantId: string | null } | null>(null);
   const [exporting, setExporting] = useState(false);
 
   // Autosave status shown next to the editor title. 'saved' also means a
@@ -683,7 +686,11 @@ function SocialExportPageContent({ params }: PageProps) {
   }
 
   /** Render one dimension with the current fill (`preview` = WebP, `export` = recorded). */
-  function renderDimension(variantId: string | null, mode: 'preview' | 'export'): Promise<RenderResult> {
+  function renderDimension(
+    variantId: string | null,
+    mode: 'preview' | 'export',
+    allowUnfilled = false
+  ): Promise<RenderResult> {
     if (!surface) return Promise.resolve({ error: 'Není vybraná šablona' });
 
     if (surface.kind === 'group') {
@@ -692,6 +699,7 @@ function SocialExportPageContent({ params }: PageProps) {
           groupId: surface.id,
           ...(variantId ? { variantId } : {}),
           ...buildGroupRenderBody(surface.members, formState, imageStates, { shapeColors, rowCounts, offsets }),
+          ...(allowUnfilled ? { allowUnfilled: true } : {}),
         },
         mode
       );
@@ -708,6 +716,7 @@ function SocialExportPageContent({ params }: PageProps) {
     return renderVariant(variant.id, body.inputs, body.images, mode, body.shapeColors, {
       rows: body.rows,
       offsets: body.offsets,
+      allowUnfilled,
     });
   }
 
@@ -782,16 +791,20 @@ function SocialExportPageContent({ params }: PageProps) {
    * group as ZIP (`variantId` null). Always a fresh EXPORT render — it is
    * recorded in the WBoost export history (the preview is not).
    */
-  async function handleExport(variantId: string | null) {
+  async function handleExport(variantId: string | null, allowUnfilled = false) {
     if (!surface || hasValidationErrors() || exporting) return;
 
     setExporting(true);
     setRenderError(null);
     setRenderErrorDetails(null);
+    setUnfilledExport(null);
 
     try {
-      const result = await renderDimension(variantId, 'export');
+      const result = await renderDimension(variantId, 'export', allowUnfilled);
       if (result.error || !result.blob) {
+        // Grey stand-ins left by an AI scan: the message offers
+        // "Exportovat přesto" for exactly this download.
+        if (result.errorDetails?.code === 'unfilled_pictures') setUnfilledExport({ variantId });
         showRenderError(result, variantId);
         return;
       }
@@ -1193,6 +1206,15 @@ function SocialExportPageContent({ params }: PageProps) {
                 renderError && renderErrorDetails?.variantId && renderErrorDetails.variantId !== activeVariant.id
                   ? `${renderError} (rozměr ${members.find((m) => m.id === renderErrorDetails.variantId)?.dimension ?? ''})`
                   : renderError
+              }
+              renderErrorAction={
+                unfilledExport && renderErrorDetails?.code === 'unfilled_pictures'
+                  ? {
+                      label: 'Exportovat přesto',
+                      onClick: () => void handleExport(unfilledExport.variantId, true),
+                      disabled: exporting,
+                    }
+                  : null
               }
               overflowContainerId={activeErrorContainerId ?? activeOverflow?.containerId ?? null}
               overflowWarning={

@@ -155,9 +155,12 @@ export class SocialExportService {
     documentId: string,
     pageId: string | null,
     fill: DocumentFillBody,
-    format?: DocumentExportFormat
+    format?: DocumentExportFormat,
+    allowUnfilled = false
   ): Promise<Result<WboostRenderedFile, AppError>> {
-    return this.attempt('renderDocument', () => this.client.renderDocument(documentId, pageId, fill, format));
+    return this.attempt('renderDocument', () =>
+      this.client.renderDocument(documentId, pageId, fill, format, allowUnfilled)
+    );
   }
 
   /** `preview` = unrecorded WebP for the screen, `export` = the recorded PNG download. */
@@ -167,7 +170,7 @@ export class SocialExportService {
     images: Record<string, RenderImageValue> | undefined,
     mode: RenderMode,
     shapeColors?: Record<string, string>,
-    extras: { rows?: RenderRows; offsets?: ElementOffsets } = {}
+    extras: { rows?: RenderRows; offsets?: ElementOffsets; allowUnfilled?: boolean } = {}
   ): Promise<Result<WboostRenderedFile, AppError>> {
     return this.attempt('renderVariant', () =>
       this.client.renderVariant(variantId, inputs, images, mode, shapeColors, extras)
@@ -185,6 +188,7 @@ export class SocialExportService {
       shapeColors?: Record<string, string>;
       rows?: RenderRows;
       offsets?: Record<string, ElementOffsets>;
+      allowUnfilled?: boolean;
     },
     mode: RenderMode
   ): Promise<Result<WboostRenderedFile, AppError>> {
