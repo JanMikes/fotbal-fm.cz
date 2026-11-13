@@ -87,6 +87,16 @@ docker compose exec backoffice npm run <script-name>
 docker compose exec backoffice bash
 ```
 
+### Tests (vitest)
+```bash
+# Whole suite, from the repo root, in a container. --no-deps: no running stack is needed.
+docker compose run --rm --no-deps -w /app backoffice npx vitest run
+
+# What the Backoffice workflow runs
+docker compose run --rm --no-deps -w /app backoffice npx vitest run --project backoffice --project strapi-client
+```
+Never `npx vitest` on the host: `node_modules` is installed by the Linux containers (the repo is bind-mounted), so it holds only the Linux native bindings (`@rollup/rollup-linux-arm64-*`, `@esbuild/linux-arm64`) and vitest dies on macOS with `Cannot find module @rollup/rollup-darwin-arm64`. A fresh checkout / worktree needs `npm ci` first (same container); the `strapi` project also needs `npm ci --prefix strapi`.
+
 ### Web Development
 ```bash
 # Run commands inside the web container

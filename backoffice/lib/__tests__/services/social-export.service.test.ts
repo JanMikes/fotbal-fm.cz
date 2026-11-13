@@ -779,7 +779,19 @@ describe('SocialExportService', () => {
       const result = await service.renderDocument('d1', null, fill, 'pdf');
 
       expect(result.success).toBe(true);
-      expect(renderDocument).toHaveBeenCalledWith('d1', null, fill, 'pdf');
+      expect(renderDocument).toHaveBeenCalledWith('d1', null, fill, 'pdf', false);
+    });
+
+    it('passes a confirmed "Exportovat přesto" (allowUnfilled) through to the client', async () => {
+      const renderDocument = vi
+        .fn()
+        .mockResolvedValue({ body: new Uint8Array([1]), contentType: 'application/pdf', filename: 'x.pdf' });
+      const service = new SocialExportService(makeFakeClient({ renderDocument }) as never);
+
+      const fill = { fields: {}, pages: { p1: {} } };
+      await service.renderDocument('d1', null, fill, 'pdf', true);
+
+      expect(renderDocument).toHaveBeenCalledWith('d1', null, fill, 'pdf', true);
     });
   });
 
