@@ -114,8 +114,12 @@ export default function Header({ categoryGroups, navigation = [], navigationPage
   return (
     <>
       <header
+        // 1px taller than the space pages reserve for it (pt-[72px] / pt-(--header-h)): at fractional
+        // device pixel ratios (e.g. Windows 125 % scaling) the header's bottom edge falls mid-pixel and
+        // the light <main> background shows through as a white line under the nav.
         className={clsx(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1727] shadow-lg'
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[#0d1727] shadow-lg',
+          'min-h-[73px] lg:min-h-[calc(var(--header-h)+1px)]'
         )}
       >
         {/* Level 1 - full-width top row above the logo, social icons on the right (desktop only;
