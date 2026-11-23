@@ -249,6 +249,63 @@ describe('Deep link routes', () => {
       expect(vi.mocked(strapiPost)).not.toHaveBeenCalled();
     });
 
+    it('passes a chosen code (or a pasted link) through to Strapi, normalised', async () => {
+      mockUser([fanousci]);
+      mockStrapiGet({ links: [] });
+      vi.mocked(strapiPost).mockResolvedValue({ data: { ...created, code: 'JANA2027', audienceCategories: [fanousci] } } as never);
+
+      expect((await create({ code: ' jana-2027 ' })).status).toBe(200);
+      expect(vi.mocked(strapiPost)).toHaveBeenLastCalledWith(expect.any(String), {
+        data: { name: 'Pozvánka od jan', audienceCategories: [2], createdByUser: 40, active: true, code: 'JANA2027' },
+      });
+
+      expect((await create({ code: 'https://fotbal-fm.cz/a/jana2027/' })).status).toBe(200);
+      expect(vi.mocked(strapiPost)).toHaveBeenLastCalledWith(expect.any(String), {
+        data: expect.objectContaining({ code: 'JANA2027' }),
+      });
+    });
+
+    it('treats an empty or null code as "generate one"', async () => {
+      mockUser([fanousci]);
+      mockStrapiGet();
+      vi.mocked(strapiPost).mockResolvedValue({ data: { ...created, audienceCategories: [fanousci] } } as never);
+
+      for (const code of ['', '  ', null]) {
+        expect((await create({ code })).status).toBe(200);
+        expect(vi.mocked(strapiPost)).toHaveBeenLastCalledWith(expect.any(String), {
+          data: { name: 'Pozvánka od jan', audienceCategories: [2], createdByUser: 40, active: true },
+        });
+      }
+    });
+
+    it('rejects an invalid code with 400 and a taken one with 409', async () => {
+      mockUser([fanousci]);
+      mockStrapiGet();
+
+      for (const code of ['ABC', 'Č3SKÝ', 'A'.repeat(17), 'https://fotbal-fm.cz/a/']) {
+        const res = await create({ code });
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toContain('4–16 znaků');
+      }
+
+      const taken = await create({ code: '7k3m9pq2' });
+      expect(taken.status).toBe(409);
+      expect((await taken.json()).error).toBe('Kód odkazu "7K3M9PQ2" už používá jiný odkaz.');
+      expect(vi.mocked(strapiPost)).not.toHaveBeenCalled();
+    });
+
+    it('returns the caller\'s own identical link when asked for its code again', async () => {
+      mockUser([rodice]);
+      const existing = { ...link, code: 'MOJE2027', audienceCategories: [rodice] };
+      const other = { ...link, code: 'EXIST001', audienceCategories: [rodice] };
+      mockStrapiGet({ links: [existing, other], ownLinks: [other, existing] });
+
+      const res = await create({ code: 'moje2027' });
+      expect(res.status).toBe(200);
+      expect((await res.json()).data.code).toBe('MOJE2027');
+      expect(vi.mocked(strapiPost)).not.toHaveBeenCalled();
+    });
+
     it('reuses an identical active link instead of minting a new code', async () => {
       mockUser([rodice]);
       const existing = { ...link, code: 'EXIST001', audienceCategories: [rodice] };

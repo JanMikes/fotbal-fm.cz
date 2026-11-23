@@ -61,6 +61,11 @@ export default {
     if (code !== undefined) {
       data.code = code;
       data.url = buildDeepLinkUrl(code);
+    } else if ('url' in data && where?.id !== undefined) {
+      // url is always derived from the stored code — a hand-written one is never saved.
+      const existing = await strapi.db.query('api::deep-link.deep-link').findOne({ where: { id: where.id }, select: ['code'] });
+      if (existing?.code) data.url = buildDeepLinkUrl(existing.code);
+      else delete data.url;
     }
   },
 };

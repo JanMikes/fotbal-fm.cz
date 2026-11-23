@@ -4,6 +4,7 @@ import { optionalJsonBody } from '../middleware/optional-json-body.js';
 import { getCurrentUser } from '../lib/audience.js';
 import {
   DeepLinkCategoryError,
+  DeepLinkCodeError,
   claimDeepLink,
   createDeepLinkForUser,
   deepLinkValidity,
@@ -60,6 +61,12 @@ const CreateBodySchema = z.object({
     .nullish()
     .openapi({ description: 'Slugs to put on the link. Omitted or null = the caller\'s own selectable categories.' }),
   name: z.string().max(120).nullish().openapi({ description: 'Admin-visible label; defaults to "Pozvánka od <username>"' }),
+  code: z.string().max(200).nullish().openapi({
+    example: 'JANAPOZVANKA',
+    description:
+      'Own code — the link becomes <base>/a/<CODE>. 4–16 letters A–Z / digits; case, spaces and dashes are ignored, ' +
+      'a pasted link is reduced to its code. Omitted, null or empty = generated. 409 when another link uses it.',
+  }),
 });
 
 const createRoute_ = createRoute({
@@ -67,13 +74,15 @@ const createRoute_ = createRoute({
   path: '/deep-links',
   description:
     '"Invite a friend": creates a deep link owned by the signed-in user (Bearer JWT). Only selectable categories ' +
-    'can be shared. An identical active link by the same user is returned instead of creating a duplicate.',
+    'can be shared. Optional `code` picks the link\'s code, otherwise one is generated. An identical active link by the ' +
+    'same user (same categories, and the same code when one is given) is returned instead of creating a duplicate.',
   middleware: [optionalJsonBody],
   request: { body: { content: { 'application/json': { schema: CreateBodySchema } }, required: false } },
   responses: {
     200: { content: { 'application/json': { schema: z.object({ data: DeepLinkSchema }) } }, description: 'Deep link (new or reused)' },
-    400: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Unknown or non-selectable category' },
+    400: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Unknown or non-selectable category, or an invalid code' },
     401: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Unauthorized' },
+    409: { content: { 'application/json': { schema: ErrorSchema } }, description: 'The chosen code is used by another link' },
     429: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Too many requests' },
   },
 });
@@ -151,11 +160,15 @@ deepLinksRoute.openapi(createRoute_, async (c) => {
       user,
       audienceCategorySlugs: body.audienceCategories ?? undefined,
       name: body.name ?? undefined,
+      code: body.code ?? undefined,
     });
     return c.json({ data: mapDeepLink(link) }, 200);
   } catch (err) {
     if (err instanceof DeepLinkCategoryError) {
       return c.json({ error: err.message }, 400);
+    }
+    if (err instanceof DeepLinkCodeError) {
+      return c.json({ error: err.message }, err.kind === 'taken' ? 409 : 400);
     }
     throw err;
   }

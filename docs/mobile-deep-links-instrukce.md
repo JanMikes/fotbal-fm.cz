@@ -105,12 +105,13 @@ Chyby: `401` (chybí/expirovaný JWT), `404` (jako u `GET`, včetně `reason`), 
 Vytvoří odkaz vlastněný přihlášeným uživatelem. Tělo je volitelné:
 
 ```json
-{ "audienceCategories": ["rodice-u12"], "name": "Pozvánka pro Petra" }
+{ "audienceCategories": ["rodice-u12"], "name": "Pozvánka pro Petra", "code": "PETR2027" }
 ```
 
 - bez těla (nebo `{}`) = odkaz nese aktuální skupiny uživatele, které lze zvolit (`selectable: true`);
 - `audienceCategories` = jiný výběr; povolené jsou jen skupiny se `selectable: true`, jinak `400`;
 - `name` je jen popisek pro administraci (výchozí `Pozvánka od <username>`).
+- `code` = vlastní kód, odkaz pak bude `https://fotbal-fm.cz/a/PETR2027`. Nepovinné – bez něj (nebo `null` / `""`) se kód vygeneruje. 4–16 písmen A–Z a číslic, velikost písmen, mezery a pomlčky se ignorují. Neplatný kód → `400`, kód už použitý jiným odkazem → `409` (zobrazit text z `error` a nechat uživatele zvolit jiný).
 
 Odpověď má stejný tvar jako `GET /deep-links/{code}`. Opakované volání se stejným výběrem vrací **stejný** odkaz (nevzniká nový kód) – tlačítko lze klidně mačkat opakovaně. Sdílejte `data.url`. Limit 20 vytvoření za hodinu (`429`).
 

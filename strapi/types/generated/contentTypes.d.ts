@@ -739,11 +739,7 @@ export interface ApiDeepLinkDeepLink extends Struct.CollectionTypeSchema {
       'api::deep-link-claim.deep-link-claim'
     >;
     claimsCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    code: Schema.Attribute.String &
-      Schema.Attribute.Unique &
-      Schema.Attribute.SetMinMaxLength<{
-        maxLength: 16;
-      }>;
+    code: Schema.Attribute.String & Schema.Attribute.Unique;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -21,8 +21,19 @@ Codes: 8 characters from Crockford base32 (`0-9 A-Z` without `I L O U`) so they 
 and typed; 32^8 ≈ 1.1e12 combinations behind a rate limit. Lookups are case-insensitive, ignore
 spaces and dashes, and retry a typed `O`/`I`/`L` as `0`/`1`/`1`.
 
+Custom codes (Strapi form or `POST /deep-links` `code`): 4–16 letters A–Z / digits, normalized to
+uppercase without spaces/dashes; a whole pasted link (`https://fotbal-fm.cz/a/fotbalfm/`) is reduced to
+its last path segment. Empty = generated. The schema has no `maxLength` on purpose, so a pasted link
+reaches the lifecycle, which enforces the 4–16 rule.
+
 `DEEP_LINK_BASE_URL` (Strapi env, default `https://fotbal-fm.cz/a`) is the base of every generated
-`url`. Dev compose points it at the local web app.
+`url`. Dev compose points it at the local web app. It must be an absolute http(s) URL ending in `/a`
+(the web route); anything else is logged as an error at boot and the default is used instead.
+
+`url` is always `<base>/<code>` and is never taken from input: the lifecycle rebuilds it on every
+create/update (also an update that sends only `url`), the admin form shows it read-only, and every
+boot rewrites any stored `url` that differs (`repairDeepLinkUrls` in `strapi/src/index.ts` — so
+changing `DEEP_LINK_BASE_URL` re-points all links on the next restart).
 
 ## API (Hono, `/api/v1`)
 
@@ -36,7 +47,7 @@ are (`/users/me`). A user can therefore never touch another user's categories.
 | `PUT /me/audience-categories` | Bearer JWT | Body `{ "audienceCategories": ["slug", …] }` — the full new list. Any selectable slug may be added; a non-selectable one may only be kept if already owned. `400` on unknown / not allowed slug. |
 | `GET /deep-links/{code}` | none | Resolves a link: `name`, `url`, `audienceCategories`, `expiresAt`. `404` with `reason` = `not_found` / `inactive` / `expired`. |
 | `POST /deep-links/{code}/claim` | Bearer JWT | Puts the link's categories on the caller. Idempotent: a second claim of the same link by the same user changes nothing (`alreadyClaimed: true`) — it does not re-add a category the user has since removed. |
-| `POST /deep-links` | Bearer JWT | "Invite a friend": creates a link owned by the caller. Body optional: `{ "audienceCategories": ["slug", …], "name": "…" }`; omitted = the caller's own selectable categories. Only selectable categories can be shared. An identical active link by the same user is returned instead of a new code. |
+| `POST /deep-links` | Bearer JWT | "Invite a friend": creates a link owned by the caller. Body optional: `{ "audienceCategories": ["slug", …], "name": "…", "code": "…" }`; omitted categories = the caller's own selectable ones; omitted/empty `code` = generated. Only selectable categories can be shared. An invalid `code` → `400`, one used by another link → `409`. An identical active link by the same user (same categories, and same code when given) is returned instead of a new one. |
 | `POST /auth/register`, `POST /auth/login` | none | New optional body field `deepLinkCode` (`null` / empty = none). On success the code is claimed server-side; the response gains `user.audienceCategories` and `deepLink` (`{ code, claimed, alreadyClaimed, reason?, addedAudienceCategories, audienceCategories }`, `reason` ∈ not_found / inactive / expired / rate_limited / error). An invalid code never fails the request. |
 
 Optional header on any of these: `X-App-Platform: ios | android | web` — only labels the claim row.
@@ -105,8 +116,11 @@ Swagger UI at `/docs` documents all of it.
 
 - **Audience Categories** — create the groups. Untick *selectable* for groups users must not pick
   themselves (e.g. partners). Order with *sortOrder*.
-- **Deep Links** — enter a *name*, pick *audienceCategories*, save. `code` and `url` appear after
-  saving; copy `url` and share it. Untick *active* or set *expiresAt* to retire a link. `claimsCount`
+- **Deep Links** (*Odkaz do aplikace*) — enter a *name*, pick *audienceCategories*, leave *code* empty
+  (or type your own), save. `url` (*Odkaz ke sdílení*) appears after saving; copy it and share it.
+  Czech labels, hints under each field and the read-only flags (`url`, `claimsCount`, `createdByUser`,
+  `claims`) are applied on boot from `strapi/src/admin-field-hints.ts`; a label changed by hand in
+  "Nastavit zobrazení" is left alone. Untick *active* or set *expiresAt* to retire a link. `claimsCount`
   and the *claims* list show who came through it. Links created from the app carry *createdByUser*.
 - **Users** — each user's *audienceCategories* are editable; *deepLinkClaims* lists the links they
   came through.

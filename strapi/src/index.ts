@@ -1,5 +1,7 @@
 import type { Core } from '@strapi/strapi';
 import { registerCacheMiddleware, connectCacheRedis } from './cache-invalidation';
+import { DEEP_LINK_FIELD_HINTS, setFieldHints } from './admin-field-hints';
+import { buildDeepLinkUrl, deepLinkBaseUrl, deepLinkBaseUrlProblem } from './lib/deep-link';
 
 const CATEGORIES = [
   { name: 'Muži A', slug: 'muzi-a', sortOrder: 1 },
@@ -221,6 +223,27 @@ async function enforceUserPermissionPolicy(strapi: Core.Strapi) {
   }
 }
 
+// Every deep link's url must be <DEEP_LINK_BASE_URL>/<code>. Rewrites any that drifted (a url typed by
+// hand before it became read-only, or a changed base URL), and warns about an unusable base URL.
+async function repairDeepLinkUrls(strapi: Core.Strapi) {
+  const configured = process.env.DEEP_LINK_BASE_URL?.trim();
+  const problem = configured ? deepLinkBaseUrlProblem(configured) : null;
+  if (problem) {
+    strapi.log.error(`DEEP_LINK_BASE_URL "${configured}" ${problem} — using ${deepLinkBaseUrl()} instead`);
+  }
+
+  const links = await strapi.db.query('api::deep-link.deep-link').findMany({ select: ['id', 'code', 'url'] });
+  let fixed = 0;
+  for (const link of links) {
+    if (!link.code) continue;
+    const url = buildDeepLinkUrl(link.code);
+    if (link.url === url) continue;
+    await strapi.db.query('api::deep-link.deep-link').update({ where: { id: link.id }, data: { url } });
+    fixed += 1;
+  }
+  if (fixed) strapi.log.info(`Repaired ${fixed} deep-link url(s)`);
+}
+
 let cleanupCache: (() => Promise<void>) | null = null;
 
 export default {
@@ -237,6 +260,8 @@ export default {
     await seedSocialNetworks(strapi);
     await setSocialLinkLabels(strapi);
     await setSocialNetworksLabel(strapi);
+    await setFieldHints(strapi, 'api::deep-link.deep-link', DEEP_LINK_FIELD_HINTS);
+    await repairDeepLinkUrls(strapi);
     await enforceUserPermissionPolicy(strapi);
     cleanupCache = connectCacheRedis(strapi);
   },

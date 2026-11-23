@@ -18,8 +18,7 @@
     },
     "code": {
       "type": "string",
-      "unique": true,
-      "maxLength": 16
+      "unique": true
     },
     "url": {
       "type": "string"
