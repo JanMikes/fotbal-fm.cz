@@ -768,3 +768,177 @@ describe('computeTextLayout with repeatable rows and offsets', () => {
     expect(moved.frames.free).toEqual(frame(480, 505, 100, 20));
   });
 });
+
+// ---------- „Navázat pod“ (`follows`, WBoost 2026-11) ----------------------------
+
+describe('computeTextLayout with attached containers (follows)', () => {
+  /** One single-text top-level container per entry: [id, input id, designed top, designed height]. */
+  function stack(
+    rows: [string, string, number, number][],
+    follows: Record<string, { containerId: string; gap: number } | null> = {},
+    extra: { spaceAfter?: Record<string, number>; hidable?: string[] } = {}
+  ): TemplateVariantDTO {
+    return makeVariant({
+      height: 2000,
+      inputs: rows.map(([cid, iid, y, h]) =>
+        makeInput({
+          id: iid,
+          containerId: cid,
+          hidable: extra.hidable?.includes(iid) ?? false,
+          frame: frame(0, y, 200, h),
+          textStyle: STYLE,
+        })
+      ),
+      containers: rows.map(([cid, iid, y]) => ({
+        id: cid,
+        maxHeight: 1000,
+        y,
+        memberInputIds: [iid],
+        spaceAfter: extra.spaceAfter?.[cid] ?? null,
+        follows: follows[cid] ?? null,
+      })),
+    });
+  }
+  /** Each value is `len` chars → measures len×10 px. */
+  function fill(values: Record<string, number>, hidden: string[] = []): Record<string, InputFieldState> {
+    return Object.fromEntries(
+      Object.entries(values).map(([id, len]) => [id, { value: 'x'.repeat(len), hidden: hidden.includes(id) }])
+    );
+  }
+
+  it('pulls the follower UP under a shrinking target (gap replaces the target spaceAfter)', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 0, 100],
+        ['B', 'b', 200, 30],
+      ],
+      { B: { containerId: 'A', gap: 20 } },
+      { spaceAfter: { A: 50 } }
+    );
+    // a = 50 px → A ends at 50; B lands at 50 + 20 (not + spaceAfter 50).
+    const { frames, overflows } = computeTextLayout(variant, fill({ a: 5, b: 3 }), measureByLength);
+    expect(frames['b'].y).toBe(70);
+    expect(overflows).toEqual([]);
+  });
+
+  it('pushes the follower DOWN under a growing target', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 0, 100],
+        ['B', 'b', 200, 30],
+      ],
+      { B: { containerId: 'A', gap: 20 } }
+    );
+    // a = 250 px → B at 270.
+    const { frames } = computeTextLayout(variant, fill({ a: 25, b: 3 }), measureByLength);
+    expect(frames['b'].y).toBe(270);
+  });
+
+  it('a fully hidden target hands over its own top (no gap)', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 40, 100],
+        ['B', 'b', 200, 30],
+      ],
+      { B: { containerId: 'A', gap: 20 } },
+      { hidable: ['a'] }
+    );
+    const { frames } = computeTextLayout(variant, fill({ a: 5, b: 3 }, ['a']), measureByLength);
+    expect(frames['b'].y).toBe(40);
+    expect(frames['a'].height).toBe(0);
+  });
+
+  it('chains: C below B below A', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 0, 100],
+        ['B', 'b', 200, 30],
+        ['C', 'c', 400, 30],
+      ],
+      { B: { containerId: 'A', gap: 10 }, C: { containerId: 'B', gap: 10 } }
+    );
+    // A ends 50 → B at 60, ends 90 → C at 100.
+    const { frames } = computeTextLayout(variant, fill({ a: 5, b: 3, c: 3 }), measureByLength);
+    expect(frames['b'].y).toBe(60);
+    expect(frames['c'].y).toBe(100);
+  });
+
+  it('cuts a cycle: the link that closes the loop is dropped', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 0, 100],
+        ['B', 'b', 200, 30],
+      ],
+      { A: { containerId: 'B', gap: 10 }, B: { containerId: 'A', gap: 10 } }
+    );
+    // Walking from A (A→B→A) cuts B→A: B stays designed (200, ends 230),
+    // A — drawn above it — hangs below B at 240.
+    const { frames } = computeTextLayout(variant, fill({ a: 5, b: 3 }), measureByLength);
+    expect(frames['b'].y).toBe(200);
+    expect(frames['a'].y).toBe(240);
+  });
+
+  it('an unlinked root between target and follower still pushes the follower', () => {
+    const variant = stack(
+      [
+        ['A', 'a', 0, 100],
+        ['M', 'm', 150, 40],
+        ['B', 'b', 300, 30],
+      ],
+      { B: { containerId: 'A', gap: 10 } }
+    );
+    // A ends 50 (link would land B at 60), but M stays at 150 and ends 190 → B at 190.
+    const { frames } = computeTextLayout(variant, fill({ a: 5, m: 4, b: 3 }), measureByLength);
+    expect(frames['m'].y).toBe(150);
+    expect(frames['b'].y).toBe(190);
+  });
+
+  it('a pulled-up follower can push roots designed below it; one drawn above its target never pushes the target', () => {
+    const variant = stack(
+      [
+        ['F', 'f', 0, 30],
+        ['T', 't', 100, 30],
+        ['U', 'u', 200, 30],
+      ],
+      { F: { containerId: 'T', gap: 10 } }
+    );
+    // T is placed first and stays at 100 (ends 130); F lands at 140 and ends
+    // at 200 (f = 60 px) → U stays at 200. f = 100 px → U pushed to 240.
+    let { frames } = computeTextLayout(variant, fill({ f: 6, t: 3, u: 3 }), measureByLength);
+    expect(frames['t'].y).toBe(100);
+    expect(frames['f'].y).toBe(140);
+    expect(frames['u'].y).toBe(200);
+    ({ frames } = computeTextLayout(variant, fill({ f: 10, t: 3, u: 3 }), measureByLength));
+    expect(frames['t'].y).toBe(100);
+    expect(frames['u'].y).toBe(240);
+  });
+
+  it('reports canvas-bottom overflow on a follower pushed off the page', () => {
+    const variant = { ...stack([['A', 'a', 0, 100], ['B', 'b', 200, 50]], { B: { containerId: 'A', gap: 20 } }), height: 400 };
+    // a = 350 px → B at 370; b = 50 px → ends 420 > page 400 → overflow 20.
+    const { overflows } = computeTextLayout(variant, fill({ a: 35, b: 5 }), measureByLength);
+    expect(overflows).toEqual([{ containerId: 'B', overflowPx: 20 }]);
+  });
+
+  it('without (usable) follows the layout is unchanged: null, absent, unknown target, self link', () => {
+    const rows: [string, string, number, number][] = [
+      ['A', 'a', 0, 100],
+      ['B', 'b', 200, 30],
+    ];
+    const state = fill({ a: 25, b: 3 });
+    const base = computeTextLayout(stack(rows), state, measureByLength);
+    // A grows to 250 → B pushed to 250 (contact, no pull-up when it shrinks).
+    expect(base.frames['b'].y).toBe(250);
+    const absent = stack(rows);
+    for (const container of absent.containers) delete container.follows;
+    for (const variant of [
+      absent,
+      stack(rows, { B: { containerId: 'nope', gap: 10 } }),
+      stack(rows, { B: { containerId: 'B', gap: 10 } }),
+    ]) {
+      expect(computeTextLayout(variant, state, measureByLength)).toEqual(base);
+    }
+    // Shrinking A leaves an unlinked B at its designed top.
+    expect(computeTextLayout(stack(rows), fill({ a: 5, b: 3 }), measureByLength).frames['b'].y).toBe(200);
+  });
+});

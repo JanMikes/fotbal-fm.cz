@@ -306,6 +306,13 @@ describe('SocialExportService', () => {
               ],
               containers: [
                 { id: 'cont-1', maxHeight: 200, y: 60, memberInputIds: ['member-1', 'member-2'] },
+                {
+                  id: 'cont-2',
+                  maxHeight: 100,
+                  y: 300,
+                  memberInputIds: [],
+                  follows: { containerId: 'cont-1', gap: 12 },
+                },
               ],
             }),
           ],
@@ -335,7 +342,10 @@ describe('SocialExportService', () => {
           name: null,
           memberImageInputIds: [],
           repeat: null,
+          // „Navázat pod“ (2026-11): absent → not attached.
+          follows: null,
         },
+        expect.objectContaining({ id: 'cont-2', follows: { containerId: 'cont-1', gap: 12 } }),
       ]);
 
       const [member, independent] = variant.inputs;

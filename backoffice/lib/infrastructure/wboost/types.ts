@@ -178,6 +178,11 @@ export interface WboostRawContainer {
   gap?: number | null;
   /** Guaranteed clearance below (push landing + canvas-bottom margin); null = 0. */
   spaceAfter?: number | null;
+  /**
+   * „Navázat pod“ (2026-11): a TOP-LEVEL container attached `gap` px below
+   * another top-level container's actual content bottom. Null/absent = free.
+   */
+  follows?: WboostRawContainerFollows | null;
   /** True → nested inside a parent (its own maxHeight is not enforced). */
   nested?: boolean;
   /**
@@ -193,6 +198,11 @@ export interface WboostRawContainer {
   repeat?: WboostRawRepeatSpec | null;
   /** Repeatable rows only: designed estimate of how many rows fit. */
   fitsRows?: number | null;
+}
+
+export interface WboostRawContainerFollows {
+  containerId: string;
+  gap: number;
 }
 
 export interface WboostRawRepeatSpec {

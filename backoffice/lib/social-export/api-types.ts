@@ -218,6 +218,17 @@ export interface TemplateContainerDTO {
    * against the canvas bottom. Null/absent = 0.
    */
   spaceAfter?: number | null;
+  /**
+   * „Navázat pod“ (WBoost 2026-11): non-null on a TOP-LEVEL container
+   * ATTACHED below another top-level container (`containerId`, always a
+   * listed container). It starts `gap` px below that container's ACTUAL
+   * content bottom — pulled up when it shrinks, pushed down when it grows; a
+   * fully hidden target hands over its own top (no gap). Chains allowed,
+   * cycles cut. The target's `spaceAfter` does not apply between the two;
+   * collision-push from other roots designed above still does. `y` / member
+   * frames stay DESIGNED. Null/absent = not attached.
+   */
+  follows?: ContainerFollowsDTO | null;
   /** True → flows inside a parent; its own maxHeight is NOT enforced. */
   nested?: boolean;
   /**
@@ -246,6 +257,12 @@ export interface TemplateContainerDTO {
    * on everything outside a repeatable row.
    */
   rowSlot?: RowSlotRef;
+}
+
+/** `TemplateContainerDTO.follows`: the container it hangs below + the px gap. */
+export interface ContainerFollowsDTO {
+  containerId: string;
+  gap: number;
 }
 
 /** How often a repeatable row may show: `min`…`max`, `default` on a fresh fill. */

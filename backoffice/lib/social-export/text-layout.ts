@@ -307,6 +307,20 @@ export function normalizeGap(gap: unknown): number | null {
   return typeof gap === 'number' && Number.isFinite(gap) && gap >= 0 ? gap : null;
 }
 
+/**
+ * A usable `follows` link: {containerId: non-empty string ≠ self, gap: finite
+ * ≥ 0 (else 0)} or null — WBoostContainerLayout.normalizeFollows.
+ */
+export function normalizeFollows(
+  follows: unknown,
+  selfId: string
+): { containerId: string; gap: number } | null {
+  if (!follows || typeof follows !== 'object') return null;
+  const { containerId, gap } = follows as { containerId?: unknown; gap?: unknown };
+  if (typeof containerId !== 'string' || containerId === '' || containerId === selfId) return null;
+  return { containerId, gap: normalizeGap(gap) ?? 0 };
+}
+
 /** Designed vertical gaps between consecutive members; gaps[i] sits between i and i+1. */
 export function computeGaps(members: DesignedMember[]): number[] {
   const gaps: number[] = [];
@@ -616,6 +630,8 @@ export function computeTextLayout(
     extRight: number;
     /** Sibling collision-push offset resolved over the measured roots. */
     rootDelta: number;
+    /** Every flow item hidden (set by measureNode). */
+    hidden: boolean;
   }
 
   const containerById = new Map(variant.containers.map((c) => [c.id, c]));
@@ -670,6 +686,7 @@ export function computeTextLayout(
       extLeft,
       extRight,
       rootDelta: 0,
+      hidden: false,
     };
     nodes.set(container.id, node);
     return node;
@@ -707,9 +724,10 @@ export function computeTextLayout(
       previousBottom = item.extTop + (item.height ?? 0);
     });
     node.contentBottom = previousBottom ?? node.anchorTop;
+    node.hidden = node.items.every((item) => item.hidden);
     return {
       height: node.contentBottom - node.anchorTop,
-      hidden: node.items.every((item) => item.hidden),
+      hidden: node.hidden,
     };
   };
 
@@ -749,27 +767,73 @@ export function computeTextLayout(
     }
   }
 
-  // Sibling collision-push: top-level containers never overlap. Walked in
-  // designed-top order, a root whose content would run into a lower,
-  // horizontally-overlapping root pushes it down by the excess (chained;
-  // whitespace absorbs growth first, no pull-up), keeping the pusher's
-  // spaceAfter clearance — also enforced as a minimum at designed positions.
+  // Root placement over the measured roots, in designed-top order — a
+  // FOLLOWER right after its target (WBoost applyFabricLayout "Root
+  // placement"; links resolved first, cycles / unknown targets = no link):
+  //  - „Navázat pod“ (`follows`): the follower lands `gap` below its target's
+  //    ACTUAL content bottom — pulled up AND pushed down; a fully collapsed
+  //    target hands over its own top (no gap).
+  //  - Sibling collision-push: a root never runs into the content of a root
+  //    designed above it (x-overlapping) — push-down only (whitespace absorbs
+  //    growth first), the pushing root's spaceAfter as clearance (min
+  //    enforced at designed positions too). A follower ignores its own target
+  //    here (the link's gap governs) but is still pushed by the others.
+  const rootById = new Map(rootNodes.map((node) => [node.container.id, node]));
+  const followGap = new Map<FlowNode, number>();
+  const targetOf = new Map<FlowNode, FlowNode>();
+  for (const node of rootNodes) {
+    const follows = normalizeFollows(node.container.follows, node.container.id);
+    const target = follows ? rootById.get(follows.containerId) : undefined;
+    if (follows && target && target !== node) {
+      targetOf.set(node, target);
+      followGap.set(node, follows.gap);
+    }
+  }
+  // Break cycles: walk each chain, cut the link that closes a loop.
+  for (const node of rootNodes) {
+    const seen = new Set([node]);
+    let current = node;
+    while (targetOf.has(current)) {
+      const next = targetOf.get(current)!;
+      if (seen.has(next)) {
+        targetOf.delete(current);
+        break;
+      }
+      seen.add(next);
+      current = next;
+    }
+  }
+
   const placed: FlowNode[] = [];
-  [...rootNodes]
-    .sort((a, b) => a.anchorTop - b.anchorTop)
-    .forEach((node) => {
-      let delta = 0;
-      placed.forEach((other) => {
-        const xOverlap =
-          Math.min(other.extRight, node.extRight) - Math.max(other.extLeft, node.extLeft);
-        if (!(xOverlap > 0)) return;
-        const clearance =
-          normalizeGap(other.container.spaceAfter) ?? 0;
-        delta = Math.max(delta, other.contentBottom + other.rootDelta + clearance - node.anchorTop);
-      });
-      node.rootDelta = Math.max(0, delta);
-      placed.push(node);
+  const placedSet = new Set<FlowNode>();
+  const place = (node: FlowNode): void => {
+    if (placedSet.has(node)) return;
+    placedSet.add(node);
+    const target = targetOf.get(node) ?? null;
+    if (target) place(target);
+
+    let delta = target ? -Infinity : 0;
+    placed.forEach((other) => {
+      if (other === target || other.anchorTop > node.anchorTop) return;
+      const xOverlap =
+        Math.min(other.extRight, node.extRight) - Math.max(other.extLeft, node.extLeft);
+      if (!(xOverlap > 0)) return;
+      const clearance =
+        normalizeGap(other.container.spaceAfter) ?? 0;
+      delta = Math.max(delta, other.contentBottom + other.rootDelta + clearance - node.anchorTop);
     });
+    if (target) {
+      const landing = target.hidden
+        ? target.anchorTop + target.rootDelta
+        : target.contentBottom + target.rootDelta + (followGap.get(node) ?? 0);
+      delta = Math.max(delta, landing - node.anchorTop);
+    } else {
+      delta = Math.max(0, delta);
+    }
+    node.rootDelta = delta;
+    placed.push(node);
+  };
+  [...rootNodes].sort((a, b) => a.anchorTop - b.anchorTop).forEach(place);
 
   for (const node of rootNodes) {
     const delta = node.rootDelta;
