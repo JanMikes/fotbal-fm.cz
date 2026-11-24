@@ -229,6 +229,15 @@ export interface TemplateContainerDTO {
    * frames stay DESIGNED. Null/absent = not attached.
    */
   follows?: ContainerFollowsDTO | null;
+  /**
+   * Minimum flow height (WBoost 2026-11, canvas px): a VISIBLE container
+   * takes at least this much space from its top even with fewer / shorter
+   * items, so what follows it (the parent's next item, a pushed or attached
+   * root, the page-bottom check) starts no higher. Never a bound itself
+   * (maxHeight is); a fully hidden container still takes no space.
+   * Null/absent = none.
+   */
+  minHeight?: number | null;
   /** True → flows inside a parent; its own maxHeight is NOT enforced. */
   nested?: boolean;
   /**

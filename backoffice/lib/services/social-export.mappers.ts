@@ -212,6 +212,8 @@ function mapVariantShape(raw: WboostRawVariant, thumbnailsEnabled: boolean): Tem
       follows: container.follows
         ? { containerId: container.follows.containerId, gap: container.follows.gap }
         : null,
+      // Min flow height (2026-11): absent on older deploys → none.
+      minHeight: container.minHeight ?? null,
       nested: container.nested ?? false,
       // Whole-container hide (2026-11): without these the toggles never
       // appear. Absent on older deploys → not hidable, unnamed.

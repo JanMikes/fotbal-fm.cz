@@ -312,6 +312,7 @@ describe('SocialExportService', () => {
                   y: 300,
                   memberInputIds: [],
                   follows: { containerId: 'cont-1', gap: 12 },
+                  minHeight: 80,
                 },
               ],
             }),
@@ -344,8 +345,9 @@ describe('SocialExportService', () => {
           repeat: null,
           // „Navázat pod“ (2026-11): absent → not attached.
           follows: null,
+          minHeight: null,
         },
-        expect.objectContaining({ id: 'cont-2', follows: { containerId: 'cont-1', gap: 12 } }),
+        expect.objectContaining({ id: 'cont-2', follows: { containerId: 'cont-1', gap: 12 }, minHeight: 80 }),
       ]);
 
       const [member, independent] = variant.inputs;

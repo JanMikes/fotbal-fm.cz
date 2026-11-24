@@ -632,6 +632,8 @@ export function computeTextLayout(
     rootDelta: number;
     /** Every flow item hidden (set by measureNode). */
     hidden: boolean;
+    /** End of the flow BEFORE the minHeight floor (set by measureNode). */
+    flowBottom: number;
   }
 
   const containerById = new Map(variant.containers.map((c) => [c.id, c]));
@@ -687,6 +689,7 @@ export function computeTextLayout(
       extRight,
       rootDelta: 0,
       hidden: false,
+      flowBottom: items[0].designedTop,
     };
     nodes.set(container.id, node);
     return node;
@@ -725,6 +728,15 @@ export function computeTextLayout(
     });
     node.contentBottom = previousBottom ?? node.anchorTop;
     node.hidden = node.items.every((item) => item.hidden);
+    node.flowBottom = node.contentBottom;
+    // `minHeight` (WBoost 2026-11): a visible container takes at least that
+    // much space from its anchor, so what follows (the parent's next item, a
+    // pushed or attached root, the page bottom) starts no higher. A collapsed
+    // one stays collapsed.
+    const minHeight = normalizeGap(node.container.minHeight);
+    if (!node.hidden && minHeight !== null) {
+      node.contentBottom = Math.max(node.contentBottom, node.anchorTop + minHeight);
+    }
     return {
       height: node.contentBottom - node.anchorTop,
       hidden: node.hidden,
@@ -848,7 +860,9 @@ export function computeTextLayout(
         const nextVisible = flow.slice(i + 1).find((e) => e.top !== null);
         frames[entry.id] = {
           ...frames[entry.id],
-          y: nextVisible?.top ?? node.contentBottom + delta,
+          // The raw end of the flow — a collapsed trailing line sits where
+          // the last visible text ends, not at the minHeight floor.
+          y: nextVisible?.top ?? node.flowBottom + delta,
           height: 0,
         };
       }

@@ -942,3 +942,80 @@ describe('computeTextLayout with attached containers (follows)', () => {
     expect(computeTextLayout(stack(rows), fill({ a: 5, b: 3 }), measureByLength).frames['b'].y).toBe(200);
   });
 });
+
+// ---------- minHeight (WBoost 2026-11) --------------------------------------------
+
+describe('computeTextLayout with a container minHeight', () => {
+  /** A (text a at 0, designed 100 tall, optional minHeight) above B (text b at 100). */
+  function pair(
+    minHeight: number | null,
+    follows: { containerId: string; gap: number } | null = null
+  ): TemplateVariantDTO {
+    return makeVariant({
+      height: 2000,
+      inputs: [
+        makeInput({ id: 'a', containerId: 'A', hidable: true, frame: frame(0, 0, 200, 100), textStyle: STYLE }),
+        makeInput({ id: 'b', containerId: 'B', frame: frame(0, 100, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'A', maxHeight: 1000, y: 0, memberInputIds: ['a'], minHeight },
+        { id: 'B', maxHeight: 1000, y: 100, memberInputIds: ['b'], follows },
+      ],
+    });
+  }
+  const state = (aChars: number, aHidden = false): Record<string, InputFieldState> => ({
+    a: { value: 'x'.repeat(aChars), hidden: aHidden },
+    b: { value: 'xxx', hidden: false },
+  });
+
+  it('floors a short flow: what follows starts no higher than top + minHeight', () => {
+    // a = 50 px; without the floor B keeps its designed 100.
+    expect(computeTextLayout(pair(null), state(5), measureByLength).frames['b'].y).toBe(100);
+    // Floor 200 → A ends at 200 → B pushed to 200; a itself is not stretched.
+    const { frames, overflows } = computeTextLayout(pair(200), state(5), measureByLength);
+    expect(frames['b'].y).toBe(200);
+    expect(frames['a']).toEqual(frame(0, 0, 200, 50));
+    expect(overflows).toEqual([]);
+  });
+
+  it('has no effect when the content is taller than the floor', () => {
+    // a = 300 px > 200 → B at 300, same as without a floor.
+    expect(computeTextLayout(pair(200), state(30), measureByLength)).toEqual(
+      computeTextLayout(pair(null), state(30), measureByLength)
+    );
+    expect(computeTextLayout(pair(200), state(30), measureByLength).frames['b'].y).toBe(300);
+  });
+
+  it('a fully hidden container stays collapsed (the floor does not apply)', () => {
+    const { frames } = computeTextLayout(pair(200), state(5, true), measureByLength);
+    expect(frames['b'].y).toBe(100);
+    expect(frames['a']).toEqual(frame(0, 0, 200, 0));
+  });
+
+  it('an attached follower lands gap below the floor', () => {
+    const { frames } = computeTextLayout(pair(200, { containerId: 'A', gap: 10 }), state(5), measureByLength);
+    expect(frames['b'].y).toBe(210);
+  });
+
+  it('a nested floor grows its item in the parent (and the parent overflow)', () => {
+    const variant = makeVariant({
+      inputs: [
+        makeInput({ id: 'k', containerId: 'K', frame: frame(0, 0, 200, 30), textStyle: STYLE }),
+        makeInput({ id: 'p', containerId: 'P', frame: frame(0, 50, 200, 30), textStyle: STYLE }),
+      ],
+      containers: [
+        { id: 'K', maxHeight: 10, y: 0, memberInputIds: ['k'], nested: true, minHeight: 100 },
+        { id: 'P', maxHeight: 140, y: 0, memberInputIds: ['p'], memberContainerIds: ['K'] },
+      ],
+    });
+    // K: k = 30 px, floored to 100; designed gap K→p = 20 → p at 120, ends
+    // 150 > 0 + 140 → overflow 10 on the root.
+    const layout = computeTextLayout(
+      variant,
+      { k: { value: 'xxx', hidden: false }, p: { value: 'xxx', hidden: false } },
+      measureByLength
+    );
+    expect(layout.frames['p'].y).toBe(120);
+    expect(layout.overflows).toEqual([{ containerId: 'P', overflowPx: 10 }]);
+  });
+});

@@ -183,6 +183,8 @@ export interface WboostRawContainer {
    * another top-level container's actual content bottom. Null/absent = free.
    */
   follows?: WboostRawContainerFollows | null;
+  /** Visible flow takes at least this many px from its top (2026-11); null = none. */
+  minHeight?: number | null;
   /** True → nested inside a parent (its own maxHeight is not enforced). */
   nested?: boolean;
   /**
