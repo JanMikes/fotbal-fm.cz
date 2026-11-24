@@ -92,6 +92,16 @@
       "relation": "oneToMany",
       "target": "api::deep-link.deep-link",
       "mappedBy": "createdByUser"
+    },
+    "ticketingTester": {
+      "type": "boolean",
+      "default": false
+    },
+    "ticketPurchases": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ticket-purchase.ticket-purchase",
+      "mappedBy": "user"
     }
   }
 }

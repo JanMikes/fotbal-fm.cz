@@ -1534,6 +1534,84 @@ export interface ApiTeamTeam extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiTicketPurchaseTicketPurchase
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'ticket_purchases';
+  info: {
+    description: 'One row per ticket purchase through Upfan \u2014 written by the API (service token), read-only for admins';
+    displayName: 'N\u00E1kup vstupenek';
+    pluralName: 'ticket-purchases';
+    singularName: 'ticket-purchase';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    buyerMode: Schema.Attribute.Enumeration<['account', 'guest']> &
+      Schema.Attribute.Required;
+    completedAt: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.String;
+    environment: Schema.Attribute.Enumeration<['sandbox', 'production']> &
+      Schema.Attribute.Required;
+    eventId: Schema.Attribute.Integer & Schema.Attribute.Required;
+    eventName: Schema.Attribute.String;
+    eventStartsAt: Schema.Attribute.DateTime;
+    failureCode: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ticket-purchase.ticket-purchase'
+    > &
+      Schema.Attribute.Private;
+    onboardingExpiresAt: Schema.Attribute.DateTime;
+    onboardingId: Schema.Attribute.String;
+    onboardingUrl: Schema.Attribute.Text;
+    orderId: Schema.Attribute.String;
+    paymentUrl: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    quantity: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    reference: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    reservationExpiresAt: Schema.Attribute.DateTime;
+    reservationId: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<
+      [
+        'buyer_verification',
+        'payment',
+        'success',
+        'failure',
+        'expired',
+        'cancelled',
+      ]
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'buyer_verification'>;
+    ticketCategoryId: Schema.Attribute.Integer & Schema.Attribute.Required;
+    ticketCategoryName: Schema.Attribute.String;
+    totalAmount: Schema.Attribute.Integer;
+    unitAmount: Schema.Attribute.Integer;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiTournamentTournament extends Struct.CollectionTypeSchema {
   collectionName: 'tournaments';
   info: {
@@ -2094,6 +2172,12 @@ export interface PluginUsersPermissionsUser
       'manyToOne',
       'plugin::users-permissions.role'
     >;
+    ticketingTester: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    ticketPurchases: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ticket-purchase.ticket-purchase'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2140,6 +2224,7 @@ declare module '@strapi/strapi' {
       'api::social-network.social-network': ApiSocialNetworkSocialNetwork;
       'api::standing.standing': ApiStandingStanding;
       'api::team.team': ApiTeamTeam;
+      'api::ticket-purchase.ticket-purchase': ApiTicketPurchaseTicketPurchase;
       'api::tournament.tournament': ApiTournamentTournament;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

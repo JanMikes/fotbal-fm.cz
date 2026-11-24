@@ -1,0 +1,102 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ticket_purchases",
+  "info": {
+    "singularName": "ticket-purchase",
+    "pluralName": "ticket-purchases",
+    "displayName": "Nákup vstupenek",
+    "description": "One row per ticket purchase through Upfan — written by the API (service token), read-only for admins"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "reference": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "ticketPurchases"
+    },
+    "environment": {
+      "type": "enumeration",
+      "enum": ["sandbox", "production"],
+      "required": true
+    },
+    "buyerMode": {
+      "type": "enumeration",
+      "enum": ["account", "guest"],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["buyer_verification", "payment", "success", "failure", "expired", "cancelled"],
+      "required": true,
+      "default": "buyer_verification"
+    },
+    "eventId": {
+      "type": "integer",
+      "required": true
+    },
+    "eventName": {
+      "type": "string"
+    },
+    "eventStartsAt": {
+      "type": "datetime"
+    },
+    "ticketCategoryId": {
+      "type": "integer",
+      "required": true
+    },
+    "ticketCategoryName": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 10
+    },
+    "unitAmount": {
+      "type": "integer"
+    },
+    "totalAmount": {
+      "type": "integer"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "onboardingId": {
+      "type": "string"
+    },
+    "onboardingUrl": {
+      "type": "text"
+    },
+    "onboardingExpiresAt": {
+      "type": "datetime"
+    },
+    "reservationId": {
+      "type": "string"
+    },
+    "reservationExpiresAt": {
+      "type": "datetime"
+    },
+    "orderId": {
+      "type": "string"
+    },
+    "paymentUrl": {
+      "type": "text"
+    },
+    "failureCode": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": "datetime"
+    }
+  }
+}

@@ -224,6 +224,16 @@ The web app caches every Strapi response in Redis — the **data cache v2** (`pa
 - `DATA_CACHE_MODE=off` bypasses Redis (debugging only — puts Strapi on the hot path). Metrics: `:9464/metrics` (`fotbalfm_datacache_requests_total`, `fotbalfm_strapi_requests_total`, transport heartbeat).
 - **Nothing flushes the cache any more:** no webhook, no flush in the sync scripts — every write bumps its tags through Strapi. The FAČR and SportBM syncs only PUT entries whose fields actually differ (`changedFields()` in `api/src/lib/sync-diff.ts`), so a run that changed nothing bumps nothing.
 
+### Ticket Sales (Upfan)
+
+Full design + API contract: `docs/upfan-ticketing.md`. Mobile-side instructions (Czech, handed over as PDF): `docs/upfan-mobilni-aplikace-instrukce.md`.
+
+- Upfan sells, our API (`api/src/lib/upfan.ts`, `lib/ticketing.ts`, `routes/tickets.ts`) is the only client; the app never sees Upfan credentials. Purchases are `ticket-purchase` rows in Strapi (service token, cache-tag `ignored`); every lookup goes through the caller's own row.
+- Users with `ticketingTester` (admin-only) buy in the Upfan **sandbox**, everyone else in **production**; an environment without credentials (`UPFAN_SANDBOX_*` / `UPFAN_PRODUCTION_*` in the api env) is never used (fail closed). Locally the sandbox credentials are in `compose.override.yaml`.
+- `UPFAN_BUYER_MODE` = `guest` (default; Upfan verifies the e-mail each purchase) or `account` (needs e-mails we verified — ours are not: Strapi `email_confirmation` is off).
+- Upfan budget: 300 req/min for the whole integration incl. polling — keep the catalog/ticket caches and the order-poll throttle.
+- Return URLs `https://fotbal-fm.cz/upfan[/test]/{buyer-return,payment-return}` are registered at Upfan (exact) and are App Links (`/upfan/*` in the AASA, `web/src/app/upfan/[...path]` = fallback page).
+
 ### Audience Categories & Deep Links
 
 Full design + API contract: `docs/audience-categories-deep-links.md`. Mobile-side instructions (Czech, handed over as PDF): `docs/mobile-deep-links-instrukce.md`.

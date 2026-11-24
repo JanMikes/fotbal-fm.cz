@@ -35,7 +35,7 @@ export const REDIS_PROBE_MS = 300;
 const REDIS_VERDICT_MS = 1000; // a probe's answer is reused this long (at most one PING per second)
 
 /** Top-level app segments that are not CMS pages: the `[slug]` catch-all's siblings (a test keeps it equal to src/app). */
-export const STATIC_TOP_LEVEL = new Set(['a', 'api', 'kategorie', 'kdy-hrajeme', 'komponenty', 'novinky', 'partner', 'partneri']);
+export const STATIC_TOP_LEVEL = new Set(['a', 'api', 'kategorie', 'kdy-hrajeme', 'komponenty', 'novinky', 'partner', 'partneri', 'upfan']);
 
 function decode(segment: string): string {
   try {

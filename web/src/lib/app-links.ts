@@ -72,6 +72,65 @@ export function androidIntentUrl(code: string): string {
   );
 }
 
+// --- Upfan ticket checkout returns ---
+
+/**
+ * Upfan sends the buyer back to these registered URLs (Universal Links / App Links) after its
+ * buyer verification and after the payment page: /upfan[/test]/{buyer-return,payment-return}.
+ * `test` = Upfan sandbox. When the app does not open, the web page offers fkfm://upfan/… .
+ */
+export const UPFAN_RETURN_PATH_PREFIX = '/upfan/';
+
+export type UpfanReturnKind = 'buyer-return' | 'payment-return';
+
+export interface UpfanReturn {
+  kind: UpfanReturnKind;
+  sandbox: boolean;
+}
+
+/** Path segments after /upfan/ → the return it is, or null for anything else (404). */
+export function parseUpfanReturnPath(segments: string[]): UpfanReturn | null {
+  const [first, second, ...rest] = segments;
+  if (rest.length > 0) return null;
+  const isKind = (s: string | undefined): s is UpfanReturnKind => s === 'buyer-return' || s === 'payment-return';
+  if (first === 'test' && isKind(second)) return { kind: second, sandbox: true };
+  if (isKind(first) && second === undefined) return { kind: first, sandbox: false };
+  return null;
+}
+
+/**
+ * The only query parameters Upfan adds (and the app may read): `upfan_onboarding=success`
+ * after verification, `order_reference=<Upfan order uuid>` after payment. Anything else is
+ * dropped, malformed values too.
+ */
+export function upfanReturnQuery(params: Record<string, string | string[] | undefined>): string {
+  const query = new URLSearchParams();
+  const onboarding = params.upfan_onboarding;
+  if (typeof onboarding === 'string' && /^[a-z_]{1,32}$/.test(onboarding)) query.set('upfan_onboarding', onboarding);
+  const order = params.order_reference;
+  if (typeof order === 'string' && /^[0-9a-fA-F-]{8,64}$/.test(order)) query.set('order_reference', order);
+  const qs = query.toString();
+  return qs ? `?${qs}` : '';
+}
+
+function upfanAppPath({ kind, sandbox }: UpfanReturn): string {
+  return `upfan/${sandbox ? 'test/' : ''}${kind}`;
+}
+
+/** fkfm://upfan[/test]/<kind>?<query> — the "continue in the app" button. */
+export function upfanReturnSchemeUrl(ret: UpfanReturn, query: string): string {
+  return `${config.mobileApp.urlScheme}://${upfanAppPath(ret)}${query}`;
+}
+
+/** Android: opens the installed app, otherwise Google Play. */
+export function upfanReturnAndroidIntentUrl(ret: UpfanReturn, query: string): string {
+  const fallback = encodeURIComponent(playStoreUrl());
+  return (
+    `intent://${upfanAppPath(ret)}${query}#Intent;scheme=${config.mobileApp.urlScheme};` +
+    `package=${config.mobileApp.androidPackage};S.browser_fallback_url=${fallback};end`
+  );
+}
+
 /** Served at /.well-known/apple-app-site-association (Universal Links + password autofill). */
 export function buildAppleAppSiteAssociation() {
   const appId = config.mobileApp.iosAppId;
@@ -80,7 +139,10 @@ export function buildAppleAppSiteAssociation() {
       details: [
         {
           appIDs: [appId],
-          components: [{ '/': `${DEEP_LINK_PATH_PREFIX}*`, comment: 'Deep links (audience categories, invitations)' }],
+          components: [
+            { '/': `${DEEP_LINK_PATH_PREFIX}*`, comment: 'Deep links (audience categories, invitations)' },
+            { '/': `${UPFAN_RETURN_PATH_PREFIX}*`, comment: 'Return from Upfan ticket checkout (buyer verification, payment)' },
+          ],
         },
       ],
     },
